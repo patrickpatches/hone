@@ -128,6 +128,50 @@ const LEFTOVER_OPTIONS=[
   {id:'week',label:'Meal prep for the week',desc:'5× batch — freeze what you don\'t eat',extra:null,multiplier:5},
 ];
 
+// ─── AISLES ───────────────────────────────────────────────────────────────────
+const AISLES=[
+  {id:'produce', label:'Produce',       emoji:'🥬'},
+  {id:'meat',    label:'Meat & Seafood',emoji:'🥩'},
+  {id:'dairy',   label:'Dairy & Eggs',  emoji:'🥚'},
+  {id:'bakery',  label:'Bakery',        emoji:'🍞'},
+  {id:'pantry',  label:'Pantry',        emoji:'🫙'},
+];
+
+// Hard-to-find Australian ingredient tips
+const AU_HARD={
+  'pandan':       'Asian grocers — check the freezer section if fresh isn\'t available',
+  'galangal':     'Asian grocers; also sold frozen. Fresh ginger is a close sub',
+  'kaffir lime':  'Asian grocers. Also sold as makrut lime leaves',
+  'belacan':      'Asian grocers — look for Malay brands like Adabi',
+  'ikan bilis':   'Asian grocers (dried anchovies)',
+  'lap cheong':   'Asian grocers and Chinatown butchers',
+  'candlenuts':   'Asian grocers. Macadamia nuts are a near-identical substitute',
+  'kecap manis':  'Most large supermarkets; always at Asian grocers',
+  'palm sugar':   'Asian grocers. Also called gula melaka',
+  'nam prik pao': 'Asian grocers (roasted chilli paste)',
+  'kashmiri chilli':'Indian grocers. Sub: mild paprika + a pinch of cayenne',
+  'tamarind':     'Asian grocers and some Woolworths',
+  'sambal oelek': 'Most large supermarkets (Asian aisle)',
+  'fish sauce':   'All major supermarkets — look for Tiparos or Squid brand',
+};
+
+function getAisle(name){
+  const n=name.toLowerCase();
+  if(/\b(onion|garlic|ginger|tomato|capsicum|chilli|lemon|lime|potato|carrot|celery|cucumber|spinach|kale|silverbeet|parsley|coriander|basil|thyme|rosemary|mint|dill|sage|spring onion|shallot|leek|mushroom|pumpkin|broccoli|cauliflower|lettuce|avocado|mango|pineapple|strawberr|passionfruit|kiwi|asparagus|bean sprout|galangal|lemongrass|kaffir|pandan|chive|broccolini|zucchini|eggplant|beetroot|cabbage|bok choy|pak choy|snow pea|sugar snap|corn|fennel|watercress|rocket|radicchio)\b/.test(n)) return 'produce';
+  if(/\b(chicken|beef|lamb|pork|mince|fish|prawn|salmon|barramundi|snapper|tuna|squid|anchov|sausage|bacon|pancetta|guanciale|lap cheong|steak|fillet|thigh|breast|rib|brisket|chuck|shank|cutlet|chorizo|salami|mortadella|turkey|duck|quail|venison|veal|offal|liver|kidney)\b/.test(n)) return 'meat';
+  if(/\b(egg|butter|cream|milk|cheese|yoghurt|yogurt|mozzarella|parmesan|parmigiano|pecorino|ricotta|feta|ghee|paneer|creme fraiche|sour cream|mascarpone|halloumi|brie|camembert|gouda|cheddar)\b/.test(n)) return 'dairy';
+  if(/\b(bread|flatbread|pitta|pita|crumb|panko|bun|roll|tortilla|sourdough|baguette|ciabatta|brioche|naan|roti|lavash|pide|bagel)\b/.test(n)) return 'bakery';
+  return 'pantry';
+}
+
+function getAUFlag(name){
+  const n=name.toLowerCase();
+  for(const[key,tip] of Object.entries(AU_HARD)){
+    if(n.includes(key)) return tip;
+  }
+  return null;
+}
+
 // ─── RECIPES ─────────────────────────────────────────────────────────────────
 const RECIPES=[
 {
@@ -1207,6 +1251,549 @@ const RECIPES=[
   ],
   tags:['malaysian','beef','braise','weekend','meal-prep'],
 },
+{
+  id:'weekday-bolognese',
+  title:'The Weekday Bolognese',
+  tagline:'A proper ragù without the all-day Sunday commitment',
+  inspiration:'Andy Cooks',
+  sourceUrl:'https://www.youtube.com/@andy_cooks',
+  time:75,
+  difficulty:'medium',
+  baseServings:4,
+  cuisine:'italian',
+  type:'beef',
+  heroEmoji:'🍝',
+  heroColor:'#8B3A2F',
+  heroImg:null,
+  ingredients:[
+    {id:'i1',name:'Olive oil',amount:2,unit:'tbsp',scales:'fixed'},
+    {id:'i2',name:'Onion, fine dice',amount:1,unit:'medium',scales:'linear'},
+    {id:'i3',name:'Carrot, fine dice',amount:1,unit:'medium',scales:'linear'},
+    {id:'i4',name:'Celery stalk, fine dice',amount:1,unit:'stalk',scales:'linear'},
+    {id:'i5',name:'Garlic cloves, minced',amount:3,unit:'cloves',scales:'fixed'},
+    {id:'i6',name:'Beef mince (80/20)',amount:400,unit:'g',scales:'linear'},
+    {id:'i7',name:'Pork mince',amount:200,unit:'g',scales:'linear'},
+    {id:'i8',name:'Whole milk',amount:200,unit:'ml',scales:'linear'},
+    {id:'i9',name:'Dry red wine',amount:200,unit:'ml',scales:'linear'},
+    {id:'i10',name:'Tinned whole tomatoes',amount:400,unit:'g',scales:'linear'},
+    {id:'i11',name:'Beef stock',amount:300,unit:'ml',scales:'linear'},
+    {id:'i12',name:'Bay leaves',amount:2,unit:'',scales:'fixed'},
+    {id:'i13',name:'Pappardelle or tagliatelle',amount:400,unit:'g',scales:'linear'},
+    {id:'i14',name:'Parmigiano, grated',amount:60,unit:'g',scales:'linear'},
+  ],
+  steps:[
+    {id:'s1',title:'Build the soffritto',content:'Warm oil over medium heat. Add onion, carrot, celery with a pinch of salt. Sweat gently for 12–15 min until soft and translucent — no colour.',timer:900,why:'This quiet step is roughly 30% of the final flavour. Rushing it with higher heat browns the outside but leaves the inside raw-tasting.'},
+    {id:'s2',title:'Brown the mince',content:"Push soffritto to the side. Crank heat high. Add both minces in a single layer. Don't stir. Let them crust, then break up and brown.",timer:600,why:'The dark fond — the stuck bits — is the foundation of the sauce. Stirring too early steams the meat and nothing sticks.'},
+    {id:'s3',title:'Milk first — this matters',content:'Pour in milk. Scrape up fond from the pan bottom. Simmer until nearly evaporated.',timer:420,why:"Milk tenderises the meat proteins BEFORE the acid of wine and tomato tightens them. Adding it later doesn't undo what the acid already did — it has to go first."},
+    {id:'s4',title:'Wine, then tomatoes and stock',content:'Add wine, reduce by half. Then tomatoes (crushed by hand), stock, bay, and garlic. Bring to a murmur.',timer:120,why:null},
+    {id:'s5',title:'The long simmer',content:'Partially cover. Simmer 45 min minimum — longer if you have it. Stir every 10. Splash of water if it tightens too much.',timer:2700,why:'Fat separating slightly at the edges means you\'re there. Taste aggressively for salt.'},
+    {id:'s6',title:'Marry with pasta',content:'Cook pasta one minute shy of al dente. Transfer directly into the ragù with a ladle of pasta water. Toss over medium heat for 60 seconds. Finish with parmigiano off-heat.',timer:60,why:"Starchy pasta water emulsifies with the fat in the sauce — that's what turns a ragù from \"meat in tomato\" into something that clings to the pasta."},
+  ],
+  tags:['italian','beef','pasta','comfort'],
+},
+{
+  id:'aglio-e-olio',
+  title:'Spaghetti Aglio e Olio',
+  tagline:'Four ingredients, one technique, no cutting corners',
+  inspiration:'Simmer Fresh Kitchen',
+  sourceUrl:'',
+  time:15,
+  difficulty:'easy',
+  baseServings:2,
+  cuisine:'italian',
+  type:'pasta',
+  heroEmoji:'🍝',
+  heroColor:'#D4900A',
+  heroImg:null,
+  ingredients:[
+    {id:'i1',name:'Spaghetti (bronze-die if you can find it)',amount:180,unit:'g',scales:'linear'},
+    {id:'i2',name:'Garlic cloves, very thinly sliced',amount:6,unit:'',scales:'linear'},
+    {id:'i3',name:'Extra virgin olive oil',amount:80,unit:'ml',scales:'linear'},
+    {id:'i4',name:'Dried chilli flakes',amount:0.5,unit:'tsp',scales:'fixed'},
+    {id:'i5',name:'Flat-leaf parsley, finely chopped',amount:15,unit:'g',scales:'linear'},
+    {id:'i6',name:'Salt for pasta water',amount:1,unit:'tbsp',scales:'fixed'},
+  ],
+  steps:[
+    {id:'s1',title:'Salt the water properly',content:'Bring a large pot of water to a rolling boil. Salt it until it tastes like the sea — roughly 1 tbsp per 2L. Drop the spaghetti.',timer:null,why:'There are only four flavours in this dish. Under-salted pasta water is the single most common way home cooks flatten it. The salt seasons the pasta from within — you cannot catch up with finishing salt later.'},
+    {id:'s2',title:'Cold pan, cold oil, cold garlic',content:'While the pasta cooks, pour oil into a wide cold pan. Add the sliced garlic and chilli flakes. Set on medium-low heat.',timer:null,why:'Starting cold means the garlic infuses the oil gradually rather than shocking brown on contact with hot oil. This is how you get pale-golden, sweet garlic — not the acrid burnt version.'},
+    {id:'s3',title:'Watch — this is the whole game',content:'Let the garlic go from raw white to pale gold. Swirl the pan gently. The moment any slice shows amber edges, pull the pan off the heat. This takes 4–6 minutes and you do not leave it.',timer:300,why:"Garlic carries over dramatically on residual pan heat — by the time you see dark gold in the pan, it will be bitter brown on the plate. Pull it early. If any slice goes truly brown, start again — one bitter slice poisons the whole dish."},
+    {id:'s4',title:'Reserve water, drain shy',content:'Scoop out a mugful of pasta water. Drain the spaghetti about 90 seconds before the package time — it should still have a firm bite.',timer:null,why:"The pasta will finish cooking in the oil and absorb water from the reserve. Fully cooked pasta at this point ends up mushy by the time it's coated."},
+    {id:'s5',title:'Emulsify in the pan',content:'Return the garlic pan to medium heat. Add drained pasta and a good splash of pasta water. Toss vigorously for 60–90 seconds. The oil and water should turn cloudy and coat every strand.',timer:90,why:"Starchy pasta water is what lets oil and water agree to be one sauce. Without it, the oil pools at the bottom. Keep tossing — agitation is what builds the emulsion."},
+    {id:'s6',title:'Parsley off heat, serve immediately',content:'Kill the heat. Toss through parsley and a final glug of olive oil. Plate at once — this dish seizes as it cools.',timer:null,why:'Parsley off heat keeps it green and fresh-tasting. The final raw olive oil adds fragrance that cooked oil loses. Eat while the sauce is still glossy.'},
+  ],
+  tags:['italian','pasta','vegetarian','quick','pantry'],
+},
+{
+  id:'mujadara',
+  title:'Mujadara',
+  tagline:'Lentils, rice, and deeply browned onions — the humblest Levantine classic',
+  inspiration:'Simmer Fresh Kitchen',
+  sourceUrl:'',
+  time:70,
+  difficulty:'easy',
+  baseServings:4,
+  cuisine:'levantine',
+  type:'vegetarian',
+  heroEmoji:'🍚',
+  heroColor:'#6B4A14',
+  heroImg:null,
+  ingredients:[
+    {id:'i1',name:'Green or brown lentils',amount:200,unit:'g',scales:'linear'},
+    {id:'i2',name:'Long-grain white rice (basmati), rinsed',amount:200,unit:'g',scales:'linear'},
+    {id:'i3',name:'Large yellow onions, thinly sliced',amount:3,unit:'large',scales:'linear'},
+    {id:'i4',name:'Olive oil',amount:100,unit:'ml',scales:'linear'},
+    {id:'i5',name:'Ground cumin',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i6',name:'Ground allspice',amount:0.5,unit:'tsp',scales:'fixed'},
+    {id:'i7',name:'Salt',amount:1.5,unit:'tsp',scales:'fixed'},
+    {id:'i8',name:'Black pepper',amount:0.5,unit:'tsp',scales:'fixed'},
+    {id:'i9',name:'Plain yoghurt, to serve',amount:200,unit:'g',scales:'linear'},
+  ],
+  steps:[
+    {id:'s1',title:'Start the lentils',content:'Rinse lentils, cover with 1L of cold water. Bring to a boil, then simmer uncovered 20 minutes until tender but still holding shape. Drain and reserve 500ml of the cooking liquid.',timer:1200,why:'Cooking the lentils alone first lets you control their texture — soft but distinct, not mushy. The lentil water is full of flavour; you are about to cook rice in it.'},
+    {id:'s2',title:'Brown the onions properly — this is the dish',content:'While lentils cook, heat 70ml of olive oil in a wide pan over medium heat. Add all the onions. Cook 25–30 minutes, stirring every 3–4 minutes, until deep mahogany and crispy at the edges. They will collapse to a quarter of their volume.',timer:1800,why:"Mujadara is a Maillard dish masquerading as a rice-and-lentil dish. Pale golden onions are the biggest mistake home cooks make — you are aiming for a colour most people would call \"about to burn\". Medium heat and 30 real minutes is the right answer."},
+    {id:'s3',title:'Split the onions',content:'When the onions are deep brown and crisp, scoop out roughly half onto a paper towel and season immediately with salt. Leave the other half in the pan.',timer:null,why:'The reserved crispy onions keep their crunch because they cool on paper away from the oil. The pan onions will melt into the rice and flavour the grains — that is what you want there.'},
+    {id:'s4',title:'Toast rice with spices',content:'Add the drained rice, cumin, allspice, salt, and pepper to the onion pan. Stir 1 minute so every grain is coated and glossy.',timer:60,why:'Toasting the rice in spiced oil coats each grain in a flavoured fat layer, which keeps them separate and fragrant after steaming.'},
+    {id:'s5',title:'Combine and steam together',content:'Add the drained lentils. Pour in 400ml of the reserved lentil water — it should sit about 1cm above the grains. Bring to a boil, then reduce to lowest heat, lid on, cook undisturbed 18 minutes.',timer:1080,why:"Absorption method — no stirring. Lifting the lid or stirring breaks the steam seal and the top layer stays hard. If the grains feel firm after 18 minutes, add 50ml more water and give it 5 more minutes off the heat."},
+    {id:'s6',title:'Rest, fluff, plate',content:'Kill the heat. Leave covered 10 minutes. Fluff with a fork, tip onto a platter, crown with the reserved crispy onions. Serve with cold yoghurt on the side.',timer:600,why:'The 10-minute rest lets the steam finish the rice evenly. Cold yoghurt against the warm spiced grains is the whole point — sour, fatty, cooling — do not skip it.'},
+  ],
+  tags:['levantine','vegetarian','vegan','rice','batch-cook'],
+},
+{
+  id:'sheet-pan-harissa-chicken',
+  title:'Sheet-Pan Harissa Chicken with Chickpeas',
+  tagline:'One tray, 45 minutes, dinner done',
+  inspiration:'Simmer Fresh Kitchen',
+  sourceUrl:'',
+  time:55,
+  difficulty:'easy',
+  baseServings:4,
+  cuisine:'levantine',
+  type:'chicken',
+  heroEmoji:'🌶️',
+  heroColor:'#C4422A',
+  heroImg:null,
+  ingredients:[
+    {id:'i1',name:'Chicken thighs, bone-in skin-on',amount:800,unit:'g',scales:'linear'},
+    {id:'i2',name:'Tinned chickpeas, drained and patted dry',amount:480,unit:'g',scales:'linear'},
+    {id:'i3',name:'Red onion, cut in thick wedges',amount:1,unit:'large',scales:'linear'},
+    {id:'i4',name:'Rose harissa paste',amount:3,unit:'tbsp',scales:'fixed'},
+    {id:'i5',name:'Honey',amount:1,unit:'tbsp',scales:'fixed'},
+    {id:'i6',name:'Olive oil',amount:3,unit:'tbsp',scales:'fixed'},
+    {id:'i7',name:'Lemon, zested and juiced',amount:1,unit:'',scales:'fixed'},
+    {id:'i8',name:'Ground cumin',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i9',name:'Garlic cloves, crushed',amount:3,unit:'',scales:'fixed'},
+    {id:'i10',name:'Salt',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i11',name:'Flat-leaf parsley, chopped',amount:15,unit:'g',scales:'linear'},
+    {id:'i12',name:'Plain yoghurt, to serve',amount:200,unit:'g',scales:'linear'},
+  ],
+  steps:[
+    {id:'s1',title:'Oven on, tray going in empty',content:'Preheat oven to 220°C (fan 200°C) with a large rimmed sheet tray inside. Let it heat for 10 minutes.',timer:600,why:"A cold tray fights you — the chicken sits and steams while the tray catches up. A preheated tray sears the skin the moment the chicken lands."},
+    {id:'s2',title:'Mix the marinade',content:'Whisk harissa, honey, 2 tbsp olive oil, lemon zest, cumin, garlic, and salt into a thick paste. Add chicken thighs. Turn until every piece is coated — get it under the skin where you can.',timer:null,why:'Honey and fat cling to skin. Lemon zest has the floral oils you want — the juice comes at the end where it will not burn. Getting harissa under the skin is where the real colour develops.'},
+    {id:'s3',title:'Toss chickpeas and onions',content:'In a separate bowl, toss chickpeas and onion wedges with the remaining 1 tbsp olive oil and a pinch of salt.',timer:null,why:'Keeping the chickpeas out of the harissa keeps them crispy — coated in paste they steam instead of crisp.'},
+    {id:'s4',title:'Everything onto the hot tray',content:'Pull the hot tray out. Scatter chickpeas and onions across it. Nestle the chicken thighs skin-side up, leaving space between pieces. It should sizzle on contact.',timer:null,why:"Crowding means steam. Every piece of chicken needs bare tray on all sides so heat circulates. If it doesn't sizzle when it hits the tray, give it 5 more minutes in the oven."},
+    {id:'s5',title:'Roast and let the tray do the work',content:'Roast 30–35 minutes, unstirred, until the chicken skin is deeply charred at the edges, chickpeas are crispy, and juices run clear. Internal temperature 75°C.',timer:2100,why:"The char is the point. At 30 minutes the skin should look almost too dark. Stirring midway ruins the crust development you are waiting on."},
+    {id:'s6',title:'Lemon, parsley, yoghurt',content:'Squeeze the juice of the zested lemon over the tray. Scatter parsley. Serve straight from the tray with cold yoghurt on the side.',timer:null,why:'Raw lemon juice at the end punches through the fat and harissa — the acid has to hit raw or it goes flat. Yoghurt is not optional garnish; it is the cooling element the harissa heat needs.'},
+  ],
+  tags:['levantine','chicken','sheet-pan','weeknight','one-pan'],
+},
+{
+  id:'egg-fried-rice',
+  title:'Proper Egg Fried Rice',
+  tagline:'Day-old rice, screaming wok, everything else is details',
+  inspiration:'Simmer Fresh Kitchen',
+  sourceUrl:'',
+  time:12,
+  difficulty:'easy',
+  baseServings:2,
+  cuisine:'other',
+  type:'eggs',
+  heroEmoji:'🍳',
+  heroColor:'#D4A93A',
+  heroImg:null,
+  ingredients:[
+    {id:'i1',name:'Cooked long-grain rice, cold from the fridge',amount:400,unit:'g',scales:'linear'},
+    {id:'i2',name:'Eggs, whisked',amount:3,unit:'',scales:'linear'},
+    {id:'i3',name:'Spring onions, whites and greens separated',amount:4,unit:'',scales:'linear'},
+    {id:'i4',name:'Neutral oil (sunflower or groundnut)',amount:3,unit:'tbsp',scales:'fixed'},
+    {id:'i5',name:'Light soy sauce',amount:1,unit:'tbsp',scales:'fixed'},
+    {id:'i6',name:'Toasted sesame oil',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i7',name:'White pepper, freshly ground',amount:0.5,unit:'tsp',scales:'fixed'},
+    {id:'i8',name:'Salt',amount:0.5,unit:'tsp',scales:'fixed'},
+  ],
+  steps:[
+    {id:'s1',title:'Break the rice up before the wok is hot',content:'Tip the cold rice into a bowl. Wet your fingers and crumble every clump into separate grains. If any block is still stuck together, it will stay stuck together in the wok.',timer:null,why:'Fried rice is a stir-fry of individual grains. Cold rice clumps because the starch has set — your job is to reverse that mechanically before the heat hits.'},
+    {id:'s2',title:'Heat the wok until it smokes',content:'Dry wok on the highest flame. Wait until it is smoking — two to three minutes. Add 2 tbsp of the oil, swirl, pour out, add the remaining 1 tbsp.',timer:150,why:'The hot-wok-cold-oil trick seasons the surface so eggs do not weld to it. If there is no visible smoke, it is not hot enough. A stir-fry at low heat stews.'},
+    {id:'s3',title:'Scramble the eggs aggressively',content:'Pour in the eggs. Swirl once and stir with a spatula for 15–20 seconds — they should set in soft, loose curds. Stop before they look fully cooked; residual heat finishes them.',timer:20,why:'Wok hei on egg means short contact at extreme heat — the outside coagulates while the inside stays tender. Fully cooked eggs at this stage will be rubbery by the time the dish is on the plate.'},
+    {id:'s4',title:'Rice goes in, rice gets tossed',content:'Tip all the rice in on top of the eggs. Press it against the wok for 20 seconds, then toss. Repeat for 2 minutes — each toss breaks up another pocket of rice and exposes new grains to the hot metal.',timer:120,why:'Pressing is what gives fried rice its characteristic browned edges and smoky flavour (wok hei). Constant tossing without that initial press produces pale, soft rice.'},
+    {id:'s5',title:'Soy, white pepper, spring onion whites',content:'Drizzle the soy sauce around the edge of the wok (not the middle — it burns onto the metal and flavours the rice). Add white pepper, salt, and the spring onion whites. Toss 30 seconds.',timer:30,why:"Soy poured on the hot metal edge caramelises into the rice rather than pooling. White pepper is the pepper in Chinese cooking — black pepper tastes too assertive here."},
+    {id:'s6',title:'Sesame oil, greens, serve',content:'Off the heat. Drizzle the sesame oil, scatter the spring onion greens, toss once. Plate immediately while the rice is loose and steaming.',timer:null,why:'Toasted sesame oil is fragile — real heat destroys the volatile compounds that make it taste of sesame. Always off heat, always at the end.'},
+  ],
+  tags:['eggs','rice','quick','pantry','weeknight'],
+},
+{
+  id:'lamb-shawarma',
+  title:'Home Oven Lamb Shawarma',
+  tagline:'Slow-roast shoulder with a spice bark — no rotisserie required',
+  inspiration:'Simmer Fresh Kitchen',
+  sourceUrl:'',
+  time:300,
+  difficulty:'medium',
+  baseServings:6,
+  cuisine:'levantine',
+  type:'lamb',
+  heroEmoji:'🥩',
+  heroColor:'#6B3A2A',
+  heroImg:'https://images.unsplash.com/photo-1561651823-34feb02250e4?w=600&q=80',
+  ingredients:[
+    {id:'i1',name:'Bone-in lamb shoulder',amount:2,unit:'kg',scales:'fixed'},
+    {id:'i2',name:'Full-fat yoghurt',amount:200,unit:'g',scales:'linear'},
+    {id:'i3',name:'Garlic cloves, crushed',amount:8,unit:'',scales:'linear'},
+    {id:'i4',name:'Lemons, juice and zest',amount:2,unit:'',scales:'linear'},
+    {id:'i5',name:'Olive oil',amount:4,unit:'tbsp',scales:'fixed'},
+    {id:'i6',name:'Ground cumin',amount:2,unit:'tsp',scales:'fixed'},
+    {id:'i7',name:'Ground coriander',amount:2,unit:'tsp',scales:'fixed'},
+    {id:'i8',name:'Smoked paprika',amount:1,unit:'tbsp',scales:'fixed'},
+    {id:'i9',name:'Ground cinnamon',amount:0.5,unit:'tsp',scales:'fixed'},
+    {id:'i10',name:'Ground cardamom',amount:0.5,unit:'tsp',scales:'fixed'},
+    {id:'i11',name:'Black pepper, freshly ground',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i12',name:'Salt',amount:2,unit:'tsp',scales:'fixed'},
+    {id:'i13',name:'Flatbreads or pitta, to serve',amount:6,unit:'large',scales:'linear'},
+    {id:'i14',name:'Tahini sauce or garlic sauce, to serve',amount:150,unit:'g',scales:'linear'},
+    {id:'i15',name:'Pickled turnips or amba, to serve',amount:100,unit:'g',scales:'linear'},
+  ],
+  steps:[
+    {id:'s1',title:'Build the marinade and rub',content:'Mix yoghurt, crushed garlic, lemon zest and juice, olive oil, cumin, coriander, smoked paprika, cinnamon, cardamom, pepper, and salt into a thick paste. Smear it into every crevice of the shoulder. Cover and refrigerate overnight, or at least 6 hours.',timer:null,why:"Yoghurt's lactic acid tenderises lamb shoulder gently without turning it mushy the way a straight lemon marinade would. Overnight means the salt pulls moisture out and then back in, seasoning through the full thickness."},
+    {id:'s2',title:'Out of the fridge an hour before',content:'Take the shoulder out 60 minutes before roasting. Preheat oven to 160°C (fan 140°C) in the last 20 minutes.',timer:3600,why:'Cold meat in a hot oven cooks unevenly — the outside crusts while the inside takes an hour longer to come up to temp.'},
+    {id:'s3',title:'Low and slow, covered',content:'Place the shoulder in a deep roasting tray. Pour 200ml water into the tray around the lamb. Cover tightly with baking paper then foil. Roast for 4 hours. Do not peek.',timer:14400,why:"This is a braise disguised as a roast. The sealed tray traps steam. The water at the bottom becomes the most flavourful dripping you will ever taste. Opening the tray breaks the steam seal and you lose an hour of moisture in five seconds."},
+    {id:'s4',title:'Rest, then crank the heat',content:'Pull the tray. Uncover it. The shoulder should be pullable with a fork. Rest uncovered 20 minutes while you crank the oven to its maximum — 240°C if it will go there.',timer:1200,why:'The rest lets the juices redistribute and gives you a dry surface to crisp. A wet-from-steam shoulder in a hot oven just steams more.'},
+    {id:'s5',title:'Blast for crust',content:'Return the uncovered tray to maximum heat for 10–15 minutes. Watch it — you want the fat cap and exposed meat to catch colour and crisp at the edges.',timer:600,why:"This is your spit-roast simulation. The spice bark on the outside browns in a way it cannot under foil. Under-blast and you have a stew; over-blast and it dries in 60 seconds."},
+    {id:'s6',title:'Pull, shred, wrap',content:'Shred the meat with two forks directly on the tray so every piece gets rolled in the spiced fat from the bottom. Pile into warm flatbreads with tahini sauce and pickled turnips.',timer:null,why:"The shredding-on-the-tray step re-dresses the meat in its own rendered spice-fat. Never drain that fat; it is the best bit. The pickle and tahini make the wrap balanced — fatty meat alone is one-note."},
+  ],
+  tags:['levantine','lamb','slow','dinner-party','batch-cook'],
+},
+{
+  id:'nasi-lemak',
+  title:'Nasi Lemak',
+  tagline:'Malaysian coconut rice with all the fixings',
+  inspiration:'Andy Cooks',
+  sourceUrl:'https://www.youtube.com/@andy_cooks',
+  time:60,
+  difficulty:'medium',
+  baseServings:4,
+  cuisine:'malaysian',
+  type:'seafood',
+  heroEmoji:'🍚',
+  heroColor:'#4A7C59',
+  heroImg:null,
+  ingredients:[
+    {id:'i1',name:'Jasmine rice, rinsed',amount:400,unit:'g',scales:'linear'},
+    {id:'i2',name:'Coconut milk, full-fat',amount:400,unit:'ml',scales:'linear'},
+    {id:'i3',name:'Pandan leaves, knotted',amount:3,unit:'',scales:'fixed'},
+    {id:'i4',name:'Lemongrass stalks, bruised',amount:2,unit:'',scales:'fixed'},
+    {id:'i5',name:'Salt',amount:0.5,unit:'tsp',scales:'fixed'},
+    {id:'i6',name:'Dried anchovies (ikan bilis), heads removed',amount:60,unit:'g',scales:'linear'},
+    {id:'i7',name:'Roasted peanuts',amount:80,unit:'g',scales:'linear'},
+    {id:'i8',name:'Eggs',amount:4,unit:'',scales:'linear'},
+    {id:'i9',name:'Lebanese cucumbers, sliced',amount:2,unit:'',scales:'linear'},
+    {id:'i10',name:'Vegetable oil, for frying',amount:250,unit:'ml',scales:'fixed'},
+    {id:'i11',name:'Dried chillies, soaked and drained',amount:20,unit:'g',scales:'linear'},
+    {id:'i12',name:'Red onion, roughly chopped',amount:1,unit:'large',scales:'linear'},
+    {id:'i13',name:'Garlic cloves',amount:6,unit:'',scales:'fixed'},
+    {id:'i14',name:'Belacan (shrimp paste block)',amount:20,unit:'g',scales:'fixed'},
+    {id:'i15',name:'Palm sugar, grated',amount:2,unit:'tbsp',scales:'fixed'},
+    {id:'i16',name:'Tamarind paste',amount:2,unit:'tbsp',scales:'fixed'},
+  ],
+  steps:[
+    {id:'s1',title:'Make the sambal',content:'Blend soaked dried chillies, red onion, garlic, and toasted belacan until a coarse paste. Heat 3 tbsp oil in a wok on high. Fry paste, stirring constantly, 8–10 minutes until deep red-brown and oil separates — this is the matang stage. Add tamarind, palm sugar, and salt. Cook 2 more minutes. Taste: should be spicy, sweet, sour, and deeply savoury.',timer:720,why:'Frying the spice paste until the oil splits (matang) is non-negotiable. Raw shrimp paste is harsh and one-dimensional. The 8–10 minutes of frying drives off moisture and develops the Maillard reactions that give sambal its complexity.'},
+    {id:'s2',title:'Cook the coconut rice',content:'Combine rinsed rice, coconut milk, 150ml water, pandan leaves, lemongrass, and salt in a heavy pot. Bring to a boil, stir once, then reduce to the lowest heat possible and cover tightly. Cook 12 minutes. Remove from heat, leave covered 10 more minutes. Fluff with a fork, remove aromatics.',timer:1320,why:'The steam-rest is where the rice finishes cooking — residual heat drives moisture evenly through every grain. Lifting the lid during the 10-minute rest releases that steam and leaves the top layer chalky.'},
+    {id:'s3',title:'Fry the ikan bilis',content:'Heat oil to 180°C. Fry the dried anchovies in small batches, 2–3 minutes until golden and crispy. They go from pale to burnt fast — watch them. Drain on paper towel, season lightly with salt while hot.',timer:180,why:'Hot oil and small batches keep the temperature from dropping. Crowding the oil drops the temp, and the anchovies steam instead of fry — they go soft instead of crispy.'},
+    {id:'s4',title:'Fry the eggs',content:'Pour most of the ikan bilis oil out, leaving about 2 tbsp. On high heat, fry eggs one at a time, basting with hot oil until the white is crispy at the edges but yolk is still runny. The white should puff up and blister.',timer:90,why:'The hot oil basting sets the white from above while the yolk stays soft — no need to flip. The crispy edges are textural contrast against the soft rice.'},
+    {id:'s5',title:'Plate and serve',content:'Pack rice into a small bowl and invert onto each plate to form a dome. Arrange sambal, ikan bilis, peanuts, cucumber slices, and a fried egg around it. Serve immediately — the ikan bilis go soft fast.',timer:null,why:'The dome presentation is traditional and practical — it holds the accompaniments separate so each person can mix as they go.'},
+  ],
+  tags:['malaysian','rice','coconut','sambal'],
+},
+{
+  id:'curry-laksa',
+  title:'Curry Laksa',
+  tagline:'Kuala Lumpur\'s coconut curry noodle soup — rich, spicy, aromatic',
+  inspiration:'Andy Cooks',
+  sourceUrl:'https://www.youtube.com/@andy_cooks',
+  time:75,
+  difficulty:'medium',
+  baseServings:4,
+  cuisine:'malaysian',
+  type:'seafood',
+  heroEmoji:'🍜',
+  heroColor:'#D4820A',
+  heroImg:null,
+  ingredients:[
+    {id:'i1',name:'Raw prawns, shell-on',amount:500,unit:'g',scales:'linear'},
+    {id:'i2',name:'Firm tofu, cubed and pan-fried golden',amount:200,unit:'g',scales:'linear'},
+    {id:'i3',name:'Rice vermicelli or thin egg noodles',amount:300,unit:'g',scales:'linear'},
+    {id:'i4',name:'Coconut milk, full-fat',amount:400,unit:'ml',scales:'linear'},
+    {id:'i5',name:'Chicken stock',amount:600,unit:'ml',scales:'linear'},
+    {id:'i6',name:'Lemongrass stalks, white part only',amount:3,unit:'',scales:'fixed'},
+    {id:'i7',name:'Galangal, peeled',amount:3,unit:'cm',scales:'fixed'},
+    {id:'i8',name:'Dried chillies, soaked and drained',amount:10,unit:'g',scales:'fixed'},
+    {id:'i9',name:'Fresh red chillies',amount:3,unit:'',scales:'fixed'},
+    {id:'i10',name:'Shallots',amount:6,unit:'',scales:'fixed'},
+    {id:'i11',name:'Garlic cloves',amount:5,unit:'',scales:'fixed'},
+    {id:'i12',name:'Belacan (shrimp paste), toasted',amount:15,unit:'g',scales:'fixed'},
+    {id:'i13',name:'Candlenuts (or macadamia nuts)',amount:4,unit:'',scales:'fixed'},
+    {id:'i14',name:'Turmeric',amount:1.5,unit:'tsp',scales:'fixed'},
+    {id:'i15',name:'Ground coriander',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i16',name:'Fish sauce',amount:2,unit:'tbsp',scales:'fixed'},
+    {id:'i17',name:'Palm sugar or brown sugar',amount:1,unit:'tbsp',scales:'fixed'},
+    {id:'i18',name:'Bean sprouts, blanched',amount:100,unit:'g',scales:'linear'},
+    {id:'i19',name:'Fresh coriander, to garnish',amount:1,unit:'handful',scales:'fixed'},
+    {id:'i20',name:'Lime, to serve',amount:1,unit:'',scales:'linear'},
+    {id:'i21',name:'Vegetable oil',amount:3,unit:'tbsp',scales:'fixed'},
+  ],
+  steps:[
+    {id:'s1',title:'Prawn stock from shells',content:'Peel and devein the prawns — reserve the shells. Toast prawn shells in a dry pot 3 minutes until fragrant and pink-red. Add 800ml water, bring to boil, simmer 15 minutes. Strain.',timer:1080,why:'Prawn shells contain glutamates and chitin that dissolve into an intensely savoury stock in 15 minutes. Most home cooks throw them away. This is a 15-minute investment that separates a good laksa from a great one.'},
+    {id:'s2',title:'Make the laksa paste',content:'Blend lemongrass, galangal, chillies, shallots, garlic, toasted belacan, candlenuts, turmeric, and ground coriander with 3 tbsp water until smooth — 3 minutes minimum.',timer:180,why:'The paste is the heart of laksa. Over-blending doesn\'t exist here — the finer the paste, the more surface area for the frying stage.'},
+    {id:'s3',title:'Fry the paste to matang',content:'Heat oil in a heavy pot on medium-high. Fry the paste 8–10 minutes, stirring constantly, until oil splits and paste is deep golden. The smell will intensify dramatically.',timer:600,why:'You are frying the spices in their own released oils until fully cooked through. Uncooked laksa paste is sharp and harsh. Cooked paste is rich, complex, and fragrant.'},
+    {id:'s4',title:'Build the broth',content:'Add chicken stock and prawn stock to the fried paste. Bring to a boil, then reduce. Add coconut milk — don\'t boil after this, just maintain a gentle simmer. Season with fish sauce, palm sugar, and salt. Simmer 15 minutes.',timer:900,why:'Boiling coconut milk after it\'s been added causes it to split — it separates into greasy curds and clear liquid. A gentle simmer keeps the emulsion stable.'},
+    {id:'s5',title:'Cook the prawns and tofu',content:'Add the tofu cubes and simmer 3 minutes. Add the prawns and cook exactly 2–3 minutes until just pink and curled.',timer:360,why:'Prawns go from raw to overcooked in about 90 seconds in hot broth. Pull them the moment they\'re pink.'},
+    {id:'s6',title:'Bowl up',content:'Soak noodles in boiling water 5 minutes, drain. Divide between bowls, ladle over the broth with prawns and tofu. Top with bean sprouts, fresh coriander, and a lime wedge.',timer:null,why:'Assembling in bowls (not the pot) keeps the noodles from going soggy. Bean sprouts should have some crunch — add them at the last second.'},
+  ],
+  tags:['malaysian','noodles','coconut','prawn','spicy'],
+},
+{
+  id:'char-kway-teow',
+  title:'Char Kway Teow',
+  tagline:'Penang wok-fried flat rice noodles with the wok hei you can\'t fake',
+  inspiration:'Andy Cooks',
+  sourceUrl:'https://www.youtube.com/@andy_cooks',
+  time:20,
+  difficulty:'medium',
+  baseServings:2,
+  cuisine:'malaysian',
+  type:'seafood',
+  heroEmoji:'🥢',
+  heroColor:'#2C1A0E',
+  heroImg:null,
+  ingredients:[
+    {id:'i1',name:'Fresh flat rice noodles (kway teow), room temp',amount:300,unit:'g',scales:'linear'},
+    {id:'i2',name:'Raw prawns, peeled',amount:150,unit:'g',scales:'linear'},
+    {id:'i3',name:'Chinese lap cheong sausage, sliced on diagonal',amount:1,unit:'link',scales:'fixed'},
+    {id:'i4',name:'Eggs',amount:2,unit:'',scales:'linear'},
+    {id:'i5',name:'Bean sprouts',amount:100,unit:'g',scales:'linear'},
+    {id:'i6',name:'Chives or spring onions, cut into 4cm lengths',amount:4,unit:'stalks',scales:'fixed'},
+    {id:'i7',name:'Garlic cloves, minced',amount:4,unit:'',scales:'fixed'},
+    {id:'i8',name:'Soy sauce',amount:1.5,unit:'tbsp',scales:'fixed'},
+    {id:'i9',name:'Kecap manis (sweet soy sauce)',amount:1.5,unit:'tbsp',scales:'fixed'},
+    {id:'i10',name:'Fish sauce',amount:1,unit:'tbsp',scales:'fixed'},
+    {id:'i11',name:'White pepper, freshly ground',amount:0.5,unit:'tsp',scales:'fixed'},
+    {id:'i12',name:'Lard or neutral oil',amount:3,unit:'tbsp',scales:'fixed'},
+    {id:'i13',name:'Fresh red chilli, sliced, to serve',amount:1,unit:'',scales:'fixed'},
+  ],
+  steps:[
+    {id:'s1',title:'Get the wok screaming hot — this is the whole game',content:'Place your heaviest wok on the largest burner turned to maximum. Heat 3–4 minutes until it is smoking and you can see heat waves. Have all ingredients prepped and right next to the wok. Once you start, this dish takes 4 minutes total and you cannot stop.',timer:null,why:'Wok hei — the smoky, slightly charred quality of good CKT — requires surface temperatures above 200°C. The wok must be hotter than the cooking medium. A stir-fry at low heat stews.'},
+    {id:'s2',title:'Fry the sausage and aromatics',content:'Add lard or oil. When it shimmers immediately, add lap cheong slices. Let them sear 30 seconds — they\'ll start rendering fat. Add garlic and fry 20 seconds, tossing constantly.',timer:60,why:'The lap cheong fat renders and flavours the oil, which then flavours everything else. Garlic goes in second — alone on a screaming-hot wok it burns in under 15 seconds.'},
+    {id:'s3',title:'Add prawns, then noodles',content:'Add prawns, toss 30 seconds until just turning pink. Push everything to the side. Add noodles to the hot centre — press flat against the wok surface 20 seconds, then toss. Add soy sauce, kecap manis, fish sauce, and white pepper, tossing constantly.',timer:90,why:'The 20-second press is deliberate — you are creating direct wok contact to char the noodle surface. Constant tossing without that initial press produces pale, soft noodles.'},
+    {id:'s4',title:'Scramble in the eggs',content:'Push noodles to the side. Add eggs to the empty wok centre — let them set slightly 10 seconds, then scramble loosely and toss into the noodles before fully set.',timer:20,why:'Half-scrambled eggs integrated into the noodles is the texture you want — neither a separate omelette nor invisible.'},
+    {id:'s5',title:'Bean sprouts and greens, then plate',content:'Add bean sprouts and chives. Toss 15 seconds — they should still have crunch. Plate immediately on a warm dish. Serve with fresh chilli slices.',timer:15,why:'Bean sprouts wilt and release water in about 30 seconds of heat. That water steams the noodles and destroys the wok hei you just built. 15 seconds is enough.'},
+  ],
+  tags:['malaysian','noodles','prawn','wok','street-food'],
+},
+{
+  id:'saag-paneer',
+  title:'Saag Paneer',
+  tagline:'Spiced spinach with golden-fried paneer — properly made',
+  inspiration:'Joshua Weissman',
+  sourceUrl:'https://www.youtube.com/@JoshuaWeissman',
+  time:45,
+  difficulty:'easy',
+  baseServings:4,
+  cuisine:'indian',
+  type:'vegetarian',
+  heroEmoji:'🌿',
+  heroColor:'#2A5C3A',
+  heroImg:null,
+  ingredients:[
+    {id:'i1',name:'Paneer, cut into 2cm cubes',amount:400,unit:'g',scales:'linear'},
+    {id:'i2',name:'Baby spinach',amount:500,unit:'g',scales:'linear'},
+    {id:'i3',name:'Yellow onion, finely diced',amount:1,unit:'large',scales:'linear'},
+    {id:'i4',name:'Garlic cloves, minced',amount:6,unit:'',scales:'fixed'},
+    {id:'i5',name:'Fresh ginger, grated',amount:4,unit:'cm',scales:'fixed'},
+    {id:'i6',name:'Fresh green chilli, sliced',amount:2,unit:'',scales:'fixed'},
+    {id:'i7',name:'Ripe tomatoes, roughly chopped',amount:2,unit:'medium',scales:'linear'},
+    {id:'i8',name:'Ghee or unsalted butter',amount:3,unit:'tbsp',scales:'fixed'},
+    {id:'i9',name:'Neutral oil',amount:2,unit:'tbsp',scales:'fixed'},
+    {id:'i10',name:'Ground cumin',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i11',name:'Ground coriander',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i12',name:'Garam masala',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i13',name:'Turmeric',amount:0.5,unit:'tsp',scales:'fixed'},
+    {id:'i14',name:'Kashmiri chilli powder',amount:0.5,unit:'tsp',scales:'fixed'},
+    {id:'i15',name:'Full-fat natural yoghurt',amount:4,unit:'tbsp',scales:'linear'},
+    {id:'i16',name:'Salt',amount:1.5,unit:'tsp',scales:'fixed'},
+    {id:'i17',name:'Lemon juice',amount:1,unit:'tbsp',scales:'fixed'},
+  ],
+  steps:[
+    {id:'s1',title:'Fry the paneer until golden',content:'Heat oil in a large non-stick pan on medium-high. Fry paneer cubes in a single layer, turning every 2 minutes, until golden on at least 3 sides — about 8 minutes total. Remove and set aside.',timer:480,why:'Unfried paneer dissolves into the sauce over 20 minutes. Golden-fried paneer has a skin that holds its shape and adds textural contrast. Do not skip this step.'},
+    {id:'s2',title:'Wilt the spinach',content:'In the same pan, add a splash of water and pile in the spinach. Cover 3–4 minutes until completely wilted. Transfer to a blender and blend until smooth — or rough-blend for more texture. Set aside.',timer:240,why:'Blanching the spinach in its own steam keeps the colour vivid green. Blending is what gives saag its sauce-like consistency rather than just wilted leaves.'},
+    {id:'s3',title:'Build the masala base',content:'Melt ghee in a heavy pot on medium. Add onion and cook 10–12 minutes until deep golden. Add garlic, ginger, and green chilli, fry 2 minutes. Add cumin, coriander, turmeric, and kashmiri chilli — fry 90 seconds. Add tomatoes and cook until they completely break down, 8–10 minutes.',timer:1440,why:'The golden onion provides sweetness, the tomato provides acid and body, and frying the ground spices in the fat-onion mixture (bhuna technique) develops their full flavour. Rushing this stage means flat, unintegrated spice flavour.'},
+    {id:'s4',title:'Add spinach and simmer',content:'Stir the blended spinach into the masala. Simmer 5 minutes. Add the yoghurt one spoon at a time, stirring constantly. Add garam masala and lemon juice. Taste and adjust salt.',timer:300,why:'Garam masala goes in at the end — heat destroys its delicate aromatics. The yoghurt goes in slowly because a sudden temperature shock can cause it to split.'},
+    {id:'s5',title:'Add paneer, serve',content:'Add the golden paneer cubes, stir gently to coat. Simmer 3 minutes — long enough for the flavours to absorb into the paneer crust, not so long it softens again. Serve with basmati rice or naan.',timer:180,why:null},
+  ],
+  tags:['indian','vegetarian','spinach','paneer'],
+},
+{
+  id:'chicken-katsu',
+  title:'Chicken Katsu',
+  tagline:'Crispy panko chicken with Japanese curry sauce',
+  inspiration:'Andy Cooks',
+  sourceUrl:'https://www.youtube.com/@andy_cooks',
+  time:60,
+  difficulty:'easy',
+  baseServings:4,
+  cuisine:'japanese',
+  type:'chicken',
+  heroEmoji:'🍱',
+  heroColor:'#C4960A',
+  heroImg:null,
+  ingredients:[
+    {id:'i1',name:'Chicken breast fillets, pounded to 1.5cm thickness',amount:4,unit:'large',scales:'linear'},
+    {id:'i2',name:'Panko breadcrumbs',amount:150,unit:'g',scales:'linear'},
+    {id:'i3',name:'Plain flour',amount:60,unit:'g',scales:'linear'},
+    {id:'i4',name:'Eggs, beaten',amount:2,unit:'',scales:'linear'},
+    {id:'i5',name:'Neutral oil, for shallow-frying',amount:500,unit:'ml',scales:'fixed'},
+    {id:'i6',name:'Salt and white pepper',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i7',name:'Yellow onion, thinly sliced',amount:1,unit:'large',scales:'fixed'},
+    {id:'i8',name:'Carrots, cut into chunks',amount:2,unit:'medium',scales:'fixed'},
+    {id:'i9',name:'Garlic cloves',amount:4,unit:'',scales:'fixed'},
+    {id:'i10',name:'Fresh ginger',amount:3,unit:'cm',scales:'fixed'},
+    {id:'i11',name:'Curry powder',amount:2.5,unit:'tbsp',scales:'fixed'},
+    {id:'i12',name:'Garam masala',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i13',name:'Plain flour for roux',amount:2,unit:'tbsp',scales:'fixed'},
+    {id:'i14',name:'Unsalted butter',amount:30,unit:'g',scales:'fixed'},
+    {id:'i15',name:'Chicken stock',amount:600,unit:'ml',scales:'fixed'},
+    {id:'i16',name:'Soy sauce',amount:1,unit:'tbsp',scales:'fixed'},
+    {id:'i17',name:'Worcestershire sauce',amount:1,unit:'tbsp',scales:'fixed'},
+    {id:'i18',name:'Honey',amount:1,unit:'tbsp',scales:'fixed'},
+    {id:'i19',name:'Steamed short-grain rice, to serve',amount:300,unit:'g uncooked',scales:'linear'},
+    {id:'i20',name:'Shredded cabbage, to serve',amount:1,unit:'handful',scales:'fixed'},
+  ],
+  steps:[
+    {id:'s1',title:'Make the Japanese curry sauce',content:'Melt butter in a saucepan on medium. Fry onion 12 minutes until deeply golden. Add garlic and ginger, cook 2 minutes. Add curry powder, garam masala, and flour — stir 2 minutes to cook the flour. Gradually add stock, whisking to avoid lumps. Add soy, Worcestershire, and honey. Add carrot chunks. Simmer 20 minutes until carrots are soft. Blend until completely smooth.',timer:2160,why:'Japanese curry sauce is a roux-thickened affair. The deeply golden onion gives sweetness. Blending until completely smooth is what separates it from a stew — it should pour like a sauce, not sit like chunky gravy.'},
+    {id:'s2',title:'Pound the chicken',content:'Place chicken between two pieces of baking paper. Pound with a rolling pin from the centre outward until uniformly 1.5cm thick. Season both sides with salt and white pepper.',timer:null,why:'Uniform thickness means the chicken cooks through at exactly the same moment the crust is golden. Uneven chicken means either raw thick spots or dry thin spots.'},
+    {id:'s3',title:'Set up the breading station and crumb',content:'Three dishes in a row: flour, beaten egg, panko. Dredge each chicken piece in flour (shake off excess), dip in egg (let excess drip), then press firmly into panko on both sides. Press the panko in — don\'t just scatter it.',timer:null,why:'The flour-egg-panko sequence creates a system: flour gives the egg something to grip, egg gives the panko something to grip. Pressing (not just coating) ensures it stays on in the oil.'},
+    {id:'s4',title:'Shallow-fry at 170°C',content:'Heat oil to 170°C. Fry 2 pieces at a time, 4–5 minutes per side until deep golden. The internal temp should hit 74°C. Rest on a wire rack, not paper towel — paper makes the bottom go soggy.',timer:540,why:"170°C is the sweet spot. 180°C burns the outside before the centre reaches safe temp. 160°C produces pale, oily katsu because moisture can't escape fast enough. The wire rack keeps air circulating under the crust."},
+    {id:'s5',title:'Slice and serve',content:'Slice each piece on the diagonal into thick strips. Fan over steamed rice. Pour the curry sauce next to (not over) the chicken so the crust stays crispy. Add shredded cabbage on the side.',timer:null,why:'Pouring sauce over the katsu turns the panko crust soggy in about 90 seconds. Traditional Japanese restaurant plating always separates them.'},
+  ],
+  tags:['japanese','chicken','crispy','panko','curry'],
+},
+{
+  id:'tom-yum',
+  title:'Tom Yum Goong',
+  tagline:'The Thai hot and sour prawn soup — punchy, bright, and properly made',
+  inspiration:'Andy Cooks',
+  sourceUrl:'https://www.youtube.com/@andy_cooks',
+  time:35,
+  difficulty:'easy',
+  baseServings:4,
+  cuisine:'thai',
+  type:'soups',
+  heroEmoji:'🍲',
+  heroColor:'#C44A2A',
+  heroImg:null,
+  ingredients:[
+    {id:'i1',name:'Raw prawns, shell-on',amount:500,unit:'g',scales:'linear'},
+    {id:'i2',name:'Chicken stock',amount:1,unit:'litre',scales:'linear'},
+    {id:'i3',name:'Lemongrass stalks, bashed and cut into 4cm lengths',amount:3,unit:'',scales:'fixed'},
+    {id:'i4',name:'Galangal, peeled and sliced into coins',amount:5,unit:'cm',scales:'fixed'},
+    {id:'i5',name:'Kaffir lime leaves, torn in half',amount:6,unit:'',scales:'fixed'},
+    {id:'i6',name:'Bird\'s eye chillies, bashed',amount:6,unit:'',scales:'fixed'},
+    {id:'i7',name:'Thai shallots, halved',amount:4,unit:'',scales:'fixed'},
+    {id:'i8',name:'Oyster mushrooms, torn into pieces',amount:150,unit:'g',scales:'linear'},
+    {id:'i9',name:'Fish sauce',amount:4,unit:'tbsp',scales:'fixed'},
+    {id:'i10',name:'Lime juice, freshly squeezed',amount:4,unit:'tbsp',scales:'fixed'},
+    {id:'i11',name:'Palm sugar or brown sugar',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i12',name:'Fresh coriander, leaves and tender stems',amount:1,unit:'large handful',scales:'fixed'},
+    {id:'i13',name:'Spring onions, sliced',amount:2,unit:'',scales:'fixed'},
+    {id:'i14',name:'Nam prik pao (roasted chilli paste)',amount:2,unit:'tbsp',scales:'fixed'},
+  ],
+  steps:[
+    {id:'s1',title:'Make prawn stock from shells',content:'Peel and devein the prawns, keeping the shells. Toast shells in a dry pot 2–3 minutes until fragrant. Add chicken stock. Bring to boil, simmer 10 minutes, strain — discard shells.',timer:780,why:'The glutamates and iodine compounds from the prawn shells dissolve rapidly into the stock, adding depth that plain chicken stock alone can\'t provide.'},
+    {id:'s2',title:'Simmer the aromatics',content:'To the strained stock, add lemongrass, galangal, kaffir lime leaves, shallots, and chillies. Bring to a boil, reduce to a vigorous simmer — 10 minutes. Don\'t strain these out: they stay in the bowl.',timer:600,why:'The aromatics release their volatile oils into the stock during simmering. They are left in the final bowl as continuing flavour infusers while you eat. Straining them out is a westernisation.'},
+    {id:'s3',title:'Add mushrooms',content:'Add mushrooms and nam prik pao. Simmer 5 minutes.',timer:300,why:'Mushrooms need 3–5 minutes to soften and release their glutamates into the broth. Adding them with the prawns means one will be overcooked by the time the other is done.'},
+    {id:'s4',title:'Season the broth',content:'Add fish sauce and palm sugar. Taste the broth — it should be intensely savoury, pleasantly salty, with a hint of sweetness. Adjust. The sourness comes in the next step after the heat is off.',timer:null,why:'Season without the lime juice first. Lime juice in a hot pot evaporates and tastes flat — you end up adding more and more to compensate.'},
+    {id:'s5',title:'Add prawns, finish, serve immediately',content:'Add prawns to the simmering broth. Cook exactly 2 minutes — they should just turn opaque. Remove from heat immediately. Add lime juice, coriander, and spring onions. Taste and adjust. Serve instantly into warmed bowls.',timer:120,why:'Everything in the final 30 seconds is an off-heat addition. The lime juice is added after the heat source is off. This soup does not hold — serve immediately.'},
+  ],
+  tags:['thai','soup','prawn','lemongrass','spicy'],
+},
+{
+  id:'barramundi-lemon-butter',
+  title:'Pan-Seared Barramundi, Lemon Brown Butter',
+  tagline:'The Australian fish, done right — crispy skin, brown butter, capers',
+  inspiration:'Simmer Fresh Kitchen',
+  sourceUrl:'',
+  time:20,
+  difficulty:'easy',
+  baseServings:4,
+  cuisine:'australian',
+  type:'seafood',
+  heroEmoji:'🐟',
+  heroColor:'#4A8090',
+  heroImg:null,
+  ingredients:[
+    {id:'i1',name:'Barramundi fillets, skin-on (approx 180g each)',amount:4,unit:'portions',scales:'linear'},
+    {id:'i2',name:'Unsalted butter',amount:80,unit:'g',scales:'fixed'},
+    {id:'i3',name:'Neutral oil',amount:2,unit:'tbsp',scales:'fixed'},
+    {id:'i4',name:'Capers, rinsed and patted dry',amount:2,unit:'tbsp',scales:'fixed'},
+    {id:'i5',name:'Lemons (1 juiced, 1 sliced for garnish)',amount:2,unit:'',scales:'fixed'},
+    {id:'i6',name:'Garlic cloves, thinly sliced',amount:2,unit:'',scales:'fixed'},
+    {id:'i7',name:'Flat-leaf parsley, roughly chopped',amount:1,unit:'small handful',scales:'fixed'},
+    {id:'i8',name:'Salt and white pepper',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i9',name:'Asparagus or green beans, blanched, to serve',amount:200,unit:'g',scales:'linear'},
+  ],
+  steps:[
+    {id:'s1',title:'Dry the fish thoroughly',content:'At least 30 minutes before cooking, lay the fillets skin-side up on a wire rack over a tray. Pat with paper towel. Leave uncovered in the fridge — the cold, dry air desiccates the skin surface.',timer:1800,why:'Fish skin contains a lot of moisture. That moisture vaporises when it hits the hot pan, creating steam between the skin and pan — steam is what makes skin stick and stay pale. A completely dry skin contact-fries immediately, achieving the Maillard reaction that creates the crisp you want.'},
+    {id:'s2',title:'Get the pan properly hot',content:'Heat a stainless steel or cast iron pan on high for 3 minutes. Add oil and 20g butter. The butter will foam immediately — wait for the foam to subside before adding fish.',timer:210,why:'Butter foams as water evaporates. Once the foam subsides, the butter solids have started to colour — this is the exact right moment to add the fish. Add it too early (in the foam) and the skin steams.'},
+    {id:'s3',title:'Sear skin-side down — resist touching it',content:'Season the skin side with salt and white pepper. Lay fillets in the pan skin-side down. Press firmly for 10 seconds with a spatula to prevent curling. Cook on high heat 5–6 minutes WITHOUT MOVING. The fish is ready to flip when the flesh is opaque about ¾ of the way up the side.',timer:360,why:'The long undisturbed sear is counterintuitive. The skin releases naturally when it\'s ready. Lifting the fish before the skin has fully rendered means it tears and sticks.'},
+    {id:'s4',title:'Flip and finish briefly',content:'Flip the fillets flesh-side down. Cook 60–90 seconds only. Remove to a warm plate, skin-side up — never rest fish on the crispy side or it steams against the plate.',timer:90,why:'Barramundi is done when it just flakes at the thickest point — about 60°C internal. The flesh side needs almost no time because it\'s already 85% cooked from the skin-side sear.'},
+    {id:'s5',title:'Make brown butter and plate',content:'Turn heat to medium. Add remaining 60g butter to the pan — it will foam. Add garlic slices and cook 30 seconds, then add capers. When butter turns golden-brown and smells nutty — about 90 seconds — remove from heat. Add lemon juice. It will spit. Spoon over the fish. Scatter parsley.',timer:90,why:'Beurre noisette — brown butter — has a nutty, toffee-like flavour created by Maillard reactions in the milk solids. Adding the lemon juice off-heat stops the browning instantly.'},
+  ],
+  tags:['australian','fish','seafood','quick','pan-fry'],
+},
+{
+  id:'pavlova',
+  title:'Australian Pavlova',
+  tagline:'Crunchy shell, marshmallow centre, fresh cream and fruit — the national dessert',
+  inspiration:'Donna Hay',
+  sourceUrl:'https://www.youtube.com/@DonnaHayTV',
+  time:150,
+  difficulty:'medium',
+  baseServings:8,
+  cuisine:'australian',
+  type:'baking',
+  heroEmoji:'🍓',
+  heroColor:'#F5F0E8',
+  heroImg:null,
+  ingredients:[
+    {id:'i1',name:'Egg whites, at room temperature',amount:6,unit:'large',scales:'linear'},
+    {id:'i2',name:'Caster sugar',amount:300,unit:'g',scales:'linear'},
+    {id:'i3',name:'White wine vinegar',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i4',name:'Cornflour',amount:2,unit:'tsp',scales:'fixed'},
+    {id:'i5',name:'Vanilla extract',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i6',name:'Double cream, cold',amount:400,unit:'ml',scales:'linear'},
+    {id:'i7',name:'Passionfruit',amount:6,unit:'',scales:'linear'},
+    {id:'i8',name:'Strawberries, hulled and halved',amount:250,unit:'g',scales:'linear'},
+    {id:'i9',name:'Kiwi fruit, peeled and sliced',amount:2,unit:'',scales:'linear'},
+    {id:'i10',name:'Icing sugar',amount:1,unit:'tbsp',scales:'fixed'},
+  ],
+  steps:[
+    {id:'s1',title:'Set up oven and equipment',content:'Preheat oven to 150°C (not fan — fan creates uneven browning). Draw a 22cm circle on baking paper, flip it ink-side down onto a baking tray. Your bowl and whisk must be completely grease-free — wipe with a cut lemon and dry. Even a trace of fat collapses egg white foam.',timer:null,why:'Fat — even residual dish soap — disrupts the protein network that makes meringue foam. The lemon-wipe is standard professional technique.'},
+    {id:'s2',title:'Whip egg whites to soft peaks',content:'Beat egg whites on medium speed until white and foamy with soft peaks — about 3 minutes. The peaks should curl over when you lift the whisk. Do not over-beat to stiff peaks at this stage.',timer:180,why:'Starting the sugar addition at soft peaks gives the optimal base. Too early and the sugar can\'t integrate; too late and the meringue becomes dry and grainy.'},
+    {id:'s3',title:'Add sugar gradually',content:'With the mixer running, add caster sugar one tablespoon at a time, waiting 30 seconds between each addition. This takes about 8 minutes. When all sugar is incorporated, the meringue should be thick, glossy, and completely smooth — rub a little between your fingers; no grittiness means the sugar has dissolved.',timer:480,why:'Adding sugar too fast dilutes the protein network before it can stabilise. Dissolved sugar = smooth, glossy meringue. Undissolved sugar = grainy texture and weeping after baking.'},
+    {id:'s4',title:'Fold in the secret ingredients',content:'By hand, gently fold in vinegar, cornflour, and vanilla. Fold just until combined — 8–10 strokes. No electric mixer here.',timer:null,why:'Cornflour and vinegar together create the marshmallow interior — they interfere with full starch gelatinisation, keeping the centre soft and sticky rather than completely set.'},
+    {id:'s5',title:'Shape and bake — drop temp without opening the door',content:'Pile the meringue onto the traced circle. Build high sides and a slight hollow in the centre. Put in the oven at 150°C for 5 minutes, then WITHOUT OPENING THE DOOR reduce to 120°C. Bake 1 hour 20 minutes.',timer:4800,why:'The initial blast at 150°C sets the outer crust. Opening the door to adjust temperature would cause collapse. The long, low bake dries the inside without browning the outside.'},
+    {id:'s6',title:'Cool in the oven — do not rush this',content:'Turn the oven off. Leave the pavlova inside with the door ajar for at least 1 hour — ideally 2. Do not remove it to cool on a bench.',timer:3600,why:'Rapid temperature change is the main cause of pavlova cracking. The outer shell contracts faster than the interior when shocked by cool air. Oven-cooling keeps them dropping at the same rate.'},
+    {id:'s7',title:'Top and serve',content:'Just before serving, whip cold cream with icing sugar to soft peaks. Spoon into the hollow. Top with passionfruit pulp, strawberries, and kiwi. Serve immediately.',timer:null,why:'The cream softens the meringue from the base up over time. Assembled too early, the whole thing collapses into a sweet cream puddle. Last-minute assembly preserves contrasting textures.'},
+  ],
+  tags:['australian','dessert','meringue','cream','fruit'],
+},
 ];
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -1251,11 +1838,19 @@ function consolidateIngredients(meals){
         map[key].amount+=amt;
         map[key].recipes.push(recipe.title);
       } else {
-        map[key]={name:ing.name,amount:amt,unit:ing.unit||'',recipes:[recipe.title]};
+        const aisle=getAisle(ing.name);
+        const auFlag=getAUFlag(ing.name);
+        map[key]={name:ing.name,amount:amt,unit:ing.unit||'',recipes:[recipe.title],aisle,auFlag};
       }
     }
   }
-  return Object.values(map).sort((a,b)=>a.name.localeCompare(b.name));
+  const aisleOrder=AISLES.map(a=>a.id);
+  return Object.values(map).sort((a,b)=>{
+    const ai=aisleOrder.indexOf(a.aisle);
+    const bi=aisleOrder.indexOf(b.aisle);
+    if(ai!==bi) return ai-bi;
+    return a.name.localeCompare(b.name);
+  });
 }
 
 // ─── ICONS ───────────────────────────────────────────────────────────────────
@@ -1816,7 +2411,23 @@ function PlanAndShop({allRecipes,planned,onRemove,onOpen}){
             <div className="serif font-black text-[30px] leading-none tracking-[-0.025em]">Plan <span className="serif-it font-normal" style={{color:T.inkLight}}>&</span> Shop</div>
             <div className="serif-it text-[13px] mt-1.5" style={{color:T.inkLight}}>{planned.length} meal{planned.length!==1?'s':''} on the go</div>
           </div>
-          {tab==='list'&&checkedCount>0&&<button onClick={clearChecked} aria-label="Clear ticked items" className="press text-xs font-bold px-3 py-2 rounded-full flex items-center gap-1.5" style={{background:T.border}}><Icon name="x" size={11}/>Clear ({checkedCount})</button>}
+          <div className="flex items-center gap-2">
+            {tab==='list'&&shoppingList.length>0&&<button onClick={()=>{
+              const text=AISLES.map(a=>{
+                const items=shoppingList.filter(i=>i.aisle===a.id);
+                if(!items.length) return null;
+                const lines=items.map(i=>`• ${i.name} — ${formatAmount(i.amount)}${i.unit?' '+i.unit:''}`).join('\n');
+                return `${a.emoji} ${a.label}\n${lines}`;
+              }).filter(Boolean).join('\n\n');
+              const full=`🛒 Simmer Fresh Shopping List\n\n${text}`;
+              if(navigator.share){navigator.share({title:'Shopping List',text:full}).catch(()=>{});}
+              else{navigator.clipboard.writeText(full).then(()=>alert('List copied to clipboard!'));}
+            }} aria-label="Share shopping list" className="press flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-full" style={{background:T.paprika,color:T.cream}}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              Share
+            </button>}
+            {tab==='list'&&checkedCount>0&&<button onClick={clearChecked} aria-label="Clear ticked items" className="press text-xs font-bold px-3 py-2 rounded-full flex items-center gap-1.5" style={{background:T.border}}><Icon name="x" size={11}/>Clear ({checkedCount})</button>}
+          </div>
         </div>
         <div className="relative flex gap-1">
           {[['list','Shopping list'],['meals','Meals']].map(([id,label])=>(
@@ -1829,23 +2440,48 @@ function PlanAndShop({allRecipes,planned,onRemove,onOpen}){
         {tab==='list'&&(
           <div className="p-4 fade-in">
             {shoppingList.length===0?<div className="text-center py-14 serif-it text-sm" style={{color:T.inkFaint}}>Nothing to shop for yet</div>:(
-              <div className="space-y-1.5">
-                {shoppingList.map((item,i)=>{
-                  const key=`${item.name}__${item.unit}`;
-                  const done=checked[key];
+              <div className="space-y-5">
+                {AISLES.map(aisle=>{
+                  const aisleItems=shoppingList.filter(i=>i.aisle===aisle.id);
+                  if(!aisleItems.length) return null;
+                  const allDone=aisleItems.every(i=>checked[`${i.name}__${i.unit}`]);
                   return(
-                    <button key={i} onClick={()=>toggleCheck(key)} aria-pressed={done} aria-label={done?`Untick ${item.name}`:`Tick ${item.name}`} className="press w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-all duration-200" style={{background:done?T.sage+'18':T.cardBg,border:`1px solid ${done?T.sage+'44':T.border}`,opacity:done?0.55:1}}>
-                      <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0" style={{background:done?T.sage:'transparent',border:`1.5px solid ${done?T.sage:T.borderDark}`}}>
-                        {done&&<span className="check-bounce"><Icon name="check" size={13} color={T.cream}/></span>}
+                    <div key={aisle.id}>
+                      <div className="flex items-center gap-2 mb-2 px-1">
+                        <span className="text-base leading-none">{aisle.emoji}</span>
+                        <span className="serif font-black text-[13px] uppercase tracking-[0.06em]" style={{color:allDone?T.sage:T.inkFaint}}>{aisle.label}</span>
+                        <div className="flex-1 h-px" style={{background:T.border}}/>
+                        <span className="text-[11px] font-bold num-tnum" style={{color:T.inkFaint}}>{aisleItems.filter(i=>checked[`${i.name}__${i.unit}`]).length}/{aisleItems.length}</span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-baseline gap-2 flex-wrap">
-                          <span className="serif font-bold text-[15px] leading-tight" style={{textDecoration:done?'line-through':'none'}}>{item.name}</span>
-                          <span className="text-[13px] font-bold num-tnum" style={{color:T.paprika}}>{formatAmount(item.amount)}{item.unit?' '+item.unit:''}</span>
-                        </div>
-                        <div className="serif-it text-[11.5px] mt-0.5 lc1" style={{color:T.inkFaint}}>for {item.recipes.join(', ')}</div>
+                      <div className="space-y-1.5">
+                        {aisleItems.map((item,i)=>{
+                          const key=`${item.name}__${item.unit}`;
+                          const done=checked[key];
+                          return(
+                            <div key={i}>
+                              <button onClick={()=>toggleCheck(key)} aria-pressed={done} aria-label={done?`Untick ${item.name}`:`Tick ${item.name}`} className="press w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-all duration-200" style={{background:done?T.sage+'18':T.cardBg,border:`1px solid ${done?T.sage+'44':T.border}`,opacity:done?0.55:1}}>
+                                <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0" style={{background:done?T.sage:'transparent',border:`1.5px solid ${done?T.sage:T.borderDark}`}}>
+                                  {done&&<span className="check-bounce"><Icon name="check" size={13} color={T.cream}/></span>}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-baseline gap-2 flex-wrap">
+                                    <span className="serif font-bold text-[15px] leading-tight" style={{textDecoration:done?'line-through':'none'}}>{item.name}</span>
+                                    <span className="text-[13px] font-bold num-tnum" style={{color:T.paprika}}>{formatAmount(item.amount)}{item.unit?' '+item.unit:''}</span>
+                                  </div>
+                                  <div className="serif-it text-[11.5px] mt-0.5 lc1" style={{color:T.inkFaint}}>for {item.recipes.join(', ')}</div>
+                                </div>
+                              </button>
+                              {item.auFlag&&!done&&(
+                                <div className="mx-1 mt-1 mb-0.5 px-3 py-2 rounded-lg text-[11.5px] leading-snug flex items-start gap-2" style={{background:T.ochre+'18',border:`1px solid ${T.ochre}44`,color:T.ochre}}>
+                                  <span className="flex-shrink-0 mt-px">📍</span>
+                                  <span>{item.auFlag}</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
