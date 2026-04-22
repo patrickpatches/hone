@@ -198,4 +198,5 @@ Design doc: `docs/pantry-to-recipe.md`
 - **Expo scaffold:** `mobile/` — Expo SDK 54, TypeScript, expo-router, NativeWind, expo-sqlite. Needs to catch up to `simmer-fresh.html`.
 - **Archived:** `docs/archive/meal-master.html`
 - **ADRs:** `docs/adr/` — stack (001), delivery (002)
-- **Next priority:** Phase 5 — substitutions UI (ingredient dropdown showing swap options inline). Then Phase 6 cook mode.
+- **Phase 5 ✅:** Substitutions UI live. Tap the swap icon on any ingredient → bottom sheet shows pre-baked swaps with Good swap / Compromise badge. 35 substitutions across 10 recipes. Non-covered ingredients show an honest "no swaps on file yet" state.
+- **Next priority:** Phase 6 — cook mode (dark screen, wake lock, step-by-step full screen, why notes on tap).
