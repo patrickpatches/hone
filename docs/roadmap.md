@@ -1,6 +1,6 @@
 # Simmer Fresh — Development Roadmap
 
-> Last updated: 2026-04-22 (session 2). This is the working build plan. Update it as phases complete or priorities shift.
+> Last updated: 2026-04-22 (session 3). This is the working build plan. Update it as phases complete or priorities shift.
 
 ## Status legend
 - ⬜ Not started
@@ -34,45 +34,41 @@
 
 ---
 
-## Phase 3 — Recipe library expansion
+## Phase 3 — Recipe library expansion ✅
 **Goal:** 30–40 recipes across all category axes. Chef-attributed. Every ingredient has substitutions. No preservatives.  
 **Sources:** Andy Cooks, Joshua Weissman, Gordon Ramsay (inspired, attributed, linked)  
-**Effort:** 2–3 sessions
+**Completed:** 2026-04-22 (sessions 2–3). 44 recipes live in simmer-fresh.html.
 
 **Cuisine targets:**
-- ✅ Levantine — musakhan, kafta, hummus, fattoush, shawarma (no Israeli labels)
+- ✅ Levantine — musakhan, kafta, hummus, fattoush, shawarma, lamb shawarma (no Israeli labels)
 - ✅ Indian — butter chicken (from scratch), saag paneer, dal (existing)
 - ✅ Malaysian — nasi lemak, curry laksa, char kway teow, beef rendang
-- 🔄 Japanese — ramen (existing), chicken katsu ✅, gyoza, miso soup ⬜
+- 🔄 Japanese — ramen (existing), chicken katsu ✅, gyoza ⬜, miso soup ⬜
 - 🔄 Thai — green curry (existing), pad thai (existing), tom yum ✅, larb ⬜
-- 🔄 Italian — carbonara (existing), risotto (existing), bolognese (existing), pizza dough ⬜
+- ✅ Italian — carbonara (existing), risotto (existing), bolognese ✅, aglio e olio ✅
 - 🔄 American — smash burger (existing), BBQ brisket ⬜, mac and cheese ⬜
-- ✅ Australian — barramundi, pavlova
+- ✅ Australian — barramundi lemon butter, pavlova
+- ✅ Other — egg fried rice, mujadara, sheet-pan harissa chicken
 
 **Type targets:**
 - ✅ Burgers — smash burger (existing)
 - ✅ Seafood — prawns, barramundi, fish tacos (existing), curry laksa
-- ✅ Chicken — roast chicken (existing), adobo (existing), katsu, butter chicken
+- ✅ Chicken — roast chicken (existing), adobo (existing), katsu, butter chicken, harissa chicken
 - ✅ Soups & Stews — beef stew (existing), french onion (existing), ramen (existing), tom yum
-
-**Bug fixes completed this session:**
-- ✅ DB schema.ts — added `categories`, `whole_food_verified`, `substitutions` columns + SCHEMA_MIGRATIONS migration system
-- ✅ DB database.ts — updated RecipeRow/IngredientRow interfaces, rowToRecipe/rowToIngredient mappers, insertRecipe SQL, migration runner in initDatabase
-- ✅ pantry-helpers.ts — added Malaysian/Indian/Australian ingredient categorisation (belacan, galangal, lemongrass, kaffir lime, barramundi, lap cheong, etc.)
-- ✅ seed-recipes.ts — fixed Andy Cooks YouTube URL (@AndyCooks → @andy_cooks) across all 5 affected recipes
 
 ---
 
-## Phase 4 — Shopping list feature
+## Phase 4 — Shopping list feature ✅
 **Goal:** From any recipe (or multi-recipe plan), generate a grouped, checkable shopping list scaled to serving count.  
-**Effort:** 1–2 sessions
+**Completed:** 2026-04-22 (session 3) — in simmer-fresh.html prototype.
 
-- ⬜ Shopping list screen in Expo app
-- ⬜ Group by aisle: produce, meat/seafood, pantry, dairy, bakery
-- ⬜ Scale quantities to selected serving count
-- ⬜ Check-off items (persisted in SQLite)
-- ⬜ Flag hard-to-find Australian ingredients with local alternatives
-- ⬜ Share/export list (share sheet)
+- ✅ Group by aisle: Produce / Meat & Seafood / Dairy & Eggs / Bakery / Pantry
+- ✅ Scale quantities to selected serving count (via leftover multiplier)
+- ✅ Check-off items (in-memory, per session)
+- ✅ Flag hard-to-find Australian ingredients with local store tips (12 ingredients)
+- ✅ Share/export list — Web Share API with clipboard fallback
+- ⬜ Shopping list screen in Expo native app (deferred to native build phase)
+- ⬜ Persist check-off state in SQLite (native app only)
 
 ---
 
