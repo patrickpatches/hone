@@ -27,7 +27,8 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p _site
-          cp simmer-fresh.html _site/index.html
+          # index.html is the deployed PWA (renamed from simmer-fresh.html on first push)
+          cp index.html _site/index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
