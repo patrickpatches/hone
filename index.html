@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>Mise — Your Kitchen Companion</title>
+<title>Simmer Fresh — Your Kitchen Companion</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -93,6 +93,33 @@ const T={
   cookText:'#F7F2EA',
 };
 
+// ─── BROWSE TAXONOMY ─────────────────────────────────────────────────────────
+const CUISINES=[
+  {id:'levantine',label:'Levantine',emoji:'🫙'},
+  {id:'indian',label:'Indian',emoji:'🍛'},
+  {id:'malaysian',label:'Malaysian',emoji:'🍜'},
+  {id:'japanese',label:'Japanese',emoji:'🍱'},
+  {id:'thai',label:'Thai',emoji:'🌶️'},
+  {id:'italian',label:'Italian',emoji:'🍝'},
+  {id:'french',label:'French',emoji:'🥐'},
+  {id:'american',label:'American',emoji:'🍔'},
+  {id:'australian',label:'Australian',emoji:'🦘'},
+  {id:'mexican',label:'Mexican',emoji:'🌮'},
+];
+const TYPES=[
+  {id:'burgers',label:'Burgers',emoji:'🍔'},
+  {id:'chicken',label:'Chicken',emoji:'🍗'},
+  {id:'seafood',label:'Seafood',emoji:'🦐'},
+  {id:'beef',label:'Beef',emoji:'🥩'},
+  {id:'lamb',label:'Lamb',emoji:'🐑'},
+  {id:'vegetarian',label:'Vegetarian',emoji:'🌱'},
+  {id:'pasta',label:'Pasta & Noodles',emoji:'🍝'},
+  {id:'soups',label:'Soups & Stews',emoji:'🍲'},
+  {id:'salads',label:'Salads',emoji:'🥗'},
+  {id:'baking',label:'Baking & Bread',emoji:'🍞'},
+  {id:'eggs',label:'Eggs',emoji:'🥚'},
+];
+
 // ─── LEFTOVER OPTIONS ─────────────────────────────────────────────────────────
 const LEFTOVER_OPTIONS=[
   {id:'tonight',label:'Just tonight',desc:'Exact portions, nothing extra',extra:0},
@@ -108,6 +135,8 @@ const RECIPES=[
   title:'Smash Burger',
   tagline:'The crispy-edged diner classic',
   category:'beef',
+  cuisine:'american',
+  type:'burgers',
   time:20,
   difficulty:'easy',
   baseServings:2,
@@ -140,6 +169,8 @@ const RECIPES=[
   title:'Chicken Adobo',
   tagline:'Filipino vinegar braise — deeply savoury',
   category:'chicken',
+  cuisine:'other',
+  type:'chicken',
   time:50,
   difficulty:'easy',
   baseServings:4,
@@ -170,6 +201,8 @@ const RECIPES=[
   title:'Pasta Carbonara',
   tagline:'The Roman original — no cream, ever',
   category:'pasta',
+  cuisine:'italian',
+  type:'pasta',
   time:25,
   difficulty:'medium',
   baseServings:2,
@@ -201,6 +234,8 @@ const RECIPES=[
   title:'Classic Beef Stew',
   tagline:'Low and slow, built for winter',
   category:'beef',
+  cuisine:'french',
+  type:'soups',
   time:180,
   difficulty:'easy',
   baseServings:4,
@@ -235,6 +270,8 @@ const RECIPES=[
   title:'Perfect Roast Chicken',
   tagline:'Crisp skin, juicy thighs, every time',
   category:'chicken',
+  cuisine:'french',
+  type:'chicken',
   time:90,
   difficulty:'easy',
   baseServings:4,
@@ -266,6 +303,8 @@ const RECIPES=[
   title:'Musakhan',
   tagline:'Palestinian roasted chicken with sumac and onions',
   category:'levantine',
+  cuisine:'levantine',
+  type:'chicken',
   time:90,
   difficulty:'medium',
   baseServings:4,
@@ -298,6 +337,8 @@ const RECIPES=[
   title:'Kafta Meshwi',
   tagline:'Lebanese grilled spiced mince on skewers',
   category:'levantine',
+  cuisine:'levantine',
+  type:'beef',
   time:30,
   difficulty:'easy',
   baseServings:4,
@@ -332,6 +373,8 @@ const RECIPES=[
   title:'Hummus from Scratch',
   tagline:'Palestinian hummus — dried chickpeas only',
   category:'levantine',
+  cuisine:'levantine',
+  type:'vegetarian',
   time:720,
   difficulty:'easy',
   baseServings:6,
@@ -365,6 +408,8 @@ const RECIPES=[
   title:'Fattoush',
   tagline:'Lebanese crispy bread salad with sumac dressing',
   category:'levantine',
+  cuisine:'levantine',
+  type:'salads',
   time:20,
   difficulty:'easy',
   baseServings:4,
@@ -399,6 +444,8 @@ const RECIPES=[
   title:'Prawn Tacos with Pineapple Salsa',
   tagline:'Spiced prawns, charred pineapple, chipotle crema',
   category:'fish',
+  cuisine:'mexican',
+  type:'seafood',
   time:25,
   difficulty:'easy',
   baseServings:2,
@@ -437,6 +484,8 @@ const RECIPES=[
   title:'Sourdough Starter — Maintenance Guide',
   tagline:'Keep your starter alive and ready to bake',
   category:'bread',
+  cuisine:'other',
+  type:'baking',
   time:15,
   difficulty:'easy',
   baseServings:1,
@@ -464,6 +513,8 @@ const RECIPES=[
   title:'Sourdough Country Loaf',
   tagline:'Open crumb, blistered crust — 24-hour process',
   category:'bread',
+  cuisine:'other',
+  type:'baking',
   time:1440,
   difficulty:'hard',
   baseServings:8,
@@ -493,6 +544,8 @@ const RECIPES=[
   title:'Mushroom Risotto',
   tagline:'The slow stir pays off',
   category:'vegetarian',
+  cuisine:'italian',
+  type:'vegetarian',
   time:40,
   difficulty:'medium',
   baseServings:2,
@@ -526,6 +579,8 @@ const RECIPES=[
   title:'Baja Fish Tacos',
   tagline:'Crispy, fresh, and done in 20 minutes',
   category:'fish',
+  cuisine:'mexican',
+  type:'seafood',
   time:25,
   difficulty:'easy',
   baseServings:2,
@@ -559,6 +614,8 @@ const RECIPES=[
   title:'Thai Green Curry',
   tagline:'Aromatic, balanced, deeply fragrant',
   category:'chicken',
+  cuisine:'thai',
+  type:'chicken',
   time:35,
   difficulty:'medium',
   baseServings:4,
@@ -592,6 +649,8 @@ const RECIPES=[
   title:'French Onion Soup',
   tagline:'Three hours of patience, forty years of tradition',
   category:'soup',
+  cuisine:'french',
+  type:'soups',
   time:180,
   difficulty:'medium',
   baseServings:4,
@@ -624,6 +683,8 @@ const RECIPES=[
   title:'Pad Thai',
   tagline:'The tamarind is non-negotiable',
   category:'noodles',
+  cuisine:'thai',
+  type:'pasta',
   time:20,
   difficulty:'medium',
   baseServings:2,
@@ -658,6 +719,8 @@ const RECIPES=[
   title:'Red Wine Braised Short Ribs',
   tagline:'Low and slow, fork-tender, restaurant result',
   category:'beef',
+  cuisine:'american',
+  type:'beef',
   time:210,
   difficulty:'medium',
   baseServings:4,
@@ -691,6 +754,8 @@ const RECIPES=[
   title:'Shoyu Ramen',
   tagline:'Rich tonkotsu-style with proper tare',
   category:'noodles',
+  cuisine:'japanese',
+  type:'soups',
   time:30,
   difficulty:'easy',
   baseServings:2,
@@ -725,6 +790,8 @@ const RECIPES=[
   title:'Beef Wellington',
   tagline:'The showstopper — done right',
   category:'beef',
+  cuisine:'french',
+  type:'beef',
   time:120,
   difficulty:'hard',
   baseServings:6,
@@ -756,6 +823,8 @@ const RECIPES=[
   title:'Tarka Dal',
   tagline:'The spiced lentil dish that makes everything better',
   category:'vegetarian',
+  cuisine:'indian',
+  type:'vegetarian',
   time:40,
   difficulty:'easy',
   baseServings:4,
@@ -790,6 +859,8 @@ const RECIPES=[
   title:'Perfect Scrambled Eggs',
   tagline:'Low and slow — 7 minutes of patience',
   category:'eggs',
+  cuisine:'other',
+  type:'eggs',
   time:10,
   difficulty:'easy',
   baseServings:1,
@@ -811,6 +882,330 @@ const RECIPES=[
     {id:'s3',title:'Salt and finish at the last second',content:'When eggs are 90% set — still slightly glossy and wet — remove from heat. Add crème fraîche, stir once. Season with salt. Serve immediately.',timer:null,why:'Salt draws water from proteins by osmosis. Added early, it makes the eggs watery. Added at the end, it seasons without affecting texture. The crème fraîche adds richness and stops the cooking instantly by cooling the mass. Residual heat finishes them perfectly.'},
   ],
   tags:['eggs','quick','breakfast','technique'],
+},
+{
+  id:'butter-chicken',
+  title:'Butter Chicken',
+  tagline:'The original — rich, aromatic, made entirely from scratch',
+  category:'chicken',
+  cuisine:'indian',
+  type:'chicken',
+  time:75,
+  difficulty:'medium',
+  baseServings:4,
+  inspiration:'Andy Cooks',
+  sourceUrl:'https://www.youtube.com/@AndyCooks',
+  heroEmoji:'🍛',
+  heroColor:'#C85A1A',
+  heroImg:'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=600&q=80',
+  ingredients:[
+    {id:'i1',name:'Chicken thighs, boneless skinless',amount:800,unit:'g',scales:'linear',notes:'Thighs stay juicy in the sauce — breast will dry out'},
+    {id:'i2',name:'Full-fat yoghurt',amount:150,unit:'g',scales:'linear'},
+    {id:'i3',name:'Fresh ginger, grated',amount:30,unit:'g',scales:'linear'},
+    {id:'i4',name:'Garlic cloves, minced',amount:6,unit:'',scales:'linear'},
+    {id:'i5',name:'Ground cumin',amount:2,unit:'tsp',scales:'fixed'},
+    {id:'i6',name:'Ground coriander',amount:2,unit:'tsp',scales:'fixed'},
+    {id:'i7',name:'Garam masala',amount:2,unit:'tsp',scales:'fixed'},
+    {id:'i8',name:'Ground turmeric',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i9',name:'Kashmiri chilli powder',amount:2,unit:'tsp',scales:'fixed',notes:'Gives deep red colour without excessive heat — sweet paprika works if unavailable'},
+    {id:'i10',name:'Unsalted butter',amount:60,unit:'g',scales:'fixed'},
+    {id:'i11',name:'Brown onion, finely diced',amount:200,unit:'g',scales:'linear'},
+    {id:'i12',name:'Ripe tomatoes, roughly chopped',amount:600,unit:'g',scales:'linear'},
+    {id:'i13',name:'Pure cream',amount:150,unit:'ml',scales:'linear'},
+    {id:'i14',name:'Salt',amount:1.5,unit:'tsp',scales:'fixed'},
+    {id:'i15',name:'Neutral oil',amount:2,unit:'tbsp',scales:'fixed'},
+  ],
+  steps:[
+    {id:'s1',title:'Marinate the chicken',content:'Combine yoghurt, half the ginger, half the garlic, half the spices, and 1 tsp salt. Cut chicken into 5cm pieces and coat thoroughly. Marinate at least 2 hours — overnight is better.',timer:null,why:'Yoghurt contains lactic acid that gently breaks down muscle fibres, keeping chicken tender through the long cook. The spices in the marinade bloom into the fat of the yoghurt rather than just sitting on the surface.'},
+    {id:'s2',title:'Char the chicken',content:'Get a heavy pan or grill screaming hot. Cook chicken pieces in batches without crowding — 3–4 minutes each side until you have genuine char marks. You want some blackened edges. Don\'t fully cook through — they finish in the sauce.',timer:240,why:'The char is not an accident. Burnt edges create bitter, complex compounds that balance the rich sauce. Restaurants char in a tandoor at 480°C — a hot cast iron pan replicates this. Crowding the pan causes steaming and you lose the char entirely.'},
+    {id:'s3',title:'Build the sauce base',content:'Melt butter with oil in a wide pot over medium heat. Add onion and cook 12–15 minutes, stirring occasionally, until deeply golden — almost caramelised. Add remaining ginger and garlic, stir 2 minutes. Add remaining spices, stir 1 minute until fragrant.',timer:900,why:'Onions need 12+ minutes to properly caramelise — the sugars convert to complex flavour compounds. Rushing this with high heat burns the outside while leaving the inside raw. The spices go in at the end because they burn in seconds and become bitter if added to a dry pan early.'},
+    {id:'s4',title:'Add tomatoes and simmer',content:'Add chopped tomatoes, 200ml water, and 1 tsp salt. Bring to a boil, then simmer uncovered 20 minutes until tomatoes completely break down and sauce thickens. Blend until completely smooth — use a stick blender in the pot.',timer:1200,why:'Fresh tomatoes need time to break down their cell structure and release pectin, which gives the sauce body. Blending removes all texture — butter chicken sauce should be completely silky. Any remaining tomato skin or seed texture signals an undercooked sauce.'},
+    {id:'s5',title:'Add chicken and cream',content:'Add charred chicken pieces to the smooth sauce. Simmer 10 minutes until chicken is cooked through and sauce clings to each piece. Add cream, stir gently, heat through for 2 minutes. Do not boil after adding cream — it will split.',timer:600,why:'The cream goes in last because boiling after this point breaks the fat emulsion, giving you greasy orange liquid instead of a velvety sauce. Two minutes on low heat is enough to incorporate it. The chicken finishes cooking in the sauce and absorbs the flavour.'},
+    {id:'s6',title:'Serve',content:'Serve over basmati rice or with fresh naan. Finish with a swirl of cream if you like. Coriander on top is traditional — skip it if you have the soap gene.',timer:null,why:null},
+  ],
+  tags:['indian','chicken','curry','batch-cook'],
+},
+{
+  id:'chicken-shawarma',
+  title:'Chicken Shawarma',
+  tagline:'Levantine street food — spiced, crisp-edged, proper garlic sauce',
+  category:'levantine',
+  cuisine:'levantine',
+  type:'chicken',
+  time:60,
+  difficulty:'medium',
+  baseServings:4,
+  inspiration:'Andy Cooks',
+  sourceUrl:'https://www.youtube.com/@AndyCooks',
+  heroEmoji:'🌯',
+  heroColor:'#8B5E3C',
+  heroImg:'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=600&q=80',
+  ingredients:[
+    {id:'i1',name:'Chicken thighs, boneless skinless',amount:800,unit:'g',scales:'linear'},
+    {id:'i2',name:'Ground cumin',amount:2,unit:'tsp',scales:'fixed'},
+    {id:'i3',name:'Ground coriander',amount:2,unit:'tsp',scales:'fixed'},
+    {id:'i4',name:'Ground turmeric',amount:0.5,unit:'tsp',scales:'fixed'},
+    {id:'i5',name:'Ground cinnamon',amount:0.5,unit:'tsp',scales:'fixed'},
+    {id:'i6',name:'Smoked paprika',amount:1.5,unit:'tsp',scales:'fixed'},
+    {id:'i7',name:'Garlic cloves, minced',amount:4,unit:'',scales:'linear'},
+    {id:'i8',name:'Lemon juice, fresh',amount:3,unit:'tbsp',scales:'linear'},
+    {id:'i9',name:'Olive oil',amount:3,unit:'tbsp',scales:'fixed'},
+    {id:'i10',name:'Salt',amount:1.5,unit:'tsp',scales:'fixed'},
+    {id:'i11',name:'Garlic cloves (for toum)',amount:8,unit:'',scales:'fixed'},
+    {id:'i12',name:'Neutral oil (for toum)',amount:200,unit:'ml',scales:'fixed'},
+    {id:'i13',name:'Lemon juice (for toum)',amount:3,unit:'tbsp',scales:'fixed'},
+    {id:'i14',name:'Lebanese flatbread or pita',amount:4,unit:'',scales:'linear'},
+    {id:'i15',name:'Tomato, sliced',amount:2,unit:'',scales:'linear'},
+    {id:'i16',name:'Cucumber, sliced',amount:1,unit:'',scales:'linear'},
+    {id:'i17',name:'Flat-leaf parsley, roughly chopped',amount:20,unit:'g',scales:'fixed'},
+    {id:'i18',name:'Pickled turnips',amount:80,unit:'g',scales:'fixed',notes:'Bright pink pickled turnips are traditional — find them at Middle Eastern grocers or make your own'},
+  ],
+  steps:[
+    {id:'s1',title:'Marinate the chicken',content:'Mix spices, garlic, lemon juice, olive oil, and salt into a paste. Coat chicken thighs thoroughly and marinate at least 1 hour — 4 hours if you have time.',timer:null,why:'The acid in lemon juice starts breaking down the protein surface, which means the spices penetrate instead of just coating. Longer marinating time = deeper spice flavour throughout the meat.'},
+    {id:'s2',title:'Make the toum (garlic sauce)',content:'Blend garlic with a pinch of salt until very fine. With the blender running, drizzle in neutral oil incredibly slowly — a thin stream. Alternate with drops of lemon juice. The sauce should turn white and fluffy like mayonnaise. This takes patience.',timer:null,why:'Toum is an emulsion — oil suspended in water by garlic proteins acting as an emulsifier. Pour too fast and the emulsion breaks into oily liquid. Alternate with lemon juice to add the water phase and keep the ratio stable. Cold garlic works better than room temperature.'},
+    {id:'s3',title:'Cook the chicken',content:'Get a grill pan or heavy frying pan screaming hot. Cook chicken thighs 5–6 minutes each side until cooked through with charred edges and good colour. Rest 5 minutes before slicing.',timer:360,why:'High heat is essential for the charred edges that define shawarma. In a proper shawarma restaurant the vertical spit rotates inches from a flame — a very hot pan replicates this. Resting allows juices to redistribute before you slice.'},
+    {id:'s4',title:'Slice thin and serve',content:'Slice chicken thinly across the grain. Warm the flatbread briefly in the same pan. Spread generous toum, add chicken, tomato, cucumber, parsley, pickled turnips. Roll tightly and eat immediately.',timer:null,why:'Slicing thin maximises the spiced, charred surface area on every bite — you get crust in every mouthful rather than buried inside a thick piece. Across the grain means shorter muscle fibres, which means more tender slices.'},
+  ],
+  tags:['levantine','chicken','street-food','garlic'],
+},
+{
+  id:'prawn-laksa',
+  title:'Prawn Laksa',
+  tagline:'Malaysian coconut broth — rich, spicy, fragrant',
+  category:'seafood',
+  cuisine:'malaysian',
+  type:'seafood',
+  time:55,
+  difficulty:'medium',
+  baseServings:4,
+  inspiration:'Andy Cooks',
+  sourceUrl:'https://www.youtube.com/@AndyCooks',
+  heroEmoji:'🍜',
+  heroColor:'#D4770A',
+  heroImg:'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=600&q=80',
+  ingredients:[
+    {id:'i1',name:'Raw prawns, peeled and deveined',amount:500,unit:'g',scales:'linear'},
+    {id:'i2',name:'Dried rice vermicelli noodles',amount:200,unit:'g',scales:'linear'},
+    {id:'i3',name:'Full-fat coconut milk',amount:400,unit:'ml',scales:'linear'},
+    {id:'i4',name:'Prawn or chicken stock',amount:600,unit:'ml',scales:'linear'},
+    {id:'i5',name:'Dried red chillies',amount:6,unit:'',scales:'fixed'},
+    {id:'i6',name:'Lemongrass stalks, white part only',amount:3,unit:'',scales:'fixed'},
+    {id:'i7',name:'Fresh galangal or ginger, sliced',amount:30,unit:'g',scales:'fixed',notes:'Galangal is sharper and more floral than ginger — use ginger in a pinch but the flavour is noticeably different'},
+    {id:'i8',name:'Shallots',amount:4,unit:'',scales:'linear'},
+    {id:'i9',name:'Garlic cloves',amount:4,unit:'',scales:'linear'},
+    {id:'i10',name:'Ground turmeric',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i11',name:'Ground coriander',amount:1.5,unit:'tsp',scales:'fixed'},
+    {id:'i12',name:'Shrimp paste (belacan)',amount:1,unit:'tsp',scales:'fixed',notes:'Real belacan is a preserved ingredient but it is traditional and irreplaceable — find it at Asian grocers'},
+    {id:'i13',name:'Neutral oil',amount:3,unit:'tbsp',scales:'fixed'},
+    {id:'i14',name:'Bean sprouts',amount:150,unit:'g',scales:'linear'},
+    {id:'i15',name:'Tofu puffs, halved',amount:100,unit:'g',scales:'linear'},
+    {id:'i16',name:'Coriander leaves, fresh',amount:20,unit:'g',scales:'fixed'},
+    {id:'i17',name:'Lime wedges',amount:2,unit:'per person',scales:'linear'},
+    {id:'i18',name:'Fish sauce',amount:2,unit:'tbsp',scales:'fixed',notes:'Real fish sauce is a traditionally fermented ingredient — look for Tiparos or Megachef brands for quality'},
+  ],
+  steps:[
+    {id:'s1',title:'Make the laksa paste',content:'Soak dried chillies in boiling water 10 minutes until soft. Blend soaked chillies, lemongrass, galangal, shallots, garlic, turmeric, coriander, and belacan into a fine paste. Add a splash of water if needed to keep the blender moving.',timer:600,why:'Laksa paste is the entire flavour base of the dish — spending time here makes the difference between restaurant-quality and flat. The soaking softens dried chillies enough to blend smooth; unsoaked chillies leave flecks and uneven heat.'},
+    {id:'s2',title:'Fry the paste',content:'Heat oil in a wide pot over medium heat. Add the paste and fry, stirring constantly, 8–10 minutes until it darkens slightly, smells deeply fragrant, and the oil begins to separate around the edges.',timer:540,why:'Frying the paste in oil cooks out the raw aromatics and blooms the fat-soluble flavour compounds from the spices. The oil separating is the signal that the paste is cooked — it means the water has evaporated and the Maillard reaction is happening. Undercooked paste tastes sharp and raw.'},
+    {id:'s3',title:'Build the broth',content:'Add coconut milk and stock. Bring to a gentle simmer — never a full boil. Season with fish sauce. Taste: it should be rich, coconutty, slightly salty, and aromatic. Adjust fish sauce or add a pinch of sugar if needed.',timer:600,why:'Full boiling splits the coconut milk fat and turns the broth grainy and oily. A gentle simmer keeps it emulsified and velvety. Fish sauce adds saltiness and umami simultaneously — use it instead of plain salt in any Southeast Asian broth.'},
+    {id:'s4',title:'Soak noodles and prep toppings',content:'Soak rice vermicelli in boiling water 3–4 minutes until tender but still with a little bite. Drain. Add tofu puffs to the simmering broth for the last 3 minutes — they absorb the laksa and become pillows of flavour.',timer:240,why:'Rice vermicelli overcooks fast — they go from perfect to mushy in under a minute. Soak rather than boil them so they don\'t absorb too much water and dilute the sauce when served.'},
+    {id:'s5',title:'Add prawns and serve',content:'Add prawns to the simmering broth. Cook 2–3 minutes until just pink and curled — they\'ll continue cooking in the hot broth. Divide noodles into deep bowls, ladle over broth and prawns, top with bean sprouts, coriander, and tofu puffs. Serve with lime wedges.',timer:180,why:'Prawns go rubbery fast — pull them the moment they turn fully pink. The residual heat in the broth finishes them. Bean sprouts go in raw for crunch contrast against the silky broth.'},
+  ],
+  tags:['malaysian','seafood','noodles','spicy','coconut'],
+},
+{
+  id:'birria-tacos',
+  title:'Birria Beef Tacos',
+  tagline:'Mexican braised beef — deep red, crispy, dipped in consommé',
+  category:'beef',
+  cuisine:'mexican',
+  type:'beef',
+  time:240,
+  difficulty:'medium',
+  baseServings:6,
+  inspiration:'Joshua Weissman',
+  sourceUrl:'https://www.youtube.com/@JoshuaWeissman',
+  heroEmoji:'🌮',
+  heroColor:'#8B1A1A',
+  heroImg:'https://images.unsplash.com/photo-1624300629298-e9de39c13be5?w=600&q=80',
+  ingredients:[
+    {id:'i1',name:'Beef chuck, large chunks',amount:1200,unit:'g',scales:'linear'},
+    {id:'i2',name:'Dried guajillo chillies',amount:6,unit:'',scales:'fixed',notes:'Find at Mexican or Latin grocers — these are the backbone of the red colour and earthy flavour'},
+    {id:'i3',name:'Dried ancho chillies',amount:3,unit:'',scales:'fixed',notes:'Darker, fruitier, less heat than guajillo — both are needed for complexity'},
+    {id:'i4',name:'Ripe tomatoes',amount:400,unit:'g',scales:'linear'},
+    {id:'i5',name:'Brown onion, halved',amount:1,unit:'',scales:'fixed'},
+    {id:'i6',name:'Garlic cloves',amount:6,unit:'',scales:'fixed'},
+    {id:'i7',name:'Ground cumin',amount:2,unit:'tsp',scales:'fixed'},
+    {id:'i8',name:'Dried oregano',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i9',name:'Ground cloves',amount:0.25,unit:'tsp',scales:'fixed'},
+    {id:'i10',name:'Apple cider vinegar',amount:2,unit:'tbsp',scales:'fixed'},
+    {id:'i11',name:'Beef stock',amount:500,unit:'ml',scales:'linear'},
+    {id:'i12',name:'Corn tortillas',amount:16,unit:'',scales:'linear'},
+    {id:'i13',name:'White onion, finely diced',amount:1,unit:'',scales:'linear'},
+    {id:'i14',name:'Fresh coriander, chopped',amount:30,unit:'g',scales:'fixed'},
+    {id:'i15',name:'Mozzarella or Oaxacan cheese',amount:200,unit:'g',scales:'linear'},
+    {id:'i16',name:'Lime wedges',amount:2,unit:'per person',scales:'linear'},
+  ],
+  steps:[
+    {id:'s1',title:'Toast and soak the chillies',content:'Remove stems and seeds from dried chillies. Toast in a dry pan over medium heat for 30–45 seconds each side — they should darken slightly and smell toasty, not burnt. Soak immediately in boiling water for 20 minutes.',timer:45,why:'Toasting wakes up the volatile aromatics in dried chillies and adds a subtle smokiness. The soaking rehydrates them so they blend smooth — unsoaked dried chillies make a gritty paste and never fully incorporate into the broth.'},
+    {id:'s2',title:'Char the aromatics',content:'Under a grill or in a dry cast iron pan, char the tomatoes, onion, and garlic until blackened in patches — 5–8 minutes. You want genuine char, not just browning.',timer:480,why:'Charring adds deep, slightly bitter complexity that anchors the sweet, acidic, and spicy elements of the broth. Without it, birria tastes one-dimensional. The blackened bits dissolve into the sauce during the long braise.'},
+    {id:'s3',title:'Blend the adobo sauce',content:'Blend soaked chillies (with some soaking liquid), charred tomatoes, onion, garlic, cumin, oregano, cloves, vinegar, and 100ml beef stock until completely smooth. Taste — it should be complex, earthy, and slightly acidic.',timer:null,why:'The soaking liquid is full of chilli flavour — use it. Blending smooth is critical: any chunks of chilli or tomato left over will make the consommé cloudy instead of the characteristic deep red clarity.'},
+    {id:'s4',title:'Sear beef and braise',content:'Season beef generously. Sear in batches in a heavy pot until deeply browned on all sides — 3–4 minutes per side. Add the adobo sauce and beef stock. Bring to a boil, skim any foam, then cover and braise on very low heat for 2.5–3 hours until the beef falls apart.',timer:9000,why:'The slow braise converts the tough collagen in chuck to silky gelatin — this is what makes the consommé rich and the beef pull apart without drying out. The braise liquid becomes the dipping consommé; skimming keeps it clear.'},
+    {id:'s5',title:'Pull the beef',content:'Remove beef from broth. Shred coarsely with two forks — chunks, not stringy. Reserve the broth (this is your consommé for dipping). Skim fat from the surface of the consommé and season with salt.',timer:null,why:'Coarse shredding gives you varied textures in the taco — some tender chunks, some pulled strands. Over-shredding makes it mushy. The fat you skim will be used to fry the tortillas — don\'t discard it.'},
+    {id:'s6',title:'Assemble and fry the tacos',content:'Dip tortillas briefly in the warm consommé (or brush with skimmed fat). Cook in a hot pan until crispy on one side, add cheese and beef filling, fold over. Cook until the cheese melts and both sides are crispy and red. Serve with consommé on the side for dipping each bite.',timer:null,why:'The consommé-dipped and fried tortilla is the defining feature of birria tacos — it goes deeply red and crispy from the chilli-infused fat. Serve the consommé hot alongside for dipping each bite.'},
+  ],
+  tags:['mexican','beef','braise','tacos','weekend'],
+},
+{
+  id:'nashville-hot-chicken',
+  title:'Nashville Hot Chicken',
+  tagline:'Southern fried chicken with searing chilli oil — no compromise',
+  category:'chicken',
+  cuisine:'american',
+  type:'chicken',
+  time:60,
+  difficulty:'medium',
+  baseServings:4,
+  inspiration:'Joshua Weissman',
+  sourceUrl:'https://www.youtube.com/@JoshuaWeissman',
+  heroEmoji:'🍗',
+  heroColor:'#C83A1A',
+  heroImg:'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=600&q=80',
+  ingredients:[
+    {id:'i1',name:'Chicken thighs and drumsticks, bone-in',amount:1200,unit:'g',scales:'linear'},
+    {id:'i2',name:'Buttermilk',amount:300,unit:'ml',scales:'linear',notes:'To make your own: 300ml full-fat milk + 1 tbsp white vinegar, sit 10 minutes'},
+    {id:'i3',name:'Plain flour',amount:250,unit:'g',scales:'fixed'},
+    {id:'i4',name:'Cornflour',amount:50,unit:'g',scales:'fixed'},
+    {id:'i5',name:'Garlic powder',amount:2,unit:'tsp',scales:'fixed'},
+    {id:'i6',name:'Onion powder',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i7',name:'Smoked paprika',amount:2,unit:'tsp',scales:'fixed'},
+    {id:'i8',name:'Cayenne pepper (for batter)',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i9',name:'Salt',amount:2,unit:'tsp',scales:'fixed'},
+    {id:'i10',name:'Neutral oil, for frying',amount:1,unit:'L',scales:'fixed'},
+    {id:'i11',name:'Cayenne pepper (for hot oil)',amount:3,unit:'tbsp',scales:'fixed',notes:'This is the heat. Start at 2 tbsp if you want medium, go 4 tbsp if you want genuine pain'},
+    {id:'i12',name:'Brown sugar',amount:1,unit:'tbsp',scales:'fixed'},
+    {id:'i13',name:'Garlic powder (for hot oil)',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i14',name:'White bread, thick-sliced',amount:8,unit:'slices',scales:'linear'},
+    {id:'i15',name:'Pickles (dill)',amount:40,unit:'g',scales:'fixed'},
+  ],
+  steps:[
+    {id:'s1',title:'Marinate in buttermilk',content:'Season chicken with 1 tsp salt. Submerge in buttermilk with 1 tsp cayenne and garlic powder. Marinate at least 2 hours — overnight is significantly better.',timer:null,why:'Buttermilk has lactic acid that tenderises the muscle fibres without breaking them down to mush — it\'s gentler than vinegar marinades. The calcium ions in buttermilk also activate enzymes in the chicken that further tenderise the meat. This is why Nashville hot chicken has unusually juicy interior despite aggressive frying.'},
+    {id:'s2',title:'Set up the dredge',content:'Mix flour, cornflour, garlic powder, onion powder, smoked paprika, remaining cayenne, and remaining salt in a deep tray. Remove chicken from buttermilk (let excess drip off), press firmly into the flour mixture, coating every surface. Double dredge: dip back in buttermilk briefly, then back in flour. Rest on a wire rack 10 minutes.',timer:600,why:'Double dredging builds a thicker crust that creates more surface area for the chilli oil to soak into. Resting the coated chicken lets the flour hydrate from the buttermilk — this is what creates the craggy, shaggy crust rather than a smooth coating.'},
+    {id:'s3',title:'Fry at 175°C',content:'Heat oil to 175°C in a deep pot. Fry in batches — never crowd — for 14–16 minutes until deep golden and the internal temperature hits 74°C. Drain on a wire rack, not paper towels.',timer:900,why:'175°C is the sweet spot: hot enough to drive off moisture quickly and set a crispy crust, cool enough to cook the bone-in pieces through before the exterior burns. A wire rack keeps the bottom crust crispy — paper towels trap steam and soften it.'},
+    {id:'s4',title:'Make the hot oil',content:'Carefully ladle 4 tbsp of the hot frying oil into a heatproof bowl. Add cayenne, brown sugar, and garlic powder. Stir immediately — it will sizzle violently. The sugar blooms in the hot oil.',timer:null,why:'Using the frying oil carries the chicken flavour into the hot sauce. The sugar caramelises slightly on contact with hot oil, rounding the raw heat of the cayenne. Apply immediately while both the oil and chicken are hot so it penetrates the crust.'},
+    {id:'s5',title:'Apply and serve',content:'Brush hot oil generously over each piece while still hot. Serve immediately on white bread with pickles on top — the bread soaks up the dripping spiced oil and is half the point.',timer:null,why:'The bread serves a real function: it catches the pooling chilli oil so you eat it. Nashville tradition is white bread specifically because it absorbs without competing. Pickles cut the fat and reset the palate between bites.'},
+  ],
+  tags:['american','chicken','fried','spicy','southern'],
+},
+{
+  id:'salmon-teriyaki',
+  title:'Salmon Teriyaki',
+  tagline:'Lacquered, caramelised, properly made — not the bottled version',
+  category:'fish',
+  cuisine:'japanese',
+  type:'seafood',
+  time:25,
+  difficulty:'easy',
+  baseServings:2,
+  inspiration:'Joshua Weissman',
+  sourceUrl:'https://www.youtube.com/@JoshuaWeissman',
+  heroEmoji:'🐟',
+  heroColor:'#E07840',
+  heroImg:'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=600&q=80',
+  ingredients:[
+    {id:'i1',name:'Salmon fillets, skin-on',amount:400,unit:'g',scales:'linear'},
+    {id:'i2',name:'Soy sauce',amount:60,unit:'ml',scales:'linear'},
+    {id:'i3',name:'Mirin',amount:60,unit:'ml',scales:'linear',notes:'Real mirin — not mirin-style condiment which is mostly corn syrup. Find it at Japanese or Asian grocers'},
+    {id:'i4',name:'Sake',amount:60,unit:'ml',scales:'linear',notes:'Cooking sake or dry sherry as a substitute'},
+    {id:'i5',name:'Honey',amount:2,unit:'tsp',scales:'fixed',notes:'Omit for traditional teriyaki — the mirin provides sweetness. Add if you prefer a sweeter glaze'},
+    {id:'i6',name:'Neutral oil',amount:1,unit:'tbsp',scales:'fixed'},
+    {id:'i7',name:'Steamed short-grain rice',amount:300,unit:'g',scales:'linear'},
+    {id:'i8',name:'Spring onions, thinly sliced',amount:2,unit:'',scales:'linear'},
+    {id:'i9',name:'Sesame seeds, toasted',amount:1,unit:'tsp',scales:'fixed'},
+  ],
+  steps:[
+    {id:'s1',title:'Make the teriyaki sauce',content:'Combine soy sauce, mirin, sake, and honey if using in a small saucepan. Bring to a simmer and reduce for 4–5 minutes until slightly thickened and glossy. It should coat a spoon but still be pourable.',timer:300,why:'Reducing concentrates the flavour and drives off the alcohol from the sake and mirin. The sugars from mirin caramelise as it reduces — this is what gives teriyaki its characteristic gloss and burnished sweetness. Bottled teriyaki skips this reduction and uses corn syrup instead.'},
+    {id:'s2',title:'Score and dry the salmon',content:'Pat salmon fillets completely dry with paper towels. Score the skin diagonally every 2cm — cutting just through the skin, not into the flesh.',timer:null,why:'Dry surface = better browning. Water on the fish causes it to steam in the pan instead of sear. Scoring the skin prevents it from curling and buckling as it cooks — the connective tissue in skin contracts faster than the flesh, warping the fillet away from the pan.'},
+    {id:'s3',title:'Sear skin-side down',content:'Heat oil in a non-stick or stainless pan over medium-high. Place salmon skin-side down. Press gently for the first 30 seconds to maintain contact. Cook 4–5 minutes undisturbed — the skin should be deeply golden and crispy. Flip and cook 1–2 minutes.',timer:300,why:'Starting skin-side down in a hot pan renders the fat from the skin and crisps it before it can steam. "Undisturbed" is key — moving the fish prevents the Maillard reaction from completing and tears the skin from the fillet.'},
+    {id:'s4',title:'Glaze and serve',content:'With the fish off heat or on very low, spoon the teriyaki sauce over the salmon and let it caramelise for 30–45 seconds per side. It will bubble and thicken rapidly on the hot fish. Serve over rice, topped with spring onion and sesame seeds.',timer:45,why:'The glaze goes on last because the high sugar content burns quickly — it needs a hot but not ripping pan. The sauce caramelises into a lacquer on the surface of the fish rather than just sitting wet on top.'},
+  ],
+  tags:['japanese','seafood','quick','weeknight'],
+},
+{
+  id:'lamb-rack-herb',
+  title:'Herb-Crusted Rack of Lamb',
+  tagline:'French bistro technique — pink, herb-green, rested properly',
+  category:'lamb',
+  cuisine:'french',
+  type:'lamb',
+  time:45,
+  difficulty:'medium',
+  baseServings:2,
+  inspiration:'Joshua Weissman',
+  sourceUrl:'https://www.youtube.com/@JoshuaWeissman',
+  heroEmoji:'🍖',
+  heroColor:'#8B4513',
+  heroImg:'https://images.unsplash.com/photo-1514516816566-de580c621376?w=600&q=80',
+  ingredients:[
+    {id:'i1',name:'Rack of lamb, frenched (8 bones)',amount:800,unit:'g',scales:'fixed',notes:'Ask your butcher to french the rack — it just means scraping the bones clean for presentation'},
+    {id:'i2',name:'Dijon mustard',amount:2,unit:'tbsp',scales:'fixed'},
+    {id:'i3',name:'Fresh rosemary, leaves only',amount:3,unit:'sprigs',scales:'fixed'},
+    {id:'i4',name:'Fresh thyme, leaves only',amount:4,unit:'sprigs',scales:'fixed'},
+    {id:'i5',name:'Flat-leaf parsley',amount:20,unit:'g',scales:'fixed'},
+    {id:'i6',name:'Garlic cloves',amount:3,unit:'',scales:'fixed'},
+    {id:'i7',name:'Panko breadcrumbs',amount:50,unit:'g',scales:'fixed'},
+    {id:'i8',name:'Olive oil',amount:3,unit:'tbsp',scales:'fixed'},
+    {id:'i9',name:'Salt',amount:1.5,unit:'tsp',scales:'fixed'},
+    {id:'i10',name:'Black pepper, cracked',amount:1,unit:'tsp',scales:'fixed'},
+    {id:'i11',name:'Unsalted butter',amount:30,unit:'g',scales:'fixed'},
+  ],
+  steps:[
+    {id:'s1',title:'Season and bring to room temperature',content:'Season the rack generously with salt and pepper on all sides — including the bones. Leave at room temperature for 30 minutes before cooking.',timer:1800,why:'Cold meat hitting a hot pan drops the pan temperature significantly, causing uneven cooking. Room temperature meat takes the sear more evenly. Seasoning well in advance lets the salt draw moisture out and back in — dry-brining effect that improves crust formation.'},
+    {id:'s2',title:'Sear all surfaces',content:'Heat a heavy oven-safe pan over high heat. Add oil. Sear the rack fat-side down for 3–4 minutes until the fat cap renders and turns golden. Sear the meat side for 2 minutes. Sear the ends briefly. You want colour on every surface.',timer:360,why:'A proper sear develops the crust and builds the Maillard flavour compounds that the herb crust will complement. The fat cap needs the most time because you\'re rendering fat, not just browning protein.'},
+    {id:'s3',title:'Make the herb crust',content:'While the rack sears, blend rosemary, thyme, parsley, garlic, breadcrumbs, and 2 tbsp olive oil until you have a coarse green paste. Season with salt.',timer:null,why:'Fresh herbs blended with oil coat the breadcrumbs in chlorophyll and volatile aromatics. The breadcrumbs give the crust structure and crunch — without them, the herbs slide off the mustard. Make it just before applying so the aromatics don\'t oxidise.'},
+    {id:'s4',title:'Apply mustard and crust',content:'Remove pan from heat. Brush the meat side generously with Dijon. Press the herb breadcrumb mixture firmly onto the mustard — it should stick in an even layer. Drizzle remaining olive oil over the crust.',timer:null,why:'Mustard acts as the adhesive — its emulsifying properties grip both the lamb fat and the breadcrumbs. It also adds heat and acid that complement the richness of lamb. Press firmly so the crust compacts and won\'t fall off when sliced.'},
+    {id:'s5',title:'Roast to medium-rare',content:'Roast at 220°C for 12–15 minutes until internal temperature reads 57°C (medium-rare). Rest on a wire rack for 8 minutes before slicing. Slice between the bones into individual cutlets.',timer:840,why:'57°C is medium-rare for lamb — the fibres are tender and the meat is pink throughout. Resting is critical: the internal temperature rises 2–3°C while resting (carryover cooking) and the juices redistribute. Cut before resting and they all pool on the board.'},
+  ],
+  tags:['french','lamb','roast','dinner-party'],
+},
+{
+  id:'beef-rendang',
+  title:'Malaysian Beef Rendang',
+  tagline:'Slow-cooked until the sauce becomes the crust — the real thing',
+  category:'beef',
+  cuisine:'malaysian',
+  type:'beef',
+  time:210,
+  difficulty:'medium',
+  baseServings:6,
+  inspiration:'Andy Cooks',
+  sourceUrl:'https://www.youtube.com/@AndyCooks',
+  heroEmoji:'🥘',
+  heroColor:'#5C2A0A',
+  heroImg:'https://images.unsplash.com/photo-1574484284002-952d92456975?w=600&q=80',
+  ingredients:[
+    {id:'i1',name:'Beef chuck or shin, large chunks',amount:1000,unit:'g',scales:'linear'},
+    {id:'i2',name:'Full-fat coconut milk',amount:800,unit:'ml',scales:'linear'},
+    {id:'i3',name:'Dried red chillies',amount:8,unit:'',scales:'fixed'},
+    {id:'i4',name:'Fresh red chillies',amount:4,unit:'',scales:'fixed'},
+    {id:'i5',name:'Lemongrass stalks',amount:3,unit:'',scales:'fixed'},
+    {id:'i6',name:'Fresh galangal, sliced',amount:40,unit:'g',scales:'fixed'},
+    {id:'i7',name:'Fresh turmeric or ground turmeric',amount:20,unit:'g',scales:'fixed'},
+    {id:'i8',name:'Shallots',amount:8,unit:'',scales:'linear'},
+    {id:'i9',name:'Garlic cloves',amount:6,unit:'',scales:'linear'},
+    {id:'i10',name:'Kaffir lime leaves',amount:6,unit:'',scales:'fixed',notes:'Fresh or frozen — find at Asian grocers. Dried are a poor substitute'},
+    {id:'i11',name:'Toasted desiccated coconut (kerisik)',amount:60,unit:'g',scales:'fixed',notes:'Toast desiccated coconut in a dry pan until golden brown and aromatic, then pound or blend to a paste — this is kerisik'},
+    {id:'i12',name:'Palm sugar or brown sugar',amount:2,unit:'tsp',scales:'fixed'},
+    {id:'i13',name:'Salt',amount:1.5,unit:'tsp',scales:'fixed'},
+    {id:'i14',name:'Neutral oil',amount:3,unit:'tbsp',scales:'fixed'},
+  ],
+  steps:[
+    {id:'s1',title:'Make the rempah (spice paste)',content:'Soak dried chillies in boiling water 10 minutes until soft. Blend soaked chillies, fresh chillies, lemongrass (white part only), galangal, turmeric, shallots, and garlic into a fine paste. Add water sparingly.',timer:600,why:'Rempah is the aromatic foundation of every Malaysian curry and rendang. Blending smooth ensures even distribution of flavour and prevents bitter raw aromatics in the finished dish. The dried and fresh chillies serve different purposes — dried for depth and earthiness, fresh for brightness and colour.'},
+    {id:'s2',title:'Fry the rempah',content:'Heat oil in a large heavy pot over medium heat. Add rempah and fry, stirring constantly, for 12–15 minutes until it darkens, smells deeply fragrant, and the oil separates and pools around the edges.',timer:840,why:'This is the most important step in Malaysian cooking — undercooked rempah makes the finished dish taste raw and flat. The oil separating signals that all water has cooked off and the paste is frying in oil rather than steaming. This takes patience; rushing it on high heat burns the outside while leaving the inside raw.'},
+    {id:'s3',title:'Add beef and coconut milk',content:'Add beef chunks and stir to coat with the paste. Add coconut milk, kaffir lime leaves, and salt. Bring to a boil, then reduce to a medium simmer uncovered. This will cook for 90 minutes.',timer:5400,why:'Rendang is unique — it cooks dry. Unlike a curry, all the coconut milk evaporates during the long cook. The fat from the coconut milk fries the beef and rempah in the last stage, creating a deeply caramelised crust rather than a sauce. This takes 90–120 minutes of patient simmering.'},
+    {id:'s4',title:'Add kerisik and reduce to dry',content:'When the sauce has reduced by two-thirds and is thick, add kerisik and palm sugar. Continue cooking, now stirring frequently, until the sauce completely evaporates and the beef fries in the remaining coconut fat. The beef should turn deep brown and the paste clings as a crust.',timer:2400,why:'Kerisik (toasted coconut paste) adds fat, texture, and intensified coconut flavour. It also helps the sauce reduce to a dry coating. The final stage — when all liquid is gone and the beef is frying in its own fat — is what makes rendang different from any other braise. You will smell it before you see it: the toasted coconut aroma changes completely.'},
+    {id:'s5',title:'Rest and serve',content:'Rendang improves dramatically with time — it\'s better the next day as the spices penetrate fully. Serve with steamed rice. Traditionally served at room temperature, but hot is also correct.',timer:null,why:'The spice-to-meat ratio in rendang is intense when freshly made. Resting overnight allows the flavour compounds to equilibrate — the initial sharp heat mellows and the aromatics integrate. This is why rendang is traditional Malaysian festival food — it\'s made days ahead.'},
+  ],
+  tags:['malaysian','beef','braise','weekend','meal-prep'],
 },
 ];
 
@@ -1008,7 +1403,7 @@ function RecipeCard({recipe,onTap,onPlan,planned,favorite,onFav,query}){
           <span className="w-1 h-1 rounded-full" style={{background:T.borderDark}}/>
           <span className="capitalize">{recipe.difficulty}</span>
           <span className="w-1 h-1 rounded-full" style={{background:T.borderDark}}/>
-          <span className="capitalize">{recipe.category}</span>
+          {recipe.cuisine&&recipe.cuisine!=='other'&&<><span className="capitalize">{CUISINES.find(c=>c.id===recipe.cuisine)?.label||recipe.cuisine}</span><span className="w-1 h-1 rounded-full" style={{background:T.borderDark}}/></>}<span className="capitalize">{TYPES.find(t=>t.id===recipe.type)?.label||recipe.category}</span>
         </div>
       </div>
     </button>
@@ -1283,48 +1678,93 @@ function RecipeDetail({recipe,onBack,favorite,onFav,onPlan,planned,adjustments,s
 // ─── HOME ─────────────────────────────────────────────────────────────────────
 function Home({allRecipes,planned,favorites,onPlan,onFav,onOpen}){
   const[q,setQ]=useState('');
-  const[cat,setCat]=useState('all');
+  const[cuisine,setCuisine]=useState(null);
+  const[type,setType]=useState(null);
   const[showFavs,setShowFavs]=useState(false);
-  const cats=['all','beef','chicken','fish','pasta','noodles','eggs','vegetarian','levantine','bread','soup'];
-  const filtered=allRecipes.filter(r=>{
+  const isSearching=q.length>0;
+  const hasFilter=!!(cuisine||type||showFavs);
+  const filtered=useMemo(()=>allRecipes.filter(r=>{
     if(showFavs&&!favorites[r.id]) return false;
-    if(cat!=='all'&&r.category!==cat) return false;
+    if(cuisine&&r.cuisine!==cuisine) return false;
+    if(type&&r.type!==type) return false;
     if(q){
       const s=q.toLowerCase();
-      return r.title.toLowerCase().includes(s)||r.tagline.toLowerCase().includes(s)||r.inspiration.toLowerCase().includes(s)||(r.tags||[]).some(t=>t.includes(s));
+      return r.title.toLowerCase().includes(s)||
+             r.tagline.toLowerCase().includes(s)||
+             r.inspiration.toLowerCase().includes(s)||
+             (r.ingredients||[]).some(i=>i.name.toLowerCase().includes(s))||
+             (r.tags||[]).some(t=>t.includes(s));
     }
     return true;
-  });
+  }),[allRecipes,showFavs,cuisine,type,q]);
+  function clearAll(){setCuisine(null);setType(null);setShowFavs(false);setQ('');}
+  const activeCuisineObj=CUISINES.find(c=>c.id===cuisine);
+  const activeTypeObj=TYPES.find(t=>t.id===type);
   return(
     <div className="flex flex-col min-h-screen" style={{background:T.parchment}}>
       <div className="sticky top-0 z-10 px-4 pt-6 pb-3" style={{background:'rgba(247,242,234,0.92)',backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)',borderBottom:`1px solid ${T.border}`}}>
         <div className="flex items-end justify-between mb-4">
           <div>
-            <div className="serif font-black text-[34px] leading-none tracking-[-0.025em]" style={{color:T.ink}}>Mise</div>
+            <div className="serif font-black text-[34px] leading-none tracking-[-0.025em]" style={{color:T.ink}}>Simmer Fresh</div>
             <div className="serif-it text-[13px] mt-1.5" style={{color:T.inkLight}}>your kitchen companion</div>
           </div>
-          <button onClick={()=>setShowFavs(f=>!f)} aria-label={showFavs?'Show all recipes':'Show saved only'} aria-pressed={showFavs} className="press flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold" style={{background:showFavs?T.paprika:T.cardBg,color:showFavs?T.cream:T.ink,border:`1px solid ${showFavs?T.paprika:T.border}`}}>
-            <Icon name={showFavs?'heartFill':'heart'} size={13} color={showFavs?T.cream:T.ink}/>
-            Saved
-          </button>
+          <div className="flex items-center gap-2">
+            {hasFilter&&<button onClick={clearAll} aria-label="Clear all filters" className="press flex items-center gap-1 px-3 py-2 rounded-full text-xs font-bold" style={{background:T.border,color:T.inkLight}}><Icon name="x" size={11}/>Clear</button>}
+            <button onClick={()=>setShowFavs(f=>!f)} aria-label={showFavs?'Show all recipes':'Show saved only'} aria-pressed={showFavs} className="press flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold" style={{background:showFavs?T.paprika:T.cardBg,color:showFavs?T.cream:T.ink,border:`1px solid ${showFavs?T.paprika:T.border}`}}>
+              <Icon name={showFavs?'heartFill':'heart'} size={13} color={showFavs?T.cream:T.ink}/>
+              Saved
+            </button>
+          </div>
         </div>
         <div className="relative mb-3">
           <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"><Icon name="search" size={16} color={T.inkFaint}/></div>
           <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search recipes, chefs, ingredients…" aria-label="Search recipes" className="press w-full pl-10 pr-10 py-3 rounded-xl text-sm outline-none" style={{background:T.cardBg,border:`1px solid ${T.border}`,color:T.ink}}/>
           {q&&<button onClick={()=>setQ('')} aria-label="Clear search" className="press absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center" style={{background:T.border}}><Icon name="x" size={12} color={T.inkLight}/></button>}
         </div>
-        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4">
-          {cats.map(c=>(
-            <button key={c} onClick={()=>setCat(c)} aria-pressed={cat===c} className="press flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold capitalize" style={{background:cat===c?T.ink:T.cardBg,color:cat===c?T.cream:T.inkLight,border:`1px solid ${cat===c?T.ink:T.border}`,boxShadow:cat===c?'0 2px 8px rgba(28,23,18,.18)':'none'}}>{c}</button>
-          ))}
-        </div>
+        {!isSearching&&(<>
+          <div className="mb-2">
+            <div className="eyebrow mb-2">By cuisine</div>
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4">
+              {CUISINES.filter(c=>allRecipes.some(r=>r.cuisine===c.id)).map(c=>{
+                const active=cuisine===c.id;
+                return(
+                  <button key={c.id} onClick={()=>setCuisine(active?null:c.id)} aria-pressed={active} className="press flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold" style={{background:active?T.paprika:T.cardBg,color:active?T.cream:T.inkLight,border:`1px solid ${active?T.paprika:T.border}`,boxShadow:active?'0 2px 8px rgba(196,66,42,.25)':'none'}}>
+                    <span>{c.emoji}</span>{c.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div>
+            <div className="eyebrow mb-2">By type</div>
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4">
+              {TYPES.filter(t=>allRecipes.some(r=>r.type===t.id)).map(t=>{
+                const active=type===t.id;
+                return(
+                  <button key={t.id} onClick={()=>setType(active?null:t.id)} aria-pressed={active} className="press flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold" style={{background:active?T.ink:T.cardBg,color:active?T.cream:T.inkLight,border:`1px solid ${active?T.ink:T.border}`,boxShadow:active?'0 2px 8px rgba(28,23,18,.18)':'none'}}>
+                    <span>{t.emoji}</span>{t.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </>)}
       </div>
+      {(cuisine||type)&&!isSearching&&(
+        <div className="px-4 py-2.5 flex items-center gap-2 flex-wrap" style={{borderBottom:`1px solid ${T.border}`,background:T.cream}}>
+          <span className="text-xs font-semibold" style={{color:T.inkFaint}}>Showing:</span>
+          {activeCuisineObj&&<span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{background:T.paprika+'22',color:T.paprika}}>{activeCuisineObj.emoji} {activeCuisineObj.label}</span>}
+          {activeTypeObj&&<span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{background:T.ink+'11',color:T.ink}}>{activeTypeObj.emoji} {activeTypeObj.label}</span>}
+          <span className="text-xs ml-auto" style={{color:T.inkFaint}}>{filtered.length} recipe{filtered.length!==1?'s':''}</span>
+        </div>
+      )}
       <div className="flex-1 p-4">
         {filtered.length===0?(
           <div className="text-center py-20 fade-in">
             <div className="text-5xl mb-4">{showFavs?'💛':'🔍'}</div>
             <div className="serif font-bold text-xl mb-1.5">{showFavs?'Nothing saved yet':'No results'}</div>
-            <div className="serif-it text-sm" style={{color:T.inkFaint}}>{showFavs?'Tap the heart on a recipe to save it here':'Try a different word, or browse a category'}</div>
+            <div className="serif-it text-sm mb-4" style={{color:T.inkFaint}}>{showFavs?'Tap the heart on a recipe to save it here':'Try different filters or search terms'}</div>
+            {hasFilter&&<button onClick={clearAll} className="press px-4 py-2 rounded-full text-sm font-bold" style={{background:T.paprika,color:T.cream}}>Clear all filters</button>}
           </div>
         ):(
           <div className="grid grid-cols-1 gap-4">
@@ -1600,10 +2040,10 @@ function buzz(ms=10){try{navigator.vibrate&&navigator.vibrate(ms)}catch{}}
 function App(){
   const[view,setView]=useState('home');
   const[activeRecipe,setActiveRecipe]=useState(null);
-  const[userRecipes,setUserRecipes]=useStorage('mise_user_recipes',[]);
-  const[planned,setPlanned]=useStorage('mise_planned',[]);
-  const[favorites,setFavorites]=useStorage('mise_favorites',{});
-  const[adjustments,setAdjustments]=useStorage('mise_adjustments',{});
+  const[userRecipes,setUserRecipes]=useStorage('sf_user_recipes',[]);
+  const[planned,setPlanned]=useStorage('sf_planned',[]);
+  const[favorites,setFavorites]=useStorage('sf_favorites',{});
+  const[adjustments,setAdjustments]=useStorage('sf_adjustments',{});
   const allRecipes=[...RECIPES,...userRecipes];
   function openRecipe(r){buzz(8);setActiveRecipe(r);setView('detail');}
   function plan(r){
