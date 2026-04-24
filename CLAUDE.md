@@ -189,7 +189,7 @@ Design doc: `docs/pantry-to-recipe.md`
 - Don't reintroduce voice input without Patrick explicitly asking.
 - Don't reintroduce knuckle-tap cook mode without Patrick explicitly asking.
 
-## Current status (updated 2026-04-24, session 9)
+## Current status (updated 2026-04-24, session 11)
 
 - **Target launch:** ~June 2026. Play Console verification ✅ COMPLETE (confirmed 2026-04-23).
 - **Live prototype:** `hone.html` at project root — single-file React + Tailwind, **45 recipes**, core loop + dual-axis categories + Phase 4 shopping list. Deployed to GitHub Pages as `index.html`. Both files are always kept in sync.
@@ -219,5 +219,10 @@ Design doc: `docs/pantry-to-recipe.md`
   - **Developer:** Fixed `sourceUrl: null` crash on Watch button (now renders "Original" label). Renamed localStorage key `sf_pantry` → `hone_pantry`. Fixed SQLite DB filename `simmerfresh.db` → `hone.db` in `_layout.tsx`. Fixed `plan.tsx` share footer. Fixed `SwapSheet.tsx` comment. Updated `recipe/[id].tsx` comment.
   - **Marketing/UX:** Recipe card hero height 168 → 192px. Home tagline → "cook like a chef, every night." Search placeholder improved. Cook mode progress bar 3 → 4px. Step content font 17 → 18px. Star icon replaced with `people` icon for serves. Recipe title added faintly to cook mode top bar. `people` icon added to HTML icon set.
   - **Accountant:** ATO development log updated with 8 new entries (Sessions 8–10). Title updated from "SIMMER FRESH" to "HONE". Project description updated.
-  - **Files:** hone.html and index.html kept in sync. TypeScript: zero errors. Full backup at `docs/archive/backup-2026-04-24/`.
-- **Next priority:** GitHub repo rename → EAS build → Play Store listing assets (screenshots, feature graphic, privacy policy).
+  - **Files:** hone.html and index.html
+- **Session 11 ✅ — First working Android APK built:**
+  - Root cause of all prior build failures: all native packages (gesture-handler, safe-area-context, reanimated, worklets, screens, and all expo-* modules) were versions targeting an older React Native, not SDK 54/RN 0.81.
+  - Fix: ran `npx expo install --check` to identify every mismatch, then `npx expo install` to pin all packages to SDK 54 compatible versions. Key upgrades: gesture-handler 2.20 → 2.28, safe-area-context 4.12 → 5.6, worklets 0.8.1 → 0.5.1, expo-router 4 → 6, all expo-* modules bumped to SDK 54 compatible ranges.
+  - Build pipeline: GitHub Actions (Ubuntu runner) → `expo prebuild --clean` → `./gradlew assembleDebug`. TypeScript: zero errors after all package upgrades.
+  - **APK:** `hone-debug.apk` — 63.7 MB debug build, GitHub Actions run 24873454825. Download from: https://github.com/patrickpatches/hone/actions/runs/24873454825
+  - **Next steps:** Install APK on Patrick's phone → test core loop → Play Store assets (icon 512×512, feature graphic, screenshots) → privacy policy → content rating → internal track submission. 
