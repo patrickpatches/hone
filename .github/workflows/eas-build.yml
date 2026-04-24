@@ -46,19 +46,25 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: npx expo prebuild --platform android --clean --non-interactive
 
-      - name: Build Android APK (local Gradle - full error output)
+      - name: Build Android Debug APK (no signing required)
         working-directory: mobile/android
         run: |
+          set -o pipefail
           chmod +x gradlew
-          ./gradlew assembleRelease --stacktrace 2>&1 | tee /tmp/gradle-output.txt
-          echo "Exit code: $?"
+          ./gradlew assembleDebug --stacktrace 2>&1 | tee /tmp/gradle-output.txt
+          echo "Gradle exit: ${PIPESTATUS[0]}"
+
+      - name: Verify APK exists
+        run: |
+          find mobile/android -name "*.apk" 2>/dev/null
+          ls -la mobile/android/app/build/outputs/apk/ 2>/dev/null || echo "No APK output dir"
 
       - name: Upload APK artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: hone-preview.apk
-          path: mobile/android/app/build/outputs/apk/release/*.apk
+          name: hone-debug.apk
+          path: mobile/android/app/build/outputs/apk/debug/*.apk
 
       - name: Upload Gradle log on failure
         if: failure()
