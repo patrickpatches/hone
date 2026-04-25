@@ -1,4 +1,4 @@
-name: EAS Android Build
+name: Hone Android Build
 
 on:
   workflow_dispatch:
@@ -33,42 +33,61 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install dependencies
+      - name: Install Node dependencies
         working-directory: mobile
         run: npm ci
 
       - name: Set up EAS CLI
         run: npm install -g eas-cli
 
-      - name: Run expo prebuild
+      - name: Run expo prebuild (generates Android native project)
         working-directory: mobile
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: npx expo prebuild --platform android --clean --non-interactive
 
-      - name: Bundle JS into APK (makes it standalone — no dev server needed)
-        working-directory: mobile/android
-        run: echo "bundleInDebug=true" >> gradle.properties
+      - name: Generate CI signing keystore
+        # Release builds require signing. We generate a throwaway keystore on
+        # the fly — this is only for sideload testing, NOT the Play Store key.
+        run: |
+          keytool -genkey -v \
+            -keystore /tmp/ci-release.jks \
+            -alias ci-key \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 365 \
+            -storepass cipassword \
+            -keypass cipassword \
+            -dname "CN=Hone CI, OU=CI, O=Hone, L=Sydney, ST=NSW, C=AU"
 
-      - name: Build Android Debug APK (no signing required)
+      - name: Build standalone release APK
+        # Release builds ALWAYS embed the JS bundle — no Metro server needed.
+        # We sign with the CI keystore so Android accepts the install.
         working-directory: mobile/android
         run: |
           set -o pipefail
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace 2>&1 | tee /tmp/gradle-output.txt
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=/tmp/ci-release.jks \
+            -Pandroid.injected.signing.store.password=cipassword \
+            -Pandroid.injected.signing.key.alias=ci-key \
+            -Pandroid.injected.signing.key.password=cipassword \
+            --stacktrace 2>&1 | tee /tmp/gradle-output.txt
           echo "Gradle exit: ${PIPESTATUS[0]}"
 
-      - name: Verify APK exists
+      - name: Verify APK
         run: |
-          find mobile/android -name "*.apk" 2>/dev/null
-          ls -la mobile/android/app/build/outputs/apk/ 2>/dev/null || echo "No APK output dir"
+          APK=$(find mobile/android -name "*.apk" | grep release | head -1)
+          echo "APK: $APK"
+          ls -lah "$APK"
 
       - name: Upload APK artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: hone-debug.apk
-          path: mobile/android/app/build/outputs/apk/debug/*.apk
+          name: hone-release.apk
+          path: mobile/android/app/build/outputs/apk/release/*.apk
+          retention-days: 90
 
       - name: Upload Gradle log on failure
         if: failure()
@@ -76,3 +95,4 @@ jobs:
         with:
           name: gradle-failure-log
           path: /tmp/gradle-output.txt
+          retention-days: 7
