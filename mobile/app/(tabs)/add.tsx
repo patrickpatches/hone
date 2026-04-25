@@ -1,45 +1,26 @@
 /**
- * Add — paste-and-parse recipe entry.
+ * Add Recipe — autocomplete-driven entry, three phases.
  *
- * Replaces the rigid 60-field form. The mental model now matches how
- * people actually have recipes: a block of text from a screenshot, a
- * friend's message, or a scrap of paper. We accept that, parse what we
- * can, and don't pretend to know what we don't.
+ * Replaces the paste-only form (session 13) with an autocomplete picker
+ * backed by CANONICAL_INGREDIENTS. Type "flour" → suggests "Plain flour"
+ * pre-filled with the most-common amount + unit from the existing corpus.
+ * Custom-add stays as a fallback.
  *
- * What we ASK for:
- *   - Name (single line)
- *   - Yield: "Serves N people" / "Makes N <unit>" / "Makes one (loaf/batch)"
- *   - Total time
- *   - Ingredients (one big text area, free format, one ingredient per line)
- *   - Method (one big text area, paragraphs or "1." / "2." numbered)
- *   - Optional emoji
+ * Design grounded in `docs/add-recipe-research.md`:
+ *   - Recognition over recall (Anderson, Nielsen) — autocomplete eliminates
+ *     ~80% of typing
+ *   - Smart defaults (Krug) — amount + unit pre-filled to most common
+ *   - Single column (Penzo) — never side-by-side
+ *   - Inline validation (Wroblewski) — green tick / red hint per field
+ *   - Recognition over recall x2 — yield mode auto-detects from name
+ *   - Paste-mode kept for the "I have a screenshot" workflow (Phase 2 disclosure)
  *
- * What we DO NOT ASK for:
- *   - Difficulty (subjective, produces noisy data — inferred from time + step
- *     count and shown faintly as "~Easy/Intermediate/Involved" in the
- *     detail view, but never required from the user)
- *   - Per-ingredient prep, scaling mode, fixed flag (advanced; sensible
- *     defaults applied; user can refine after save in a later session)
- *   - Stage notes / why notes per step (optional; can be added later when
- *     the user revisits a recipe)
- *
- * Parsing rules (kept generous — when in doubt, store verbatim):
- *   - Ingredient line: tries to extract leading amount + unit + remainder.
- *     "200g flour"           → { amount: 200, unit: 'g', name: 'flour' }
- *     "1 cup butter, soft"   → { amount: 1,   unit: 'cup', name: 'butter, soft' }
- *     "salt to taste"        → { amount: 0,   unit: '',  name: 'salt to taste' }
- *   - Method: split on blank lines OR leading "1." "2." numbered prefixes.
- *     Each block becomes a step. Title auto-derives from the first 5 words.
- *
- * Why this works psychologically:
- *   - Familiar mental model — "paste from where I had it" mirrors how
- *     other apps (Notes, Things, Google Keep) handle quick capture.
- *   - Low cognitive load — three big inputs, not 60 small ones.
- *   - Forgiving — a bad parse doesn't lose the recipe, it just stores the
- *     line verbatim. The user can fix it later.
- *   - Honest about scope — we don't make the user grade themselves.
+ * v1 deliberately ships WITHOUT:
+ *   - Auto-save draft (Ovsiankina) — earmarked for v1.0.1
+ *   - Drag-to-reorder ingredients/steps — earmarked for v1.2
+ *   - Photo OCR / web import — earmarked for v1.2
  */
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -60,83 +41,74 @@ import { tokens, fonts } from '../../src/theme/tokens';
 import { Icon } from '../../src/components/Icon';
 import { insertRecipe } from '../../db/database';
 import type { Recipe, Ingredient, Step } from '../../src/data/types';
+import {
+  CANONICAL_INGREDIENTS,
+  type CanonicalIngredient,
+} from '../../src/data/canonical-ingredients';
 
 type YieldMode = 'serves' | 'makes' | 'one';
+
+type DraftIngredient = {
+  key: string;
+  canonical?: string;
+  name: string;
+  amount: string;
+  unit: string;
+};
 
 const uid = () =>
   Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
 
-// Infer difficulty from total time and step count — keeps the schema happy
-// without making the user grade their own recipe.
 function inferDifficulty(timeMin: number, stepCount: number): 'Easy' | 'Intermediate' | 'Involved' {
   if (timeMin <= 30 && stepCount <= 5) return 'Easy';
   if (timeMin >= 90 || stepCount >= 10) return 'Involved';
   return 'Intermediate';
 }
 
-// Parse a single ingredient line. Returns sensible structure even when
-// the line doesn't match the standard pattern.
-function parseIngredientLine(line: string, idx: number, recipeId: string): Ingredient {
-  const trimmed = line.trim();
-  // Match: leading number (allows decimals + fractions like 1/2), optional unit, remainder.
-  const m = trimmed.match(/^(\d+(?:\.\d+)?(?:\s*\/\s*\d+)?)\s*([a-zA-Z]{1,5})?\s+(.+)$/);
-  if (m) {
-    const amountStr = m[1].replace(/\s+/g, '');
-    let amount = 0;
-    if (amountStr.includes('/')) {
-      const [a, b] = amountStr.split('/').map(Number);
-      amount = b ? a / b : a;
-    } else {
-      amount = parseFloat(amountStr);
-    }
-    return {
-      id: `${recipeId}-ing-${idx}`,
-      name: m[3].trim(),
-      amount: isNaN(amount) ? 0 : amount,
-      unit: (m[2] ?? '').trim(),
-      scales: 'linear',
-    };
+// Yield-mode auto-detection from recipe name. Keywords lifted from observed
+// patterns in the existing corpus + general baking vocabulary.
+function inferYieldMode(name: string): { mode: YieldMode; amount: string; unit: string } {
+  const n = name.toLowerCase();
+  // Yield-by-piece nouns
+  for (const [kw, unit, amt] of [
+    ['tortilla', 'tortilla', '8'],
+    ['cookie', 'cookie', '24'],
+    ['biscuit', 'biscuit', '12'],
+    ['dumpling', 'dumpling', '20'],
+    ['samosa', 'samosa', '12'],
+    ['bao', 'bao', '8'],
+    ['scone', 'scone', '12'],
+    ['muffin', 'muffin', '12'],
+    ['bun', 'bun', '8'],
+  ] as const) {
+    if (n.includes(kw)) return { mode: 'makes', amount: amt, unit };
   }
-  // No match — store verbatim, no amount/unit. App will render as "salt to taste"-style.
-  return {
-    id: `${recipeId}-ing-${idx}`,
-    name: trimmed,
-    amount: 0,
-    unit: '',
-    scales: 'linear',
-  };
+  // Yield-of-one nouns
+  for (const kw of ['loaf', 'sourdough', 'focaccia', 'cake', 'pavlova', 'pie', 'tart', 'roast', 'whole chicken']) {
+    if (n.includes(kw)) return { mode: 'one', amount: '1', unit: '' };
+  }
+  return { mode: 'serves', amount: '4', unit: '' };
 }
 
-// Split a method blob into steps. Handles:
-//   - blank-line-separated paragraphs
-//   - "1." / "2)" numbered lists
-//   - lines that already start with a digit-and-punctuation
-function parseMethod(text: string, recipeId: string): Step[] {
-  const cleaned = text.trim();
-  if (!cleaned) return [];
-
-  // Numbered list detection — "1." or "1)" at the start of a line.
-  const numbered = cleaned.split(/\n(?=\s*\d+[.\)]\s)/);
-  let blocks: string[];
-  if (numbered.length > 1) {
-    blocks = numbered.map((b) => b.replace(/^\s*\d+[.\)]\s*/, '').trim());
-  } else {
-    // Fall back to blank-line split.
-    blocks = cleaned.split(/\n\s*\n/).map((b) => b.trim());
+// Score a canonical ingredient against a query — multi-tier matching.
+function scoreCanonical(c: CanonicalIngredient, q: string): number {
+  if (!q) return c.recipe_count; // empty query: rank by frequency
+  const qLow = q.toLowerCase();
+  const nLow = c.name.toLowerCase();
+  const cLow = c.canonical.toLowerCase();
+  if (nLow === qLow || cLow === qLow) return 1000;          // exact
+  if (nLow.startsWith(qLow) || cLow.startsWith(qLow)) return 500; // prefix
+  // Token-start match
+  for (const tok of nLow.split(' ')) {
+    if (tok.startsWith(qLow)) return 200;
   }
-  blocks = blocks.filter((b) => b.length > 0);
-
-  return blocks.map((content, idx) => {
-    // Auto-title: first 5 words of the block, capitalised.
-    const firstSentence = content.split(/[.!?]/)[0] ?? content;
-    const titleWords = firstSentence.trim().split(/\s+/).slice(0, 5).join(' ');
-    const title = titleWords.charAt(0).toUpperCase() + titleWords.slice(1);
-    return {
-      id: `${recipeId}-step-${idx}`,
-      title: title || `Step ${idx + 1}`,
-      content,
-    };
-  });
+  // Alias prefix
+  for (const a of c.aliases) {
+    if (a.startsWith(qLow)) return 150;
+  }
+  // Substring
+  if (nLow.includes(qLow) || cLow.includes(qLow)) return 50;
+  return 0;
 }
 
 export default function AddTab() {
@@ -144,58 +116,217 @@ export default function AddTab() {
   const insets = useSafeAreaInsets();
   const [saving, setSaving] = useState(false);
 
-  const [title,    setTitle]    = useState('');
-  const [emoji,    setEmoji]    = useState('');
-  const [timeMin,  setTimeMin]  = useState('');
+  // Phase 1 — what
+  const [title, setTitle] = useState('');
+  const [emoji, setEmoji] = useState('');
+  const [timeMin, setTimeMin] = useState('');
   const [yieldMode, setYieldMode] = useState<YieldMode>('serves');
-  const [yieldAmount, setYieldAmount] = useState('2');
-  const [yieldUnit, setYieldUnit] = useState(''); // e.g. "tortillas", only for "makes" mode
-  const [ingredientsText, setIngredientsText] = useState('');
+  const [yieldAmount, setYieldAmount] = useState('4');
+  const [yieldUnit, setYieldUnit] = useState('');
+  const [yieldOverridden, setYieldOverridden] = useState(false);
+
+  // Phase 2 — ingredients
+  const [ingredients, setIngredients] = useState<DraftIngredient[]>([]);
+  const [ingQuery, setIngQuery] = useState('');
+  const [showPasteMode, setShowPasteMode] = useState(false);
+  const [pasteText, setPasteText] = useState('');
+
+  // Phase 3 — method
   const [methodText, setMethodText] = useState('');
 
-  const handleSave = async () => {
-    if (!title.trim()) return Alert.alert('Almost there', 'Recipe needs a name.');
-    const t = parseInt(timeMin, 10);
-    if (isNaN(t) || t <= 0) return Alert.alert('Almost there', 'Total time should be a number of minutes.');
+  // ── Smart yield-mode auto-detect ──────────────────────────────────────────
+  // When user types the title, infer yield mode unless they've manually overridden.
+  const handleTitleChange = (s: string) => {
+    setTitle(s);
+    if (!yieldOverridden && s.trim().length >= 4) {
+      const inferred = inferYieldMode(s);
+      setYieldMode(inferred.mode);
+      setYieldAmount(inferred.amount);
+      if (inferred.mode === 'makes') setYieldUnit(inferred.unit);
+    }
+  };
 
-    let baseServings = 2;
+  // ── Autocomplete suggestions ──────────────────────────────────────────────
+  const suggestions = useMemo<CanonicalIngredient[]>(() => {
+    const used = new Set(ingredients.map((i) => i.canonical).filter(Boolean) as string[]);
+    const pool = CANONICAL_INGREDIENTS.filter((c) => !used.has(c.canonical));
+    const scored = pool
+      .map((c) => ({ c, s: scoreCanonical(c, ingQuery) }))
+      .filter((x) => x.s > 0)
+      .sort((a, b) => b.s - a.s || b.c.recipe_count - a.c.recipe_count)
+      .slice(0, 5);
+    return scored.map((x) => x.c);
+  }, [ingQuery, ingredients]);
+
+  // Show empty-state suggestions when query is empty (top staples)
+  const emptyStateSuggestions = useMemo<CanonicalIngredient[]>(() => {
+    const used = new Set(ingredients.map((i) => i.canonical).filter(Boolean) as string[]);
+    return CANONICAL_INGREDIENTS
+      .filter((c) => !used.has(c.canonical))
+      .slice(0, 5);
+  }, [ingredients]);
+
+  const addCanonical = (c: CanonicalIngredient) => {
+    Haptics.selectionAsync().catch(() => {});
+    setIngredients((prev) => [
+      ...prev,
+      {
+        key: uid(),
+        canonical: c.canonical,
+        name: c.name,
+        amount: c.default_amount > 0 ? String(c.default_amount) : '',
+        unit: c.default_unit,
+      },
+    ]);
+    setIngQuery('');
+  };
+
+  const addCustom = (rawName: string) => {
+    const name = rawName.trim();
+    if (!name) return;
+    Haptics.selectionAsync().catch(() => {});
+    setIngredients((prev) => [
+      ...prev,
+      { key: uid(), name, amount: '', unit: '' },
+    ]);
+    setIngQuery('');
+  };
+
+  const removeIng = (key: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    setIngredients((prev) => prev.filter((i) => i.key !== key));
+  };
+
+  const updateIng = (key: string, field: 'amount' | 'unit' | 'name', value: string) => {
+    setIngredients((prev) => prev.map((i) => (i.key === key ? { ...i, [field]: value } : i)));
+  };
+
+  // Paste mode → parse block of text into ingredient rows in one shot
+  const handlePasteParse = () => {
+    const lines = pasteText.split('\n').map((l) => l.trim()).filter(Boolean);
+    const parsed: DraftIngredient[] = [];
+    for (const line of lines) {
+      const m = line.match(/^(\d+(?:\.\d+)?(?:\s*\/\s*\d+)?)\s*([a-zA-Z]{1,5})?\s+(.+)$/);
+      if (m) {
+        const amountStr = m[1].replace(/\s+/g, '');
+        let amount = 0;
+        if (amountStr.includes('/')) {
+          const [a, b] = amountStr.split('/').map(Number);
+          amount = b ? a / b : a;
+        } else {
+          amount = parseFloat(amountStr);
+        }
+        const restName = m[3].trim();
+        // Try to match against canonical
+        const canon = CANONICAL_INGREDIENTS.find(
+          (c) => c.name.toLowerCase() === restName.toLowerCase() ||
+                 c.canonical === restName.toLowerCase() ||
+                 c.aliases.some((a) => a === restName.toLowerCase()),
+        );
+        parsed.push({
+          key: uid(),
+          canonical: canon?.canonical,
+          name: canon?.name ?? restName,
+          amount: String(isNaN(amount) ? 0 : amount),
+          unit: m[2] ?? '',
+        });
+      } else {
+        parsed.push({ key: uid(), name: line, amount: '', unit: '' });
+      }
+    }
+    setIngredients((prev) => [...prev, ...parsed]);
+    setPasteText('');
+    setShowPasteMode(false);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+  };
+
+  // Method preview — shows what the parser will produce on save
+  const methodPreview = useMemo<string[]>(() => {
+    const c = methodText.trim();
+    if (!c) return [];
+    const numbered = c.split(/\n(?=\s*\d+[.\)]\s)/);
+    let blocks: string[];
+    if (numbered.length > 1) {
+      blocks = numbered.map((b) => b.replace(/^\s*\d+[.\)]\s*/, '').trim());
+    } else {
+      blocks = c.split(/\n\s*\n/).map((b) => b.trim());
+    }
+    return blocks.filter(Boolean).map((b) => {
+      const first = b.split(/[.!?]/)[0] ?? b;
+      const titleWords = first.trim().split(/\s+/).slice(0, 6).join(' ');
+      return titleWords.charAt(0).toUpperCase() + titleWords.slice(1);
+    });
+  }, [methodText]);
+
+  // ── Validation state for the Save CTA ─────────────────────────────────────
+  const titleValid = title.trim().length > 0;
+  const timeValid = !!parseInt(timeMin, 10) && parseInt(timeMin, 10) > 0;
+  const ingredientsValid = ingredients.length > 0;
+  const methodValid = methodPreview.length > 0;
+  const allValid = titleValid && timeValid && ingredientsValid && methodValid;
+
+  const handleSave = async () => {
+    if (!allValid) {
+      Alert.alert('Almost there', 'Add a name, time, at least one ingredient, and a method.');
+      return;
+    }
+
+    let baseServings = 4;
     let yieldUnitFinal: string | undefined;
     let fixedYield: boolean | undefined;
     if (yieldMode === 'one') {
       baseServings = 1;
       fixedYield = true;
     } else {
-      const n = parseInt(yieldAmount, 10);
-      if (isNaN(n) || n < 1) return Alert.alert('Almost there', 'Yield amount should be 1 or more.');
-      baseServings = n;
+      const n = parseInt(yieldAmount, 10) || 1;
+      baseServings = Math.max(1, n);
       if (yieldMode === 'makes') {
-        yieldUnitFinal = yieldUnit.trim() || 'pieces';
+        yieldUnitFinal = yieldUnit.trim() || undefined;
       }
     }
 
-    const lines = ingredientsText.split('\n').map((l) => l.trim()).filter((l) => l.length > 0);
-    if (lines.length === 0) return Alert.alert('Almost there', 'Add at least one ingredient.');
-
     const recipeId = 'user-' + uid();
-    const ingredients = lines.map((l, i) => parseIngredientLine(l, i, recipeId));
-    const methodSteps = parseMethod(methodText, recipeId);
-    if (methodSteps.length === 0) return Alert.alert('Almost there', 'Add at least one step (a paragraph or numbered list).');
+    const ings: Ingredient[] = ingredients.map((i, idx) => ({
+      id: `${recipeId}-ing-${idx}`,
+      name: i.name.trim(),
+      amount: parseFloat(i.amount) || 0,
+      unit: i.unit.trim(),
+      scales: 'linear',
+    }));
+
+    const steps: Step[] = methodPreview.map((titleStr, idx) => {
+      // Map preview titles back to source blocks
+      const c = methodText.trim();
+      const numbered = c.split(/\n(?=\s*\d+[.\)]\s)/);
+      let blocks: string[];
+      if (numbered.length > 1) {
+        blocks = numbered.map((b) => b.replace(/^\s*\d+[.\)]\s*/, '').trim());
+      } else {
+        blocks = c.split(/\n\s*\n/).map((b) => b.trim());
+      }
+      const content = blocks[idx] ?? '';
+      return {
+        id: `${recipeId}-step-${idx}`,
+        title: titleStr || `Step ${idx + 1}`,
+        content,
+      };
+    });
 
     const recipe: Recipe = {
       id: recipeId,
       title: title.trim(),
-      tagline: title.trim(), // user-recipes use title as tagline; refinable later
+      tagline: title.trim(),
       base_servings: baseServings,
       yield_unit: yieldUnitFinal,
       fixed_yield: fixedYield,
-      time_min: t,
-      difficulty: inferDifficulty(t, methodSteps.length),
+      time_min: parseInt(timeMin, 10),
+      difficulty: inferDifficulty(parseInt(timeMin, 10), steps.length),
       tags: [],
       user_added: true,
       generated_by_claude: false,
       emoji: emoji.trim() || undefined,
-      ingredients,
-      steps: methodSteps,
+      ingredients: ings,
+      steps,
     };
 
     try {
@@ -216,46 +347,58 @@ export default function AddTab() {
     >
       <ScrollView
         contentContainerStyle={{
-          paddingTop: insets.top + 24,
+          paddingTop: insets.top + 18,
           paddingHorizontal: 20,
-          paddingBottom: 160,
+          paddingBottom: 200,
         }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         <Text style={kicker}>Your recipe</Text>
         <Text style={hero}>Add a recipe</Text>
-        <Text style={lede}>
-          Paste from anywhere — a screenshot, a message, a recipe card.
-          We&apos;ll parse what we can. Two big text areas beat sixty form fields.
-        </Text>
 
-        {/* Name + emoji */}
-        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 14 }}>
+        {/* ── Phase 1: WHAT ────────────────────────────────────────────── */}
+        <PhaseHeader num={1} label="What are you making?" />
+
+        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
           <View style={{ flex: 1 }}>
             <Field>Recipe name</Field>
             <Input
               value={title}
-              onChangeText={setTitle}
-              placeholder="e.g. Mum's lamb roast"
+              onChangeText={handleTitleChange}
+              placeholder="Mum's lamb roast"
               autoCapitalize="words"
               maxLength={80}
             />
+            {title.trim().length > 0 && <ValidationTick />}
           </View>
           <View style={{ width: 70 }}>
             <Field>Emoji</Field>
             <Input
               value={emoji}
               onChangeText={setEmoji}
-              placeholder="🍽️"
+              placeholder="🍽"
               maxLength={2}
               style={{ textAlign: 'center', fontSize: 22 }}
             />
           </View>
         </View>
 
-        {/* Yield mode */}
-        <Field>How much does it make?</Field>
+        <Field>How long does it take?</Field>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <Input
+            value={timeMin}
+            onChangeText={setTimeMin}
+            placeholder="45"
+            keyboardType="number-pad"
+            maxLength={4}
+            style={{ width: 100 }}
+          />
+          <Text style={{ fontFamily: fonts.sans, fontSize: 14, color: tokens.muted }}>minutes</Text>
+          {timeValid && <ValidationTick />}
+        </View>
+
+        <Field>Yield</Field>
         <View style={{ flexDirection: 'row', gap: 6, marginBottom: 10 }}>
           {(['serves', 'makes', 'one'] as YieldMode[]).map((m) => {
             const active = yieldMode === m;
@@ -266,6 +409,7 @@ export default function AddTab() {
                 onPress={() => {
                   Haptics.selectionAsync().catch(() => {});
                   setYieldMode(m);
+                  setYieldOverridden(true);
                 }}
                 accessibilityRole="radio"
                 accessibilityState={{ selected: active }}
@@ -279,22 +423,19 @@ export default function AddTab() {
                   borderColor: active ? tokens.ink : tokens.line,
                 })}
               >
-                <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: active ? tokens.cream : tokens.inkSoft }}>
+                <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, color: active ? tokens.cream : tokens.inkSoft }}>
                   {label}
                 </Text>
               </Pressable>
             );
           })}
         </View>
-
-        {/* Yield amount + unit (hidden in "one" mode) */}
         {yieldMode !== 'one' && (
-          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 14 }}>
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
             <View style={{ width: 90 }}>
-              <Field>Amount</Field>
               <Input
                 value={yieldAmount}
-                onChangeText={setYieldAmount}
+                onChangeText={(s) => { setYieldAmount(s); setYieldOverridden(true); }}
                 placeholder={yieldMode === 'serves' ? '4' : '12'}
                 keyboardType="number-pad"
                 maxLength={3}
@@ -302,10 +443,9 @@ export default function AddTab() {
             </View>
             {yieldMode === 'makes' && (
               <View style={{ flex: 1 }}>
-                <Field>Unit (e.g. tortillas)</Field>
                 <Input
                   value={yieldUnit}
-                  onChangeText={setYieldUnit}
+                  onChangeText={(s) => { setYieldUnit(s); setYieldOverridden(true); }}
                   placeholder="tortillas, cookies, dumplings…"
                   autoCapitalize="none"
                   maxLength={30}
@@ -315,47 +455,187 @@ export default function AddTab() {
           </View>
         )}
 
-        {/* Time */}
-        <Field>Total time (minutes)</Field>
-        <Input
-          value={timeMin}
-          onChangeText={setTimeMin}
-          placeholder="45"
-          keyboardType="number-pad"
-          maxLength={4}
-          style={{ marginBottom: 14, width: 120 }}
-        />
+        {/* ── Phase 2: INGREDIENTS — autocomplete ─────────────────────── */}
+        <PhaseHeader num={2} label={`Ingredients · ${ingredients.length} added`} />
 
-        {/* Ingredients paste area */}
-        <Field>Ingredients</Field>
-        <Text style={hint}>
-          One per line. We&apos;ll pull out amount, unit and name automatically.
-          Anything we can&apos;t parse stays exactly as you wrote it.
-        </Text>
-        <Input
-          value={ingredientsText}
-          onChangeText={setIngredientsText}
-          multiline
-          placeholder={'200g flour\n2 eggs\n1 tsp salt\nblack pepper to taste'}
-          style={{ minHeight: 140, textAlignVertical: 'top', fontSize: 14, lineHeight: 22 }}
-          autoCapitalize="none"
-        />
+        {/* Selected ingredients */}
+        <View style={{ gap: 8, marginBottom: 12 }}>
+          {ingredients.map((i) => (
+            <SelectedIngredientRow
+              key={i.key}
+              ing={i}
+              onUpdate={(field, val) => updateIng(i.key, field, val)}
+              onRemove={() => removeIng(i.key)}
+            />
+          ))}
+        </View>
 
-        {/* Method paste area */}
-        <Field style={{ marginTop: 14 }}>Method</Field>
+        {/* Autocomplete search input */}
+        <View
+          style={{
+            backgroundColor: tokens.cream,
+            borderRadius: 14,
+            borderWidth: 1,
+            borderColor: tokens.line,
+            overflow: 'hidden',
+          }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 12,
+              paddingVertical: 11,
+              gap: 10,
+            }}
+          >
+            <Icon name="search" size={15} color={tokens.muted} />
+            <TextInput
+              value={ingQuery}
+              onChangeText={setIngQuery}
+              placeholder={ingredients.length === 0 ? 'Add an ingredient — type to search' : 'Add another'}
+              placeholderTextColor={tokens.muted}
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={{
+                flex: 1,
+                fontFamily: fonts.sans,
+                fontSize: 14,
+                color: tokens.ink,
+                padding: 0,
+              }}
+            />
+            {ingQuery.length > 0 && (
+              <Pressable onPress={() => setIngQuery('')} hitSlop={8}>
+                <Icon name="x" size={14} color={tokens.muted} />
+              </Pressable>
+            )}
+          </View>
+
+          {/* Suggestions list (closed-state empty hint or live results) */}
+          <View style={{ borderTopWidth: 1, borderTopColor: tokens.line }}>
+            {(ingQuery.trim().length > 0 ? suggestions : emptyStateSuggestions).map((c) => (
+              <SuggestionRow
+                key={c.canonical}
+                c={c}
+                query={ingQuery}
+                onAdd={() => addCanonical(c)}
+              />
+            ))}
+            {/* Custom-add fallback when query is non-empty */}
+            {ingQuery.trim().length > 0 && (
+              <Pressable
+                onPress={() => addCustom(ingQuery)}
+                style={({ pressed }) => ({
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 10,
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
+                  backgroundColor: pressed ? tokens.bgDeep : 'transparent',
+                  borderTopWidth: 1,
+                  borderTopColor: tokens.line,
+                })}
+              >
+                <Icon name="plus-circle" size={16} color={tokens.paprika} />
+                <Text style={{ flex: 1, fontFamily: fonts.sansBold, fontSize: 13, color: tokens.paprika }}>
+                  Add custom: "{ingQuery.trim()}"
+                </Text>
+              </Pressable>
+            )}
+          </View>
+        </View>
+
+        {/* Paste-mode disclosure */}
+        <Pressable
+          onPress={() => setShowPasteMode((v) => !v)}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}
+        >
+          <Icon name={showPasteMode ? 'arrow-down' : 'arrow-right'} size={11} color={tokens.muted} />
+          <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.muted }}>
+            Got a wall of text from a screenshot? Paste it
+          </Text>
+        </Pressable>
+        {showPasteMode && (
+          <View style={{ marginTop: 8 }}>
+            <Input
+              value={pasteText}
+              onChangeText={setPasteText}
+              multiline
+              placeholder={'200g flour\n2 eggs\n1 tsp salt\nblack pepper to taste'}
+              style={{ minHeight: 100, textAlignVertical: 'top', fontSize: 13, lineHeight: 19 }}
+              autoCapitalize="none"
+            />
+            <Pressable
+              onPress={handlePasteParse}
+              disabled={!pasteText.trim()}
+              accessibilityLabel="Parse pasted text into ingredients"
+              style={({ pressed }) => ({
+                marginTop: 8,
+                paddingVertical: 11,
+                borderRadius: 12,
+                alignItems: 'center',
+                backgroundColor: !pasteText.trim()
+                  ? tokens.bgDeep
+                  : pressed
+                    ? tokens.paprikaDeep
+                    : tokens.paprika,
+              })}
+            >
+              <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: !pasteText.trim() ? tokens.muted : tokens.cream }}>
+                Parse and add all
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
+        {/* ── Phase 3: METHOD ─────────────────────────────────────────── */}
+        <PhaseHeader num={3} label="How do you make it?" style={{ marginTop: 28 }} />
         <Text style={hint}>
-          A blank line between paragraphs separates steps. &quot;1. … 2. …&quot; numbered lists also work.
+          Each paragraph (or numbered step) becomes its own step in cook mode.
         </Text>
         <Input
           value={methodText}
           onChangeText={setMethodText}
           multiline
-          placeholder={'Mix the dry ingredients in a wide bowl.\n\nWhisk the eggs and milk together, then stir into the dry mix until just combined.\n\nRest 15 minutes before cooking.'}
-          style={{ minHeight: 200, textAlignVertical: 'top', fontSize: 14, lineHeight: 22 }}
+          placeholder={'Mix the dry ingredients in a wide bowl.\n\nWhisk eggs and milk together, fold into the dry mix.\n\nRest 15 minutes before cooking.'}
+          style={{ minHeight: 160, textAlignVertical: 'top', fontSize: 14, lineHeight: 22 }}
         />
+        {methodPreview.length > 0 && (
+          <View style={{
+            marginTop: 12,
+            padding: 12,
+            backgroundColor: 'rgba(91,107,71,0.08)',
+            borderRadius: 12,
+            borderLeftWidth: 3,
+            borderLeftColor: tokens.sage,
+          }}>
+            <Text style={{
+              fontFamily: fonts.sansBold,
+              fontSize: 10,
+              letterSpacing: 1.5,
+              textTransform: 'uppercase',
+              color: tokens.sage,
+              marginBottom: 6,
+            }}>
+              {methodPreview.length} step{methodPreview.length === 1 ? '' : 's'} parsed
+            </Text>
+            {methodPreview.map((t, i) => (
+              <Text key={i} style={{
+                fontFamily: fonts.sans,
+                fontSize: 13,
+                color: tokens.inkSoft,
+                marginBottom: 2,
+                lineHeight: 18,
+              }}>
+                Step {i + 1}: {t}
+              </Text>
+            ))}
+          </View>
+        )}
       </ScrollView>
 
-      {/* Sticky save */}
+      {/* Sticky save CTA */}
       <View
         style={{
           position: 'absolute', left: 0, right: 0, bottom: 0,
@@ -367,13 +647,18 @@ export default function AddTab() {
       >
         <Pressable
           onPress={handleSave}
-          disabled={saving}
-          accessibilityRole="button"
+          disabled={saving || !allValid}
           accessibilityLabel="Save recipe"
           style={({ pressed }) => ({
             paddingVertical: 16,
             borderRadius: 18,
-            backgroundColor: saving ? tokens.bgDeep : pressed ? tokens.paprikaDeep : tokens.paprika,
+            backgroundColor: !allValid
+              ? tokens.bgDeep
+              : saving
+                ? tokens.bgDeep
+                : pressed
+                  ? tokens.paprikaDeep
+                  : tokens.paprika,
             alignItems: 'center',
             flexDirection: 'row',
             justifyContent: 'center',
@@ -383,10 +668,20 @@ export default function AddTab() {
           {saving ? (
             <ActivityIndicator color={tokens.cream} size="small" />
           ) : (
-            <Icon name="chef" size={18} color={tokens.cream} />
+            <Icon name="chef" size={18} color={!allValid ? tokens.muted : tokens.cream} />
           )}
-          <Text style={{ fontFamily: fonts.sansXBold, fontSize: 14, color: saving ? tokens.muted : tokens.cream, letterSpacing: 0.3 }}>
-            {saving ? 'Saving…' : 'Save recipe'}
+          <Text style={{
+            fontFamily: fonts.sansXBold,
+            fontSize: 14,
+            color: !allValid || saving ? tokens.muted : tokens.cream,
+            letterSpacing: 0.3,
+          }}>
+            {saving ? 'Saving…' : allValid ? 'Save recipe' : `Add ${[
+              !titleValid && 'a name',
+              !timeValid && 'a time',
+              !ingredientsValid && 'ingredients',
+              !methodValid && 'a method',
+            ].filter(Boolean).slice(0, 1)[0]}`}
           </Text>
         </Pressable>
       </View>
@@ -394,21 +689,164 @@ export default function AddTab() {
   );
 }
 
-// ── Compact form primitives ─────────────────────────────────────────────────
+// ── Sub-components ──────────────────────────────────────────────────────────
+
+function PhaseHeader({ num, label, style }: { num: number; label: string; style?: object }) {
+  return (
+    <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 24, marginBottom: 14 }, style]}>
+      <View style={{
+        width: 24, height: 24, borderRadius: 12,
+        backgroundColor: tokens.paprika,
+        alignItems: 'center', justifyContent: 'center',
+      }}>
+        <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.cream }}>{num}</Text>
+      </View>
+      <Text style={{ fontFamily: fonts.display, fontSize: 20, color: tokens.ink }}>{label}</Text>
+    </View>
+  );
+}
+
+function SelectedIngredientRow({
+  ing,
+  onUpdate,
+  onRemove,
+}: {
+  ing: DraftIngredient;
+  onUpdate: (field: 'amount' | 'unit' | 'name', value: string) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <View style={{
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      backgroundColor: tokens.cream,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: tokens.line,
+      paddingHorizontal: 10,
+      paddingVertical: 8,
+    }}>
+      <TextInput
+        value={ing.amount}
+        onChangeText={(v) => onUpdate('amount', v)}
+        placeholder="0"
+        placeholderTextColor={tokens.muted}
+        keyboardType="decimal-pad"
+        maxLength={6}
+        style={{
+          width: 50,
+          fontFamily: fonts.sansBold,
+          fontSize: 14,
+          color: tokens.ink,
+          textAlign: 'right',
+          padding: 0,
+        }}
+      />
+      <TextInput
+        value={ing.unit}
+        onChangeText={(v) => onUpdate('unit', v)}
+        placeholder="unit"
+        placeholderTextColor={tokens.muted}
+        maxLength={10}
+        style={{
+          width: 50,
+          fontFamily: fonts.sans,
+          fontSize: 13,
+          color: tokens.muted,
+          padding: 0,
+        }}
+      />
+      <Text style={{ flex: 1, fontFamily: fonts.sans, fontSize: 14, color: tokens.ink }} numberOfLines={1}>
+        {ing.name}
+      </Text>
+      <Pressable onPress={onRemove} hitSlop={8} accessibilityLabel="Remove ingredient">
+        <Icon name="x" size={14} color={tokens.muted} />
+      </Pressable>
+    </View>
+  );
+}
+
+function SuggestionRow({
+  c,
+  query,
+  onAdd,
+}: {
+  c: CanonicalIngredient;
+  query: string;
+  onAdd: () => void;
+}) {
+  // Highlight the matched prefix per Algolia best practice
+  const q = query.trim().toLowerCase();
+  const nm = c.name;
+  let head = '';
+  let match = '';
+  let tail = '';
+  if (q && nm.toLowerCase().startsWith(q)) {
+    match = nm.slice(0, q.length);
+    tail = nm.slice(q.length);
+  } else {
+    tail = nm;
+  }
+  return (
+    <Pressable
+      onPress={onAdd}
+      style={({ pressed }) => ({
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        paddingHorizontal: 14,
+        paddingVertical: 11,
+        backgroundColor: pressed ? tokens.bgDeep : 'transparent',
+        borderTopWidth: 1,
+        borderTopColor: tokens.line,
+      })}
+    >
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontFamily: fonts.sans, fontSize: 14, color: tokens.ink }}>
+          {match.length > 0 && (
+            <Text style={{ fontFamily: fonts.sansBold, color: tokens.paprika }}>{match}</Text>
+          )}
+          {tail}
+        </Text>
+        <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: tokens.muted, marginTop: 1 }}>
+          {c.default_amount > 0 && `${c.default_amount}${c.default_unit ? ' ' + c.default_unit : ''} default`}
+          {c.default_amount > 0 && c.recipe_count > 0 && ' · '}
+          {c.recipe_count > 0 && `in ${c.recipe_count} recipe${c.recipe_count === 1 ? '' : 's'}`}
+        </Text>
+      </View>
+      <Icon name="plus" size={16} color={tokens.sage} />
+    </Pressable>
+  );
+}
+
+function ValidationTick() {
+  return (
+    <View style={{
+      position: 'absolute',
+      right: 10,
+      top: 32,
+      width: 20, height: 20, borderRadius: 10,
+      backgroundColor: tokens.sage,
+      alignItems: 'center', justifyContent: 'center',
+    }}>
+      <Icon name="check" size={12} color={tokens.cream} />
+    </View>
+  );
+}
+
+// ── Form primitives ──────────────────────────────────────────────────────────
 
 const kicker = { fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 2, textTransform: 'uppercase' as const, color: tokens.paprika, marginBottom: 4 };
-const hero   = { fontFamily: fonts.display, fontSize: 34, lineHeight: 38, color: tokens.ink, marginBottom: 4 };
-const lede   = { fontFamily: fonts.sans, fontSize: 13, color: tokens.muted, lineHeight: 19, marginBottom: 24 };
-const hint   = { fontFamily: fonts.sans, fontSize: 12, color: tokens.muted, lineHeight: 17, marginBottom: 8 };
+const hero = { fontFamily: fonts.display, fontSize: 32, lineHeight: 36, color: tokens.ink, marginBottom: 4 };
+const hint = { fontFamily: fonts.sans, fontSize: 12, color: tokens.muted, lineHeight: 17, marginBottom: 8 };
 
 function Field({ children, style }: { children: React.ReactNode; style?: object }) {
   return (
-    <Text
-      style={[{
-        fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1,
-        textTransform: 'uppercase' as const, color: tokens.muted, marginBottom: 6,
-      }, style]}
-    >
+    <Text style={[{
+      fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1,
+      textTransform: 'uppercase' as const, color: tokens.muted, marginBottom: 6,
+    }, style]}>
       {children}
     </Text>
   );
@@ -420,9 +858,16 @@ function Input(props: React.ComponentProps<typeof TextInput> & { style?: object 
     <TextInput
       placeholderTextColor={tokens.muted}
       style={[{
-        backgroundColor: tokens.bg, borderRadius: 12, borderWidth: 1, borderColor: tokens.line,
-        paddingHorizontal: 14, paddingVertical: 12,
-        fontFamily: fonts.sans, fontSize: 14, color: tokens.ink, minHeight: 46,
+        backgroundColor: tokens.bg,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: tokens.line,
+        paddingHorizontal: 14,
+        paddingVertical: 12,
+        fontFamily: fonts.sans,
+        fontSize: 14,
+        color: tokens.ink,
+        minHeight: 46,
       }, style]}
       {...rest}
     />

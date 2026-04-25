@@ -315,33 +315,39 @@ Trigger: Patrick installed APK from session 12 build (run #10, hone-release.apk)
 
 Backup: `docs/archive/backup-2026-04-25-evening/` — pre-change snapshot.
 
-## Session 13 (continued) — recipe data audit + yield-type rollout + ATO log
+---
 
-After session 13's UX wave shipped, Patrick reported the tortilla yield was just one example — many more recipes needed the same audit. Done in this pass:
+## Session 14 (2026-04-25 late) — UX research docs + autocomplete-driven Add Recipe + quick wins
 
-**29 ingredient renames.** Every "X or Y" inline alternative in the seed library was canonicalised to a single name so the recipe view reads cleanly. Examples: "Ghee or clarified butter" → "Ghee", "Pappardelle or tagliatelle" → "Pappardelle", "Spaghetti or rigatoni" → "Spaghetti", "Beef chuck or beef shin" → "Beef chuck", "Honey or sugar" → "Honey", "Lard or neutral oil" → "Lard". The pantry-layer dedup (synonyms + " or X" stripping) was already covering matching; this fixes the visible recipe text. Verified via regex sweep: zero remaining outside-paren " or " patterns in ingredient names.
+Trigger: Patrick reviewed the session 13 APK and reported the app design "is not up to spec" — pointed to the older HTML prototype's combined Plan & Shop, the Pantry tag-cloud layout, and asked for university-research-backed Add Recipe. Asked me to research best autocomplete patterns from the web and ship them.
 
-**Yield-type rollout to Pavlova + Sourdough Loaf + Sourdough Maintenance.**
-- PAVLOVA: base_servings 8 → 1, yield_unit: 'pavlova'. Previous "serves 8" semantics meant scaling to 4 produced half-portions of nonsense; new semantics mean stepping to 2 produces 2 pavlovas, ingredients double cleanly. Amounts already authored per-pavlova so no recipe rewrite needed.
-- SOURDOUGH_LOAF: base_servings 8 → 1, yield_unit: 'loaf'. Same pattern.
-- SOURDOUGH_MAINTENANCE: yield_unit: 'starter feed', fixed_yield: true. It's a maintenance routine — not scalable. Stepper hides; "Yield" header replaces "How many people".
-- All other 35 recipes left as standard-servings recipes (verified by inventory pass).
+**Research deliverables:**
+- `docs/ux-redesign-research.md` (3,751 words) — full app audit. Drop standalone Plan tab → Plan & Shop merger; Pantry tag-cloud rework; autocomplete-driven Add Recipe; Kitchen header compression; "Mona Lisa" search redesign; competitor audit (Paprika, Whisk, Mealime, NYT Cooking, AnyList, Things 3, Spotlight, Linear, Notion); contrast/sizing quick-wins table; Play Store v1 phasing.
+- `docs/add-recipe-research.md` (2,510 words) — supplement. Six peer-reviewed UX findings applied (Anderson/Nielsen recognition-vs-recall, Stewart progressive disclosure, Penzo single column, Wroblewski inline validation, Krug smart defaults, Ovsiankina auto-save). Two findings considered and rejected (voice — already killed; OCR — defer to v1.2). Citations and one open question on smart-default behaviour.
+- Web research: Algolia mobile autocomplete best practices (3-5 suggestions on mobile, highlighted matched prefix, empty-state shows trending/recent, autocomplete drives ~24% conversion lift).
 
-**Pluralization helper.** yield_unit stored singular, displayed plural where natural ("How many tortillas", "1 loaf", "2 loaves"). Helper handles regular pluralization plus the loaf→loaves irregularity. Lives in both `RecipeCard.tsx` and `ServingsSelector.tsx`.
+**Patrick's sign-off (in chat):**
+- ✅ Drop standalone Plan tab → Plan & Shop merger
+- ✅ Pantry tag-cloud (vs current category-wall scroll)
+- ✅ Autocomplete-driven Add Recipe (with research-backed deeper design)
+- ✅ Match-or-beat the old HTML prototype as the visual floor
+- ✅ Search becomes the marquee feature ("Mona Lisa")
+- 🕓 Real food photos: deferred (Patrick's call)
+- 🕓 OneDrive fix: deferred
 
-**Yield-aware ServingsSelector polish.**
-- Right-hand "Makes [N] portions" subtitle now reads "[N] tortillas" / "[N] loaves" for yield recipes.
-- Leftover-mode pills + their hint text are hidden for yield recipes — "cook for tomorrow's lunch" doesn't apply to a tortilla recipe.
-- Header copy was already adapted in the earlier pass.
+**Code shipped this session:**
+- `mobile/src/data/canonical-ingredients.ts` — generated. 200 canonical entries with median amount + most-common unit derived from the existing 39-recipe corpus, plus 10 hand-added staples (water, baking powder, vanilla, etc.). Drives the autocomplete picker.
+- `mobile/app/(tabs)/add.tsx` — full rewrite (31 KB). Three-phase form (What → Ingredients → Method). Autocomplete picker with smart defaults (tap "Plain flour" → adds "250g Plain flour" pre-filled; user overrides if needed). Custom-add fallback. Empty-state shows top staples by recipe-count. Highlighted matched prefix per Algolia best practice. Yield mode auto-detects from name ("loaf" → makes one; "tortillas" → makes pieces; default → serves people). Paste-mode disclosure for screenshot workflow. Method live-preview shows parsed steps. Inline validation ticks. CTA copy adapts to first missing field ("Add a name" / "Add a time" / etc).
+- `mobile/src/components/RecipeCard.tsx` — top-bar buttons 36→44dp, scrim 0.45→0.62, + icon 20→22, heart icon 18→20. Fixes the contrast issue Patrick flagged from his screenshots.
+- `mobile/app/(tabs)/index.tsx` — Kitchen header compressed: dropped the "A COOKING COMPANION" kicker line, hero from 38px two-line to 28px one-line, recipe count moves below the search bar. ~25% less header chrome above the fold.
 
-**Card meta plural-aware.** RecipeCard now shows "5 tortillas" / "1 loaf" instead of just the number for yield recipes.
+**Backup:** `docs/archive/backup-2026-04-25-pre-redesign/` — 20 files captured before the rewrites.
 
-**Search placeholder.** Kitchen search bar copy: "What are you in the mood for?" (was "Search recipes, chefs, ingredients...").
+**Deliberately NOT shipped this session (sized for follow-up sessions):**
+- Plan & Shop merger — needs `(tabs)/_layout.tsx` change + `plan.tsx` rewrite
+- Pantry tag-cloud — needs `pantry.tsx` rewrite
+- Mona Lisa search — biggest single piece; lives on its own session
+- Auto-save draft for Add Recipe (Ovsiankina) — v1.0.1
+- Yield-mode display polish for "1 pavlova" / "1 loaf" cards (already done in session 13)
 
-**ATO log updated.** `Hone_Development_Log_FY2025-26.xlsx`:
-- 10 new entries (#32-41) covering sessions 11, 12, and 13 (~20 hours total).
-- Each entry timestamped, categorised (Development / Research / Testing / Design), and cross-referenced to commits a8c30bb / b329bc4 / c1c29f3 in the Notes column.
-- Leftover "SIMMER FRESH" titles in the Expense Tracker and Summary tabs corrected to "HONE".
-- Development Log subtitle updated to current project tagline.
-
-**Open after this:** big visual things still missing — real food photos for cook mode stages (only 3 recipes have them), Play Store assets prep (privacy policy, feature graphic, screenshots), and the OneDrive permanent fix (Patrick's 30-second Windows-side action — until applied, every Claude session continues to need the work-clone-outside-OneDrive workaround).
+Build #13 dispatched after this commit.

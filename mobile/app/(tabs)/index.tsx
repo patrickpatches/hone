@@ -284,45 +284,19 @@ function ListHeader({
 }) {
   return (
     <View style={{ marginBottom: 20 }}>
-      {/* Kicker */}
-      <Text
-        style={{
-          fontFamily: fonts.sansBold,
-          fontSize: 11,
-          letterSpacing: 2,
-          textTransform: 'uppercase',
-          color: tokens.paprika,
-          marginBottom: 4,
-        }}
-      >
-        A cooking companion
-      </Text>
-
-      {/* Hero */}
+      {/* Hero — compressed: one line, no kicker, count moves below the search */}
       <Text
         style={{
           fontFamily: fonts.display,
-          fontSize: 38,
-          lineHeight: 42,
+          fontSize: 28,
+          lineHeight: 32,
           color: tokens.ink,
         }}
       >
-        What are you{'\n'}
+        What are you{' '}
         <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic' }}>
           cooking
-        </Text>{' '}
-        tonight?
-      </Text>
-
-      <Text
-        style={{
-          marginTop: 8,
-          fontFamily: fonts.sans,
-          fontSize: 12,
-          color: tokens.muted,
-        }}
-      >
-        {recipeCount} recipes · chef-inspired, honestly adapted
+        </Text>?
       </Text>
 
       {/* Search */}
@@ -366,6 +340,11 @@ function ListHeader({
           </Pressable>
         ) : null}
       </View>
+
+      {/* Recipe count — quiet line under the search */}
+      <Text style={{ marginTop: 8, fontFamily: fonts.sans, fontSize: 12, color: tokens.muted }}>
+        {recipeCount} recipes · chef-inspired, honestly adapted
+      </Text>
 
       {/* Mood chips */}
       <ScrollView

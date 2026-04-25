@@ -118,19 +118,19 @@ export function RecipeCard({ recipe, onPress, favorite = false, onToggleFavorite
             hitSlop={12}
             style={{
               position: 'absolute',
-              top: 12,
-              right: 12,
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: 'rgba(26,22,18,0.45)',
+              top: 10,
+              right: 10,
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: 'rgba(26,22,18,0.62)',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
             <Icon
               name="heart"
-              size={18}
+              size={20}
               color={favorite ? tokens.paprika : tokens.cream}
               fill={favorite ? tokens.paprika : 'none'}
             />
@@ -145,17 +145,17 @@ export function RecipeCard({ recipe, onPress, favorite = false, onToggleFavorite
             hitSlop={12}
             style={{
               position: 'absolute',
-              top: 12,
-              right: onToggleFavorite ? 56 : 12,
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: 'rgba(26,22,18,0.45)',
+              top: 10,
+              right: onToggleFavorite ? 64 : 10,
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: 'rgba(26,22,18,0.62)',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Icon name="plus" size={20} color={tokens.cream} />
+            <Icon name="plus" size={22} color={tokens.cream} />
           </Pressable>
         ) : null}
 
