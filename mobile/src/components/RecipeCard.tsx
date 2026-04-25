@@ -221,7 +221,7 @@ export function RecipeCard({ recipe, onPress, favorite = false, onToggleFavorite
           }}
         >
           <Meta icon="clock" label={`${recipe.time_min} min`} />
-          <Meta icon="users" label={`${recipe.base_servings}`} />
+          <Meta icon="users" label={recipe.yield_unit ? `${recipe.base_servings} ${pluralizeUnit(recipe.yield_unit, recipe.base_servings)}` : `${recipe.base_servings}`} />
           {recipe.source ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <Icon name="external" size={12} color={tokens.paprika} />
@@ -254,4 +254,24 @@ function Meta({ icon, label }: { icon: 'clock' | 'users'; label: string }) {
       </Text>
     </View>
   );
+}
+
+
+/**
+ * Pluralize a yield unit for display. Stored in singular form on the recipe;
+ * the UI pluralizes when count != 1 ("loaf" → "loaves", "tortilla" → "tortillas").
+ * Handles the common irregular plurals we have (loaf → loaves) plus regular
+ * rules (-y → -ies, -s/-x/-z/-sh/-ch → -es, default + s).
+ */
+function pluralizeUnit(word: string, count: number): string {
+  if (count === 1) return word;
+  if (word === 'loaf') return 'loaves';
+  if (word === 'wolf') return 'wolves';
+  if (word === 'leaf') return 'leaves';
+  if (word === 'starter feed') return 'starter feeds';
+  if (word.endsWith('y') && !/[aeiou]/.test(word[word.length - 2] ?? '')) {
+    return word.slice(0, -1) + 'ies';
+  }
+  if (/(s|x|z|sh|ch)$/.test(word)) return word + 'es';
+  return word + 's';
 }

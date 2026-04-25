@@ -314,3 +314,34 @@ Trigger: Patrick installed APK from session 12 build (run #10, hone-release.apk)
 - Add-recipe form is too rigid — needs paste-and-parse mode
 
 Backup: `docs/archive/backup-2026-04-25-evening/` — pre-change snapshot.
+
+## Session 13 (continued) — recipe data audit + yield-type rollout + ATO log
+
+After session 13's UX wave shipped, Patrick reported the tortilla yield was just one example — many more recipes needed the same audit. Done in this pass:
+
+**29 ingredient renames.** Every "X or Y" inline alternative in the seed library was canonicalised to a single name so the recipe view reads cleanly. Examples: "Ghee or clarified butter" → "Ghee", "Pappardelle or tagliatelle" → "Pappardelle", "Spaghetti or rigatoni" → "Spaghetti", "Beef chuck or beef shin" → "Beef chuck", "Honey or sugar" → "Honey", "Lard or neutral oil" → "Lard". The pantry-layer dedup (synonyms + " or X" stripping) was already covering matching; this fixes the visible recipe text. Verified via regex sweep: zero remaining outside-paren " or " patterns in ingredient names.
+
+**Yield-type rollout to Pavlova + Sourdough Loaf + Sourdough Maintenance.**
+- PAVLOVA: base_servings 8 → 1, yield_unit: 'pavlova'. Previous "serves 8" semantics meant scaling to 4 produced half-portions of nonsense; new semantics mean stepping to 2 produces 2 pavlovas, ingredients double cleanly. Amounts already authored per-pavlova so no recipe rewrite needed.
+- SOURDOUGH_LOAF: base_servings 8 → 1, yield_unit: 'loaf'. Same pattern.
+- SOURDOUGH_MAINTENANCE: yield_unit: 'starter feed', fixed_yield: true. It's a maintenance routine — not scalable. Stepper hides; "Yield" header replaces "How many people".
+- All other 35 recipes left as standard-servings recipes (verified by inventory pass).
+
+**Pluralization helper.** yield_unit stored singular, displayed plural where natural ("How many tortillas", "1 loaf", "2 loaves"). Helper handles regular pluralization plus the loaf→loaves irregularity. Lives in both `RecipeCard.tsx` and `ServingsSelector.tsx`.
+
+**Yield-aware ServingsSelector polish.**
+- Right-hand "Makes [N] portions" subtitle now reads "[N] tortillas" / "[N] loaves" for yield recipes.
+- Leftover-mode pills + their hint text are hidden for yield recipes — "cook for tomorrow's lunch" doesn't apply to a tortilla recipe.
+- Header copy was already adapted in the earlier pass.
+
+**Card meta plural-aware.** RecipeCard now shows "5 tortillas" / "1 loaf" instead of just the number for yield recipes.
+
+**Search placeholder.** Kitchen search bar copy: "What are you in the mood for?" (was "Search recipes, chefs, ingredients...").
+
+**ATO log updated.** `Hone_Development_Log_FY2025-26.xlsx`:
+- 10 new entries (#32-41) covering sessions 11, 12, and 13 (~20 hours total).
+- Each entry timestamped, categorised (Development / Research / Testing / Design), and cross-referenced to commits a8c30bb / b329bc4 / c1c29f3 in the Notes column.
+- Leftover "SIMMER FRESH" titles in the Expense Tracker and Summary tabs corrected to "HONE".
+- Development Log subtitle updated to current project tagline.
+
+**Open after this:** big visual things still missing — real food photos for cook mode stages (only 3 recipes have them), Play Store assets prep (privacy policy, feature graphic, screenshots), and the OneDrive permanent fix (Patrick's 30-second Windows-side action — until applied, every Claude session continues to need the work-clone-outside-OneDrive workaround).

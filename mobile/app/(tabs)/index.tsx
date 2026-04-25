@@ -344,7 +344,7 @@ function ListHeader({
         <TextInput
           value={search}
           onChangeText={setSearch}
-          placeholder="Search recipes, chefs, ingredients..."
+          placeholder="What are you in the mood for?"
           placeholderTextColor={tokens.muted}
           style={{
             flex: 1,

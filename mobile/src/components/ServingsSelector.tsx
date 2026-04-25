@@ -55,10 +55,11 @@ export function ServingsSelector({
 }: Props) {
   const isYieldRecipe = !!yieldUnit;
   // Header label — "How many tortillas" / "How many people" / "Yield"
+  // yieldUnit is stored singular; pluralize for the header so it reads naturally.
   const headerLabel = fixedYield
     ? 'Yield'
     : isYieldRecipe
-      ? `How many ${yieldUnit}`
+      ? `How many ${pluralizeUnit(yieldUnit!, 2)}`
       : 'How many people';
   const option = leftoverById(leftoverKey);
   const totalPortions = totalPortionsFor(option, people, baseServings);
@@ -184,12 +185,14 @@ export function ServingsSelector({
               color: tokens.muted,
             }}
           >
-            portions
+            {isYieldRecipe ? pluralizeUnit(yieldUnit!, totalPortions) : 'portions'}
           </Text>
         </View>
       </View>
 
-      {/* Mode pills */}
+      {/* Mode pills + hint — only for serving-style recipes. "Cook for tomorrow's
+          lunch" doesn't make sense when the unit is "12 tortillas". */}
+      {!isYieldRecipe && (<>
       <View style={{ flexDirection: 'row', gap: 6, marginTop: 16, flexWrap: 'wrap' }}>
         {LEFTOVER_OPTIONS.map((opt) => {
           const active = opt.id === leftoverKey;
@@ -235,6 +238,8 @@ export function ServingsSelector({
       >
         {option.hint}
       </Text>
+      </>
+      )}
     </View>
   );
 }
@@ -274,4 +279,18 @@ function StepperButton({
       <Icon name={dir} size={18} color={tokens.ink} />
     </Pressable>
   );
+}
+
+
+function pluralizeUnit(word: string, count: number): string {
+  if (count === 1) return word;
+  if (word === 'loaf') return 'loaves';
+  if (word === 'wolf') return 'wolves';
+  if (word === 'leaf') return 'leaves';
+  if (word === 'starter feed') return 'starter feeds';
+  if (word.endsWith('y') && !/[aeiou]/.test(word[word.length - 2] ?? '')) {
+    return word.slice(0, -1) + 'ies';
+  }
+  if (/(s|x|z|sh|ch)$/.test(word)) return word + 'es';
+  return word + 's';
 }

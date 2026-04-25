@@ -262,7 +262,7 @@ const PASTA_CARBONARA: Recipe = {
   hero_url: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=600&q=80',
   ingredients: [
     {
-      id: 'i1', name: 'Spaghetti or rigatoni', amount: 160, unit: 'g', scales: 'linear',
+      id: 'i1', name: 'Spaghetti', amount: 160, unit: 'g', scales: 'linear',
       substitutions: [
         {
           ingredient: 'Rigatoni (if using spaghetti)',
@@ -550,7 +550,7 @@ const MUSAKHAN: Recipe = {
       ],
     },
     {
-      id: 'i8', name: 'Flatbread or taboon (or thick pittas)', amount: 4, unit: 'large', scales: 'linear',
+      id: 'i8', name: 'Flatbread', amount: 4, unit: 'large', scales: 'linear',
       prep: 'Taboon is traditional — the bread soaks up the onion and chicken juices underneath',
       substitutions: [
         {
@@ -883,7 +883,7 @@ const PRAWN_TACOS_PINEAPPLE: Recipe = {
         { ingredient: 'Smoked paprika + sriracha', changes: 'Less complex — chipotle in adobo has vinegary depth and smokiness that this can\'t fully replicate. But it works in a pinch.', quality: 'compromise', quantity_note: '1 tsp smoked paprika + ½ tsp sriracha per 2 tsp chipotle', hard_to_find: true, local_alternative: 'Chipotle in adobo is at most Woolworths and Coles stores in the Mexican foods aisle. Old El Paso brand is widely stocked.' },
       ],
     },
-    { id: 'i13', name: 'Soured cream or crema', amount: 4, unit: 'tbsp', scales: 'linear',
+    { id: 'i13', name: 'Soured cream', amount: 4, unit: 'tbsp', scales: 'linear',
       substitutions: [
         { ingredient: 'Full-fat natural yoghurt', changes: 'Tangier and thinner than crema. Works well — provides the same cooling contrast to the heat.', quality: 'good_swap' },
         { ingredient: 'Coconut cream', changes: 'Vegan option. Much milder and sweeter — no tang. Still provides the cooling element needed against the chipotle.', quality: 'compromise' },
@@ -907,6 +907,8 @@ const SOURDOUGH_MAINTENANCE: Recipe = {
   title: 'Sourdough Starter — Maintenance Guide',
   tagline: 'Keep your starter alive and ready to bake',
   base_servings: 1,
+  yield_unit: 'starter feed',
+  fixed_yield: true,
   time_min: 15,
   difficulty: 'Easy',
   tags: ['bread', 'technique', 'fermentation'],
@@ -939,7 +941,8 @@ const SOURDOUGH_LOAF: Recipe = {
   id: 'sourdough-loaf',
   title: 'Sourdough Country Loaf',
   tagline: 'Open crumb, blistered crust — 24-hour process',
-  base_servings: 8,
+  base_servings: 1,
+  yield_unit: 'loaf',
   time_min: 1440,
   difficulty: 'Involved',
   tags: ['bread', 'sourdough', 'technique', 'advanced'],
@@ -958,7 +961,7 @@ const SOURDOUGH_LOAF: Recipe = {
         { ingredient: 'Plain (all-purpose) flour', changes: 'Lower protein (10–11% vs 13%) — the gluten network is weaker. The loaf will be denser and less open. Reduce water to 65% hydration (325g) to compensate.', quality: 'compromise', quantity_note: 'reduce water to 325g (65% hydration)' },
       ],
     },
-    { id: 'i2', name: 'Wholemeal or spelt flour', amount: 50, unit: 'g', scales: 'linear', prep: '10% wholemeal adds flavour and enzymes — more than this starts making the crumb dense',
+    { id: 'i2', name: 'Wholemeal flour', amount: 50, unit: 'g', scales: 'linear', prep: '10% wholemeal adds flavour and enzymes — more than this starts making the crumb dense',
       substitutions: [
         { ingredient: 'Rye flour', changes: 'Even more enzymatic activity than wholemeal — speeds fermentation and adds a distinctive tang. Use the same amount. Bulk fermentation may be 30–45 minutes shorter.', quality: 'great_swap' },
       ],
@@ -1108,7 +1111,7 @@ const FISH_TACOS: Recipe = {
       ],
     },
     { id: 'i6', name: 'Lime', amount: 2, unit: '', scales: 'linear' },
-    { id: 'i7', name: 'Crema or soured cream', amount: 4, unit: 'tbsp', scales: 'linear',
+    { id: 'i7', name: 'Crema', amount: 4, unit: 'tbsp', scales: 'linear',
       substitutions: [
         { ingredient: 'Full-fat natural yoghurt', changes: 'Tangier and slightly thinner. Provides the cooling contrast needed against the chipotle.', quality: 'good_swap' },
         { ingredient: 'Kewpie mayonnaise', changes: 'Richer and more umami than crema. Mix with a squeeze of lime juice to balance.', quality: 'good_swap' },
@@ -1176,7 +1179,7 @@ const THAI_GREEN_CURRY: Recipe = {
         { ingredient: 'Yellow curry paste', changes: 'Milder and more turmeric-forward. Same technique but a gentler, more aromatic result.', quality: 'good_swap' },
       ],
     },
-    { id: 'i4', name: 'Thai aubergine or courgette', amount: 200, unit: 'g', scales: 'linear',
+    { id: 'i4', name: 'Thai aubergine', amount: 200, unit: 'g', scales: 'linear',
       substitutions: [
         { ingredient: 'Zucchini (courgette), cut in rounds', changes: 'Already in the recipe as an alternative — same technique, milder flavour. Widely available. Cooks slightly faster than eggplant.', quality: 'perfect_swap' },
         { ingredient: 'Broccolini, cut into florets', changes: 'More assertive, slightly bitter. Add in the last 5 minutes — broccolini overcooks fast. Holds its colour well.', quality: 'good_swap', quantity_note: 'add in the last 5 minutes of simmering' },
@@ -1192,7 +1195,7 @@ const THAI_GREEN_CURRY: Recipe = {
         { ingredient: 'Coconut aminos', changes: 'Sweeter and milder. Add a pinch of salt to compensate for the lower sodium.', quality: 'compromise' },
       ],
     },
-    { id: 'i6', name: 'Palm sugar or brown sugar', amount: 1, unit: 'tsp', scales: 'fixed',
+    { id: 'i6', name: 'Palm sugar', amount: 1, unit: 'tsp', scales: 'fixed',
       substitutions: [
         { ingredient: 'Brown sugar', changes: 'Less complex caramel note than palm sugar, but perfectly serviceable. Dissolves faster. Direct swap.', quality: 'great_swap' },
         { ingredient: 'Coconut sugar', changes: 'Less sweet, more mineral, and slightly earthier than palm sugar. Works well in Thai cooking — a natural pairing.', quality: 'great_swap' },
@@ -1261,7 +1264,7 @@ const FRENCH_ONION_SOUP: Recipe = {
     },
     { id: 'i3', name: 'Olive oil', amount: 2, unit: 'tbsp', scales: 'fixed' },
     {
-      id: 'i4', name: 'Dry white wine or vermouth', amount: 150, unit: 'ml', scales: 'linear',
+      id: 'i4', name: 'Dry white wine', amount: 150, unit: 'ml', scales: 'linear',
       substitutions: [
         { ingredient: 'Dry white vermouth', changes: 'More herbal and aromatic than wine. Many classic French recipes use vermouth specifically — it\'s excellent and often preferred.', quality: 'great_swap' },
         { ingredient: 'Dry apple cider', changes: 'Subtle fruitiness that works surprisingly well. Use a proper dry cider, not a sweet one.', quality: 'good_swap' },
@@ -1331,7 +1334,7 @@ const PAD_THAI: Recipe = {
       ],
     },
     {
-      id: 'i2', name: 'Prawns or chicken, sliced', amount: 200, unit: 'g', scales: 'linear',
+      id: 'i2', name: 'Prawns, sliced', amount: 200, unit: 'g', scales: 'linear',
       substitutions: [
         { ingredient: 'Pork belly, thinly sliced', changes: 'Richer and fattier — less traditional but deeply satisfying. Cook in the wok the same way.', quality: 'great_swap' },
         { ingredient: 'Firm tofu only (no meat)', changes: 'Fully vegan version. Fry the tofu first until golden before adding to the wok.', quality: 'good_swap' },
@@ -1492,7 +1495,7 @@ const RAMEN: Recipe = {
   hero_fallback: fallback('#4A3520'),
   hero_url: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600&q=80',
   ingredients: [
-    { id: 'i1', name: 'Ramen noodles, fresh or dried', amount: 160, unit: 'g', scales: 'linear',
+    { id: 'i1', name: 'Ramen noodles', amount: 160, unit: 'g', scales: 'linear',
       substitutions: [
         { ingredient: 'Thin egg noodles (fresh or dried)', changes: 'Similar wheat noodle — slightly less chewy than ramen noodles but very close. A practical supermarket option.', quality: 'good_swap' },
         { ingredient: 'Soba noodles (buckwheat)', changes: 'Nuttier and earthier than ramen. Changes the character of the bowl noticeably but makes a great dish in its own right.', quality: 'good_swap' },
@@ -1684,7 +1687,7 @@ const DAL: Recipe = {
       ],
     },
     {
-      id: 'i10', name: 'Ghee or clarified butter', amount: 3, unit: 'tbsp', scales: 'fixed',
+      id: 'i10', name: 'Ghee', amount: 3, unit: 'tbsp', scales: 'fixed',
       substitutions: [
         { ingredient: 'Coconut oil', changes: 'Vegan tarka with a subtle coconut note that works well with the spices. Same amount.', quality: 'great_swap' },
         { ingredient: 'Brown butter', changes: 'Cook butter until golden-brown before adding spices — the nutty Maillard notes take the tarka to a different level. Technically better than plain ghee.', quality: 'great_swap' },
@@ -1842,7 +1845,7 @@ const WEEKDAY_BOLOGNESE: Recipe = {
     },
     { id: 'bay', name: 'Bay leaves', amount: 2, unit: 'leaves', scales: 'fixed', cap: 3 },
     {
-      id: 'pasta', name: 'Pappardelle or tagliatelle', amount: 400, unit: 'g', scales: 'linear',
+      id: 'pasta', name: 'Pappardelle', amount: 400, unit: 'g', scales: 'linear',
       substitutions: [
         { ingredient: 'Rigatoni', changes: 'The sauce gets inside the tubes — many prefer this over flat pasta. Cook to package time exactly, then marry in the pan.', quality: 'great_swap' },
         { ingredient: 'Spaghetti or linguine', changes: 'Thinner strands hold less sauce per bite but work fine. Classic trattoria substitute.', quality: 'good_swap' },
@@ -1948,7 +1951,7 @@ const MUJADARA: Recipe = {
   emoji: '🍚',
   hero_fallback: fallback('#6B4A14'),
   ingredients: [
-    { id: 'i1', name: 'Green or brown lentils', amount: 200, unit: 'g', scales: 'linear', prep: 'Not red lentils — those fall apart. Green or brown hold shape',
+    { id: 'i1', name: 'Green lentils', amount: 200, unit: 'g', scales: 'linear', prep: 'Not red lentils — those fall apart. Green or brown hold shape',
       substitutions: [
         { ingredient: 'Beluga (black) lentils', changes: 'Smaller and firmer than green lentils — hold their shape even better. Slightly earthier flavour. Same cooking time.', quality: 'great_swap' },
         { ingredient: 'Puy lentils (French green lentils)', changes: 'Stay very firm after cooking. Slightly peppery flavour. Excellent choice — some consider them superior.', quality: 'great_swap', hard_to_find: false },
@@ -2229,19 +2232,19 @@ const LAMB_SHAWARMA: Recipe = {
     { id: 'i11', name: 'Ground cloves', amount: 0.25, unit: 'tsp', scales: 'fixed', prep: 'A tiny amount — cloves take over if you push it' },
     { id: 'i12', name: 'Black pepper, freshly ground', amount: 1, unit: 'tsp', scales: 'fixed' },
     { id: 'i13', name: 'Salt', amount: 2, unit: 'tsp', scales: 'fixed' },
-    { id: 'i14', name: 'Flatbreads or pitta, to serve', amount: 6, unit: 'large', scales: 'linear',
+    { id: 'i14', name: 'Flatbreads, to serve', amount: 6, unit: 'large', scales: 'linear',
       substitutions: [
         { ingredient: 'Lebanese flatbread', changes: 'Thinner and more pliable than pitta — wraps beautifully around the pulled shawarma. Traditional in Lebanese shawarma shops.', quality: 'great_swap' },
         { ingredient: 'Lavash', changes: 'Very thin and wide. Roll tightly — better for a compact wrap than a laid-flat serve.', quality: 'good_swap' },
       ],
     },
-    { id: 'i15', name: 'Tahini sauce or garlic sauce, to serve', amount: 150, unit: 'g', scales: 'linear',
+    { id: 'i15', name: 'Tahini sauce, to serve', amount: 150, unit: 'g', scales: 'linear',
       substitutions: [
         { ingredient: 'Toum (Lebanese garlic sauce)', changes: 'Intensely garlicky and creamy — an entirely legitimate and arguably superior choice. Whip garlic, lemon, salt, and oil in a food processor until cloud-like.', quality: 'great_swap' },
         { ingredient: 'Tzatziki', changes: 'Yoghurt-based cooling sauce with cucumber and garlic. Different cultural context but pairs very well with spiced lamb.', quality: 'good_swap' },
       ],
     },
-    { id: 'i16', name: 'Pickled turnips or amba, to serve', amount: 100, unit: 'g', scales: 'linear', prep: 'The sharp pickled thing is not optional — it cuts the richness',
+    { id: 'i16', name: 'Pickled turnips, to serve', amount: 100, unit: 'g', scales: 'linear', prep: 'The sharp pickled thing is not optional — it cuts the richness',
       substitutions: [
         { ingredient: 'Pickled cucumbers (gherkins), sliced', changes: 'Less complex than turnips but provides the same acidic cut through the fat. Widely available.', quality: 'good_swap' },
         { ingredient: 'Pickled red cabbage', changes: 'Vinegary and crunchy. Different flavour profile to turnips but serves the same purpose of cutting richness.', quality: 'good_swap' },
@@ -2391,7 +2394,7 @@ const BEEF_RENDANG: Recipe = {
   categories: { cuisines: ['malaysian'], types: ['beef'] },
   whole_food_verified: true,
   ingredients: [
-    { id: 'i1', name: 'Beef chuck or beef shin', amount: 1.2, unit: 'kg', scales: 'linear', prep: 'Cut into 5cm chunks — larger than you think, they shrink',
+    { id: 'i1', name: 'Beef chuck', amount: 1.2, unit: 'kg', scales: 'linear', prep: 'Cut into 5cm chunks — larger than you think, they shrink',
       substitutions: [
         { ingredient: 'Lamb shoulder, cut in 5cm chunks', changes: 'Richer and slightly gamier. Shorter cook time — starts to fall apart around 2.5 hours. The rendang is delicious — just different.', quality: 'good_swap', quantity_note: 'reduce total cook time to about 2.5 hours' },
         { ingredient: 'Bone-in chicken thighs', changes: 'Much faster — 45 minutes. A different dish conceptually. The rendang method still works but the deeply reduced, almost-dry finish is harder to achieve without overcooking the chicken.', quality: 'compromise', quantity_note: 'total cook time is about 45 minutes — watch closely' },
@@ -2510,7 +2513,7 @@ const CURRY_LAKSA: Recipe = {
         { ingredient: 'Puffed tofu (tau pok)', changes: 'Deep-fried tofu puffs sold ready-made at Asian grocers. Extremely good — absorbs the laksa broth like a sponge. The most traditional choice alongside the prawns.', quality: 'great_swap', hard_to_find: true, local_alternative: 'Asian grocers, refrigerated section. Well worth seeking out.' },
       ],
     },
-    { id: 'i3', name: 'Rice vermicelli or thin egg noodles', amount: 300, unit: 'g', scales: 'linear', prep: 'Soaked in boiling water 5 min, drained',
+    { id: 'i3', name: 'Rice vermicelli', amount: 300, unit: 'g', scales: 'linear', prep: 'Soaked in boiling water 5 min, drained',
       substitutions: [
         { ingredient: 'Hokkien noodles (thick yellow wheat noodles)', changes: 'Thicker and more substantial. Blanch in boiling water 2 minutes. A common laksa variation in KL.', quality: 'great_swap', quantity_note: 'blanch in boiling water 2 minutes' },
         { ingredient: 'Flat rice noodles (same as pad thai width)', changes: 'Wider and silkier than vermicelli. Soak in boiling water 5 minutes. Holds the broth beautifully.', quality: 'great_swap' },
@@ -2586,7 +2589,7 @@ const CURRY_LAKSA: Recipe = {
         { ingredient: 'Light soy sauce', changes: 'Less funky and briny, but adds the saltiness and umami. Vegan alternative. Use slightly less.', quality: 'good_swap', quantity_note: 'use 1.5 tbsp soy sauce per 2 tbsp fish sauce' },
       ],
     },
-    { id: 'i17', name: 'Palm sugar or brown sugar', amount: 1, unit: 'tbsp', scales: 'fixed' },
+    { id: 'i17', name: 'Palm sugar', amount: 1, unit: 'tbsp', scales: 'fixed' },
     { id: 'i18', name: 'Salt', amount: 1, unit: 'tsp', scales: 'fixed' },
     { id: 'i19', name: 'Bean sprouts', amount: 100, unit: 'g', scales: 'linear', prep: 'Blanched 30 seconds in boiling water',
       substitutions: [
@@ -2594,7 +2597,7 @@ const CURRY_LAKSA: Recipe = {
       ],
     },
     { id: 'i20', name: 'Fresh coriander leaves', amount: 1, unit: 'handful', scales: 'fixed', prep: 'To garnish' },
-    { id: 'i21', name: 'Sambal oelek or fresh chilli, to serve', amount: 2, unit: 'tsp', scales: 'fixed' },
+    { id: 'i21', name: 'Sambal oelek, to serve', amount: 2, unit: 'tsp', scales: 'fixed' },
     { id: 'i22', name: 'Lime, to serve', amount: 1, unit: '', scales: 'linear' },
     { id: 'i23', name: 'Vegetable oil', amount: 3, unit: 'tbsp', scales: 'fixed' },
   ],
@@ -2652,7 +2655,7 @@ const CHAR_KWAY_TEOW: Recipe = {
         { ingredient: 'Shredded cabbage', changes: 'Provides crunch but less delicate — blanch briefly or add raw for maximum texture. Less traditional but practical.', quality: 'good_swap' },
       ],
     },
-    { id: 'i6', name: 'Chives or spring onions', amount: 4, unit: 'stalks', scales: 'fixed', prep: 'Cut into 4cm lengths' },
+    { id: 'i6', name: 'Chives', amount: 4, unit: 'stalks', scales: 'fixed', prep: 'Cut into 4cm lengths' },
     { id: 'i7', name: 'Garlic cloves', amount: 4, unit: '', scales: 'fixed', prep: 'Minced' },
     { id: 'i8', name: 'Soy sauce', amount: 1.5, unit: 'tbsp', scales: 'fixed',
       substitutions: [
@@ -2676,7 +2679,7 @@ const CHAR_KWAY_TEOW: Recipe = {
         { ingredient: 'Black pepper, finely ground', changes: 'More assertive and slightly piney. Works — the spice note just shifts from floral to earthy. Use ¼ tsp as it\'s more pungent.', quality: 'good_swap', quantity_note: 'use ¼ tsp black pepper per ½ tsp white' },
       ],
     },
-    { id: 'i12', name: 'Lard or neutral oil', amount: 3, unit: 'tbsp', scales: 'fixed', prep: 'Lard is traditional and gives better wok hei. Vegetable oil works.',
+    { id: 'i12', name: 'Lard', amount: 3, unit: 'tbsp', scales: 'fixed', prep: 'Lard is traditional and gives better wok hei. Vegetable oil works.',
       substitutions: [
         { ingredient: 'Vegetable or peanut oil', changes: 'Slightly less savoury depth without the pork fat. The wok hei difference is noticeable to someone who knows, but the dish is still excellent.', quality: 'good_swap' },
         { ingredient: 'Beef tallow (rendered beef fat)', changes: 'Less traditional but excellent wok hei and savoury depth — similar to lard in function. Substitute 1:1.', quality: 'good_swap' },
@@ -2785,7 +2788,7 @@ const BUTTER_CHICKEN: Recipe = {
         { ingredient: 'Ghee (additional, instead of butter + oil)', changes: 'Use 3 tbsp ghee total instead of the butter and oil combination. More concentrated butter flavour with a higher smoke point. An upgrade.', quality: 'great_swap' },
       ],
     },
-    { id: 'i20', name: 'Honey or sugar', amount: 1, unit: 'tsp', scales: 'fixed', prep: 'Small amount to balance the tomato acid',
+    { id: 'i20', name: 'Honey', amount: 1, unit: 'tsp', scales: 'fixed', prep: 'Small amount to balance the tomato acid',
       substitutions: [
         { ingredient: 'Maple syrup', changes: 'Slightly more complex than honey. Same amount. Works identically.', quality: 'great_swap' },
         { ingredient: 'Date syrup', changes: 'Rich and complex. Adds a deeper sweetness than honey. Pairs exceptionally well with the Indian spice profile.', quality: 'great_swap', hard_to_find: true, local_alternative: 'Middle Eastern grocers and some health food stores.' },
@@ -2867,7 +2870,7 @@ const SAAG_PANEER: Recipe = {
         { ingredient: 'Cherry tomatoes, halved', changes: 'Sweeter and less acidic. No need to chop — they break down during cooking.', quality: 'great_swap' },
       ],
     },
-    { id: 'i8', name: 'Ghee or unsalted butter', amount: 3, unit: 'tbsp', scales: 'fixed',
+    { id: 'i8', name: 'Ghee', amount: 3, unit: 'tbsp', scales: 'fixed',
       substitutions: [
         { ingredient: 'Coconut oil', changes: 'Vegan option. Subtle coconut flavour that is noticeable but works with the spices. Same amount.', quality: 'good_swap' },
         { ingredient: 'Neutral oil', changes: 'Fully vegan with no added flavour. The dish is less rich but all the spice flavour comes through.', quality: 'good_swap' },
@@ -2975,7 +2978,7 @@ const CHICKEN_KATSU: Recipe = {
     },
     { id: 'i13', name: 'Plain flour', amount: 2, unit: 'tbsp', scales: 'fixed', prep: 'For thickening the curry' },
     { id: 'i14', name: 'Unsalted butter', amount: 30, unit: 'g', scales: 'fixed' },
-    { id: 'i15', name: 'Chicken or vegetable stock', amount: 600, unit: 'ml', scales: 'fixed' },
+    { id: 'i15', name: 'Chicken stock', amount: 600, unit: 'ml', scales: 'fixed' },
     { id: 'i16', name: 'Soy sauce', amount: 1, unit: 'tbsp', scales: 'fixed',
       substitutions: [
         { ingredient: 'Tamari', changes: 'Gluten-free. Slightly richer and rounder. Direct swap.', quality: 'perfect_swap' },
@@ -2986,7 +2989,7 @@ const CHICKEN_KATSU: Recipe = {
         { ingredient: 'Soy sauce + splash of apple cider vinegar', changes: 'Approximates Worcestershire\'s savoury-sour notes without anchovies. Good for a pescatarian-friendly version.', quality: 'good_swap', quantity_note: '1 tbsp soy sauce + ½ tsp apple cider vinegar' },
       ],
     },
-    { id: 'i18', name: 'Honey or mango chutney', amount: 1, unit: 'tbsp', scales: 'fixed', prep: 'For sweetness — Japanese curry is notably sweeter than Indian',
+    { id: 'i18', name: 'Honey', amount: 1, unit: 'tbsp', scales: 'fixed', prep: 'For sweetness — Japanese curry is notably sweeter than Indian',
       substitutions: [
         { ingredient: 'Brown sugar', changes: 'Pure sweetness without the fruitiness of honey. Adjust to taste — brown sugar is more straightforward.', quality: 'good_swap' },
         { ingredient: 'Maple syrup', changes: 'Slightly more complex than honey. Same amount. Works well.', quality: 'good_swap' },
@@ -3065,7 +3068,7 @@ const TOM_YUM: Recipe = {
         { ingredient: 'Small red eschalots (banana shallots), halved', changes: 'Larger than Thai shallots — use 2 large banana shallots. Same mild, sweet onion flavour.', quality: 'good_swap', quantity_note: 'use 2 large banana shallots, quartered' },
       ],
     },
-    { id: 'i8', name: 'Oyster mushrooms or straw mushrooms', amount: 150, unit: 'g', scales: 'linear', prep: 'Torn into pieces',
+    { id: 'i8', name: 'Oyster mushrooms', amount: 150, unit: 'g', scales: 'linear', prep: 'Torn into pieces',
       substitutions: [
         { ingredient: 'Swiss brown (cremini) mushrooms, sliced', changes: 'Earthier and more robust. A practical substitute — widely available. Slice thinly so they cook through in 5 minutes.', quality: 'good_swap' },
         { ingredient: 'Enoki mushrooms', changes: 'Very delicate and visually striking. Add in the last 2 minutes only — they go mushy fast.', quality: 'good_swap' },
@@ -3082,7 +3085,7 @@ const TOM_YUM: Recipe = {
         { ingredient: 'White wine vinegar (reduced amount)', changes: 'Sharp and clean acid. Significantly less floral than lime. Use half the amount and taste — it lacks the tropical note of lime.', quality: 'compromise', quantity_note: 'use 2 tbsp white wine vinegar per 4 tbsp lime juice' },
       ],
     },
-    { id: 'i11', name: 'Palm sugar or brown sugar', amount: 1, unit: 'tsp', scales: 'fixed', prep: 'Just enough to balance the sourness',
+    { id: 'i11', name: 'Palm sugar', amount: 1, unit: 'tsp', scales: 'fixed', prep: 'Just enough to balance the sourness',
       substitutions: [
         { ingredient: 'Brown sugar', changes: 'Less complex caramel note than palm sugar but works fine. Direct swap.', quality: 'great_swap' },
         { ingredient: 'Coconut sugar', changes: 'Slightly more mineral and less sweet. Close in character to palm sugar. A natural pairing in Thai cooking.', quality: 'great_swap' },
@@ -3169,7 +3172,7 @@ const BARRAMUNDI: Recipe = {
       ],
     },
     { id: 'i8', name: 'Salt and white pepper', amount: 1, unit: 'tsp', scales: 'fixed', prep: 'Season skin-side only just before cooking — salt on skin too early draws moisture' },
-    { id: 'i9', name: 'Asparagus or green beans, to serve', amount: 200, unit: 'g', scales: 'linear', prep: 'Blanched 2 minutes',
+    { id: 'i9', name: 'Asparagus, to serve', amount: 200, unit: 'g', scales: 'linear', prep: 'Blanched 2 minutes',
       substitutions: [
         { ingredient: 'Broccolini, blanched 2 minutes', changes: 'Slightly more bitter and robust than asparagus. Great with the brown butter.', quality: 'great_swap' },
         { ingredient: 'Sugar snap peas', changes: 'Sweet and crunchy. Blanch 90 seconds only to keep the snap. A lighter, fresher garnish.', quality: 'great_swap' },
@@ -3190,7 +3193,8 @@ const PAVLOVA: Recipe = {
   title: 'Australian Pavlova',
   tagline: 'Crunchy shell, marshmallow centre, fresh cream and fruit — the national dessert',
   description: 'The meringue debate (Australia vs. New Zealand) is amusing but beside the point. What matters is the technique: getting that shatteringly crisp outer shell with the gooey, sticky marshmallow centre that makes pavlova what it is. Most failures come from oven temperature and humidity — address both and it\'s not as difficult as it seems.',
-  base_servings: 8,
+  base_servings: 1,
+  yield_unit: 'pavlova',
   time_min: 150,
   difficulty: 'Intermediate',
   tags: ['australian', 'dessert', 'meringue', 'cream', 'fruit'],
@@ -3273,7 +3277,7 @@ const FLOUR_TORTILLAS: Recipe = {
   title: 'Flour Tortillas',
   tagline: "Patrick's hand-rolled flour tortillas — paper-thin and impossibly soft",
   base_servings: 5,
-  yield_unit: 'tortillas',
+  yield_unit: 'tortilla',
   time_min: 90,
   difficulty: 'Intermediate',
   tags: ['mexican', 'bread', 'weekend', 'from-scratch'],
