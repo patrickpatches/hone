@@ -3,7 +3,7 @@
     "name": "Hone",
     "slug": "hone",
     "scheme": "hone",
-    "version": "0.7.1",
+    "version": "0.6.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -35,7 +35,6 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-updates",
       "expo-router",
       "expo-font",
       "expo-sqlite"
@@ -48,13 +47,6 @@
         "projectId": "0006cb61-e3ae-4433-955e-5d02f5dd078d"
       }
     },
-    "owner": "patrick-nasr",
-    "updates": {
-      "url": "https://u.expo.dev/0006cb61-e3ae-4433-955e-5d02f5dd078d",
-      "enabled": true,
-      "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 5000
-    },
-    "runtimeVersion": "1.0.0"
+    "owner": "patrick-nasr"
   }
 }

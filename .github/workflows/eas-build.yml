@@ -74,7 +74,7 @@ jobs:
         run: |
           set -o pipefail
           chmod +x gradlew
-          ./gradlew assembleRelease -x sdkReleaseDependencyData \
+          ./gradlew assembleRelease \
             -Pandroid.injected.signing.store.file=/tmp/ci-release.jks \
             -Pandroid.injected.signing.store.password=cipassword \
             -Pandroid.injected.signing.key.alias=ci-key \

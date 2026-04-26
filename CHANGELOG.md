@@ -7,7 +7,29 @@ Until then we're in `0.x.y` and bump minor for each shipped APK.
 
 ## [Unreleased]
 
-— nothing pending —
+— EAS Update will be re-attempted via EAS Build cloud, not DIY Gradle CI.
+  See `docs/eas-update-strategy.md`.
+
+## [0.6.3] — 2026-04-26 — Rolled back v0.7.x EAS Update attempt
+
+### Removed
+- `expo-updates` package and all related app.json config (`updates.*`,
+  `runtimeVersion`, plugin entry). v0.7.0 and v0.7.1 attempts to add
+  EAS Update to our DIY Gradle pipeline failed with three different
+  Gradle hangs in a row. The right tool for this is EAS Build cloud,
+  which we'll use in a dedicated future session — see
+  `docs/eas-update-strategy.md`.
+- `.github/workflows/eas-update.yml` renamed to `.disabled` (kept for
+  reference, no longer triggers on push).
+
+### Note
+- All bug fixes from v0.6.2 are preserved — Plan & Shop multi-meal,
+  Pantry persistence, search crash null-safety, recipe-detail contrast,
+  in-app version label, ad-hoc shopping items.
+- Patrick should install v0.6.2 (build #21, hone-v0.6.2-build21.apk)
+  which is already built and proven. v0.6.3 is just the OTA-attempt
+  rollback — a v0.6.3 APK will be built but it's functionally identical
+  to v0.6.2 from a user perspective.
 
 ## [0.7.1] — 2026-04-26 — EAS Update plumbing fixes (v0.7.0 builds were broken)
 
@@ -212,7 +234,8 @@ deps change (new Expo modules, Gradle config) — bumped via
 
 Recipe library expanded from 0 to 45. Phase 1-7 complete: dual-axis category browse, recipe detail, ingredient substitutions, cook mode, pantry-to-recipe matching, shopping list, app rename Simmer Fresh → Hone, comprehensive polish pass. See CLAUDE.md for the full session-by-session log.
 
-[Unreleased]: https://github.com/patrickpatches/hone/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/patrickpatches/hone/compare/v0.6.3...HEAD
+[0.6.3]: https://github.com/patrickpatches/hone/compare/v0.7.1...v0.6.3
 [0.7.1]: https://github.com/patrickpatches/hone/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/patrickpatches/hone/compare/v0.6.2...v0.7.0
 [0.6.2]: https://github.com/patrickpatches/hone/compare/v0.6.1...v0.6.2
