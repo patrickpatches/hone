@@ -88,12 +88,29 @@ jobs:
           echo "APK: $APK"
           ls -lah "$APK"
 
+      - name: Compute APK filename
+        id: apk_name
+        working-directory: mobile
+        run: |
+          VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('app.json','utf8')).expo.version)")
+          NAME="hone-v${VERSION}-build${{ github.run_number }}"
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+          echo "Computed filename: $NAME.apk"
+
+      - name: Stage versioned APK
+        run: |
+          OUT_DIR=mobile/android/app/build/outputs/apk
+          APK=$(find $OUT_DIR -name "*.apk" -type f | head -1)
+          if [ -z "$APK" ]; then echo "::error::No APK found"; exit 1; fi
+          cp "$APK" "${{ steps.apk_name.outputs.name }}.apk"
+          ls -la *.apk
+
       - name: Upload APK artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: hone-release.apk
-          path: mobile/android/app/build/outputs/apk/release/*.apk
+          name: ${{ steps.apk_name.outputs.name }}
+          path: ${{ steps.apk_name.outputs.name }}.apk
           retention-days: 90
 
       - name: Upload Gradle log on failure
