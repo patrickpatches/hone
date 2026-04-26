@@ -9,7 +9,24 @@ Until then we're in `0.x.y` and bump minor for each shipped APK.
 
 — nothing pending —
 
-## [0.7.0] — 2026-04-26 — Over-the-air JS updates (EAS Update)
+## [0.7.1] — 2026-04-26 — EAS Update plumbing fixes (v0.7.0 builds were broken)
+
+### Fixed
+- **EAS Update workflow:** added `--platform android` to `eas update` so
+  it skips web bundling (which chokes on `expo-sqlite/web/worker.ts`'s
+  WASM import and aborts the whole update push). Web isn't a target for
+  us; OTA only needs the Android bundle.
+- **APK Gradle hang:** `expo-updates:verifyReleaseResources` was failing
+  because `expo-updates` wasn't listed in app.json's `plugins` array,
+  so prebuild didn't write the required AndroidManifest meta-data.
+  Added it. Without this, the runtime fails the resource-verification
+  step and the Gradle task hangs indefinitely.
+
+### Changed
+- Skipping the broken v0.7.0 tag entirely; v0.7.1 is the first OTA-enabled
+  version that actually builds.
+
+## [0.7.0] — 2026-04-26 — Over-the-air JS updates (EAS Update) [BROKEN — see 0.7.1]
 
 ### Added
 - **`expo-updates` integrated** (~29.0.16, the SDK 54 compatible version).
@@ -195,7 +212,8 @@ deps change (new Expo modules, Gradle config) — bumped via
 
 Recipe library expanded from 0 to 45. Phase 1-7 complete: dual-axis category browse, recipe detail, ingredient substitutions, cook mode, pantry-to-recipe matching, shopping list, app rename Simmer Fresh → Hone, comprehensive polish pass. See CLAUDE.md for the full session-by-session log.
 
-[Unreleased]: https://github.com/patrickpatches/hone/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/patrickpatches/hone/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/patrickpatches/hone/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/patrickpatches/hone/compare/v0.6.2...v0.7.0
 [0.6.2]: https://github.com/patrickpatches/hone/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/patrickpatches/hone/compare/v0.6.0...v0.6.1

@@ -3,7 +3,7 @@
     "name": "Hone",
     "slug": "hone",
     "scheme": "hone",
-    "version": "0.7.0",
+    "version": "0.7.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -35,6 +35,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "expo-updates",
       "expo-router",
       "expo-font",
       "expo-sqlite"
