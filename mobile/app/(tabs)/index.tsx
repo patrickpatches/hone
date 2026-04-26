@@ -7,10 +7,10 @@
  * - Type chips: ink when active (#1C1712)
  * - Recipe grid: single column RecipeCards
  *
+ * Plan is a simple toggle — exactly as in hone.html. No calendar sheet.
  * BUG-002 fix: keyboardShouldPersistTaps="handled" on FlatList.
- * AddToPlanSheet rendered outside FlatList to avoid Modal-in-footer instability.
  */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -21,13 +21,18 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useSQLiteContext } from 'expo-sqlite';
 import type { Recipe } from '../../src/data/types';
-import { getAllRecipes, getFavoriteIds, toggleFavorite } from '../../db/database';
+import {
+  getAllRecipes,
+  getFavoriteIds,
+  toggleFavorite,
+  getPlannedRecipeIds,
+  togglePlannedRecipe,
+} from '../../db/database';
 import { RecipeCard } from '../../src/components/RecipeCard';
-import { AddToPlanSheet } from '../../src/components/AddToPlanSheet';
 import { Icon } from '../../src/components/Icon';
 import { tokens, fonts } from '../../src/theme/tokens';
 
@@ -44,347 +49,118 @@ const CUISINES = [
   { id: 'american',   label: 'American',     emoji: '🍔' },
   { id: 'australian', label: 'Australian',   emoji: '🦘' },
   { id: 'mexican',    label: 'Mexican',      emoji: '🌮' },
-  { id: 'filipino',   label: 'Filipino',     emoji: '🍚' },
 ];
 
 const TYPES = [
-  { id: 'burgers',    label: 'Burgers',        emoji: '🍔' },
-  { id: 'chicken',    label: 'Chicken',         emoji: '🍗' },
-  { id: 'seafood',    label: 'Seafood',         emoji: '🦐' },
-  { id: 'beef',       label: 'Beef',            emoji: '🥩' },
-  { id: 'lamb',       label: 'Lamb',            emoji: '🐑' },
-  { id: 'vegetarian', label: 'Vegetarian',      emoji: '🌱' },
-  { id: 'pasta',      label: 'Pasta & Noodles', emoji: '🍝' },
-  { id: 'soups',      label: 'Soups & Stews',   emoji: '🍲' },
-  { id: 'salads',     label: 'Salads',          emoji: '🥗' },
-  { id: 'baking',     label: 'Baking & Bread',  emoji: '🍞' },
-  { id: 'eggs',       label: 'Eggs',            emoji: '🥚' },
+  { id: 'burgers',      label: 'Burgers' },
+  { id: 'chicken',      label: 'Chicken' },
+  { id: 'seafood',      label: 'Seafood' },
+  { id: 'beef',         label: 'Beef' },
+  { id: 'lamb',         label: 'Lamb' },
+  { id: 'vegetarian',   label: 'Vegetarian' },
+  { id: 'pasta',        label: 'Pasta & Noodles' },
+  { id: 'soups',        label: 'Soups & Stews' },
+  { id: 'salads',       label: 'Salads' },
+  { id: 'baking',       label: 'Baking & Bread' },
 ];
 
-// ── List header ───────────────────────────────────────────────────────────────
+// ── Filter / search logic ─────────────────────────────────────────────────────
 
-function ListHeader({
-  recipeCount,
-  search,
-  setSearch,
-  showFavs,
-  setShowFavs,
-  cuisine,
-  setCuisine,
-  type,
-  setType,
-  recipes,
-  onClear,
-}: {
-  recipeCount: number;
-  search: string;
-  setSearch: (s: string) => void;
-  showFavs: boolean;
-  setShowFavs: (v: boolean) => void;
-  cuisine: string | null;
-  setCuisine: (c: string | null) => void;
-  type: string | null;
-  setType: (t: string | null) => void;
-  recipes: Recipe[];
-  onClear: () => void;
-}) {
-  const isSearching = search.length > 0;
-  const hasFilter = !!(cuisine || type || showFavs);
-
-  return (
-    <View
-      style={{
-        backgroundColor: tokens.bg,
-        paddingBottom: 8,
-        borderBottomWidth: 1,
-        borderBottomColor: tokens.line,
-        marginHorizontal: -20,
-        paddingHorizontal: 20,
-        marginBottom: 16,
-      }}
-    >
-      {/* Title row */}
-      <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 14 }}>
-        <View>
-          <Text
-            style={{
-              fontFamily: fonts.displayBold,
-              fontSize: 34,
-              lineHeight: 36,
-              letterSpacing: -0.9,
-              color: tokens.ink,
-            }}
-          >
-            Hone
-          </Text>
-          <Text
-            style={{
-              fontFamily: fonts.displayItalic ?? fonts.display,
-              fontSize: 13,
-              color: tokens.inkSoft,
-              marginTop: 5,
-            }}
-          >
-            cook like a chef, every night.
-          </Text>
-        </View>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          {hasFilter && (
-            <Pressable
-              onPress={onClear}
-              style={({ pressed }) => ({
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 4,
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                borderRadius: 999,
-                backgroundColor: pressed ? tokens.lineDark : tokens.line,
-              })}
-            >
-              <Icon name="x" size={11} color={tokens.inkSoft} />
-              <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, color: tokens.inkSoft }}>
-                Clear
-              </Text>
-            </Pressable>
-          )}
-          <Pressable
-            onPress={() => { Haptics.selectionAsync().catch(() => {}); setShowFavs(!showFavs); }}
-            accessibilityLabel={showFavs ? 'Show all recipes' : 'Show saved only'}
-            style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 5,
-              paddingHorizontal: 14,
-              paddingVertical: 8,
-              borderRadius: 999,
-              backgroundColor: showFavs ? tokens.paprika : tokens.cardBg,
-              borderWidth: 1,
-              borderColor: showFavs ? tokens.paprika : tokens.line,
-              opacity: pressed ? 0.85 : 1,
-            })}
-          >
-            <Icon name="heart" size={13} color={showFavs ? '#FDF9F3' : tokens.ink} fill={showFavs} />
-            <Text
-              style={{
-                fontFamily: fonts.sansBold,
-                fontSize: 11,
-                color: showFavs ? '#FDF9F3' : tokens.ink,
-              }}
-            >
-              Saved
-            </Text>
-          </Pressable>
-        </View>
-      </View>
-
-      {/* Search bar */}
-      <View style={{ position: 'relative', marginBottom: 12 }}>
-        <View style={{ position: 'absolute', left: 12, top: 0, bottom: 0, justifyContent: 'center', zIndex: 1 }}>
-          <Icon name="search" size={16} color={tokens.muted} />
-        </View>
-        <TextInput
-          value={search}
-          onChangeText={setSearch}
-          placeholder="Search dishes, chefs, or ingredients…"
-          placeholderTextColor={tokens.muted}
-          style={{
-            fontFamily: fonts.sans,
-            fontSize: 14,
-            color: tokens.ink,
-            backgroundColor: tokens.cardBg,
-            borderWidth: 1,
-            borderColor: tokens.line,
-            borderRadius: 14,
-            paddingLeft: 40,
-            paddingRight: search ? 40 : 14,
-            paddingVertical: 12,
-          }}
-          returnKeyType="search"
-          autoCorrect={false}
-          autoCapitalize="none"
-        />
-        {!!search && (
-          <Pressable
-            onPress={() => setSearch('')}
-            style={{
-              position: 'absolute',
-              right: 10,
-              top: 0,
-              bottom: 0,
-              justifyContent: 'center',
-              padding: 4,
-            }}
-          >
-            <View
-              style={{
-                width: 20,
-                height: 20,
-                borderRadius: 10,
-                backgroundColor: tokens.line,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Icon name="x" size={11} color={tokens.inkSoft} />
-            </View>
-          </Pressable>
-        )}
-      </View>
-
-      {/* Filters — only show when not searching (matches hone.html) */}
-      {!isSearching && (
-        <>
-          {/* By cuisine */}
-          <View style={{ marginBottom: 10 }}>
-            <Text
-              style={{
-                fontFamily: fonts.sansBold,
-                fontSize: 10,
-                letterSpacing: 1.2,
-                textTransform: 'uppercase',
-                color: tokens.muted,
-                marginBottom: 8,
-              }}
-            >
-              By cuisine
-            </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 6 }}
-              style={{ marginHorizontal: -20 }}
-              contentInset={{ left: 20, right: 20 }}
-              contentOffset={{ x: -20, y: 0 }}
-            >
-              <View style={{ width: 20 }} />
-              {CUISINES.filter((c) =>
-                recipes.some((r) => r.categories?.cuisines?.includes(c.id as any))
-              ).map((c) => {
-                const active = cuisine === c.id;
-                return (
-                  <Pressable
-                    key={c.id}
-                    onPress={() => {
-                      Haptics.selectionAsync().catch(() => {});
-                      setCuisine(active ? null : c.id);
-                    }}
-                    style={({ pressed }) => ({
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 5,
-                      paddingHorizontal: 14,
-                      paddingVertical: 7,
-                      borderRadius: 999,
-                      backgroundColor: active
-                        ? tokens.paprika
-                        : pressed
-                        ? tokens.bgDeep
-                        : tokens.cardBg,
-                      borderWidth: 1,
-                      borderColor: active ? tokens.paprika : tokens.line,
-                      shadowColor: tokens.paprika,
-                      shadowOpacity: active ? 0.25 : 0,
-                      shadowRadius: 6,
-                      shadowOffset: { width: 0, height: 2 },
-                      elevation: active ? 3 : 0,
-                    })}
-                  >
-                    <Text style={{ fontSize: 13 }}>{c.emoji}</Text>
-                    <Text
-                      style={{
-                        fontFamily: fonts.sansBold,
-                        fontSize: 11,
-                        color: active ? '#FDF9F3' : tokens.muted,
-                      }}
-                    >
-                      {c.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-              <View style={{ width: 20 }} />
-            </ScrollView>
-          </View>
-
-          {/* By type */}
-          <View>
-            <Text
-              style={{
-                fontFamily: fonts.sansBold,
-                fontSize: 10,
-                letterSpacing: 1.2,
-                textTransform: 'uppercase',
-                color: tokens.muted,
-                marginBottom: 8,
-              }}
-            >
-              By type
-            </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 6 }}
-              style={{ marginHorizontal: -20 }}
-              contentInset={{ left: 20, right: 20 }}
-              contentOffset={{ x: -20, y: 0 }}
-            >
-              <View style={{ width: 20 }} />
-              {TYPES.filter((t) =>
-                recipes.some((r) => r.categories?.types?.includes(t.id as any))
-              ).map((t) => {
-                const active = type === t.id;
-                return (
-                  <Pressable
-                    key={t.id}
-                    onPress={() => {
-                      Haptics.selectionAsync().catch(() => {});
-                      setType(active ? null : t.id);
-                    }}
-                    style={({ pressed }) => ({
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 5,
-                      paddingHorizontal: 14,
-                      paddingVertical: 7,
-                      borderRadius: 999,
-                      backgroundColor: active
-                        ? tokens.ink
-                        : pressed
-                        ? tokens.bgDeep
-                        : tokens.cardBg,
-                      borderWidth: 1,
-                      borderColor: active ? tokens.ink : tokens.line,
-                      shadowColor: tokens.ink,
-                      shadowOpacity: active ? 0.18 : 0,
-                      shadowRadius: 6,
-                      shadowOffset: { width: 0, height: 2 },
-                      elevation: active ? 3 : 0,
-                    })}
-                  >
-                    <Text style={{ fontSize: 13 }}>{t.emoji}</Text>
-                    <Text
-                      style={{
-                        fontFamily: fonts.sansBold,
-                        fontSize: 11,
-                        color: active ? '#FDF9F3' : tokens.muted,
-                      }}
-                    >
-                      {t.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-              <View style={{ width: 20 }} />
-            </ScrollView>
-          </View>
-        </>
-      )}
-    </View>
+function matchesCuisine(recipe: Recipe, cuisine: string): boolean {
+  const cats = recipe.categories as any;
+  if (!cats) return false;
+  return (cats.cuisines ?? []).some(
+    (c: string) => c.toLowerCase() === cuisine.toLowerCase(),
   );
 }
 
-// ── Empty state ───────────────────────────────────────────────────────────────
+function matchesType(recipe: Recipe, type: string): boolean {
+  const cats = recipe.categories as any;
+  if (!cats) return false;
+  return (cats.types ?? []).some(
+    (t: string) => t.toLowerCase() === type.toLowerCase(),
+  );
+}
+
+function matchesQuery(recipe: Recipe, q: string): boolean {
+  if (!q) return true;
+  const hay = `${recipe.title} ${recipe.tagline} ${(recipe.categories as any)?.cuisines?.join(' ') ?? ''} ${(recipe.categories as any)?.types?.join(' ') ?? ''}`.toLowerCase();
+  return q.toLowerCase().split(' ').every((w) => hay.includes(w));
+}
+
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function CuisineChip({
+  item,
+  active,
+  onPress,
+}: {
+  item: (typeof CUISINES)[0];
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 999,
+        marginRight: 8,
+        backgroundColor: active ? tokens.paprika : tokens.cardBg,
+        borderWidth: 1,
+        borderColor: active ? tokens.paprika : tokens.line,
+        opacity: pressed ? 0.8 : 1,
+      })}
+    >
+      <Text
+        style={{
+          fontFamily: fonts.sansBold,
+          fontSize: 13,
+          color: active ? '#FDF9F3' : tokens.inkSoft,
+        }}
+      >
+        {item.emoji} {item.label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function TypeChip({
+  item,
+  active,
+  onPress,
+}: {
+  item: (typeof TYPES)[0];
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 999,
+        marginRight: 8,
+        backgroundColor: active ? tokens.ink : tokens.cardBg,
+        borderWidth: 1,
+        borderColor: active ? tokens.ink : tokens.line,
+        opacity: pressed ? 0.8 : 1,
+      })}
+    >
+      <Text
+        style={{
+          fontFamily: fonts.sansBold,
+          fontSize: 13,
+          color: active ? '#FDF9F3' : tokens.inkSoft,
+        }}
+      >
+        {item.label}
+      </Text>
+    </Pressable>
+  );
+}
 
 function EmptyState({
   showFavs,
@@ -396,45 +172,47 @@ function EmptyState({
   onClear: () => void;
 }) {
   return (
-    <View style={{ paddingVertical: 80, alignItems: 'center' }}>
-      <Text style={{ fontSize: 48, marginBottom: 14 }}>
+    <View style={{ alignItems: 'center', paddingTop: 60, paddingHorizontal: 32 }}>
+      <Text style={{ fontSize: 40, marginBottom: 16 }}>
         {showFavs ? '💛' : '🔍'}
       </Text>
       <Text
         style={{
           fontFamily: fonts.display,
-          fontSize: 20,
+          fontSize: 22,
           color: tokens.ink,
-          marginBottom: 6,
+          textAlign: 'center',
+          marginBottom: 8,
         }}
       >
-        {showFavs ? 'Nothing saved yet' : 'No results'}
+        {showFavs ? 'No saved recipes yet' : 'No recipes found'}
       </Text>
       <Text
         style={{
-          fontFamily: fonts.displayItalic ?? fonts.display,
-          fontSize: 13,
+          fontFamily: fonts.sans,
+          fontSize: 14,
           color: tokens.muted,
           textAlign: 'center',
-          marginBottom: 20,
+          lineHeight: 20,
         }}
       >
         {showFavs
-          ? 'Tap the heart on a recipe to save it here'
-          : 'Try different filters or search terms'}
+          ? 'Tap the heart on any recipe to save it here.'
+          : 'Try a different search or clear the filters.'}
       </Text>
       {hasFilter && (
         <Pressable
           onPress={onClear}
-          style={({ pressed }) => ({
+          style={{
+            marginTop: 20,
             paddingHorizontal: 20,
-            paddingVertical: 12,
+            paddingVertical: 10,
             borderRadius: 999,
-            backgroundColor: pressed ? tokens.paprikaDeep : tokens.paprika,
-          })}
+            backgroundColor: tokens.paprika,
+          }}
         >
           <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: '#FDF9F3' }}>
-            Clear all filters
+            Clear filters
           </Text>
         </Pressable>
       )}
@@ -442,90 +220,224 @@ function EmptyState({
   );
 }
 
+function FilterHeader({
+  query,
+  setQuery,
+  showFavs,
+  setShowFavs,
+  cuisine,
+  setCuisine,
+  type,
+  setType,
+  recipes,
+  onClear,
+}: {
+  query: string;
+  setQuery: (v: string) => void;
+  showFavs: boolean;
+  setShowFavs: (v: boolean) => void;
+  cuisine: string | null;
+  setCuisine: (v: string | null) => void;
+  type: string | null;
+  setType: (v: string | null) => void;
+  recipes: Recipe[];
+  onClear: () => void;
+}) {
+  const hasFilter = !!(query || showFavs || cuisine || type);
+  return (
+    <View>
+      {/* Search bar */}
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: tokens.cardBg,
+          borderRadius: 14,
+          paddingHorizontal: 12,
+          paddingVertical: 10,
+          borderWidth: 1,
+          borderColor: tokens.line,
+          marginBottom: 14,
+        }}
+      >
+        <Icon name="search" size={16} color={tokens.muted} />
+        <TextInput
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Search recipes…"
+          placeholderTextColor={tokens.muted}
+          style={{
+            flex: 1,
+            marginLeft: 8,
+            fontFamily: fonts.sans,
+            fontSize: 15,
+            color: tokens.ink,
+          }}
+          returnKeyType="search"
+        />
+        {query.length > 0 && (
+          <Pressable onPress={() => setQuery('')}>
+            <Icon name="x" size={16} color={tokens.muted} />
+          </Pressable>
+        )}
+      </View>
+
+      {/* Saved + Clear row */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14, gap: 8 }}>
+        <Pressable
+          onPress={() => { Haptics.selectionAsync().catch(() => {}); setShowFavs(!showFavs); }}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 5,
+            paddingHorizontal: 14,
+            paddingVertical: 8,
+            borderRadius: 999,
+            backgroundColor: showFavs ? tokens.paprika : tokens.cardBg,
+            borderWidth: 1,
+            borderColor: showFavs ? tokens.paprika : tokens.line,
+          }}
+        >
+          <Icon name="heart" size={13} color={showFavs ? '#FDF9F3' : tokens.inkSoft} fill={showFavs} />
+          <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: showFavs ? '#FDF9F3' : tokens.inkSoft }}>
+            Saved
+          </Text>
+        </Pressable>
+
+        {hasFilter && (
+          <Pressable
+            onPress={onClear}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 5,
+              paddingHorizontal: 14,
+              paddingVertical: 8,
+              borderRadius: 999,
+              backgroundColor: tokens.paprikaLight,
+              borderWidth: 1,
+              borderColor: tokens.paprika,
+            }}
+          >
+            <Icon name="x" size={12} color={tokens.paprika} />
+            <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: tokens.paprika }}>
+              Clear
+            </Text>
+          </Pressable>
+        )}
+
+        <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: tokens.muted, marginLeft: 'auto' as any }}>
+          {recipes.length} recipe{recipes.length !== 1 ? 's' : ''}
+        </Text>
+      </View>
+
+      {/* Cuisine chips */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+        {CUISINES.map((c) => (
+          <CuisineChip
+            key={c.id}
+            item={c}
+            active={cuisine === c.id}
+            onPress={() => {
+              Haptics.selectionAsync().catch(() => {});
+              setCuisine(cuisine === c.id ? null : c.id);
+            }}
+          />
+        ))}
+      </ScrollView>
+
+      {/* Type chips */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+        {TYPES.map((t) => (
+          <TypeChip
+            key={t.id}
+            item={t}
+            active={type === t.id}
+            onPress={() => {
+              Haptics.selectionAsync().catch(() => {});
+              setType(type === t.id ? null : t.id);
+            }}
+          />
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
 // ── Main screen ───────────────────────────────────────────────────────────────
 
-export default function KitchenHome() {
+export default function KitchenScreen() {
   const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
 
-  const [search,      setSearch]      = useState('');
-  const [recipes,     setRecipes]     = useState<Recipe[]>([]);
+  const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
-  const [loading,     setLoading]     = useState(true);
-  const [showFavs,    setShowFavs]    = useState(false);
-  const [cuisine,     setCuisine]     = useState<string | null>(null);
-  const [type,        setType]        = useState<string | null>(null);
-  const [planTarget,  setPlanTarget]  = useState<Recipe | null>(null);
+  const [plannedIds, setPlannedIds] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const [all, favs] = await Promise.all([getAllRecipes(db), getFavoriteIds(db)]);
-        if (!cancelled) {
-          setRecipes(all);
-          setFavoriteIds(favs);
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error('KitchenHome load error:', err);
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
+  // Filter state
+  const [query, setQuery] = useState('');
+  const [showFavs, setShowFavs] = useState(false);
+  const [cuisine, setCuisine] = useState<string | null>(null);
+  const [type, setType] = useState<string | null>(null);
+
+  const hasActiveFilter = !!(query || showFavs || cuisine || type);
+
+  const loadData = useCallback(async () => {
+    const [recipes, favIds, planIds] = await Promise.all([
+      getAllRecipes(db),
+      getFavoriteIds(db),
+      getPlannedRecipeIds(db),
+    ]);
+    setAllRecipes(recipes);
+    setFavoriteIds(new Set(favIds));
+    setPlannedIds(new Set(planIds));
+    setLoading(false);
   }, [db]);
 
-  const handleToggleFavorite = async (id: string) => {
-    try {
-      await toggleFavorite(db, id);
-      setFavoriteIds((prev) => {
-        const next = new Set(prev);
-        next.has(id) ? next.delete(id) : next.add(id);
-        return next;
-      });
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    } catch (err) {
-      console.error('toggleFavorite error:', err);
-    }
-  };
+  useEffect(() => { loadData(); }, [loadData]);
 
-  const results = useMemo(() => {
-    let list = recipes;
-    const q = search.trim().toLowerCase();
-    if (q) {
-      list = list.filter(
-        (r) =>
-          r.title.toLowerCase().includes(q) ||
-          r.tagline.toLowerCase().includes(q) ||
-          r.tags.some((t) => t.toLowerCase().includes(q)) ||
-          (r.source?.chef ?? '').toLowerCase().includes(q),
-      );
-    }
-    if (showFavs)  list = list.filter((r) => favoriteIds.has(r.id));
-    if (cuisine) {
-      const c = cuisine as import('../../src/data/types').CuisineId;
-      list = list.filter((r) => r.categories?.cuisines?.includes(c));
-    }
-    if (type) {
-      const t = type as import('../../src/data/types').TypeId;
-      list = list.filter((r) => r.categories?.types?.includes(t));
-    }
-    return list;
-  }, [recipes, search, showFavs, cuisine, type, favoriteIds]);
+  // Refresh planned state when tab is focused (e.g. toggled from recipe detail)
+  useFocusEffect(
+    useCallback(() => {
+      getPlannedRecipeIds(db).then((ids) => setPlannedIds(new Set(ids)));
+      getFavoriteIds(db).then((ids) => setFavoriteIds(new Set(ids)));
+    }, [db]),
+  );
 
-  const hasActiveFilter = showFavs || cuisine !== null || type !== null || search.trim() !== '';
-
-  const clearAll = () => {
-    setSearch('');
+  const clearAll = useCallback(() => {
+    setQuery('');
     setShowFavs(false);
     setCuisine(null);
     setType(null);
-  };
+  }, []);
+
+  const handleToggleFavorite = useCallback(async (recipeId: string) => {
+    Haptics.selectionAsync().catch(() => {});
+    await toggleFavorite(db, recipeId);
+    const ids = await getFavoriteIds(db);
+    setFavoriteIds(new Set(ids));
+  }, [db]);
+
+  const handleTogglePlan = useCallback(async (recipe: Recipe) => {
+    Haptics.selectionAsync().catch(() => {});
+    await togglePlannedRecipe(db, recipe.id, recipe.base_servings);
+    const ids = await getPlannedRecipeIds(db);
+    setPlannedIds(new Set(ids));
+  }, [db]);
+
+  const recipes = useMemo(() => {
+    let list = allRecipes;
+    if (showFavs) list = list.filter((r) => favoriteIds.has(r.id));
+    if (cuisine) list = list.filter((r) => matchesCuisine(r, cuisine));
+    if (type) list = list.filter((r) => matchesType(r, type));
+    if (query) list = list.filter((r) => matchesQuery(r, query));
+    return list;
+  }, [allRecipes, favoriteIds, showFavs, cuisine, type, query]);
 
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: tokens.bg, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flex: 1, backgroundColor: tokens.bg, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator color={tokens.paprika} />
       </View>
     );
@@ -533,25 +445,54 @@ export default function KitchenHome() {
 
   return (
     <>
+      {/* Sticky header */}
+      <View
+        style={{
+          backgroundColor: tokens.bg,
+          paddingTop: insets.top + 12,
+          paddingHorizontal: 16,
+          paddingBottom: 12,
+          borderBottomWidth: 1,
+          borderBottomColor: tokens.line,
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: fonts.display,
+            fontSize: 28,
+            color: tokens.ink,
+            letterSpacing: -0.5,
+          }}
+        >
+          Kitchen
+        </Text>
+        <Text
+          style={{
+            fontFamily: fonts.displayItalic,
+            fontSize: 14,
+            color: tokens.muted,
+            marginTop: 2,
+          }}
+        >
+          cook like a chef, every night.
+        </Text>
+      </View>
+
       <FlatList
-        data={results}
-        keyExtractor={(r) => r.id}
-        // BUG-002 fix
+        data={recipes}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 16,
+          paddingBottom: insets.bottom + 100,
+        }}
+        style={{ flex: 1, backgroundColor: tokens.bg }}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
-        contentContainerStyle={{
-          paddingTop: insets.top + 12,
-          paddingHorizontal: 20,
-          paddingBottom: 140,
-          backgroundColor: tokens.bg,
-        }}
-        style={{ backgroundColor: tokens.bg }}
-        showsVerticalScrollIndicator={false}
         ListHeaderComponent={
-          <ListHeader
-            recipeCount={recipes.length}
-            search={search}
-            setSearch={setSearch}
+          <FilterHeader
+            query={query}
+            setQuery={setQuery}
             showFavs={showFavs}
             setShowFavs={setShowFavs}
             cuisine={cuisine}
@@ -567,10 +508,10 @@ export default function KitchenHome() {
             <RecipeCard
               recipe={item}
               isFavorite={favoriteIds.has(item.id)}
-              isPlanned={false}
+              isPlanned={plannedIds.has(item.id)}
               onPress={() => router.push(`/recipe/${item.id}`)}
               onFavorite={() => handleToggleFavorite(item.id)}
-              onPlan={() => setPlanTarget(item)}
+              onPlan={() => handleTogglePlan(item)}
             />
           </View>
         )}
@@ -582,13 +523,6 @@ export default function KitchenHome() {
           />
         }
       />
-      {/* AddToPlanSheet OUTSIDE FlatList to prevent Modal-in-footer instability */}
-      {planTarget && (
-        <AddToPlanSheet
-          recipe={planTarget}
-          onClose={() => setPlanTarget(null)}
-        />
-      )}
     </>
   );
 }

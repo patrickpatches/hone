@@ -579,3 +579,57 @@ export async function deleteShoppingExtra(db: SQLiteDatabase, id: string): Promi
   await db.runAsync('DELETE FROM shopping_extras WHERE id = ?', [id]);
 }
 
+
+
+// ── Simple plan toggle (hone.html style) ─────────────────────────────────────
+// Uses meal_plan table with id = recipe_id and date = 'planned' so there's
+// no calendar/date concept — just "in plan" or not.
+
+export async function getPlannedRecipeIds(db: SQLiteDatabase): Promise<string[]> {
+  const rows = await db.getAllAsync<{ id: string }>(
+    "SELECT id FROM meal_plan WHERE date = 'planned'",
+  );
+  return rows.map((r) => r.id);
+}
+
+export async function togglePlannedRecipe(
+  db: SQLiteDatabase,
+  recipeId: string,
+  baseServings: number,
+): Promise<boolean> {
+  const existing = await db.getFirstAsync<{ id: string }>(
+    "SELECT id FROM meal_plan WHERE id = ? AND date = 'planned'",
+    [recipeId],
+  );
+  if (existing) {
+    await db.runAsync("DELETE FROM meal_plan WHERE id = ? AND date = 'planned'", [recipeId]);
+    return false; // removed from plan
+  } else {
+    await db.runAsync(
+      'INSERT OR REPLACE INTO meal_plan (id, date, recipe_id, servings) VALUES (?, ?, ?, ?)',
+      [recipeId, 'planned', recipeId, baseServings],
+    );
+    return true; // added to plan
+  }
+}
+
+export async function removePlannedRecipe(db: SQLiteDatabase, recipeId: string): Promise<void> {
+  await db.runAsync("DELETE FROM meal_plan WHERE id = ? AND date = 'planned'", [recipeId]);
+}
+
+export async function getPlannedRecipes(db: SQLiteDatabase): Promise<{ recipe_id: string; servings: number }[]> {
+  return db.getAllAsync<{ recipe_id: string; servings: number }>(
+    "SELECT recipe_id, servings FROM meal_plan WHERE date = 'planned' ORDER BY rowid ASC",
+  );
+}
+
+export async function updatePlannedServings(
+  db: SQLiteDatabase,
+  recipeId: string,
+  servings: number,
+): Promise<void> {
+  await db.runAsync(
+    "UPDATE meal_plan SET servings = ? WHERE id = ? AND date = 'planned'",
+    [servings, recipeId],
+  );
+}

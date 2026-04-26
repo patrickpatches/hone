@@ -49,13 +49,14 @@ import {
   getSwapsForRecipe,
   setIngredientSwap,
   clearIngredientSwap,
+  getPlannedRecipeIds,
+  togglePlannedRecipe,
   type SwapRecord,
 } from '../../db/database';
 import { tokens, fonts } from '../../src/theme/tokens';
 import { Icon } from '../../src/components/Icon';
 import { ServingsSelector } from '../../src/components/ServingsSelector';
 import { SwapSheet } from '../../src/components/SwapSheet';
-import { AddToPlanSheet } from '../../src/components/AddToPlanSheet';
 import {
   formatAmount,
   scaleIngredient,
@@ -364,7 +365,7 @@ export default function RecipeDetailScreen() {
     if (recipe) setPeople(recipe.base_servings);
   }, [recipe]);
 
-  const [showPlanSheet, setShowPlanSheet] = useState(false);
+  const [isPlanned, setIsPlanned] = useState(false);
   const [cooking, setCooking] = useState(false);
   const [stepsDone, setStepsDone] = useState<Record<string, boolean>>({});
   const [ingTicked, setIngTicked] = useState<Record<string, boolean>>({});
@@ -386,6 +387,17 @@ export default function RecipeDetailScreen() {
       setFavorite((f) => !f);
     } catch (err) {
       console.error('toggleFavorite error:', err);
+    }
+  };
+
+  const handleTogglePlan = async () => {
+    if (!recipe) return;
+    Haptics.selectionAsync().catch(() => {});
+    try {
+      await togglePlannedRecipe(db, recipe.id, recipe.base_servings);
+      setIsPlanned((p) => !p);
+    } catch (err) {
+      console.error('togglePlan error:', err);
     }
   };
 
@@ -919,6 +931,44 @@ export default function RecipeDetailScreen() {
               );
             })}
           </View>
+
+          {/* ── Add to plan — matches hone.html exactly ──────────────────── */}
+          <Pressable
+            onPress={handleTogglePlan}
+            style={({ pressed }) => ({
+              marginTop: 28,
+              marginBottom: 8,
+              paddingVertical: 16,
+              borderRadius: 16,
+              backgroundColor: isPlanned ? tokens.sage : tokens.paprika,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              opacity: pressed ? 0.88 : 1,
+              shadowColor: isPlanned ? tokens.sage : tokens.paprika,
+              shadowOpacity: 0.28,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 4 },
+              elevation: 4,
+            })}
+          >
+            <Icon
+              name={isPlanned ? 'check' : 'plus'}
+              size={18}
+              color="#FDF9F3"
+            />
+            <Text
+              style={{
+                fontFamily: fonts.sansBold,
+                fontSize: 16,
+                color: '#FDF9F3',
+                letterSpacing: -0.2,
+              }}
+            >
+              {isPlanned ? 'In your plan' : 'Add to plan'}
+            </Text>
+          </Pressable>
         </View>
       </ScrollView>
 
@@ -947,9 +997,7 @@ export default function RecipeDetailScreen() {
         />
       )}
 
-      {showPlanSheet && recipe && (
-        <AddToPlanSheet recipe={recipe} onClose={() => setShowPlanSheet(false)} />
-      )}
+
     </View>
   );
 }
