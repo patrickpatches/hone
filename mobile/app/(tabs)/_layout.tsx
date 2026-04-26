@@ -31,7 +31,7 @@ type TabSpec = {
 const TABS: TabSpec[] = [
   { name: 'index',  label: 'Kitchen', icon: 'home' },
   { name: 'pantry', label: 'Pantry',  icon: 'sparkles', emoji: '🧺' },
-  { name: 'plan',   label: 'Plan',    icon: 'cart' },
+  { name: 'plan',   label: 'Plan & Shop', icon: 'cart' },
   { name: 'add',    label: 'Add',     icon: 'plus' },
 ];
 

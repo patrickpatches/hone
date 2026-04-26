@@ -1,37 +1,33 @@
 /**
- * Pantry — "cook with what you have."
+ * Pantry — flat tag-cloud + recipe matches inline.
  *
- * Ingredients are auto-seeded from all recipes in the library plus a set of
- * common staples on first load. The user toggles what they have; the app
- * scores every recipe against the pantry and surfaces the best matches.
+ * Replaces the category-wall version. Per ux-redesign-research.md and
+ * Patrick's review of the old HTML prototype: scrolling past Meat to find
+ * Dairy is friction the user shouldn't pay. The whole pantry is visible
+ * as a chip cloud at a glance; tap × to remove; quick-add chips below
+ * suggest staples not yet in pantry.
  *
- * Scoring: coverage + 0.1 × aromatics_bonus (see pantry-helpers.ts).
- * The match summary pill opens a recipe suggestion sheet sorted by score.
+ * Recipe matches render inline (not in a modal), like the old prototype:
+ *   - "You can make these" — green section, 100% match
+ *   - "Almost there — grab 1-3 more" — yellow section
  *
- * Ergonomics rationale:
- *   - Toggle sits on the right — right-thumb reach zone (90% of users).
- *   - Minimum 52dp row height — oily/damp fingers hit it reliably.
- *   - Category headers use bgDeep separator to signal hierarchy without
- *     adding visual noise between items in the same group.
+ * The unified search-or-add input from session 12 is preserved at the
+ * top; the inline "+ Add 'X'" suggestion appears when the query is novel.
+ *
+ * Optional "view by aisle" toggle preserves the categorised view for
+ * users who prefer it; not lost capability, just not the default.
  */
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
-  SectionList,
+  ScrollView,
   Text,
   TextInput,
   View,
 } from 'react-native';
-import Animated, {
-  interpolateColor,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -44,23 +40,31 @@ import {
   getPantryItems,
   upsertPantryItem,
   deletePantryItem,
+  type PantryItem,
 } from '../../db/database';
-import type { PantryItem } from '../../db/database';
 import type { Recipe } from '../../src/data/types';
 import {
   PANTRY_CATEGORIES,
   CATEGORY_EMOJI,
   categorizeIngredient,
   normalizeForMatch,
-  cleanIngredientName,
   scoreRecipeAgainstPantry,
   initializePantryItems,
+  type RecipeMatchResult,
+  type PantryCategory,
 } from '../../src/data/pantry-helpers';
-import type { RecipeMatchResult } from '../../src/data/pantry-helpers';
 
-type Section = { title: string; data: PantryItem[] };
-
-// ── Main screen ───────────────────────────────────────────────────────────────
+// Common quick-add staples shown as chips when not already in pantry
+const QUICK_ADD_STAPLES: { name: string; emoji: string; category: PantryCategory }[] = [
+  { name: 'Parmesan',         emoji: '🧀', category: 'Dairy & Eggs' },
+  { name: 'Stock',            emoji: '🫙', category: 'Pantry Staples' },
+  { name: 'Chicken',          emoji: '🍗', category: 'Proteins' },
+  { name: 'Beef mince',       emoji: '🥩', category: 'Proteins' },
+  { name: 'Coconut milk',     emoji: '🥥', category: 'Dairy & Eggs' },
+  { name: 'Soy sauce',        emoji: '🫙', category: 'Condiments & Sauces' },
+  { name: 'Pasta',            emoji: '🍝', category: 'Pantry Staples' },
+  { name: 'Bread',            emoji: '🍞', category: 'Pantry Staples' },
+];
 
 export default function PantryTab() {
   const db = useSQLiteContext();
@@ -69,11 +73,8 @@ export default function PantryTab() {
   const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
-  // Single combined input - drives both filtering AND the inline "+ Add" suggestion.
   const [search, setSearch] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
-
-  // ── Load ────────────────────────────────────────────────────────────────────
+  const [groupByAisle, setGroupByAisle] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -87,7 +88,12 @@ export default function PantryTab() {
       if (items.length === 0) {
         await initializePantryItems(db, recipes);
         const seeded = await getPantryItems(db);
-        if (!cancelled) setPantryItems(seeded);
+        if (!cancelled) {
+          // Auto-mark all seeded items as have_it: false; user toggles in.
+          // But to keep the cloud meaningful, we want a richer default.
+          // Leaving as-is for v1; user adds what they have.
+          setPantryItems(seeded);
+        }
       } else {
         setPantryItems(items);
       }
@@ -97,648 +103,407 @@ export default function PantryTab() {
     return () => { cancelled = true; };
   }, [db]);
 
-  // ── Scoring ─────────────────────────────────────────────────────────────────
+  // Items the user actually has (have_it === true)
+  const myPantry = useMemo(
+    () => pantryItems.filter((p) => p.have_it),
+    [pantryItems],
+  );
 
-  const matchResults = useMemo<RecipeMatchResult[]>(() => {
+  // Search filter
+  const filteredPantry = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return myPantry;
+    return myPantry.filter((p) => p.name.toLowerCase().includes(q));
+  }, [myPantry, search]);
+
+  // Recipe scoring
+  const matches = useMemo<RecipeMatchResult[]>(() => {
     if (!allRecipes.length) return [];
     return allRecipes
       .map((r) => scoreRecipeAgainstPantry(r, pantryItems))
       .sort((a, b) => b.score - a.score);
   }, [allRecipes, pantryItems]);
 
-  const canMakeCount = matchResults.filter((m) => m.haveCount === m.totalCount).length;
-  const topMatches = matchResults.filter((m) => m.score > 0.05);
+  const canMake = matches.filter((m) => m.haveCount === m.totalCount);
+  const almostThere = matches.filter(
+    (m) => m.haveCount < m.totalCount && m.haveCount / m.totalCount >= 0.6,
+  ).slice(0, 5);
 
-  // ── Sections ────────────────────────────────────────────────────────────────
-
-  const sections = useMemo<Section[]>(() => {
-    const q = search.trim().toLowerCase();
-    return PANTRY_CATEGORIES.map((cat) => ({
-      title: cat,
-      data: pantryItems.filter(
-        (p) => p.category === cat && (q === '' || p.name.toLowerCase().includes(q)),
-      ),
-    })).filter((s) => s.data.length > 0);
-  }, [pantryItems, search]);
-
-  const haveCount = pantryItems.filter((p) => p.have_it).length;
-
-  // ── Handlers ────────────────────────────────────────────────────────────────
-
-  const handleToggle = useCallback(
-    async (item: PantryItem) => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-      const updated = { ...item, have_it: !item.have_it };
+  // ── Handlers ──────────────────────────────────────────────────────────────
+  const handleRemove = useCallback(async (item: PantryItem) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    if (item.id.startsWith('custom-')) {
+      await deletePantryItem(db, item.id);
+      setPantryItems((prev) => prev.filter((p) => p.id !== item.id));
+    } else {
+      const updated = { ...item, have_it: false };
       await upsertPantryItem(db, updated);
       setPantryItems((prev) => prev.map((p) => (p.id === item.id ? updated : p)));
-    },
-    [db],
-  );
+    }
+  }, [db]);
 
-  const handleAdd = async (rawName: string) => {
+  const handleAddByName = useCallback(async (rawName: string) => {
     const name = rawName.trim();
     if (!name) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    const category = categorizeIngredient(name);
-    const id = 'custom-' + Date.now();
-    const newItem: PantryItem = { id, name, category, quantity: null, unit: null, have_it: true };
-    await upsertPantryItem(db, newItem);
-    setPantryItems((prev) => [...prev, newItem]);
+    const norm = normalizeForMatch(name);
+    // Find existing by normalised match
+    const existing = pantryItems.find((p) => normalizeForMatch(p.name) === norm);
+    if (existing) {
+      const updated = { ...existing, have_it: true };
+      await upsertPantryItem(db, updated);
+      setPantryItems((prev) => prev.map((p) => (p.id === existing.id ? updated : p)));
+    } else {
+      const item: PantryItem = {
+        id: 'custom-' + Date.now(),
+        name,
+        category: categorizeIngredient(name),
+        quantity: null,
+        unit: null,
+        have_it: true,
+      };
+      await upsertPantryItem(db, item);
+      setPantryItems((prev) => [...prev, item]);
+    }
     setSearch('');
-  };
+  }, [db, pantryItems]);
 
-  /** Plural- and synonym-aware match: typing "yellow onions" when "yellow onion"
-   *  exists will NOT prompt to add a duplicate. */
-  const queryMatchesExisting = useMemo(() => {
+  const handleQuickAdd = useCallback(async (staple: typeof QUICK_ADD_STAPLES[number]) => {
+    await handleAddByName(staple.name);
+  }, [handleAddByName]);
+
+  // Show quick-add chips for staples NOT already in pantry
+  const quickAddChips = useMemo(() => {
+    const myNorms = new Set(myPantry.map((p) => normalizeForMatch(p.name)));
+    return QUICK_ADD_STAPLES.filter((s) => !myNorms.has(normalizeForMatch(s.name)));
+  }, [myPantry]);
+
+  // Inline "+ Add" suggestion when query doesn't match any pantry item
+  const queryHasMatch = useMemo(() => {
     const q = search.trim();
     if (!q) return true;
     const qNorm = normalizeForMatch(q);
-    return pantryItems.some((p) => normalizeForMatch(p.name) === qNorm);
+    return pantryItems.some((p) => p.have_it && normalizeForMatch(p.name) === qNorm);
   }, [search, pantryItems]);
-
-  const showAddSuggestion = search.trim().length > 0 && !queryMatchesExisting;
-
-  const handleDeleteCustom = async (item: PantryItem) => {
-    if (!item.id.startsWith('custom-')) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    await deletePantryItem(db, item.id);
-    setPantryItems((prev) => prev.filter((p) => p.id !== item.id));
-  };
-
-  // ── Loading ─────────────────────────────────────────────────────────────────
+  const showAddSuggestion = search.trim().length > 0 && !queryHasMatch;
 
   if (loading) {
     return (
       <View style={{ flex: 1, backgroundColor: tokens.bg, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator color={tokens.sage} />
-        <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: tokens.muted, marginTop: 12 }}>
-          Loading your pantry…
-        </Text>
       </View>
     );
   }
-
-  // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: tokens.bg }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <SectionList
-        sections={sections}
-        keyExtractor={(item) => item.id}
-        style={{ backgroundColor: tokens.bg }}
+      <ScrollView
         contentContainerStyle={{
-          paddingTop: insets.top + 20,
-          paddingBottom: 140,
+          paddingTop: insets.top + 18,
+          paddingHorizontal: 20,
+          paddingBottom: 160,
         }}
-        stickySectionHeadersEnabled={false}
         showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <>
-            <Header
-              haveCount={haveCount}
-              totalCount={pantryItems.length}
-              canMakeCount={canMakeCount}
-              search={search}
-              setSearch={setSearch}
-              onSubmit={() => showAddSuggestion && handleAdd(search)}
-              onOpenSuggestions={() => setShowSuggestions(true)}
-            />
-            {showAddSuggestion && (
-              <AddSuggestionRow
-                query={search.trim()}
-                onAdd={() => handleAdd(search)}
-              />
-            )}
-          </>
-        }
-        renderSectionHeader={({ section }) => (
-          <SectionHeader title={section.title as string} />
-        )}
-        renderItem={({ item, index, section }) => (
-          <PantryItemRow
-            item={item}
-            isLast={index === section.data.length - 1}
-            onToggle={handleToggle}
-            onDeleteCustom={handleDeleteCustom}
-          />
-        )}
-        ListEmptyComponent={
-          search ? (
-            <View style={{ padding: 40, alignItems: 'center' }}>
-              <Text style={{ fontFamily: fonts.sans, fontSize: 14, color: tokens.muted }}>
-                No ingredients match "{search}"
-              </Text>
-            </View>
-          ) : null
-        }
-      />
+      >
+        {/* Header */}
+        <Text
+          style={{
+            fontFamily: fonts.display,
+            fontSize: 28,
+            color: tokens.ink,
+            lineHeight: 32,
+            marginBottom: 4,
+          }}
+        >
+          Pantry
+        </Text>
+        <Text
+          style={{
+            fontFamily: fonts.displayItalic,
+            fontStyle: 'italic',
+            fontSize: 14,
+            color: tokens.muted,
+            marginBottom: 14,
+          }}
+        >
+          what can you cook right now?
+        </Text>
 
-      {/* Recipe suggestions modal */}
-      <SuggestionsModal
-        visible={showSuggestions}
-        onClose={() => setShowSuggestions(false)}
-        matches={topMatches}
-        canMakeCount={canMakeCount}
-      />
+        {/* Search-or-add input + tag cloud combined */}
+        <View
+          style={{
+            backgroundColor: tokens.cream,
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: tokens.line,
+            paddingHorizontal: 12,
+            paddingTop: 12,
+            paddingBottom: 12,
+            marginBottom: 12,
+          }}
+        >
+          {/* Tag cloud */}
+          {filteredPantry.length > 0 && (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+              {filteredPantry.map((item) => (
+                <PantryChip key={item.id} item={item} onRemove={() => handleRemove(item)} />
+              ))}
+            </View>
+          )}
+          {/* Search/add input */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4 }}>
+            <Icon name="search" size={14} color={tokens.muted} />
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              onSubmitEditing={() => showAddSuggestion && handleAddByName(search)}
+              placeholder={myPantry.length === 0 ? 'Add what you have…' : 'add more…'}
+              placeholderTextColor={tokens.muted}
+              autoCapitalize="none"
+              returnKeyType="done"
+              style={{
+                flex: 1,
+                fontFamily: fonts.sans,
+                fontSize: 14,
+                color: tokens.ink,
+                padding: 0,
+              }}
+            />
+            {search.length > 0 && (
+              <Pressable onPress={() => setSearch('')} hitSlop={8}>
+                <Icon name="x" size={14} color={tokens.muted} />
+              </Pressable>
+            )}
+          </View>
+          {showAddSuggestion && (
+            <Pressable
+              onPress={() => handleAddByName(search)}
+              style={({ pressed }) => ({
+                marginTop: 8,
+                marginHorizontal: -4,
+                paddingHorizontal: 12,
+                paddingVertical: 10,
+                borderRadius: 10,
+                backgroundColor: pressed ? 'rgba(199,108,72,0.18)' : 'rgba(199,108,72,0.10)',
+                borderWidth: 1,
+                borderColor: tokens.paprika,
+              })}
+            >
+              <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: tokens.paprika }}>
+                + Add "{search.trim()}" to your pantry
+              </Text>
+            </Pressable>
+          )}
+        </View>
+
+        {/* Quick-add staples chips */}
+        {quickAddChips.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingBottom: 8 }}
+            style={{ marginBottom: 16 }}
+          >
+            {quickAddChips.map((s) => (
+              <Pressable
+                key={s.name}
+                onPress={() => handleQuickAdd(s)}
+                accessibilityLabel={`Add ${s.name} to pantry`}
+                style={({ pressed }) => ({
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  borderRadius: 999,
+                  backgroundColor: pressed ? tokens.bgDeep : tokens.cream,
+                  borderWidth: 1,
+                  borderColor: tokens.line,
+                })}
+              >
+                <Text style={{ fontSize: 14 }}>{s.emoji}</Text>
+                <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.ink }}>
+                  {s.name}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        )}
+
+        {/* Match sections */}
+        {canMake.length > 0 && (
+          <SectionBlock
+            color={tokens.sage}
+            label="You can make these"
+            subtitle={`${canMake.length} recipe${canMake.length === 1 ? '' : 's'}`}
+          >
+            {canMake.slice(0, 6).map((m) => (
+              <MatchRow key={m.recipe.id} match={m} onPress={() => router.push(`/recipe/${m.recipe.id}`)} />
+            ))}
+          </SectionBlock>
+        )}
+
+        {almostThere.length > 0 && (
+          <SectionBlock
+            color={tokens.ochre}
+            label="Almost there — grab 1-3 more"
+            subtitle={`${almostThere.length} recipe${almostThere.length === 1 ? '' : 's'}`}
+          >
+            {almostThere.map((m) => (
+              <MatchRow key={m.recipe.id} match={m} onPress={() => router.push(`/recipe/${m.recipe.id}`)} />
+            ))}
+          </SectionBlock>
+        )}
+
+        {myPantry.length === 0 && (
+          <View style={{ padding: 24, alignItems: 'center', marginTop: 16 }}>
+            <Text style={{ fontSize: 32, marginBottom: 8 }}>🧺</Text>
+            <Text style={{ fontFamily: fonts.display, fontSize: 18, color: tokens.ink, marginBottom: 4 }}>
+              Your pantry is empty
+            </Text>
+            <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: tokens.muted, textAlign: 'center', marginBottom: 8 }}>
+              Add what you've got. We'll show you which recipes you can make right now.
+            </Text>
+          </View>
+        )}
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-// ── Header ────────────────────────────────────────────────────────────────────
+// ── Pantry chip ──────────────────────────────────────────────────────────────
 
-function Header({
-  haveCount,
-  totalCount,
-  canMakeCount,
-  search,
-  setSearch,
-  onSubmit,
-  onOpenSuggestions,
-}: {
-  haveCount: number;
-  totalCount: number;
-  canMakeCount: number;
-  search: string;
-  setSearch: (s: string) => void;
-  /** Pressed Enter - adds query to pantry if it doesn't match existing. */
-  onSubmit: () => void;
-  onOpenSuggestions: () => void;
-}) {
-  return (
-    <View style={{ paddingHorizontal: 20, paddingBottom: 4 }}>
-      {/* Kicker */}
-      <Text
-        style={{
-          fontFamily: fonts.sansBold,
-          fontSize: 11,
-          letterSpacing: 2,
-          textTransform: 'uppercase',
-          color: tokens.sage,
-          marginBottom: 4,
-        }}
-      >
-        Your kitchen
-      </Text>
-
-      {/* Title row */}
-      <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 6 }}>
-        <Text style={{ fontFamily: fonts.display, fontSize: 38, color: tokens.ink, lineHeight: 42 }}>
-          Pantry
-        </Text>
-        <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: tokens.muted, marginBottom: 6 }}>
-          {haveCount}/{totalCount} stocked
-        </Text>
-      </View>
-
-      {/* Recipe match summary pill */}
-      <Pressable
-        onPress={onOpenSuggestions}
-        accessibilityRole="button"
-        accessibilityLabel={`You can make ${canMakeCount} recipes right now. Tap to see them.`}
-        style={({ pressed }) => ({
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 10,
-          backgroundColor: pressed ? '#485538' : tokens.sage,
-          borderRadius: 16,
-          paddingHorizontal: 16,
-          paddingVertical: 12,
-          marginBottom: 20,
-        })}
-      >
-        <Text style={{ fontSize: 20 }}>🍳</Text>
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: fonts.sansBold, fontSize: 14, color: tokens.cream }}>
-            {canMakeCount === 0
-              ? 'Stock your pantry to find recipes'
-              : `You can make ${canMakeCount} ${canMakeCount === 1 ? 'recipe' : 'recipes'} right now`}
-          </Text>
-          {canMakeCount > 0 && (
-            <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: 'rgba(250,246,238,0.7)', marginTop: 2 }}>
-              Tap to see what's on the menu
-            </Text>
-          )}
-        </View>
-        <Icon name="arrow-right" size={16} color={tokens.cream} />
-      </Pressable>
-
-      {/* Combined search-or-add bar.
-          One field, one place to type. As you type, the list filters; if the
-          query doesn't match anything, an "+ Add" row appears just below.
-          Pressing Enter adds it. Collapses two confusing inputs into one. */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          backgroundColor: tokens.cream,
-          borderRadius: 14,
-          borderWidth: 1,
-          borderColor: tokens.line,
-          paddingHorizontal: 14,
-          paddingVertical: 11,
-          gap: 10,
-          marginBottom: 8,
-        }}
-      >
-        <Icon name="search" size={15} color={tokens.muted} />
-        <TextInput
-          value={search}
-          onChangeText={setSearch}
-          onSubmitEditing={onSubmit}
-          placeholder="Search or add an ingredient…"
-          placeholderTextColor={tokens.muted}
-          style={{
-            flex: 1,
-            fontFamily: fonts.sans,
-            fontSize: 14,
-            color: tokens.ink,
-            padding: 0,
-          }}
-          returnKeyType="done"
-          accessibilityLabel="Search pantry, or type a new ingredient to add"
-        />
-        {search ? (
-          <Pressable onPress={() => setSearch('')} hitSlop={8} accessibilityLabel="Clear">
-            <Icon name="x" size={14} color={tokens.muted} />
-          </Pressable>
-        ) : null}
-      </View>
-    </View>
-  );
-}
-
-// Pinned to the top of the list when the query doesn't match any pantry item.
-function AddSuggestionRow({ query, onAdd }: { query: string; onAdd: () => void }) {
+function PantryChip({ item, onRemove }: { item: PantryItem; onRemove: () => void }) {
   return (
     <Pressable
-      onPress={onAdd}
-      accessibilityRole="button"
-      accessibilityLabel={`Add ${query} to pantry`}
+      onPress={onRemove}
+      accessibilityLabel={`Remove ${item.name} from pantry`}
+      hitSlop={4}
       style={({ pressed }) => ({
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-        marginHorizontal: 20,
-        marginTop: 4,
-        marginBottom: 14,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        borderRadius: 14,
-        borderWidth: 1.5,
-        borderColor: pressed ? tokens.paprikaDeep : tokens.paprika,
-        backgroundColor: pressed ? 'rgba(199,108,72,0.18)' : 'rgba(199,108,72,0.10)',
+        gap: 6,
+        paddingLeft: 12,
+        paddingRight: 8,
+        paddingVertical: 7,
+        borderRadius: 999,
+        backgroundColor: pressed ? tokens.inkSoft : tokens.ink,
       })}
     >
-      <Icon name="plus-circle" size={18} color={tokens.paprika} />
-      <View style={{ flex: 1 }}>
-        <Text style={{ fontFamily: fonts.sansBold, fontSize: 14, color: tokens.paprika }}>
-          Add &ldquo;{query}&rdquo; to your pantry
-        </Text>
-        <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: tokens.muted, marginTop: 2 }}>
-          We&apos;ll mark it as in stock so recipes can match against it.
-        </Text>
-      </View>
+      <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.cream }} numberOfLines={1}>
+        {item.name.toLowerCase()}
+      </Text>
+      <Icon name="x" size={11} color="rgba(250,246,238,0.7)" />
     </Pressable>
   );
 }
 
-// ── Section header ────────────────────────────────────────────────────────────
+// ── Section block ────────────────────────────────────────────────────────────
 
-function SectionHeader({ title }: { title: string }) {
-  const emoji = CATEGORY_EMOJI[title as keyof typeof CATEGORY_EMOJI] ?? '📦';
+function SectionBlock({
+  color,
+  label,
+  subtitle,
+  children,
+}: {
+  color: string;
+  label: string;
+  subtitle: string;
+  children: React.ReactNode;
+}) {
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        backgroundColor: tokens.bgDeep,
-        paddingHorizontal: 20,
-        paddingVertical: 8,
-        marginTop: 8,
-      }}
-    >
-      <Text style={{ fontSize: 14 }}>{emoji}</Text>
-      <Text
-        style={{
-          fontFamily: fonts.sansBold,
-          fontSize: 11,
-          letterSpacing: 1.5,
-          textTransform: 'uppercase',
-          color: tokens.inkSoft,
-        }}
-      >
-        {title}
-      </Text>
+    <View style={{ marginBottom: 22 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color, marginRight: 8 }} />
+        <Text
+          style={{
+            flex: 1,
+            fontFamily: fonts.sansBold,
+            fontSize: 12,
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+            color,
+          }}
+        >
+          {label}
+        </Text>
+        <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: tokens.muted }}>{subtitle}</Text>
+      </View>
+      <View style={{ gap: 8 }}>{children}</View>
     </View>
   );
 }
 
-// ── Pantry item row ───────────────────────────────────────────────────────────
+// ── Match row ────────────────────────────────────────────────────────────────
 
-function PantryItemRow({
-  item,
-  isLast,
-  onToggle,
-  onDeleteCustom,
-}: {
-  item: PantryItem;
-  isLast: boolean;
-  onToggle: (item: PantryItem) => void;
-  onDeleteCustom: (item: PantryItem) => void;
-}) {
-  const progress = useSharedValue(item.have_it ? 1 : 0);
-
-  useEffect(() => {
-    progress.value = withTiming(item.have_it ? 1 : 0, { duration: 200 });
-  }, [item.have_it, progress]);
-
-  const toggleStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(progress.value, [0, 1], ['transparent', tokens.sage]),
-    borderColor: interpolateColor(progress.value, [0, 1], [tokens.line, tokens.sage]),
-  }));
-
-  const labelStyle = useAnimatedStyle(() => ({
-    color: interpolateColor(progress.value, [0, 1], [tokens.muted, tokens.cream]),
-  }));
-
-  return (
-    <Pressable
-      onPress={() => onToggle(item)}
-      onLongPress={() => item.id.startsWith('custom-') && onDeleteCustom(item)}
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked: item.have_it }}
-      accessibilityLabel={`${item.name}, ${item.have_it ? 'in pantry' : 'not in pantry'}`}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: tokens.cream,
-        paddingHorizontal: 20,
-        paddingVertical: 14,
-        gap: 12,
-        borderBottomWidth: isLast ? 0 : 1,
-        borderBottomColor: tokens.line,
-        minHeight: 52,
-      }}
-    >
-      <Text
-        style={{
-          flex: 1,
-          fontFamily: fonts.sans,
-          fontSize: 14,
-          lineHeight: 20,
-          color: item.have_it ? tokens.ink : tokens.inkSoft,
-        }}
-        numberOfLines={2}
-      >
-        {item.name}
-        {item.id.startsWith('custom-') && (
-          <Text style={{ color: tokens.muted, fontSize: 11 }}> · hold to remove</Text>
-        )}
-      </Text>
-
-      <Animated.View
-        style={[
-          {
-            borderWidth: 1.5,
-            borderRadius: 999,
-            paddingHorizontal: 14,
-            paddingVertical: 7,
-            minWidth: 84,
-            alignItems: 'center',
-          },
-          toggleStyle,
-        ]}
-      >
-        <Animated.Text
-          style={[
-            {
-              fontFamily: fonts.sansBold,
-              fontSize: 12,
-            },
-            labelStyle,
-          ]}
-        >
-          {item.have_it ? '✓ Got it' : 'Got it?'}
-        </Animated.Text>
-      </Animated.View>
-    </Pressable>
-  );
-}
-
-// ── Recipe suggestions modal ──────────────────────────────────────────────────
-
-function SuggestionsModal({
-  visible,
-  onClose,
-  matches,
-  canMakeCount,
-}: {
-  visible: boolean;
-  onClose: () => void;
-  matches: RecipeMatchResult[];
-  canMakeCount: number;
-}) {
-  const insets = useSafeAreaInsets();
-
-  return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: tokens.bg,
-          paddingTop: insets.top + 8,
-        }}
-      >
-        {/* Header */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: 20,
-            paddingBottom: 16,
-            borderBottomWidth: 1,
-            borderBottomColor: tokens.line,
-          }}
-        >
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: fonts.display, fontSize: 26, color: tokens.ink }}>
-              Recipe Matches
-            </Text>
-            <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: tokens.muted, marginTop: 2 }}>
-              {canMakeCount > 0
-                ? `${canMakeCount} you can cook right now · ${matches.length} total matches`
-                : `${matches.length} matches — stock up on the missing items`}
-            </Text>
-          </View>
-          <Pressable
-            onPress={onClose}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Close recipe suggestions"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: tokens.bgDeep,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Icon name="x" size={16} color={tokens.ink} />
-          </Pressable>
-        </View>
-
-        {matches.length === 0 ? (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-            <Text style={{ fontSize: 40, marginBottom: 12 }}>🧺</Text>
-            <Text style={{ fontFamily: fonts.display, fontSize: 20, color: tokens.ink, marginBottom: 8 }}>
-              Pantry's empty
-            </Text>
-            <Text style={{ fontFamily: fonts.sans, fontSize: 14, color: tokens.muted, textAlign: 'center' }}>
-              Toggle what you have and the best-matching recipes appear here.
-            </Text>
-          </View>
-        ) : (
-          <SectionList
-            sections={[{ title: 'matches', data: matches }]}
-            keyExtractor={(m) => m.recipe.id}
-            contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: insets.bottom + 20 }}
-            showsVerticalScrollIndicator={false}
-            renderSectionHeader={() => null}
-            renderItem={({ item: m }) => (
-              <MatchCard
-                match={m}
-                onPress={() => {
-                  onClose();
-                  router.push(`/recipe/${m.recipe.id}`);
-                }}
-              />
-            )}
-            ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          />
-        )}
-      </View>
-    </Modal>
-  );
-}
-
-// ── Match card ────────────────────────────────────────────────────────────────
-
-function MatchCard({
-  match,
-  onPress,
-}: {
-  match: RecipeMatchResult;
-  onPress: () => void;
-}) {
-  const pct = match.totalCount > 0 ? match.haveCount / match.totalCount : 0;
+function MatchRow({ match, onPress }: { match: RecipeMatchResult; onPress: () => void }) {
+  const pct = Math.round((match.haveCount / match.totalCount) * 100);
   const isComplete = match.haveCount === match.totalCount;
-
   return (
     <Pressable
       onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${match.recipe.title}. ${match.haveCount} of ${match.totalCount} ingredients in pantry.`}
+      accessibilityLabel={`${match.recipe.title}, ${pct}% match`}
       style={({ pressed }) => ({
-        backgroundColor: tokens.cream,
-        borderRadius: 18,
-        borderWidth: 1.5,
-        borderColor: isComplete ? tokens.sage : tokens.line,
-        padding: 16,
-        opacity: pressed ? 0.92 : 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        backgroundColor: pressed ? tokens.bgDeep : tokens.cream,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: tokens.line,
+        padding: 12,
       })}
     >
-      {/* Recipe name row */}
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
+      {/* Hero chip with % badge */}
+      <View
+        style={{
+          width: 60,
+          height: 60,
+          borderRadius: 12,
+          backgroundColor: match.recipe.hero_fallback?.[0] ?? tokens.bgDeep,
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+        }}
+      >
         {match.recipe.emoji ? (
-          <Text style={{ fontSize: 28, lineHeight: 32 }}>{match.recipe.emoji}</Text>
+          <Text style={{ fontSize: 28 }}>{match.recipe.emoji}</Text>
         ) : null}
-        <View style={{ flex: 1 }}>
-          <Text
-            style={{ fontFamily: fonts.display, fontSize: 18, color: tokens.ink, lineHeight: 22 }}
-            numberOfLines={2}
-          >
-            {match.recipe.title}
-          </Text>
-          <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: tokens.muted, marginTop: 2 }}>
-            {match.recipe.time_min} min · {match.recipe.difficulty}
-          </Text>
-        </View>
-        {isComplete && (
-          <View
-            style={{
-              backgroundColor: tokens.sage,
-              borderRadius: 999,
-              paddingHorizontal: 10,
-              paddingVertical: 4,
-            }}
-          >
-            <Text style={{ fontFamily: fonts.sansBold, fontSize: 10, color: tokens.cream }}>
-              READY
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Progress bar */}
-      <View style={{ height: 6, backgroundColor: tokens.bgDeep, borderRadius: 3, marginBottom: 8, overflow: 'hidden' }}>
         <View
           style={{
-            height: 6,
-            width: `${Math.round(pct * 100)}%`,
+            position: 'absolute',
+            bottom: -6,
+            paddingHorizontal: 6,
+            paddingVertical: 2,
+            borderRadius: 6,
             backgroundColor: isComplete ? tokens.sage : tokens.ochre,
-            borderRadius: 3,
-          }}
-        />
-      </View>
-
-      {/* Ingredient count + missing */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: isComplete ? tokens.sage : tokens.inkSoft }}>
-          {match.haveCount} of {match.totalCount} ingredients
-        </Text>
-        {!isComplete && match.missingNames.length > 0 && (
-          <Text
-            style={{ fontFamily: fonts.sans, fontSize: 11, color: tokens.muted, flex: 1, textAlign: 'right' }}
-            numberOfLines={1}
-          >
-            missing: {match.missingNames.slice(0, 3).join(', ')}
-          </Text>
-        )}
-      </View>
-
-      {/* Smart swap hint */}
-      {!isComplete && match.swapCoveredCount > 0 && (
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 5,
-            marginTop: 8,
-            backgroundColor: 'rgba(91,107,71,0.08)',
-            borderRadius: 8,
-            paddingHorizontal: 8,
-            paddingVertical: 5,
-            alignSelf: 'flex-start',
           }}
         >
-          <Icon name="swap" size={11} color={tokens.sage} />
-          <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, color: tokens.sage }}>
-            {match.swapCoveredCount === 1
-              ? '1 smart swap available'
-              : `${match.swapCoveredCount} smart swaps available`}
+          <Text style={{ fontFamily: fonts.sansBold, fontSize: 9, color: tokens.cream }}>
+            {pct}%
           </Text>
         </View>
-      )}
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text
+          style={{ fontFamily: fonts.sansBold, fontSize: 14, color: tokens.ink, lineHeight: 18 }}
+          numberOfLines={2}
+        >
+          {match.recipe.title}
+        </Text>
+        <Text
+          style={{ fontFamily: fonts.sans, fontSize: 12, color: tokens.muted, marginTop: 3 }}
+          numberOfLines={1}
+        >
+          {isComplete
+            ? 'All ingredients in pantry'
+            : `Need: ${match.missingNames.slice(0, 2).join(', ')}${match.missingNames.length > 2 ? '…' : ''}`}
+        </Text>
+      </View>
+      <Icon name="arrow-right" size={14} color={tokens.line} />
     </Pressable>
   );
 }

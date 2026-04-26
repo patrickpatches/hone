@@ -460,6 +460,14 @@ export async function getAllMealPlan(
   );
 }
 
+export async function getAllPlanEntries(
+  db: SQLiteDatabase,
+): Promise<MealPlanEntry[]> {
+  return db.getAllAsync<MealPlanEntry>(
+    `SELECT id, date, recipe_id, servings FROM meal_plan ORDER BY rowid DESC`
+  );
+}
+
 export async function setMealPlanEntry(
   db: SQLiteDatabase,
   entry: MealPlanEntry,
