@@ -37,19 +37,12 @@ jobs:
         working-directory: mobile
         run: npm ci
 
-      - name: Inject auto-incrementing versionCode (= github.run_number)
+      - name: Inject auto-incrementing versionCode
         working-directory: mobile
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
         run: |
-          node -e "
-            const fs = require('fs');
-            const j = JSON.parse(fs.readFileSync('app.json', 'utf8'));
-            j.expo.android = j.expo.android || {};
-            j.expo.android.versionCode = ${{ github.run_number }};
-            fs.writeFileSync('app.json', JSON.stringify(j, null, 2) + '
-');
-            console.log('versionCode set to', j.expo.android.versionCode);
-          "
-          grep -E '"version"|versionCode' app.json
+          node -e "const fs=require('fs'); const j=JSON.parse(fs.readFileSync('app.json','utf8')); j.expo.android=j.expo.android||{}; j.expo.android.versionCode=Number(process.env.RUN_NUMBER); fs.writeFileSync('app.json', JSON.stringify(j, null, 2)+'\n'); console.log('versionCode =', j.expo.android.versionCode);"
 
       - name: Set up EAS CLI
         run: npm install -g eas-cli
