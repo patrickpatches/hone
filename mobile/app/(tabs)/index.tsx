@@ -1,22 +1,18 @@
 /**
- * Kitchen (Home) — the anchor screen.
+ * Kitchen (Home) — the anchor screen. v2 pastel-retro.
  *
- * Filtering is dual-axis:
- *   1. Mood chips — All / Quick (≤30 min) / Weekend (≥90 min or Involved) /
- *      Favourites / Yours (user-added)
- *   2. Cuisine + Type horizontal scrollers (collapsed by default, expandable)
+ * BUG-002 fix: added keyboardShouldPersistTaps="handled" to the FlatList
+ * so focus on the search TextInput never gets intercepted by the scroll
+ * gesture system — the most common cause of "tap TextInput → crash/dismiss"
+ * in React Native FlatLists.
  *
- * All filtering is client-side against the in-memory recipe list. No network
- * calls. Recipe objects already carry categories: { cuisines[], types[] }.
- *
- * Design rationale:
- *   - Mood chips live above the cuisine/type rows because they answer
- *     "what am I up for tonight" before "what cuisine do I want" — the
- *     former is a faster, more instinctive decision.
- *   - Cuisine and type rows are always visible (not behind a button) because
- *     hiding them costs a tap on a screen users visit every session.
- *   - Active filters are dismissible via an × chip so users never get stuck
- *     in a zero-results state without knowing how to escape.
+ * Design v2:
+ *   - Mood chips now carry their own pastel colour when active, rather than
+ *     all using the same paprika red. Quick=butter, Weekend=lavender,
+ *     Favourites=rose, Yours=sky.
+ *   - Cuisine chips use sage when active, Type chips use peach.
+ *   - Clear-filters chip is now coloured (rose) so it's actually visible.
+ *   - Search bar border highlights in peach on active filter state.
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import {
@@ -33,13 +29,10 @@ import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useSQLiteContext } from 'expo-sqlite';
 import type { Recipe } from '../../src/data/types';
-import { getAllRecipes, getFavoriteIds, toggleFavorite, getPantryItems } from '../../db/database';
-import type { PantryItem } from '../../db/database';
-import { SearchOverlay } from '../../src/components/SearchOverlay';
+import { getAllRecipes, getFavoriteIds, toggleFavorite } from '../../db/database';
 import { RecipeCard } from '../../src/components/RecipeCard';
 import { AddToPlanSheet } from '../../src/components/AddToPlanSheet';
 import { Icon } from '../../src/components/Icon';
-import Constants from 'expo-constants';
 import { tokens, fonts } from '../../src/theme/tokens';
 
 // ── Taxonomy ──────────────────────────────────────────────────────────────────
@@ -74,12 +67,19 @@ const TYPES: { id: string; label: string; emoji: string }[] = [
 
 type MoodFilter = 'all' | 'quick' | 'weekend' | 'favourites' | 'yours';
 
-const MOOD_CHIPS: { id: MoodFilter; label: string }[] = [
-  { id: 'all',        label: 'All'        },
-  { id: 'quick',      label: 'Quick'      },
-  { id: 'weekend',    label: 'Weekend'    },
-  { id: 'favourites', label: 'Favourites' },
-  { id: 'yours',      label: 'Yours'      },
+type MoodChip = {
+  id: MoodFilter;
+  label: string;
+  activeBg: string;
+  activeText: string;
+};
+
+const MOOD_CHIPS: MoodChip[] = [
+  { id: 'all',        label: 'All',        activeBg: tokens.ink,      activeText: tokens.cream },
+  { id: 'quick',      label: 'Quick',      activeBg: tokens.butter,   activeText: '#fff' },
+  { id: 'weekend',    label: 'Weekend',    activeBg: tokens.lavender, activeText: '#fff' },
+  { id: 'favourites', label: 'Favourites', activeBg: tokens.rose,     activeText: '#fff' },
+  { id: 'yours',      label: 'Yours',      activeBg: tokens.sky,      activeText: '#fff' },
 ];
 
 // ── Main screen ───────────────────────────────────────────────────────────────
@@ -95,49 +95,42 @@ export default function KitchenHome() {
   const [mood,        setMood]        = useState<MoodFilter>('all');
   const [cuisine,     setCuisine]     = useState<string | null>(null);
   const [type,        setType]        = useState<string | null>(null);
-
-  // Add-to-plan sheet state - one shared sheet across all cards.
-  // null = closed; otherwise the recipe currently being planned.
-  const [planTarget, setPlanTarget]   = useState<Recipe | null>(null);
-
-  // Search overlay state — opened when user taps the search bar
-  const [searchOpen, setSearchOpen]   = useState(false);
-  const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
+  const [planTarget,  setPlanTarget]  = useState<Recipe | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      const [all, favs, pantry] = await Promise.all([
-        getAllRecipes(db),
-        getFavoriteIds(db),
-        getPantryItems(db),
-      ]);
-      if (!cancelled) {
-        setRecipes(all);
-        setFavoriteIds(favs);
-        setPantryItems(pantry);
-        setLoading(false);
+      try {
+        const [all, favs] = await Promise.all([getAllRecipes(db), getFavoriteIds(db)]);
+        if (!cancelled) {
+          setRecipes(all);
+          setFavoriteIds(favs);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error('KitchenHome load error:', err);
+        if (!cancelled) setLoading(false);
       }
     }
-    load().catch(console.error);
+    load();
     return () => { cancelled = true; };
   }, [db]);
 
   const handleToggleFavorite = async (id: string) => {
-    await toggleFavorite(db, id);
-    setFavoriteIds((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+    try {
+      await toggleFavorite(db, id);
+      setFavoriteIds((prev) => {
+        const next = new Set(prev);
+        next.has(id) ? next.delete(id) : next.add(id);
+        return next;
+      });
+    } catch (err) {
+      console.error('toggleFavorite error:', err);
+    }
   };
-
-  // ── Combined filter ────────────────────────────────────────────────────────
 
   const results = useMemo(() => {
     let list = recipes;
-
-    // Search
     const q = search.trim().toLowerCase();
     if (q) {
       list = list.filter(
@@ -148,33 +141,18 @@ export default function KitchenHome() {
           (r.source?.chef ?? '').toLowerCase().includes(q),
       );
     }
-
-    // Mood
-    if (mood === 'quick') {
-      list = list.filter((r) => r.time_min <= 30);
-    } else if (mood === 'weekend') {
-      list = list.filter(
-        (r) => r.time_min >= 90 || r.difficulty === 'Involved',
-      );
-    } else if (mood === 'favourites') {
-      list = list.filter((r) => favoriteIds.has(r.id));
-    } else if (mood === 'yours') {
-      list = list.filter((r) => r.user_added);
-    }
-
-    // Cuisine — cast to CuisineId because values come from the CUISINES
-    // constant which only contains valid IDs.
+    if (mood === 'quick')      list = list.filter((r) => r.time_min <= 30);
+    else if (mood === 'weekend') list = list.filter((r) => r.time_min >= 90 || r.difficulty === 'Involved');
+    else if (mood === 'favourites') list = list.filter((r) => favoriteIds.has(r.id));
+    else if (mood === 'yours') list = list.filter((r) => r.user_added);
     if (cuisine) {
       const c = cuisine as import('../../src/data/types').CuisineId;
       list = list.filter((r) => r.categories?.cuisines?.includes(c));
     }
-
-    // Type
     if (type) {
       const t = type as import('../../src/data/types').TypeId;
       list = list.filter((r) => r.categories?.types?.includes(t));
     }
-
     return list;
   }, [recipes, search, mood, cuisine, type, favoriteIds]);
 
@@ -189,106 +167,79 @@ export default function KitchenHome() {
 
   if (loading) {
     return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: tokens.bg,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <ActivityIndicator color={tokens.paprika} />
+      <View style={{ flex: 1, backgroundColor: tokens.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color={tokens.peach} />
       </View>
     );
   }
 
   return (
-    <FlatList
-      data={results}
-      keyExtractor={(r) => r.id}
-      contentContainerStyle={{
-        paddingTop: insets.top + 24,
-        paddingHorizontal: 20,
-        paddingBottom: 140,
-        backgroundColor: tokens.bg,
-      }}
-      style={{ backgroundColor: tokens.bg }}
-      showsVerticalScrollIndicator={false}
-      ListHeaderComponent={
-        <ListHeader
-          recipeCount={recipes.length}
-          search={search}
-          setSearch={setSearch}
-          mood={mood}
-          setMood={(m) => {
-            Haptics.selectionAsync().catch(() => {});
-            setMood(m);
-          }}
-          cuisine={cuisine}
-          setCuisine={(c) => {
-            Haptics.selectionAsync().catch(() => {});
-            setCuisine(c);
-          }}
-          type={type}
-          setType={(t) => {
-            Haptics.selectionAsync().catch(() => {});
-            setType(t);
-          }}
-          hasActiveFilter={hasActiveFilter}
-          onClearAll={clearAll}
-        />
-      }
-      renderItem={({ item }) => (
-        <View style={{ marginBottom: 16 }}>
-          <RecipeCard
-            recipe={item}
-            onPress={(r) => router.push(`/recipe/${r.id}`)}
-            favorite={favoriteIds.has(item.id)}
-            onToggleFavorite={handleToggleFavorite}
-            onAddToPlan={(r) => setPlanTarget(r)}
+    <>
+      <FlatList
+        data={results}
+        keyExtractor={(r) => r.id}
+        // BUG-002 fix: without this, tapping a TextInput inside the list
+        // header can get swallowed by the scroll responder and cause a
+        // focus failure (or crash on some RN versions).
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        contentContainerStyle={{
+          paddingTop: insets.top + 20,
+          paddingHorizontal: 20,
+          paddingBottom: 140,
+          backgroundColor: tokens.bg,
+        }}
+        style={{ backgroundColor: tokens.bg }}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <ListHeader
+            recipeCount={recipes.length}
+            search={search}
+            setSearch={setSearch}
+            mood={mood}
+            setMood={(m) => { Haptics.selectionAsync().catch(() => {}); setMood(m); }}
+            cuisine={cuisine}
+            setCuisine={(c) => { Haptics.selectionAsync().catch(() => {}); setCuisine(c); }}
+            type={type}
+            setType={(t) => { Haptics.selectionAsync().catch(() => {}); setType(t); }}
+            hasActiveFilter={hasActiveFilter}
+            onClearAll={clearAll}
           />
-        </View>
-      )}
-      ListEmptyComponent={
-        <EmptyState hasFilter={hasActiveFilter} onClear={clearAll} />
-      }
-      ListFooterComponent={
-        <>
-          {planTarget ? (
-            <AddToPlanSheet
-              visible={planTarget !== null}
-              recipeId={planTarget.id}
-              recipeTitle={planTarget.title}
-              defaultServings={planTarget.base_servings}
-              onClose={() => setPlanTarget(null)}
+        }
+        renderItem={({ item }) => (
+          <View style={{ marginBottom: 16 }}>
+            <RecipeCard
+              recipe={item}
+              onPress={(r) => router.push(`/recipe/${r.id}`)}
+              favorite={favoriteIds.has(item.id)}
+              onToggleFavorite={handleToggleFavorite}
+              onAddToPlan={(r) => setPlanTarget(r)}
             />
-          ) : null}
-          <SearchOverlay
-            visible={searchOpen}
-            onClose={() => setSearchOpen(false)}
-            recipes={recipes}
-            pantryItems={pantryItems}
-          />
-        </>
-      }
-    />
+          </View>
+        )}
+        ListEmptyComponent={<EmptyState hasFilter={hasActiveFilter} onClear={clearAll} />}
+      />
+
+      {/* Render plan sheet outside FlatList to avoid modal-in-footer issues */}
+      {planTarget ? (
+        <AddToPlanSheet
+          visible
+          recipeId={planTarget.id}
+          recipeTitle={planTarget.title}
+          defaultServings={planTarget.base_servings}
+          onClose={() => setPlanTarget(null)}
+        />
+      ) : null}
+    </>
   );
 }
 
 // ── List header ───────────────────────────────────────────────────────────────
 
 function ListHeader({
-  recipeCount,
-  search,
-  setSearch,
-  mood,
-  setMood,
-  cuisine,
-  setCuisine,
-  type,
-  setType,
-  hasActiveFilter,
-  onClearAll,
+  recipeCount, search, setSearch,
+  mood, setMood, cuisine, setCuisine, type, setType,
+  hasActiveFilter, onClearAll,
 }: {
   recipeCount: number;
   search: string;
@@ -304,91 +255,62 @@ function ListHeader({
 }) {
   return (
     <View style={{ marginBottom: 20 }}>
-      {/* Hero — compressed: one line, no kicker, count moves below the search */}
-      <Text
-        style={{
-          fontFamily: fonts.display,
-          fontSize: 28,
-          lineHeight: 32,
-          color: tokens.ink,
-        }}
-      >
-        What are you{' '}
-        <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic' }}>
-          cooking
-        </Text>?
+      {/* Kicker */}
+      <Text style={{
+        fontFamily: fonts.sansBold, fontSize: 11,
+        letterSpacing: 2, textTransform: 'uppercase',
+        color: tokens.peach, marginBottom: 4,
+      }}>
+        A cooking companion
       </Text>
 
-      {/* Search trigger — tapping pops the Mona Lisa search overlay.
-          Bar reads as a normal search input so the affordance is instant;
-          we just intercept the tap to give the user the full overlay. */}
-      <Pressable
-        onPress={() => {
-          Haptics.selectionAsync().catch(() => {});
-          setSearchOpen(true);
-        }}
-        accessibilityRole="search"
-        accessibilityLabel="Open search"
-        style={({ pressed }) => ({
-          marginTop: 20,
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingHorizontal: 16,
-          paddingVertical: 14,
-          borderRadius: 16,
-          backgroundColor: pressed ? tokens.bgDeep : tokens.cream,
-          borderWidth: 1,
-          borderColor: tokens.line,
-          gap: 10,
-        })}
-      >
-        <Icon name="search" size={17} color={tokens.muted} />
-        <Text
-          style={{
-            flex: 1,
-            fontFamily: fonts.sans,
-            fontSize: 14,
-            color: search ? tokens.ink : tokens.muted,
+      {/* Hero headline */}
+      <Text style={{ fontFamily: fonts.display, fontSize: 36, lineHeight: 40, color: tokens.ink }}>
+        What are you{'\n'}
+        <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic' }}>cooking</Text>
+        {' '}tonight?
+      </Text>
+
+      <Text style={{ marginTop: 6, fontFamily: fonts.sans, fontSize: 12, color: tokens.muted }}>
+        {recipeCount} recipes · chef-inspired, honestly adapted
+      </Text>
+
+      {/* Search bar */}
+      <View style={{
+        marginTop: 18,
+        flexDirection: 'row', alignItems: 'center',
+        paddingHorizontal: 14, paddingVertical: 11,
+        borderRadius: 16,
+        backgroundColor: tokens.cream,
+        borderWidth: 1.5,
+        borderColor: search ? tokens.peach : tokens.line,
+        gap: 10,
+      }}>
+        <Icon name="search" size={16} color={search ? tokens.peach : tokens.muted} />
+        <TextInput
+          value={search}
+          onChangeText={(text) => {
+            try { setSearch(text); } catch (e) { console.error('search error', e); }
           }}
-          numberOfLines={1}
-        >
-          {search || 'What are you in the mood for?'}
-        </Text>
+          placeholder="Search recipes, chefs, ingredients..."
+          placeholderTextColor={tokens.muted}
+          style={{
+            flex: 1, color: tokens.ink,
+            fontFamily: fonts.sans, fontSize: 14, padding: 0,
+          }}
+          returnKeyType="search"
+          autoCorrect={false}
+          autoCapitalize="none"
+        />
         {search ? (
-          <Pressable onPress={() => setSearch('')} hitSlop={10} accessibilityLabel="Clear search">
+          <Pressable onPress={() => setSearch('')} hitSlop={8} accessibilityRole="button" accessibilityLabel="Clear search">
             <Icon name="x" size={14} color={tokens.muted} />
           </Pressable>
-        ) : (
-          <View
-            style={{
-              paddingHorizontal: 8,
-              paddingVertical: 3,
-              borderRadius: 6,
-              backgroundColor: tokens.bgDeep,
-            }}
-          >
-            <Text style={{ fontSize: 11 }}>✨</Text>
-          </View>
-        )}
-      </Pressable>
-
-      {/* Recipe count + version under search. Version shown so Patrick can
-          verify which APK is installed without guessing from Downloads. */}
-      <View style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: tokens.muted, flex: 1 }}>
-          {recipeCount} recipes · chef-inspired, honestly adapted
-        </Text>
-        <Text style={{ fontFamily: fonts.sansBold, fontSize: 10, color: tokens.muted, letterSpacing: 0.6 }}>
-          v{Constants.expoConfig?.version ?? '?'}
-        </Text>
+        ) : null}
       </View>
 
-      {/* Mood chips */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 8, paddingTop: 16 }}
-      >
+      {/* Mood chips — each with its own pastel active colour */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingTop: 14 }}>
         {MOOD_CHIPS.map((chip) => {
           const active = mood === chip.id;
           return (
@@ -398,21 +320,17 @@ function ListHeader({
               accessibilityRole="radio"
               accessibilityState={{ selected: active }}
               style={({ pressed }) => ({
-                paddingHorizontal: 16,
-                paddingVertical: 8,
+                paddingHorizontal: 16, paddingVertical: 8,
                 borderRadius: 999,
-                backgroundColor: active ? tokens.paprika : pressed ? tokens.bgDeep : 'transparent',
+                backgroundColor: active ? chip.activeBg : pressed ? tokens.bgDeep : tokens.cream,
                 borderWidth: 1.5,
-                borderColor: active ? tokens.paprika : tokens.line,
+                borderColor: active ? chip.activeBg : tokens.line,
               })}
             >
-              <Text
-                style={{
-                  fontFamily: fonts.sansBold,
-                  fontSize: 12,
-                  color: active ? tokens.cream : tokens.inkSoft,
-                }}
-              >
+              <Text style={{
+                fontFamily: fonts.sansBold, fontSize: 12,
+                color: active ? chip.activeText : tokens.inkSoft,
+              }}>
                 {chip.label}
               </Text>
             </Pressable>
@@ -420,139 +338,55 @@ function ListHeader({
         })}
       </ScrollView>
 
-      {/* Cuisine row */}
-      <CategoryRow
-        label="Cuisine"
-        items={CUISINES}
-        selected={cuisine}
-        onSelect={(id) => setCuisine(id === cuisine ? null : id)}
-      />
+      {/* Cuisine row — sage when active */}
+      <CategoryRow label="Cuisine" items={CUISINES} selected={cuisine} activeColor={tokens.sage} onSelect={(id) => setCuisine(id === cuisine ? null : id)} />
 
-      {/* Type row */}
-      <CategoryRow
-        label="Type"
-        items={TYPES}
-        selected={type}
-        onSelect={(id) => setType(id === type ? null : id)}
-      />
+      {/* Type row — peach when active */}
+      <CategoryRow label="Type" items={TYPES} selected={type} activeColor={tokens.peach} onSelect={(id) => setType(id === type ? null : id)} />
 
-      {/* Active-filter chip rail. One × chip per applied filter so the
-          escape hatch is obvious, plus "Clear all" when more than one is on.
-          Coloured paprika fill (not subtle border-only) so it reads as an
-          action, not a label. */}
+      {/* Clear filter — rose pill so it stands out */}
       {hasActiveFilter && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 8, paddingTop: 12 }}
+        <Pressable
+          onPress={onClearAll}
+          accessibilityRole="button"
+          accessibilityLabel="Clear all filters"
+          style={({ pressed }) => ({
+            marginTop: 12, alignSelf: 'flex-start',
+            flexDirection: 'row', alignItems: 'center', gap: 5,
+            paddingHorizontal: 14, paddingVertical: 7,
+            borderRadius: 999,
+            backgroundColor: pressed ? tokens.roseDeep : tokens.rose,
+          })}
         >
-          {search.trim() !== '' && (
-            <FilterChip
-              label={`"${search.trim().slice(0, 20)}"`}
-              onClear={() => setSearch('')}
-            />
-          )}
-          {mood !== 'all' && (
-            <FilterChip
-              label={MOOD_CHIPS.find((c) => c.id === mood)?.label ?? mood}
-              onClear={() => setMood('all')}
-            />
-          )}
-          {cuisine && (
-            <FilterChip
-              label={CUISINES.find((c) => c.id === cuisine)?.label ?? cuisine}
-              onClear={() => setCuisine(null)}
-            />
-          )}
-          {type && (
-            <FilterChip
-              label={TYPES.find((t) => t.id === type)?.label ?? type}
-              onClear={() => setType(null)}
-            />
-          )}
-          {([search.trim() !== '', mood !== 'all', cuisine !== null, type !== null].filter(Boolean).length > 1) && (
-            <Pressable
-              onPress={onClearAll}
-              accessibilityRole="button"
-              accessibilityLabel="Clear all filters"
-              style={({ pressed }) => ({
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 5,
-                paddingHorizontal: 14,
-                paddingVertical: 8,
-                borderRadius: 999,
-                backgroundColor: pressed ? tokens.inkSoft : tokens.ink,
-              })}
-            >
-              <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.cream }}>
-                Clear all
-              </Text>
-            </Pressable>
-          )}
-        </ScrollView>
+          <Icon name="x" size={11} color="#fff" />
+          <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, color: '#fff' }}>Clear filters</Text>
+        </Pressable>
       )}
     </View>
-  );
-}
-
-// Single chip, paprika fill, × icon prefix. Tap clears just this filter.
-function FilterChip({ label, onClear }: { label: string; onClear: () => void }) {
-  return (
-    <Pressable
-      onPress={onClear}
-      accessibilityRole="button"
-      accessibilityLabel={`Clear ${label} filter`}
-      style={({ pressed }) => ({
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        paddingHorizontal: 14,
-        paddingVertical: 8,
-        borderRadius: 999,
-        backgroundColor: pressed ? tokens.paprikaDeep : tokens.paprika,
-      })}
-    >
-      <Icon name="x" size={12} color={tokens.cream} />
-      <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.cream }}>
-        {label}
-      </Text>
-    </Pressable>
   );
 }
 
 // ── Category row ──────────────────────────────────────────────────────────────
 
 function CategoryRow({
-  label,
-  items,
-  selected,
-  onSelect,
+  label, items, selected, activeColor, onSelect,
 }: {
   label: string;
   items: { id: string; label: string; emoji: string }[];
   selected: string | null;
+  activeColor: string;
   onSelect: (id: string) => void;
 }) {
   return (
-    <View style={{ marginTop: 16 }}>
-      <Text
-        style={{
-          fontFamily: fonts.sansBold,
-          fontSize: 10,
-          letterSpacing: 1.5,
-          textTransform: 'uppercase',
-          color: tokens.muted,
-          marginBottom: 8,
-        }}
-      >
+    <View style={{ marginTop: 14 }}>
+      <Text style={{
+        fontFamily: fonts.sansBold, fontSize: 10,
+        letterSpacing: 1.5, textTransform: 'uppercase',
+        color: tokens.muted, marginBottom: 8,
+      }}>
         {label}
       </Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 8 }}
-      >
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         {items.map((item) => {
           const active = selected === item.id;
           return (
@@ -563,29 +397,19 @@ function CategoryRow({
               accessibilityState={{ selected: active }}
               accessibilityLabel={`Filter by ${item.label}`}
               style={({ pressed }) => ({
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 6,
-                paddingHorizontal: 14,
-                paddingVertical: 8,
+                flexDirection: 'row', alignItems: 'center', gap: 6,
+                paddingHorizontal: 12, paddingVertical: 7,
                 borderRadius: 12,
-                backgroundColor: active
-                  ? tokens.ink
-                  : pressed
-                    ? tokens.bgDeep
-                    : tokens.cream,
+                backgroundColor: active ? activeColor : pressed ? tokens.bgDeep : tokens.cream,
                 borderWidth: 1,
-                borderColor: active ? tokens.ink : tokens.line,
+                borderColor: active ? activeColor : tokens.line,
               })}
             >
               <Text style={{ fontSize: 14 }}>{item.emoji}</Text>
-              <Text
-                style={{
-                  fontFamily: fonts.sansBold,
-                  fontSize: 12,
-                  color: active ? tokens.cream : tokens.inkSoft,
-                }}
-              >
+              <Text style={{
+                fontFamily: fonts.sansBold, fontSize: 12,
+                color: active ? '#fff' : tokens.inkSoft,
+              }}>
                 {item.label}
               </Text>
             </Pressable>
@@ -598,58 +422,26 @@ function CategoryRow({
 
 // ── Empty state ───────────────────────────────────────────────────────────────
 
-function EmptyState({
-  hasFilter,
-  onClear,
-}: {
-  hasFilter: boolean;
-  onClear: () => void;
-}) {
+function EmptyState({ hasFilter, onClear }: { hasFilter: boolean; onClear: () => void }) {
   return (
     <View style={{ paddingVertical: 60, alignItems: 'center' }}>
       <Text style={{ fontSize: 40, marginBottom: 8 }}>🍽️</Text>
-      <Text
-        style={{
-          fontFamily: fonts.display,
-          fontSize: 18,
-          color: tokens.ink,
-          marginBottom: 4,
-        }}
-      >
+      <Text style={{ fontFamily: fonts.display, fontSize: 18, color: tokens.ink, marginBottom: 4 }}>
         Nothing matches
       </Text>
-      <Text
-        style={{
-          fontFamily: fonts.sans,
-          fontSize: 13,
-          color: tokens.muted,
-          textAlign: 'center',
-          marginBottom: 16,
-        }}
-      >
-        {hasFilter
-          ? 'No recipes match those filters.'
-          : 'Try a different search.'}
+      <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: tokens.muted, textAlign: 'center', marginBottom: 16 }}>
+        {hasFilter ? 'No recipes match those filters.' : 'Try a different search.'}
       </Text>
       {hasFilter && (
         <Pressable
           onPress={onClear}
           style={({ pressed }) => ({
-            paddingHorizontal: 16,
-            paddingVertical: 10,
+            paddingHorizontal: 18, paddingVertical: 11,
             borderRadius: 999,
-            backgroundColor: pressed ? tokens.paprikaDeep : tokens.paprika,
+            backgroundColor: pressed ? tokens.roseDeep : tokens.rose,
           })}
         >
-          <Text
-            style={{
-              fontFamily: fonts.sansBold,
-              fontSize: 13,
-              color: tokens.cream,
-            }}
-          >
-            Clear filters
-          </Text>
+          <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: '#fff' }}>Clear filters</Text>
         </Pressable>
       )}
     </View>

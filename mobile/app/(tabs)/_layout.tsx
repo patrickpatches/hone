@@ -22,17 +22,18 @@ import { tokens, fonts } from '../../src/theme/tokens';
 import { Icon, type IconName } from '../../src/components/Icon';
 
 type TabSpec = {
-  name: string; // matches the route file name under (tabs)/
+  name: string;
   label: string;
   icon: IconName;
   emoji?: string;
+  activeBg: string;  // pastel per-tab active colour
 };
 
 const TABS: TabSpec[] = [
-  { name: 'index',  label: 'Kitchen', icon: 'home' },
-  { name: 'pantry', label: 'Pantry',  icon: 'sparkles', emoji: '🧺' },
-  { name: 'plan',   label: 'Plan & Shop', icon: 'cart' },
-  { name: 'add',    label: 'Add',     icon: 'plus' },
+  { name: 'index',  label: 'Kitchen',    icon: 'home',      activeBg: tokens.peach    },
+  { name: 'pantry', label: 'Pantry',     icon: 'sparkles',  activeBg: tokens.lavender, emoji: '🧺' },
+  { name: 'plan',   label: 'Plan & Shop',icon: 'cart',      activeBg: tokens.sky      },
+  { name: 'add',    label: 'Add',        icon: 'plus',      activeBg: tokens.sage     },
 ];
 
 export default function TabLayout() {
@@ -95,7 +96,7 @@ export default function TabLayout() {
                     flex: 1,
                     minHeight: 48,
                     borderRadius: 999,
-                    backgroundColor: focused ? tokens.paprika : 'transparent',
+                    backgroundColor: focused ? spec.activeBg : 'transparent',
                     alignItems: 'center',
                     justifyContent: 'center',
                     paddingVertical: 8,
