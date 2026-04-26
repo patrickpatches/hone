@@ -1,204 +1,265 @@
 /**
- * RecipeCard — the primary unit of the Home screen.
+ * RecipeCard — matches hone.html RecipeCard exactly.
  *
- * v2: Pastel-retro design.
- *   - Hero overlay buttons now use FULLY OPAQUE backgrounds — no more
- *     rgba semi-transparency that fails on light hero images. Each button
- *     has its own colour: white pill for back/inactive heart, rose for
- *     active heart, sky for add-to-plan.
- *   - Difficulty chip is colour-coded: sage/Easy, butter/Intermediate,
- *     peach/Involved — gives the card instant scannable personality.
+ * Hero buttons use rgba(0,0,0,0.55) dark backgrounds — cream icons are
+ * always legible regardless of the photo behind them. This is the correct
+ * fix for BUG-001: dark on dark, not light on light.
+ *
+ * Layout:
+ *   - 192px hero with bottom gradient (transparent → rgba(0,0,0,0.55))
+ *   - Top-right: heart + plan buttons — dark pill/circle with cream icons
+ *   - Bottom-left: chef name in paprika pill
+ *   - Below hero: title (Fraunces), tagline (Fraunces italic), meta row
  */
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { Image } from 'expo-image';
-import * as Haptics from 'expo-haptics';
-import type { Recipe } from '../data/types';
+import { Image, Pressable, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { tokens, fonts } from '../theme/tokens';
 import { Icon } from './Icon';
+import type { Recipe } from '../data/types';
 
 type Props = {
   recipe: Recipe;
-  onPress: (recipe: Recipe) => void;
-  favorite?: boolean;
-  onToggleFavorite?: (recipeId: string) => void;
-  onAddToPlan?: (recipe: Recipe) => void;
+  isFavorite: boolean;
+  isPlanned: boolean;
+  onPress: () => void;
+  onFavorite: () => void;
+  onPlan: () => void;
+  searchQuery?: string;
 };
 
-const DIFFICULTY_STYLE: Record<string, { bg: string; text: string }> = {
-  Easy:         { bg: tokens.sageLight,   text: tokens.sage },
-  Intermediate: { bg: tokens.butterLight, text: tokens.butter },
-  Involved:     { bg: tokens.peachLight,  text: tokens.peach },
-};
+function fmtTime(mins: number): string {
+  if (mins < 60) return `${mins}m`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m ? `${h}h ${m}m` : `${h}h`;
+}
 
-export function RecipeCard({ recipe, onPress, favorite = false, onToggleFavorite, onAddToPlan }: Props) {
-  const gradient = recipe.hero_fallback ?? ['#3D342C', '#8B7968', '#D9CEBB'];
+export function RecipeCard({
+  recipe,
+  isFavorite,
+  isPlanned,
+  onPress,
+  onFavorite,
+  onPlan,
+}: Props) {
+  const [imgError, setImgError] = React.useState(false);
+  const hasImg = !imgError && !!recipe.hero_url;
 
-  const handleFavorite = (e: any) => {
-    e.stopPropagation?.();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    onToggleFavorite?.(recipe.id);
-  };
-
-  const handleAddToPlan = (e: any) => {
-    e.stopPropagation?.();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    onAddToPlan?.(recipe);
-  };
-
-  const diffStyle = DIFFICULTY_STYLE[recipe.difficulty] ?? { bg: tokens.bgDeep, text: tokens.inkSoft };
+  const chefName = recipe.source?.chef ?? null;
+  const cuisineLabel =
+    recipe.categories?.cuisines?.[0]
+      ? recipe.categories.cuisines[0].charAt(0).toUpperCase() +
+        recipe.categories.cuisines[0].slice(1)
+      : null;
+  const typeLabel =
+    recipe.categories?.types?.[0]
+      ? recipe.categories.types[0].charAt(0).toUpperCase() +
+        recipe.categories.types[0].slice(1)
+      : null;
 
   return (
     <Pressable
-      onPress={() => {
-        Haptics.selectionAsync().catch(() => {});
-        onPress(recipe);
-      }}
-      accessibilityRole="button"
-      accessibilityLabel={`${recipe.title}. ${recipe.tagline}. ${recipe.time_min} minutes. ${recipe.difficulty}.`}
+      onPress={onPress}
       style={({ pressed }) => ({
-        backgroundColor: tokens.cream,
         borderRadius: 20,
+        overflow: 'hidden',
+        backgroundColor: tokens.cardBg,
         borderWidth: 1,
         borderColor: tokens.line,
-        overflow: 'hidden',
-        opacity: pressed ? 0.93 : 1,
-        transform: [{ scale: pressed ? 0.99 : 1 }],
+        shadowColor: tokens.ink,
+        shadowOpacity: 0.07,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 3,
+        opacity: pressed ? 0.95 : 1,
+        transform: [{ scale: pressed ? 0.985 : 1 }],
       })}
     >
-      {/* Hero */}
-      <View style={{ height: 180, backgroundColor: gradient[0], position: 'relative', overflow: 'hidden' }}>
-        {recipe.hero_url ? (
+      {/* ── Hero ────────────────────────────────────────────────────────────── */}
+      <View style={{ height: 192, backgroundColor: recipe.hero_color ?? tokens.bgDeep }}>
+        {hasImg ? (
           <Image
-            source={{ uri: recipe.hero_url }}
+            source={{ uri: recipe.hero_url! }}
             style={{ width: '100%', height: '100%' }}
-            contentFit="cover"
-            transition={200}
+            resizeMode="cover"
+            onError={() => setImgError(true)}
           />
         ) : (
-          <View style={{ flex: 1 }}>
-            <View style={{ flex: 1, backgroundColor: gradient[0] }} />
-            <View style={{ flex: 1, backgroundColor: gradient[1] }} />
-            <View style={{ flex: 1, backgroundColor: gradient[2] }} />
-            {recipe.emoji ? (
-              <Text style={{ position: 'absolute', bottom: 14, right: 16, fontSize: 44, opacity: 0.9 }}>
-                {recipe.emoji}
-              </Text>
-            ) : null}
+          <View
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: recipe.hero_color
+                ? recipe.hero_color + '66'
+                : tokens.bgDeep,
+            }}
+          >
+            <Text style={{ fontSize: 52 }}>{recipe.emoji ?? '🍽️'}</Text>
           </View>
         )}
 
-        {/* ── Top-right buttons — fully opaque, always visible ── */}
-        <View style={{ position: 'absolute', top: 10, right: 10, flexDirection: 'row', gap: 8 }}>
-          {onAddToPlan ? (
-            <Pressable
-              onPress={handleAddToPlan}
-              accessibilityRole="button"
-              accessibilityLabel={`Add ${recipe.title} to meal plan`}
-              hitSlop={12}
-              style={({ pressed }) => ({
-                width: 36, height: 36, borderRadius: 18,
-                backgroundColor: pressed ? tokens.skyDeep : tokens.sky,
-                alignItems: 'center', justifyContent: 'center',
-                shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.18, shadowRadius: 4, elevation: 3,
-              })}
-            >
-              <Icon name="calendar" size={16} color="#fff" />
-            </Pressable>
-          ) : null}
+        {/* Bottom gradient — dark so title/chef pill stays readable */}
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.58)']}
+          locations={[0.38, 1]}
+          style={{ position: 'absolute', inset: 0 } as any}
+          pointerEvents="none"
+        />
 
-          {onToggleFavorite ? (
-            <Pressable
-              onPress={handleFavorite}
-              accessibilityRole="button"
-              accessibilityLabel={favorite ? 'Unfavourite' : 'Favourite'}
-              hitSlop={12}
-              style={({ pressed }) => ({
-                width: 36, height: 36, borderRadius: 18,
-                backgroundColor: favorite
-                  ? (pressed ? tokens.roseDeep : tokens.rose)
-                  : (pressed ? tokens.bgDeep : '#FFFFFF'),
-                alignItems: 'center', justifyContent: 'center',
-                shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.18, shadowRadius: 4, elevation: 3,
-              })}
-            >
-              <Icon
-                name="heart"
-                size={17}
-                color={favorite ? '#fff' : tokens.inkSoft}
-                fill={favorite ? '#fff' : 'none'}
-              />
-            </Pressable>
-          ) : null}
-        </View>
-
-        {/* Difficulty chip — colour-coded by difficulty */}
+        {/* Top-right: heart + plan */}
         <View
           style={{
-            position: 'absolute', bottom: 10, left: 10,
-            paddingHorizontal: 10, paddingVertical: 4,
-            borderRadius: 999,
-            backgroundColor: diffStyle.bg,
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            flexDirection: 'row',
+            gap: 6,
           }}
         >
-          <Text style={{
-            fontSize: 10, fontFamily: fonts.sansBold,
-            color: diffStyle.text,
-            letterSpacing: 0.6, textTransform: 'uppercase',
-          }}>
-            {recipe.difficulty}
-          </Text>
+          {/* Heart */}
+          <Pressable
+            onPress={(e) => { e.stopPropagation?.(); onFavorite(); }}
+            accessibilityLabel={isFavorite ? 'Remove from saved' : 'Save recipe'}
+            style={({ pressed }) => ({
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: 'rgba(0,0,0,0.52)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: pressed ? 0.8 : 1,
+            })}
+          >
+            <Icon
+              name={isFavorite ? 'heart' : 'heart'}
+              size={15}
+              color={isFavorite ? tokens.paprika : '#FDF9F3'}
+              fill={isFavorite}
+            />
+          </Pressable>
+
+          {/* Plan pill */}
+          <Pressable
+            onPress={(e) => { e.stopPropagation?.(); onPlan(); }}
+            accessibilityLabel={isPlanned ? 'Remove from plan' : 'Add to plan'}
+            style={({ pressed }) => ({
+              height: 36,
+              paddingHorizontal: 10,
+              borderRadius: 18,
+              backgroundColor: isPlanned
+                ? tokens.sage + 'E6'
+                : 'rgba(0,0,0,0.52)',
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 5,
+              opacity: pressed ? 0.8 : 1,
+            })}
+          >
+            <Icon
+              name={isPlanned ? 'check' : 'plus'}
+              size={11}
+              color="#FDF9F3"
+            />
+            <Text
+              style={{
+                fontFamily: fonts.sansBold,
+                fontSize: 11,
+                color: '#FDF9F3',
+                letterSpacing: 0.2,
+              }}
+            >
+              {isPlanned ? 'In plan' : 'Plan'}
+            </Text>
+          </Pressable>
         </View>
+
+        {/* Bottom-left: chef attribution pill */}
+        {chefName && (
+          <View style={{ position: 'absolute', bottom: 8, left: 12 }}>
+            <Text
+              style={{
+                fontFamily: fonts.sansBold,
+                fontSize: 10,
+                color: '#FDF9F3',
+                backgroundColor: tokens.paprika,
+                paddingHorizontal: 8,
+                paddingVertical: 4,
+                borderRadius: 999,
+                letterSpacing: 0.2,
+                overflow: 'hidden',
+              }}
+            >
+              {chefName}
+            </Text>
+          </View>
+        )}
       </View>
 
-      {/* Body */}
-      <View style={{ padding: 16 }}>
+      {/* ── Card body ───────────────────────────────────────────────────────── */}
+      <View style={{ paddingHorizontal: 14, paddingVertical: 12 }}>
         <Text
-          style={{ fontSize: 20, fontFamily: fonts.display, color: tokens.ink, lineHeight: 24 }}
-          numberOfLines={2}
+          numberOfLines={1}
+          style={{
+            fontFamily: fonts.display,
+            fontSize: 17,
+            lineHeight: 21,
+            letterSpacing: -0.2,
+            color: tokens.ink,
+          }}
         >
           {recipe.title}
         </Text>
         <Text
-          style={{ marginTop: 4, fontSize: 13, fontFamily: fonts.displayItalic, fontStyle: 'italic', color: tokens.inkSoft, lineHeight: 18 }}
-          numberOfLines={2}
+          numberOfLines={1}
+          style={{
+            fontFamily: fonts.displayItalic ?? fonts.display,
+            fontSize: 13,
+            color: tokens.inkSoft,
+            marginTop: 3,
+          }}
         >
           {recipe.tagline}
         </Text>
 
         {/* Meta row */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
-          <MetaPill icon="clock" label={`${recipe.time_min} min`} bg={tokens.bgDeep} />
-          <MetaPill icon="users" label={`${recipe.base_servings}`} bg={tokens.bgDeep} />
-          {recipe.source ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Icon name="external" size={11} color={tokens.peach} />
-              <Text style={{
-                fontSize: 11, fontFamily: fonts.sansBold,
-                color: tokens.peach,
-                textTransform: 'uppercase', letterSpacing: 0.5,
-              }} numberOfLines={1}>
-                {recipe.source.chef}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            marginTop: 10,
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Icon name="clock" size={12} color={tokens.muted} />
+            <Text style={{ fontFamily: fonts.sansSemiBold, fontSize: 11, color: tokens.muted }}>
+              {fmtTime(recipe.time_min)}
+            </Text>
+          </View>
+          <View style={{ width: 3, height: 3, borderRadius: 2, backgroundColor: tokens.lineDark }} />
+          <Text style={{ fontFamily: fonts.sansSemiBold, fontSize: 11, color: tokens.muted, textTransform: 'capitalize' }}>
+            {recipe.difficulty}
+          </Text>
+          {cuisineLabel && (
+            <>
+              <View style={{ width: 3, height: 3, borderRadius: 2, backgroundColor: tokens.lineDark }} />
+              <Text style={{ fontFamily: fonts.sansSemiBold, fontSize: 11, color: tokens.muted }}>
+                {cuisineLabel}
               </Text>
-            </View>
-          ) : null}
+            </>
+          )}
+          {typeLabel && (
+            <>
+              <View style={{ width: 3, height: 3, borderRadius: 2, backgroundColor: tokens.lineDark }} />
+              <Text style={{ fontFamily: fonts.sansSemiBold, fontSize: 11, color: tokens.muted }}>
+                {typeLabel}
+              </Text>
+            </>
+          )}
         </View>
       </View>
     </Pressable>
-  );
-}
-
-function MetaPill({ icon, label, bg }: { icon: 'clock' | 'users'; label: string; bg: string }) {
-  return (
-    <View style={{
-      flexDirection: 'row', alignItems: 'center', gap: 4,
-      backgroundColor: bg, paddingHorizontal: 8, paddingVertical: 3,
-      borderRadius: 999,
-    }}>
-      <Icon name={icon} size={11} color={tokens.muted} />
-      <Text style={{ fontSize: 11, fontFamily: fonts.sansBold, color: tokens.muted }}>{label}</Text>
-    </View>
   );
 }
