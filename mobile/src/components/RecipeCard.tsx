@@ -13,7 +13,6 @@
  */
 import React from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { tokens, fonts } from '../theme/tokens';
 import { Icon } from './Icon';
 import type { Recipe } from '../data/types';
@@ -100,11 +99,16 @@ export function RecipeCard({
           </View>
         )}
 
-        {/* Bottom gradient — dark so title/chef pill stays readable */}
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.58)']}
-          locations={[0.38, 1]}
-          style={{ position: 'absolute', inset: 0 } as any}
+        {/* Bottom scrim — dark overlay at base so chef pill + title stay readable */}
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 72,
+            backgroundColor: 'rgba(0,0,0,0.52)',
+          }}
           pointerEvents="none"
         />
 

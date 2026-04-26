@@ -35,7 +35,6 @@ import {
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
@@ -569,11 +568,16 @@ export default function RecipeDetailScreen() {
             </View>
           )}
 
-          {/* Gradient overlay — transparent to dark */}
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.78)']}
-            locations={[0.28, 1]}
-            style={{ position: 'absolute', inset: 0 } as any}
+          {/* Dark scrim at hero bottom — keeps title/tagline readable */}
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 110,
+              backgroundColor: 'rgba(0,0,0,0.60)',
+            }}
             pointerEvents="none"
           />
 
