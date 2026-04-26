@@ -7,9 +7,36 @@ Until then we're in `0.x.y` and bump minor for each shipped APK.
 
 ## [Unreleased]
 
-Mona Lisa search overhaul — multi-entity, sectioned, typo-tolerant,
-pantry-aware ranking, beautiful empty state with trending + recent searches.
-Reachable from every tab. Designed in `docs/ux-redesign-research.md` § 5.
+Branch model and SQLite migration runner — deferred until needed.
+
+## [0.6.0] — 2026-04-26 — Mona Lisa search
+
+### Added
+- **Search overlay** (`mobile/src/components/SearchOverlay.tsx`): full-screen
+  modal opened from the Kitchen search bar. Multi-entity results sectioned
+  by type — Recipes / Cuisines & Types / Ingredients / Chefs.
+- **Multi-tier ranking**: title-prefix (1000) > token-start (700) > title-substring (500) >
+  tagline (300) > chef (250) > ingredient (200) > tag (100). Pantry-ready
+  recipes get +50 boost so what you can make right now ranks first.
+- **READY badge** on recipe results when ≥80% of ingredients are in your
+  pantry.
+- **Highlighted matched prefix** per Algolia best practice — the matched
+  characters render in paprika bold inside each result row.
+- **Beautiful empty state** when no query: ✨ title, Trending chips
+  (Carbonara, Tom yum, Tacos, Sourdough, Lamb shawarma), Recent searches
+  (in-memory for v1; AsyncStorage in v1.0.1), Quick-filter chips.
+- **No-results state**: friendly empty card with a search emoji + suggestion
+  to try a cuisine, ingredient, or trending search.
+- **Cute touches**: paprika accent ring on focused search bar, soft rounded
+  emoji-anchored hero squares for recipe results, sage/ochre gradient pill
+  for the READY badge, ✨ sparkle indicator in the closed-state Kitchen
+  search bar.
+
+### Changed
+- Kitchen search bar is now a `Pressable` that opens the overlay (instead
+  of an inline `TextInput`). Visual styling unchanged so the affordance
+  still reads as "search here". Tapping anywhere inside opens the
+  overlay; tapping × clears the saved query.
 
 ## [0.5.0] — 2026-04-25 — UX redesign wave 2 (build #14, commit ca4da2c)
 
@@ -83,7 +110,8 @@ Reachable from every tab. Designed in `docs/ux-redesign-research.md` § 5.
 
 Recipe library expanded from 0 to 45. Phase 1-7 complete: dual-axis category browse, recipe detail, ingredient substitutions, cook mode, pantry-to-recipe matching, shopping list, app rename Simmer Fresh → Hone, comprehensive polish pass. See CLAUDE.md for the full session-by-session log.
 
-[Unreleased]: https://github.com/patrickpatches/hone/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/patrickpatches/hone/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/patrickpatches/hone/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/patrickpatches/hone/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/patrickpatches/hone/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/patrickpatches/hone/compare/v0.2.0...v0.3.0

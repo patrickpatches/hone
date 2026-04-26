@@ -33,7 +33,9 @@ import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useSQLiteContext } from 'expo-sqlite';
 import type { Recipe } from '../../src/data/types';
-import { getAllRecipes, getFavoriteIds, toggleFavorite } from '../../db/database';
+import { getAllRecipes, getFavoriteIds, toggleFavorite, getPantryItems } from '../../db/database';
+import type { PantryItem } from '../../db/database';
+import { SearchOverlay } from '../../src/components/SearchOverlay';
 import { RecipeCard } from '../../src/components/RecipeCard';
 import { AddToPlanSheet } from '../../src/components/AddToPlanSheet';
 import { Icon } from '../../src/components/Icon';
@@ -97,13 +99,22 @@ export default function KitchenHome() {
   // null = closed; otherwise the recipe currently being planned.
   const [planTarget, setPlanTarget]   = useState<Recipe | null>(null);
 
+  // Search overlay state — opened when user taps the search bar
+  const [searchOpen, setSearchOpen]   = useState(false);
+  const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
+
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      const [all, favs] = await Promise.all([getAllRecipes(db), getFavoriteIds(db)]);
+      const [all, favs, pantry] = await Promise.all([
+        getAllRecipes(db),
+        getFavoriteIds(db),
+        getPantryItems(db),
+      ]);
       if (!cancelled) {
         setRecipes(all);
         setFavoriteIds(favs);
+        setPantryItems(pantry);
         setLoading(false);
       }
     }
@@ -241,15 +252,23 @@ export default function KitchenHome() {
         <EmptyState hasFilter={hasActiveFilter} onClear={clearAll} />
       }
       ListFooterComponent={
-        planTarget ? (
-          <AddToPlanSheet
-            visible={planTarget !== null}
-            recipeId={planTarget.id}
-            recipeTitle={planTarget.title}
-            defaultServings={planTarget.base_servings}
-            onClose={() => setPlanTarget(null)}
+        <>
+          {planTarget ? (
+            <AddToPlanSheet
+              visible={planTarget !== null}
+              recipeId={planTarget.id}
+              recipeTitle={planTarget.title}
+              defaultServings={planTarget.base_servings}
+              onClose={() => setPlanTarget(null)}
+            />
+          ) : null}
+          <SearchOverlay
+            visible={searchOpen}
+            onClose={() => setSearchOpen(false)}
+            recipes={recipes}
+            pantryItems={pantryItems}
           />
-        ) : null
+        </>
       }
     />
   );
@@ -299,47 +318,58 @@ function ListHeader({
         </Text>?
       </Text>
 
-      {/* Search */}
-      <View
-        style={{
+      {/* Search trigger — tapping pops the Mona Lisa search overlay.
+          Bar reads as a normal search input so the affordance is instant;
+          we just intercept the tap to give the user the full overlay. */}
+      <Pressable
+        onPress={() => {
+          Haptics.selectionAsync().catch(() => {});
+          setSearchOpen(true);
+        }}
+        accessibilityRole="search"
+        accessibilityLabel="Open search"
+        style={({ pressed }) => ({
           marginTop: 20,
           flexDirection: 'row',
           alignItems: 'center',
           paddingHorizontal: 16,
-          paddingVertical: 12,
+          paddingVertical: 14,
           borderRadius: 16,
-          backgroundColor: tokens.cream,
+          backgroundColor: pressed ? tokens.bgDeep : tokens.cream,
           borderWidth: 1,
           borderColor: tokens.line,
           gap: 10,
-        }}
+        })}
       >
-        <Icon name="search" size={16} color={tokens.muted} />
-        <TextInput
-          value={search}
-          onChangeText={setSearch}
-          placeholder="What are you in the mood for?"
-          placeholderTextColor={tokens.muted}
+        <Icon name="search" size={17} color={tokens.muted} />
+        <Text
           style={{
             flex: 1,
-            color: tokens.ink,
             fontFamily: fonts.sans,
             fontSize: 14,
-            padding: 0,
+            color: search ? tokens.ink : tokens.muted,
           }}
-          returnKeyType="search"
-        />
+          numberOfLines={1}
+        >
+          {search || 'What are you in the mood for?'}
+        </Text>
         {search ? (
-          <Pressable
-            onPress={() => setSearch('')}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="Clear search"
-          >
+          <Pressable onPress={() => setSearch('')} hitSlop={10} accessibilityLabel="Clear search">
             <Icon name="x" size={14} color={tokens.muted} />
           </Pressable>
-        ) : null}
-      </View>
+        ) : (
+          <View
+            style={{
+              paddingHorizontal: 8,
+              paddingVertical: 3,
+              borderRadius: 6,
+              backgroundColor: tokens.bgDeep,
+            }}
+          >
+            <Text style={{ fontSize: 11 }}>✨</Text>
+          </View>
+        )}
+      </Pressable>
 
       {/* Recipe count — quiet line under the search */}
       <Text style={{ marginTop: 8, fontFamily: fonts.sans, fontSize: 12, color: tokens.muted }}>
