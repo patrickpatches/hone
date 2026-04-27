@@ -383,8 +383,8 @@ export default function PantryTab() {
                   const pct = Math.round((m.haveCount / m.totalCount) * 100);
                   return (
                     <Pressable
-                      key={m.recipeId}
-                      onPress={() => router.push(`/recipe/${m.recipeId}`)}
+                      key={m.recipe.id}
+                      onPress={() => router.push(`/recipe/${m.recipe.id}`)}
                       style={({ pressed }) => ({
                         flexDirection: 'row',
                         alignItems: 'center',
@@ -419,7 +419,7 @@ export default function PantryTab() {
                         }}
                         numberOfLines={1}
                       >
-                        {m.recipeTitle}
+                        {m.recipe.title}
                       </Text>
                       <Text
                         style={{
@@ -428,7 +428,7 @@ export default function PantryTab() {
                           color: tokens.muted,
                         }}
                       >
-                        {m.missingCount} missing
+                        {m.missingNames.length} missing
                       </Text>
                     </Pressable>
                   );
@@ -740,8 +740,8 @@ function SuggestionsSheet({
       {/* List */}
       {matches.map((m, idx) => (
         <Pressable
-          key={m.recipeId}
-          onPress={() => onViewRecipe(m.recipeId)}
+          key={m.recipe.id}
+          onPress={() => onViewRecipe(m.recipe.id)}
           style={({ pressed }) => ({
             flexDirection: 'row',
             alignItems: 'center',
@@ -774,7 +774,7 @@ function SuggestionsSheet({
               }}
               numberOfLines={1}
             >
-              {m.recipeTitle}
+              {m.recipe.title}
             </Text>
             <Text
               style={{

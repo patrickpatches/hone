@@ -791,3 +791,34 @@ function Callout({
         style={{
           fontFamily: fonts.sansBold,
           fontSize: 9,
+          letterSpacing: 1.5,
+          textTransform: 'uppercase',
+          color: accent,
+          marginBottom: 3,
+        }}
+      >
+        {label}
+      </Text>
+      <Text
+        style={{
+          fontFamily: italic ? fonts.displayItalic : fonts.sans,
+          fontStyle: italic ? 'italic' : 'normal',
+          fontSize: 13,
+          lineHeight: 18,
+          color: tokens.inkSoft,
+        }}
+      >
+        {text}
+      </Text>
+    </View>
+  );
+}
+
+function formatTimer(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.round(seconds / 60);
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return rem === 0 ? `${h} h` : `${h} h ${rem} min`;
+}

@@ -5,7 +5,7 @@
  * presents:
  *   - Empty state (no query): Trending this week + Recent + Quick filters
  *   - Results: sectioned by entity type — Recipes / Ingredients / Chefs /
- *     Cuisines & Types — with the matched prefix highlighted in paprika
+ *     Cuisines & Types — with the matched prefix highlighted in primary
  *
  * Designed in `docs/ux-redesign-research.md` § 5. Patrick brief:
  *   "beautiful cute design and functionality beyond the best"
@@ -365,10 +365,10 @@ export function SearchOverlay({ visible, onClose, recipes, pantryItems }: Props)
               paddingHorizontal: 14,
               paddingVertical: 12,
               borderWidth: 1.5,
-              borderColor: query ? tokens.paprika : tokens.line,
+              borderColor: query ? tokens.primary : tokens.line,
             }}
           >
-            <Icon name="search" size={18} color={query ? tokens.paprika : tokens.muted} />
+            <Icon name="search" size={18} color={query ? tokens.primary : tokens.muted} />
             <TextInput
               ref={inputRef}
               value={query}
@@ -467,7 +467,7 @@ function EmptyState({
                 paddingHorizontal: 14,
                 paddingVertical: 9,
                 borderRadius: 999,
-                backgroundColor: pressed ? tokens.paprikaDeep : tokens.paprika,
+                backgroundColor: pressed ? tokens.primaryDeep : tokens.primary,
               })}
             >
               <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.cream }}>
@@ -648,7 +648,7 @@ function Highlight({ text, query, baseStyle }: { text: string; query: string; ba
   return (
     <Text style={baseStyle}>
       {text.slice(0, idx)}
-      <Text style={{ fontFamily: fonts.sansBold, color: tokens.paprika }}>
+      <Text style={{ fontFamily: fonts.sansBold, color: tokens.primary }}>
         {text.slice(idx, idx + q.length)}
       </Text>
       {text.slice(idx + q.length)}
