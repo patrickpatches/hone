@@ -3,7 +3,7 @@
     "name": "Hone",
     "slug": "hone",
     "scheme": "hone",
-    "version": "0.6.3",
+    "version": "0.9.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -50,3 +50,4 @@
     "owner": "patrick-nasr"
   }
 }
+
