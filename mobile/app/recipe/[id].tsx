@@ -662,94 +662,110 @@ export default function RecipeDetailScreen() {
       </ScrollView>
 
       {/* ── FLOATING START-COOKING PILL ──
-          Centered, pill-shaped, paprika-tint primary. Stays visible
-          as the user scrolls through ingredients & steps. The
-          bottom-140 padding on the ScrollView keeps content from
-          being trapped under it. */}
+          Solid paprika-tint pill, centered horizontally near the bottom.
+          Stays put while the recipe scrolls (ScrollView already pads
+          bottom 140 so content clears it).
+
+          Structure note: the Pressable is a bare tap target with no
+          layout/visual styling — all of that lives on an inner View.
+          On Android, Pressable + function-style + layout properties
+          (flexDirection, backgroundColor) sometimes renders without
+          the background. Splitting the roles makes the bg reliable
+          and lets android_ripple handle press feedback. */}
       {!cooking ? (
         <View
-          pointerEvents="box-none"
           style={{
             position: 'absolute',
             left: 0,
             right: 0,
             bottom: insets.bottom + 18,
             alignItems: 'center',
+            pointerEvents: 'box-none',
           }}
         >
           <Pressable
             onPress={toggleCooking}
             accessibilityRole="button"
             accessibilityLabel="Start cooking"
-            style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 10,
-              paddingVertical: 16,
-              paddingHorizontal: 32,
-              borderRadius: 999,
-              backgroundColor: pressed ? tokens.primaryDeep : tokens.primary,
-              shadowColor: tokens.ink,
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.18,
-              shadowRadius: 14,
-              elevation: 6,
-            })}
+            android_ripple={{ color: 'rgba(255,255,255,0.22)', borderless: false }}
+            style={{ borderRadius: 999 }}
           >
-            <Icon name="chef" size={18} color="#FFF" />
-            <Text
+            <View
               style={{
-                fontFamily: fonts.sansXBold,
-                fontSize: 15,
-                color: '#FFF',
-                letterSpacing: 0.3,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 10,
+                paddingVertical: 16,
+                paddingHorizontal: 32,
+                borderRadius: 999,
+                backgroundColor: tokens.primary,
+                shadowColor: tokens.ink,
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.22,
+                shadowRadius: 14,
+                elevation: 8,
               }}
             >
-              Start Cooking
-            </Text>
+              <Icon name="chef" size={18} color="#FFF" />
+              <Text
+                style={{
+                  fontFamily: fonts.sansXBold,
+                  fontSize: 15,
+                  color: '#FFF',
+                  letterSpacing: 0.3,
+                }}
+              >
+                Start Cooking
+              </Text>
+            </View>
           </Pressable>
         </View>
       ) : progress === 1 ? (
         <View
-          pointerEvents="box-none"
           style={{
             position: 'absolute',
             left: 0,
             right: 0,
             bottom: insets.bottom + 18,
             alignItems: 'center',
+            pointerEvents: 'box-none',
           }}
         >
           <Pressable
             onPress={toggleCooking}
             accessibilityRole="button"
             accessibilityLabel="Finish cooking"
-            style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 10,
-              paddingVertical: 16,
-              paddingHorizontal: 32,
-              borderRadius: 999,
-              backgroundColor: pressed ? tokens.sageDeep : tokens.sage,
-              shadowColor: tokens.ink,
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: 0.18,
-              shadowRadius: 14,
-              elevation: 6,
-            })}
+            android_ripple={{ color: 'rgba(255,255,255,0.22)', borderless: false }}
+            style={{ borderRadius: 999 }}
           >
-            <Icon name="check" size={18} color="#FFF" />
-            <Text
+            <View
               style={{
-                fontFamily: fonts.sansXBold,
-                fontSize: 15,
-                color: '#FFF',
-                letterSpacing: 0.3,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 10,
+                paddingVertical: 16,
+                paddingHorizontal: 32,
+                borderRadius: 999,
+                backgroundColor: tokens.sage,
+                shadowColor: tokens.ink,
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.22,
+                shadowRadius: 14,
+                elevation: 8,
               }}
             >
-              Done — eat well
-            </Text>
+              <Icon name="check" size={18} color="#FFF" />
+              <Text
+                style={{
+                  fontFamily: fonts.sansXBold,
+                  fontSize: 15,
+                  color: '#FFF',
+                  letterSpacing: 0.3,
+                }}
+              >
+                Done — eat well
+              </Text>
+            </View>
           </Pressable>
         </View>
       ) : null}

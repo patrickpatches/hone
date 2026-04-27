@@ -799,70 +799,74 @@ function ShopRow({
   onToggle: () => void;
   isLast?: boolean;
 }) {
+  // Pressable is the bare tap target — all visual & layout styling lives
+  // on the inner View so Android renders the row reliably. The qty and
+  // label are nested inside a single Text, which guarantees inline flow
+  // (qty + name on one line, wraps together if too long) and keeps both
+  // in the body sans-serif (Inter) for a consistent type voice.
   return (
     <Pressable
       onPress={onToggle}
       accessibilityRole="checkbox"
       accessibilityState={{ checked }}
-      style={({ pressed }) => ({
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 16,
-        gap: 14,
-        minHeight: 60,
-        backgroundColor: pressed ? tokens.bgDeep : 'transparent',
-        borderBottomWidth: isLast ? 0 : 1,
-        borderBottomColor: tokens.line,
-      })}
+      android_ripple={{ color: tokens.bgDeep }}
     >
-      {/* Rounded-square checkbox */}
       <View
         style={{
-          width: 26,
-          height: 26,
-          borderRadius: 9,
-          borderWidth: 2,
-          borderColor: checked ? tokens.sage : tokens.lineDark,
-          backgroundColor: checked ? tokens.sage : 'transparent',
+          flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+          gap: 14,
+          minHeight: 56,
+          borderBottomWidth: isLast ? 0 : 1,
+          borderBottomColor: tokens.line,
         }}
       >
-        {checked && <Icon name="check" size={14} color="#FFF" />}
-      </View>
-
-      {/* Quantity column — display font, primary tint, fixed min-width
-          so names line up across the aisle. */}
-      {qty ? (
-        <View style={{ minWidth: 56 }}>
-          <Text
-            style={{
-              fontFamily: fonts.display,
-              fontSize: 15,
-              color: checked ? tokens.muted : tokens.primary,
-              textDecorationLine: checked ? 'line-through' : 'none',
-            }}
-          >
-            {qty}
-          </Text>
+        {/* Rounded-square checkbox */}
+        <View
+          style={{
+            width: 26,
+            height: 26,
+            borderRadius: 9,
+            borderWidth: 2,
+            borderColor: checked ? tokens.sage : tokens.lineDark,
+            backgroundColor: checked ? tokens.sage : 'transparent',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          {checked && <Icon name="check" size={14} color="#FFF" />}
         </View>
-      ) : null}
 
-      {/* Item name */}
-      <Text
-        style={{
-          flex: 1,
-          fontFamily: fonts.sans,
-          fontSize: 15,
-          lineHeight: 20,
-          color: checked ? tokens.muted : tokens.ink,
-          textDecorationLine: checked ? 'line-through' : 'none',
-        }}
-      >
-        {label}
-      </Text>
+        {/* Single Text — qty bolded inline, name follows. Both Inter,
+            both line-through together when checked. */}
+        <Text
+          numberOfLines={2}
+          style={{
+            flex: 1,
+            flexShrink: 1,
+            fontFamily: fonts.sans,
+            fontSize: 15,
+            lineHeight: 21,
+            color: checked ? tokens.muted : tokens.ink,
+            textDecorationLine: checked ? 'line-through' : 'none',
+          }}
+        >
+          {qty ? (
+            <Text
+              style={{
+                fontFamily: fonts.sansBold,
+                color: checked ? tokens.muted : tokens.primary,
+              }}
+            >
+              {qty}{'  '}
+            </Text>
+          ) : null}
+          {label}
+        </Text>
+      </View>
     </Pressable>
   );
 }
