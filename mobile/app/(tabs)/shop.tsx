@@ -53,7 +53,7 @@ import { useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import * as Haptics from 'expo-haptics';
 
-import { tokens, fonts } from '../../src/theme/tokens';
+import { tokens, fonts, shadows } from '../../src/theme/tokens';
 import { Icon } from '../../src/components/Icon';
 import { VersionFooter } from '../../src/components/VersionFooter';
 import {
@@ -643,11 +643,7 @@ export default function ShopTab() {
                 borderRadius: 14,
                 borderWidth: 1,
                 borderColor: tokens.line,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 6 },
-                shadowOpacity: 0.12,
-                shadowRadius: 16,
-                elevation: 8,
+                ...shadows.cardLifted,
                 overflow: 'hidden',
                 zIndex: 20,
               }}
@@ -725,21 +721,35 @@ export default function ShopTab() {
             style={{
               marginHorizontal: 20,
               marginTop: 24,
-              padding: 24,
+              paddingVertical: 36,
+              paddingHorizontal: 24,
               backgroundColor: tokens.cream,
               borderRadius: 18,
               borderWidth: 1,
               borderColor: tokens.line,
               alignItems: 'center',
+              ...shadows.card,
             }}
           >
-            <Text style={{ fontSize: 22, marginBottom: 8 }}>🛒</Text>
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 28,
+                backgroundColor: tokens.sageLight,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 14,
+              }}
+            >
+              <Text style={{ fontSize: 26 }}>🛒</Text>
+            </View>
             <Text
               style={{
                 fontFamily: fonts.display,
                 fontSize: 18,
                 color: tokens.ink,
-                marginBottom: 4,
+                marginBottom: 6,
               }}
             >
               Your list is empty
@@ -751,10 +761,11 @@ export default function ShopTab() {
                 color: tokens.muted,
                 textAlign: 'center',
                 lineHeight: 18,
+                maxWidth: 260,
               }}
             >
-              Type above to add anything, or plan a meal on the Kitchen tab and
-              its ingredients will land here.
+              Type above to add anything, or plan a meal on the Kitchen tab —
+              its ingredients land here automatically.
             </Text>
           </View>
           <VersionFooter paddingBottom={32} />
@@ -846,11 +857,7 @@ export default function ShopTab() {
             flexDirection: 'row',
             alignItems: 'center',
             gap: 10,
-            shadowColor: '#000',
-            shadowOpacity: 0.25,
-            shadowRadius: 14,
-            shadowOffset: { width: 0, height: 6 },
-            elevation: 8,
+            ...shadows.toast,
           }}
         >
           <Text
@@ -1158,11 +1165,7 @@ function Section({
           borderWidth: 1,
           borderColor: isActive ? tokens.primary : tokens.line,
           overflow: 'hidden',
-          shadowColor: '#000',
-          shadowOpacity: isActive ? 0.18 : 0,
-          shadowRadius: isActive ? 14 : 0,
-          shadowOffset: { width: 0, height: isActive ? 6 : 0 },
-          elevation: isActive ? 6 : 0,
+          ...(isActive ? shadows.cardLifted : shadows.card),
         }}
       >
         {items.map((it, idx) => (
@@ -1239,29 +1242,38 @@ function ShopRow({
         delayLongPress={400}
         style={{ flex: 1 }}
       >
-        <Text
+        <View
           style={{
-            fontFamily: fonts.sansBold,
-            fontSize: 14,
-            color: tokens.ink,
-            textDecorationLine: item.in_cart ? 'line-through' : 'none',
+            flexDirection: 'row',
+            alignItems: 'baseline',
+            flexWrap: 'wrap',
+            gap: 8,
           }}
-          numberOfLines={1}
         >
-          {item.name}
-        </Text>
-        {qty ? (
           <Text
             style={{
-              fontFamily: fonts.sans,
-              fontSize: 12,
-              color: tokens.muted,
-              marginTop: 2,
+              fontFamily: fonts.sansBold,
+              fontSize: 14,
+              color: tokens.ink,
+              textDecorationLine: item.in_cart ? 'line-through' : 'none',
             }}
+            numberOfLines={1}
           >
-            {qty}
+            {item.name}
           </Text>
-        ) : null}
+          {qty ? (
+            <Text
+              style={{
+                fontFamily: fonts.sans,
+                fontSize: 12,
+                color: tokens.muted,
+                textDecorationLine: item.in_cart ? 'line-through' : 'none',
+              }}
+            >
+              {qty}
+            </Text>
+          ) : null}
+        </View>
       </Pressable>
       <Pressable
         onPress={onRemove}

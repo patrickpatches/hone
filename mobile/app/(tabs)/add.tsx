@@ -9,7 +9,7 @@
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { tokens, fonts } from '../../src/theme/tokens';
+import { tokens, fonts, shadows } from '../../src/theme/tokens';
 import { Icon } from '../../src/components/Icon';
 
 export default function AddTab() {
@@ -101,11 +101,7 @@ export default function AddTab() {
           borderColor: tokens.lineDark,
           padding: 20,
           gap: 12,
-          shadowColor: tokens.ink,
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.06,
-          shadowRadius: 8,
-          elevation: 3,
+          ...shadows.card,
         }}
       >
         {[

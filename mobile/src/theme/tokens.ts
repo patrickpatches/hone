@@ -53,6 +53,38 @@ export const tokens = {
 } as const;
 
 /**
+ * Shadow tokens — single source of truth for elevation.
+ *
+ * `card` is the default shadow for any raised surface (recipe cards, pantry
+ * zone, shop sections). One look across the app, no per-component tuning.
+ * `cardLifted` is for actively-dragged or pressed-up surfaces.
+ * `toast` is for floating overlays (undo banner, etc.).
+ */
+export const shadows = {
+  card: {
+    shadowColor: '#1F1814',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  cardLifted: {
+    shadowColor: '#1F1814',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.16,
+    shadowRadius: 14,
+    elevation: 6,
+  },
+  toast: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 14,
+    elevation: 8,
+  },
+} as const;
+
+/**
  * Font family tokens.
  * Must match exactly what _layout.tsx loads via useFonts.
  *

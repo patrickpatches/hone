@@ -14,7 +14,7 @@ import { Pressable, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import type { Recipe } from '../data/types';
-import { tokens, fonts } from '../theme/tokens';
+import { tokens, fonts, shadows } from '../theme/tokens';
 import { Icon } from './Icon';
 
 type Props = {
@@ -58,11 +58,7 @@ export function RecipeCard({
         overflow: 'hidden',
         opacity: pressed ? 0.93 : 1,
         transform: [{ scale: pressed ? 0.985 : 1 }],
-        shadowColor: tokens.ink,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.07,
-        shadowRadius: 8,
-        elevation: 3,
+        ...shadows.card,
       })}
     >
       {/* Hero image / gradient fallback */}

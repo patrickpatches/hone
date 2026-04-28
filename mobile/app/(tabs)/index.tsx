@@ -35,7 +35,7 @@ import {
 } from '../../db/database';
 import { RecipeCard } from '../../src/components/RecipeCard';
 import { Icon } from '../../src/components/Icon';
-import { tokens, fonts } from '../../src/theme/tokens';
+import { tokens, fonts, shadows } from '../../src/theme/tokens';
 
 type Filter = 'All' | 'Quick' | 'Weekend' | 'Favourites' | 'Yours';
 
@@ -199,11 +199,7 @@ export default function KitchenHome() {
               borderWidth: 1,
               borderColor: tokens.lineDark,
               gap: 10,
-              shadowColor: tokens.ink,
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.05,
-              shadowRadius: 4,
-              elevation: 2,
+              ...shadows.card,
             }}
           >
             <Icon name="search" size={16} color={tokens.muted} />
@@ -246,13 +242,20 @@ export default function KitchenHome() {
                 <Pressable
                   key={chip}
                   onPress={() => setFilter(chip)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
                   style={{
                     paddingHorizontal: 14,
                     paddingVertical: 8,
                     borderRadius: 999,
-                    backgroundColor: active ? tokens.primary : 'transparent',
-                    borderWidth: 1.5,
-                    borderColor: active ? tokens.primary : tokens.line,
+                    // Active: solid terracotta with a soft drop. Inactive:
+                    // cream pill with a stronger border so the row reads as
+                    // a row of equal-weight options rather than one solid
+                    // chip floating in space.
+                    backgroundColor: active ? tokens.primary : tokens.cream,
+                    borderWidth: 1,
+                    borderColor: active ? tokens.primary : tokens.lineDark,
+                    ...(active ? shadows.card : null),
                   }}
                 >
                   <Text
@@ -282,14 +285,38 @@ export default function KitchenHome() {
         </View>
       )}
       ListEmptyComponent={
-        <View style={{ paddingVertical: 60, alignItems: 'center' }}>
-          <Text style={{ fontSize: 36, marginBottom: 8 }}>🍽️</Text>
+        <View
+          style={{
+            marginTop: 24,
+            paddingVertical: 36,
+            paddingHorizontal: 24,
+            backgroundColor: tokens.cream,
+            borderRadius: 18,
+            borderWidth: 1,
+            borderColor: tokens.line,
+            alignItems: 'center',
+            ...shadows.card,
+          }}
+        >
+          <View
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              backgroundColor: tokens.primaryLight,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 14,
+            }}
+          >
+            <Text style={{ fontSize: 26 }}>🍽️</Text>
+          </View>
           <Text
             style={{
               fontFamily: fonts.display,
               fontSize: 18,
               color: tokens.ink,
-              marginBottom: 4,
+              marginBottom: 6,
             }}
           >
             Nothing matches
@@ -300,9 +327,11 @@ export default function KitchenHome() {
               fontSize: 13,
               color: tokens.muted,
               textAlign: 'center',
+              lineHeight: 18,
+              maxWidth: 260,
             }}
           >
-            Try clearing the search or changing the filter
+            Try clearing the search or switching the filter to see more.
           </Text>
         </View>
       }
