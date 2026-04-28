@@ -46,3 +46,7 @@ coverage/
 # Misc
 .env*
 !.env.example
+
+# Sandbox scratch dirs created by Claude during local testing
+mobile-helpers-test/
+/db/
