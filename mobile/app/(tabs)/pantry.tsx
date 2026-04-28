@@ -64,7 +64,6 @@ import {
 import type { PantryItem } from '../../db/database';
 import type { Recipe } from '../../src/data/types';
 import {
-  PANTRY_CATEGORIES,
   categorizeIngredient,
   cleanIngredientName,
   normalizeForMatch,
@@ -126,6 +125,13 @@ export default function PantryTab() {
   const [shopping, setShopping] = useState<Set<string>>(new Set());
 
   const inputRef = useRef<TextInput>(null);
+  // Track mount state — setTimeout callbacks must not setState after unmount,
+  // or React fires a 'state update on unmounted component' warning.
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   // ── Load ───────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -256,6 +262,7 @@ export default function PantryTab() {
         const id = existing.id;
         setFreshIds((prev) => new Set(prev).add(id));
         setTimeout(() => {
+          if (!mountedRef.current) return;
           setFreshIds((prev) => {
             const next = new Set(prev);
             next.delete(id);
@@ -284,6 +291,7 @@ export default function PantryTab() {
         console.error('upsertPantryItem failed', e),
       );
       setTimeout(() => {
+        if (!mountedRef.current) return;
         setFreshIds((prev) => {
           const next = new Set(prev);
           next.delete(id);
@@ -298,6 +306,20 @@ export default function PantryTab() {
     async (item: PantryItem) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
       setPantryItems((prev) => prev.filter((p) => p.id !== item.id));
+      // Drop addedAt + freshIds entries for this id so they don't accumulate
+      // over long sessions of adds-and-removes.
+      setAddedAt((prev) => {
+        if (!(item.id in prev)) return prev;
+        const next = { ...prev };
+        delete next[item.id];
+        return next;
+      });
+      setFreshIds((prev) => {
+        if (!prev.has(item.id)) return prev;
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
+      });
       deletePantryItem(db, item.id).catch((e) =>
         console.error('deletePantryItem failed', e),
       );
