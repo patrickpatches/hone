@@ -15,24 +15,40 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare site
-        run: |
-          mkdir -p _site
-          # index.html is the deployed PWA (renamed from simmer-fresh.html on first push)
-          cp index.html _site/index.html
-          # Prototype mocks — visible at /hone/<name>.html for testing
-          for f in pantry-redesign.html; do
-            [ -f "$f" ] && cp "$f" "_site/$f"
-          done
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Export Expo web build
+        run: npx expo export --platform web
+
+      # Single-page apps on GitHub Pages need a 404 fallback that serves the
+      # same SPA bundle, otherwise deep links (e.g. /hone/recipe/<id>) hit a
+      # real 404. Copying index.html → 404.html lets Expo Router handle the
+      # route on the client.
+      - name: Add SPA 404 fallback
+        run: cp dist/index.html dist/404.html
+
+      # GitHub Pages doesn't deploy a Jekyll-built site if the artifact has a
+      # leading-underscore directory (Jekyll skips _foo). The Expo build puts
+      # everything under _expo/, so disable Jekyll explicitly.
+      - name: Disable Jekyll
+        run: touch dist/.nojekyll
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -40,8 +56,15 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '_site'
+          path: 'mobile/dist'
 
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
