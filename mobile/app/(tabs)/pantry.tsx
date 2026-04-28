@@ -699,7 +699,7 @@ export default function PantryTab() {
                 width: 44,
                 height: 44,
                 borderRadius: 14,
-                backgroundColor: 'rgba(255,255,255,0.18)',
+                backgroundColor: 'rgba(26,19,14,0.10)',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
@@ -713,7 +713,7 @@ export default function PantryTab() {
                   fontSize: 10,
                   letterSpacing: 1.5,
                   textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.78)',
+                  color: 'rgba(26,19,14,0.70)',
                   marginBottom: 3,
                 }}
               >
@@ -723,7 +723,7 @@ export default function PantryTab() {
                 style={{
                   fontFamily: fonts.sansBold,
                   fontSize: 15,
-                  color: '#FFF',
+                  color: tokens.ink,
                   lineHeight: 19,
                 }}
               >
@@ -734,7 +734,7 @@ export default function PantryTab() {
                 → {unlock.count} more recipe{unlock.count === 1 ? '' : 's'}
               </Text>
             </View>
-            <Text style={{ fontSize: 20, color: 'rgba(255,255,255,0.85)' }}>
+            <Text style={{ fontSize: 20, color: tokens.ink }}>
               ＋
             </Text>
           </Pressable>
@@ -1233,14 +1233,14 @@ function RecipeMatchCard({
               gap: 5,
             }}
           >
-            <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '900' }}>
+            <Text style={{ color: tokens.ink, fontSize: 11, fontWeight: '900' }}>
               ✓
             </Text>
             <Text
               style={{
                 fontFamily: fonts.sansBold,
                 fontSize: 12,
-                color: '#FFF',
+                color: tokens.ink,
               }}
             >
               Tap to cook

@@ -183,7 +183,7 @@ export function ServingsSelector({
                 style={{
                   fontFamily: fonts.sansBold,
                   fontSize: 11,
-                  color: active ? '#FFF' : tokens.inkSoft,
+                  color: active ? tokens.ink : tokens.inkSoft,
                 }}
               >
                 {opt.label}

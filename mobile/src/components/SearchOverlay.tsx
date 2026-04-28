@@ -470,7 +470,7 @@ function EmptyState({
                 backgroundColor: pressed ? tokens.primaryDeep : tokens.primary,
               })}
             >
-              <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.cream }}>
+              <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.ink }}>
                 {t.label}
               </Text>
             </Pressable>
@@ -707,7 +707,7 @@ function RecipeRow({ r, query, onPress }: { r: RecipeResult; query: string; onPr
             backgroundColor: tokens.sage,
           }}
         >
-          <Text style={{ fontFamily: fonts.sansBold, fontSize: 9, color: tokens.cream, letterSpacing: 0.5 }}>
+          <Text style={{ fontFamily: fonts.sansBold, fontSize: 9, color: tokens.ink, letterSpacing: 0.5 }}>
             READY
           </Text>
         </View>

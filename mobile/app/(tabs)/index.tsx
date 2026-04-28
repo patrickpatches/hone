@@ -262,7 +262,7 @@ export default function KitchenHome() {
                     style={{
                       fontFamily: fonts.sansBold,
                       fontSize: 12,
-                      color: active ? '#FFF' : tokens.inkSoft,
+                      color: active ? tokens.ink : tokens.inkSoft,
                     }}
                   >
                     {chip}

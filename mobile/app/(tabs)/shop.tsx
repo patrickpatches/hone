@@ -1131,7 +1131,7 @@ function ShopRow({
         }}
       >
         {item.in_cart && (
-          <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '900' }}>
+          <Text style={{ color: tokens.ink, fontSize: 13, fontWeight: '900' }}>
             ✓
           </Text>
         )}

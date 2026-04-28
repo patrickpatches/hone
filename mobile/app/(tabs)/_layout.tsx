@@ -99,11 +99,11 @@ export default function TabLayout() {
                   <Icon
                     name={spec.icon}
                     size={16}
-                    color={focused ? '#FFF' : 'rgba(255,255,255,0.55)'}
+                    color={focused ? tokens.ink : 'rgba(255,255,255,0.55)'}
                   />
                   <Text
                     style={{
-                      color: focused ? '#FFF' : 'rgba(255,255,255,0.55)',
+                      color: focused ? tokens.ink : 'rgba(255,255,255,0.55)',
                       fontFamily: fonts.sansBold,
                       fontSize: 10,
                       letterSpacing: 0.2,

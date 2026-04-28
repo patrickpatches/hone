@@ -124,7 +124,7 @@ export default function RecipeDetailScreen() {
             backgroundColor: pressed ? tokens.primaryDeep : tokens.primary,
           })}
         >
-          <Text style={{ fontFamily: fonts.sansBold, color: '#FFF', fontSize: 14 }}>
+          <Text style={{ fontFamily: fonts.sansBold, color: tokens.ink, fontSize: 14 }}>
             Back to Kitchen
           </Text>
         </Pressable>
@@ -139,6 +139,37 @@ export default function RecipeDetailScreen() {
   const stepsDoneCount = Object.values(stepsDone).filter(Boolean).length;
   const progress     = cooking ? stepsDoneCount / recipe.steps.length : 0;
   const gradient     = recipe.hero_fallback ?? [tokens.ink, tokens.warmBrown, tokens.bgDeep];
+
+  // Cook-mode surface palette. CLAUDE.md: dark, OLED-friendly true blacks.
+  // The same surface names are used in both modes so JSX can read `c.X`
+  // without branching on `cooking` everywhere.
+  const c = cooking
+    ? {
+        screenBg: tokens.cookMode.screenBg,
+        cardBg:   tokens.cookMode.cardBg,
+        bgDeep:   tokens.cookMode.bgDeep,
+        ink:      tokens.cookMode.ink,
+        inkSoft:  tokens.cookMode.inkSoft,
+        muted:    tokens.cookMode.muted,
+        line:     tokens.cookMode.line,
+        lineDark: tokens.cookMode.lineDark,
+        primary:  tokens.cookMode.primary,
+        sage:     tokens.cookMode.sage,
+        ochre:    tokens.cookMode.ochre,
+      }
+    : {
+        screenBg: tokens.bg,
+        cardBg:   tokens.cream,
+        bgDeep:   tokens.bgDeep,
+        ink:      tokens.ink,
+        inkSoft:  tokens.inkSoft,
+        muted:    tokens.muted,
+        line:     tokens.line,
+        lineDark: tokens.lineDark,
+        primary:  tokens.primary,
+        sage:     tokens.sage,
+        ochre:    tokens.ochre,
+      };
   const attribution  = recipe.generated_by_claude
     ? 'Invented from your pantry'
     : recipe.source
@@ -182,13 +213,13 @@ export default function RecipeDetailScreen() {
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <View style={{ flex: 1, backgroundColor: tokens.bg }}>
+    <View style={{ flex: 1, backgroundColor: c.screenBg }}>
 
       {/* ── STICKY HEADER (above ScrollView, not inside it) ── */}
       <View
         style={{
           paddingTop: insets.top,
-          backgroundColor: cooking ? tokens.ink : tokens.bg,
+          backgroundColor: cooking ? tokens.cookMode.screenBg : tokens.bg,
           borderBottomWidth: cooking ? 0 : 1,
           borderBottomColor: tokens.line,
         }}
@@ -197,20 +228,20 @@ export default function RecipeDetailScreen() {
           /* Cook mode bar */
           <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1.5, color: tokens.cream, textTransform: 'uppercase' }}>
-                <Text style={{ color: tokens.ochre }}>Cooking</Text> · {stepsDoneCount}/{recipe.steps.length} steps
+              <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1.5, color: c.ink, textTransform: 'uppercase' }}>
+                <Text style={{ color: c.ochre }}>Cooking</Text> · {stepsDoneCount}/{recipe.steps.length} steps
               </Text>
               <Pressable onPress={toggleCooking} hitSlop={8}>
-                <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, color: tokens.ochre }}>End session</Text>
+                <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, color: c.ochre }}>End session</Text>
               </Pressable>
             </View>
             {/* Progress bar */}
-            <View style={{ height: 3, backgroundColor: tokens.inkSoft, borderRadius: 2 }}>
+            <View style={{ height: 3, backgroundColor: c.lineDark, borderRadius: 2 }}>
               <View
                 style={{
                   height: 3,
                   width: `${progress * 100}%`,
-                  backgroundColor: tokens.primary,
+                  backgroundColor: c.primary,
                   borderRadius: 2,
                 }}
               />
@@ -323,11 +354,11 @@ export default function RecipeDetailScreen() {
         <View style={{ paddingHorizontal: 20, marginTop: cooking ? 16 : -24 }}>
           <View
             style={{
-              backgroundColor: tokens.cream,
+              backgroundColor: c.cardBg,
               borderRadius: 24,
               padding: 20,
               borderWidth: 1,
-              borderColor: tokens.lineDark,
+              borderColor: c.lineDark,
               shadowColor: tokens.ink,
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.07,
@@ -342,7 +373,7 @@ export default function RecipeDetailScreen() {
                   fontSize: 10,
                   letterSpacing: 2,
                   textTransform: 'uppercase',
-                  color: tokens.primary,
+                  color: c.primary,
                   marginBottom: 6,
                 }}
               >
@@ -350,7 +381,7 @@ export default function RecipeDetailScreen() {
               </Text>
             ) : null}
 
-            <Text style={{ fontFamily: fonts.display, fontSize: 28, lineHeight: 33, color: tokens.ink }}>
+            <Text style={{ fontFamily: fonts.display, fontSize: 28, lineHeight: 33, color: c.ink }}>
               {recipe.title}
             </Text>
             <Text
@@ -359,7 +390,7 @@ export default function RecipeDetailScreen() {
                 fontStyle: 'italic',
                 fontSize: 15,
                 lineHeight: 20,
-                color: tokens.inkSoft,
+                color: c.inkSoft,
                 marginTop: 6,
               }}
             >
@@ -368,22 +399,22 @@ export default function RecipeDetailScreen() {
 
             {/* Meta row */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18, marginTop: 14 }}>
-              <MetaPill icon="clock" label={`${recipe.time_min} min`} />
-              <MetaPill icon="flame" label={recipe.difficulty} />
+              <MetaPill icon="clock" label={`${recipe.time_min} min`} color={c.inkSoft} />
+              <MetaPill icon="flame" label={recipe.difficulty} color={c.inkSoft} />
             </View>
 
             {/* Description */}
             {recipe.description ? (
               <View
                 style={{
-                  backgroundColor: tokens.bgDeep,
+                  backgroundColor: c.bgDeep,
                   borderRadius: 14,
                   padding: 12,
                   marginTop: 14,
                 }}
               >
-                <Text style={{ fontFamily: fonts.sans, fontSize: 13, lineHeight: 18, color: tokens.inkSoft }}>
-                  <Text style={{ fontFamily: fonts.sansBold, color: tokens.ink }}>A note: </Text>
+                <Text style={{ fontFamily: fonts.sans, fontSize: 13, lineHeight: 18, color: c.inkSoft }}>
+                  <Text style={{ fontFamily: fonts.sansBold, color: c.ink }}>A note: </Text>
                   {recipe.description}
                 </Text>
               </View>
@@ -395,48 +426,51 @@ export default function RecipeDetailScreen() {
                 onPress={openSource}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14 }}
               >
-                <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.primary }}>
+                <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: c.primary }}>
                   Watch the original
                 </Text>
-                <Icon name="external" size={12} color={tokens.primary} />
+                <Icon name="external" size={12} color={c.primary} />
               </Pressable>
             ) : null}
 
-            {/* Plan toggle — full width, inside card */}
-            <Pressable
-              onPress={handleTogglePlan}
-              accessibilityRole="button"
-              accessibilityLabel={isPlanned ? 'Remove from plan' : 'Add to plan'}
-              style={({ pressed }) => ({
-                marginTop: 16,
-                paddingVertical: 12,
-                borderRadius: 14,
-                backgroundColor: isPlanned
-                  ? (pressed ? tokens.sageDeep : tokens.sage)
-                  : (pressed ? tokens.primaryLight : 'transparent'),
-                borderWidth: 1.5,
-                borderColor: isPlanned ? tokens.sage : tokens.primary,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-              })}
-            >
-              <Icon
-                name={isPlanned ? 'check' : 'plus'}
-                size={16}
-                color={isPlanned ? '#FFF' : tokens.primary}
-              />
-              <Text
-                style={{
-                  fontFamily: fonts.sansBold,
-                  fontSize: 13,
-                  color: isPlanned ? '#FFF' : tokens.primary,
-                }}
+            {/* Plan toggle — full width, inside card. Hidden in cook mode
+                because you don't plan a meal you're already cooking. */}
+            {!cooking && (
+              <Pressable
+                onPress={handleTogglePlan}
+                accessibilityRole="button"
+                accessibilityLabel={isPlanned ? 'Remove from plan' : 'Add to plan'}
+                style={({ pressed }) => ({
+                  marginTop: 16,
+                  paddingVertical: 12,
+                  borderRadius: 14,
+                  backgroundColor: isPlanned
+                    ? (pressed ? tokens.sageDeep : tokens.sage)
+                    : (pressed ? tokens.primaryLight : 'transparent'),
+                  borderWidth: 1.5,
+                  borderColor: isPlanned ? tokens.sage : tokens.primary,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                })}
               >
-                {isPlanned ? 'In your plan ✓' : '+ Plan this recipe'}
-              </Text>
-            </Pressable>
+                <Icon
+                  name={isPlanned ? 'check' : 'plus'}
+                  size={16}
+                  color={isPlanned ? tokens.ink : tokens.primary}
+                />
+                <Text
+                  style={{
+                    fontFamily: fonts.sansBold,
+                    fontSize: 13,
+                    color: isPlanned ? tokens.ink : tokens.primary,
+                  }}
+                >
+                  {isPlanned ? 'In your plan ✓' : '+ Plan this recipe'}
+                </Text>
+              </Pressable>
+            )}
           </View>
         </View>
 
@@ -453,13 +487,13 @@ export default function RecipeDetailScreen() {
 
         {/* Ingredients */}
         <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
-          <SectionHeader title="Ingredients" hint={cooking ? 'Tap to tick off' : undefined} />
+          <SectionHeader title="Ingredients" hint={cooking ? 'Tap to tick off' : undefined} inkColor={c.ink} mutedColor={c.muted} />
           <View
             style={{
-              backgroundColor: tokens.cream,
+              backgroundColor: c.cardBg,
               borderRadius: 18,
               borderWidth: 1,
-              borderColor: tokens.lineDark,
+              borderColor: c.lineDark,
               overflow: 'hidden',
               shadowColor: tokens.ink,
               shadowOffset: { width: 0, height: 1 },
@@ -485,7 +519,7 @@ export default function RecipeDetailScreen() {
                     paddingHorizontal: 14,
                     paddingVertical: 13,
                     borderBottomWidth: idx < recipe.ingredients.length - 1 ? 1 : 0,
-                    borderBottomColor: tokens.line,
+                    borderBottomColor: c.line,
                   }}
                 >
                   {cooking ? (
@@ -495,14 +529,14 @@ export default function RecipeDetailScreen() {
                         height: 24,
                         borderRadius: 7,
                         borderWidth: 1.5,
-                        borderColor: checked ? tokens.sage : tokens.muted,
-                        backgroundColor: checked ? tokens.sage : 'transparent',
+                        borderColor: checked ? c.sage : c.muted,
+                        backgroundColor: checked ? c.sage : 'transparent',
                         alignItems: 'center',
                         justifyContent: 'center',
                         marginTop: 2,
                       }}
                     >
-                      {checked && <Icon name="check" size={13} color="#FFF" />}
+                      {checked && <Icon name="check" size={13} color={tokens.ink} />}
                     </View>
                   ) : null}
                   <View style={{ flex: 1 }}>
@@ -511,13 +545,13 @@ export default function RecipeDetailScreen() {
                         fontFamily: fonts.sans,
                         fontSize: 14,
                         lineHeight: 20,
-                        color: checked ? tokens.muted : tokens.ink,
+                        color: checked ? c.muted : c.ink,
                         textDecorationLine: checked ? 'line-through' : 'none',
                       }}
                     >
                       {!inlineUnit ? (
                         <>
-                          <Text style={{ fontFamily: fonts.sansBold, fontVariant: ['tabular-nums'], color: checked ? tokens.muted : tokens.ink }}>
+                          <Text style={{ fontFamily: fonts.sansBold, fontVariant: ['tabular-nums'], color: checked ? c.muted : c.ink }}>
                             {formatAmount(amount)}
                           </Text>
                           {showUnit ? <Text style={{ fontFamily: fonts.sansBold }}> {ing.unit}</Text> : null}
@@ -526,14 +560,14 @@ export default function RecipeDetailScreen() {
                       ) : (
                         <>
                           <Text>{ing.name}</Text>
-                          <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic', color: tokens.muted }}>
+                          <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic', color: c.muted }}>
                             {' — '}{ing.unit}
                           </Text>
                         </>
                       )}
                     </Text>
                     {ing.prep ? (
-                      <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: tokens.muted, marginTop: 2 }}>
+                      <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.muted, marginTop: 2 }}>
                         {ing.prep}
                       </Text>
                     ) : null}
@@ -546,18 +580,25 @@ export default function RecipeDetailScreen() {
 
         {/* Method */}
         <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
-          <SectionHeader title="Method" hint={cooking ? 'Tap the number to mark done' : undefined} />
+          <SectionHeader title="Method" hint={cooking ? 'Tap the number to mark done' : undefined} inkColor={c.ink} mutedColor={c.muted} />
           <View style={{ gap: 12 }}>
             {recipe.steps.map((step, idx) => {
               const done = !!stepsDone[step.id];
+              // Step number badge: when cooking, the unticked badge sits on
+              // the dark card so it needs to invert (cream-on-dark instead
+              // of dark-on-cream). Done badge stays sage with dark ink text
+              // (sage is now light fern in the new pastel palette).
+              const numBadgeBg = done ? c.sage : (cooking ? c.cardBg : tokens.ink);
+              const numBadgeFg = done ? tokens.ink : (cooking ? c.ink : '#FFF');
+              const numBadgeBorder = cooking && !done ? c.lineDark : 'transparent';
               return (
                 <View
                   key={step.id}
                   style={{
-                    backgroundColor: tokens.cream,
+                    backgroundColor: c.cardBg,
                     borderRadius: 18,
                     borderWidth: 1,
-                    borderColor: tokens.lineDark,
+                    borderColor: c.lineDark,
                     padding: 16,
                     opacity: done ? 0.55 : 1,
                     shadowColor: tokens.ink,
@@ -575,16 +616,18 @@ export default function RecipeDetailScreen() {
                         width: 34,
                         height: 34,
                         borderRadius: 17,
-                        backgroundColor: done ? tokens.sage : tokens.ink,
+                        backgroundColor: numBadgeBg,
+                        borderWidth: numBadgeBorder === 'transparent' ? 0 : 1.5,
+                        borderColor: numBadgeBorder,
                         alignItems: 'center',
                         justifyContent: 'center',
                         flexShrink: 0,
                       }}
                     >
                       {done ? (
-                        <Icon name="check" size={15} color="#FFF" />
+                        <Icon name="check" size={15} color={tokens.ink} />
                       ) : (
-                        <Text style={{ fontFamily: fonts.display, fontSize: 16, color: '#FFF' }}>
+                        <Text style={{ fontFamily: fonts.display, fontSize: 16, color: numBadgeFg }}>
                           {idx + 1}
                         </Text>
                       )}
@@ -595,31 +638,31 @@ export default function RecipeDetailScreen() {
                         style={{
                           fontFamily: fonts.sansBold,
                           fontSize: 15,
-                          color: tokens.ink,
+                          color: c.ink,
                           textDecorationLine: done ? 'line-through' : 'none',
                           marginBottom: 5,
                         }}
                       >
                         {step.title}
                       </Text>
-                      <Text style={{ fontFamily: fonts.sans, fontSize: 14, lineHeight: 21, color: tokens.inkSoft }}>
+                      <Text style={{ fontFamily: fonts.sans, fontSize: 14, lineHeight: 21, color: c.inkSoft }}>
                         {step.content}
                       </Text>
 
                       {step.stage_note ? (
-                        <Callout label="Look for" accent={tokens.primary} italic text={step.stage_note} />
+                        <Callout label="Look for" accent={c.primary} bg={c.bgDeep} bodyColor={c.inkSoft} italic text={step.stage_note} />
                       ) : null}
                       {step.why_note ? (
-                        <Callout label="Why" accent={tokens.sage} text={step.why_note} />
+                        <Callout label="Why" accent={c.sage} bg={c.bgDeep} bodyColor={c.inkSoft} text={step.why_note} />
                       ) : null}
                       {step.lookahead ? (
-                        <Callout label="Heads-up" accent={tokens.ochre} text={step.lookahead} />
+                        <Callout label="Heads-up" accent={c.ochre} bg={c.bgDeep} bodyColor={c.inkSoft} text={step.lookahead} />
                       ) : null}
 
                       {step.timer_seconds && cooking ? (
                         <View style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Icon name="clock" size={12} color={tokens.muted} />
-                          <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: tokens.muted }}>
+                          <Icon name="clock" size={12} color={c.muted} />
+                          <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.muted }}>
                             Rough timer: {formatTimer(step.timer_seconds)}
                           </Text>
                         </View>
@@ -638,7 +681,7 @@ export default function RecipeDetailScreen() {
                 marginTop: 16,
                 padding: 14,
                 borderRadius: 14,
-                backgroundColor: tokens.bgDeep,
+                backgroundColor: c.bgDeep,
               }}
             >
               <Text
@@ -647,13 +690,13 @@ export default function RecipeDetailScreen() {
                   fontSize: 10,
                   letterSpacing: 1.5,
                   textTransform: 'uppercase',
-                  color: tokens.ochre,
+                  color: c.ochre,
                   marginBottom: 4,
                 }}
               >
                 Designed for leftovers
               </Text>
-              <Text style={{ fontFamily: fonts.sans, fontSize: 13, lineHeight: 18, color: tokens.inkSoft }}>
+              <Text style={{ fontFamily: fonts.sans, fontSize: 13, lineHeight: 18, color: c.inkSoft }}>
                 {recipe.leftover_mode.note}
               </Text>
             </View>
@@ -706,12 +749,12 @@ export default function RecipeDetailScreen() {
                 elevation: 8,
               }}
             >
-              <Icon name="chef" size={18} color="#FFF" />
+              <Icon name="chef" size={18} color={tokens.ink} />
               <Text
                 style={{
                   fontFamily: fonts.sansXBold,
                   fontSize: 15,
-                  color: '#FFF',
+                  color: tokens.ink,
                   letterSpacing: 0.3,
                 }}
               >
@@ -754,12 +797,12 @@ export default function RecipeDetailScreen() {
                 elevation: 8,
               }}
             >
-              <Icon name="check" size={18} color="#FFF" />
+              <Icon name="check" size={18} color={tokens.ink} />
               <Text
                 style={{
                   fontFamily: fonts.sansXBold,
                   fontSize: 15,
-                  color: '#FFF',
+                  color: tokens.ink,
                   letterSpacing: 0.3,
                 }}
               >
@@ -778,21 +821,33 @@ export default function RecipeDetailScreen() {
 function MetaPill({
   icon,
   label,
+  color = tokens.inkSoft,
 }: {
   icon: React.ComponentProps<typeof Icon>['name'];
   label: string;
+  color?: string;
 }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-      <Icon name={icon} size={14} color={tokens.inkSoft} />
-      <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.inkSoft }}>
+      <Icon name={icon} size={14} color={color} />
+      <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color }}>
         {label}
       </Text>
     </View>
   );
 }
 
-function SectionHeader({ title, hint }: { title: string; hint?: string }) {
+function SectionHeader({
+  title,
+  hint,
+  inkColor = tokens.ink,
+  mutedColor = tokens.muted,
+}: {
+  title: string;
+  hint?: string;
+  inkColor?: string;
+  mutedColor?: string;
+}) {
   return (
     <View
       style={{
@@ -802,11 +857,11 @@ function SectionHeader({ title, hint }: { title: string; hint?: string }) {
         marginBottom: 12,
       }}
     >
-      <Text style={{ fontFamily: fonts.display, fontSize: 22, color: tokens.ink }}>
+      <Text style={{ fontFamily: fonts.display, fontSize: 22, color: inkColor }}>
         {title}
       </Text>
       {hint ? (
-        <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: tokens.muted }}>
+        <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: mutedColor }}>
           {hint}
         </Text>
       ) : null}
@@ -819,11 +874,15 @@ function Callout({
   text,
   accent,
   italic,
+  bg = tokens.bgDeep,
+  bodyColor = tokens.inkSoft,
 }: {
   label: string;
   text: string;
   accent: string;
   italic?: boolean;
+  bg?: string;
+  bodyColor?: string;
 }) {
   return (
     <View
@@ -831,7 +890,7 @@ function Callout({
         marginTop: 10,
         padding: 10,
         borderRadius: 12,
-        backgroundColor: tokens.bgDeep,
+        backgroundColor: bg,
         borderLeftWidth: 3,
         borderLeftColor: accent,
       }}
@@ -854,7 +913,7 @@ function Callout({
           fontStyle: italic ? 'italic' : 'normal',
           fontSize: 13,
           lineHeight: 18,
-          color: tokens.inkSoft,
+          color: bodyColor,
         }}
       >
         {text}

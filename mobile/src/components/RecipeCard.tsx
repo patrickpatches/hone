@@ -135,12 +135,12 @@ export function RecipeCard({
               gap: 4,
             }}
           >
-            <Icon name="check" size={10} color="#FFF" />
+            <Icon name="check" size={10} color={tokens.ink} />
             <Text
               style={{
                 fontFamily: fonts.sansBold,
                 fontSize: 10,
-                color: '#FFF',
+                color: tokens.ink,
                 letterSpacing: 0.3,
               }}
             >

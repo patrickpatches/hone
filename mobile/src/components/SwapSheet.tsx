@@ -309,7 +309,7 @@ function SwapOption({
           flexShrink: 0,
         }}
       >
-        {isActive && <Icon name="check" size={10} color="#FFF" />}
+        {isActive && <Icon name="check" size={10} color={tokens.ink} />}
       </View>
 
       {/* Text */}
