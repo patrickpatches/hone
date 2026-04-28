@@ -729,7 +729,7 @@ function IngredientRow({ r, query, onPress }: { r: IngredientResult; query: stri
     >
       <View style={{
         width: 32, height: 32, borderRadius: 999,
-        backgroundColor: 'rgba(91,107,71,0.10)',
+        backgroundColor: tokens.sageLight,
         alignItems: 'center', justifyContent: 'center',
       }}>
         <Text style={{ fontSize: 14 }}>🥬</Text>
@@ -762,7 +762,7 @@ function ChefRow({ r, query, onPress }: { r: ChefResult; query: string; onPress:
     >
       <View style={{
         width: 32, height: 32, borderRadius: 999,
-        backgroundColor: 'rgba(199,108,72,0.12)',
+        backgroundColor: tokens.primaryLight,
         alignItems: 'center', justifyContent: 'center',
       }}>
         <Text style={{ fontSize: 14 }}>👨‍🍳</Text>
@@ -795,7 +795,7 @@ function TagRow({ r, query, onPress }: { r: TagResult; query: string; onPress: (
     >
       <View style={{
         width: 32, height: 32, borderRadius: 999,
-        backgroundColor: 'rgba(212,165,79,0.15)',
+        backgroundColor: 'rgba(212,169,106,0.18)',
         alignItems: 'center', justifyContent: 'center',
       }}>
         <Text style={{ fontSize: 16 }}>{r.emoji}</Text>

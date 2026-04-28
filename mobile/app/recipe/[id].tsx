@@ -138,7 +138,7 @@ export default function RecipeDetailScreen() {
   const totalPortions = totalPortionsFor(option, people, recipe.base_servings);
   const stepsDoneCount = Object.values(stepsDone).filter(Boolean).length;
   const progress     = cooking ? stepsDoneCount / recipe.steps.length : 0;
-  const gradient     = recipe.hero_fallback ?? ['#3D342C', '#8B7968', '#D9CEBB'];
+  const gradient     = recipe.hero_fallback ?? [tokens.ink, tokens.warmBrown, tokens.bgDeep];
   const attribution  = recipe.generated_by_claude
     ? 'Invented from your pantry'
     : recipe.source

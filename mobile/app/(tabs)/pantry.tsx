@@ -1143,7 +1143,7 @@ function Pill({
 }) {
   const bg = fresh ? tokens.primaryLight : tokens.sageLight;
   const fg = fresh ? tokens.primaryDeep : tokens.sageDeep;
-  const xBg = fresh ? 'rgba(184,109,69,0.18)' : 'rgba(77,128,112,0.18)';
+  const xBg = fresh ? 'rgba(163,68,31,0.18)' : 'rgba(70,94,64,0.18)';
   return (
     <Animated.View
       entering={FadeIn.duration(180)}
@@ -1220,7 +1220,7 @@ function RecipeMatchCard({
     pct === 100
       ? tokens.sageLight
       : pct >= 70
-      ? 'rgba(196,160,90,0.20)'
+      ? 'rgba(212,169,106,0.20)'
       : tokens.primaryLight;
   const allReady = match.totalCount === match.haveCount;
   return (
@@ -1288,7 +1288,7 @@ function RecipeMatchCard({
               position: 'absolute',
               bottom: 10,
               left: 10,
-              backgroundColor: 'rgba(29,25,23,0.7)',
+              backgroundColor: 'rgba(26,19,14,0.7)',
               paddingHorizontal: 9,
               paddingVertical: 5,
               borderRadius: 999,

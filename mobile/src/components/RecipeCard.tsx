@@ -32,7 +32,7 @@ export function RecipeCard({
   onToggleFavorite,
   isPlanned = false,
 }: Props) {
-  const gradient = recipe.hero_fallback ?? ['#3D342C', '#8B7968', '#D9CEBB'];
+  const gradient = recipe.hero_fallback ?? [tokens.ink, tokens.warmBrown, tokens.bgDeep];
 
   const handlePress = () => {
     Haptics.selectionAsync().catch(() => {});
@@ -109,7 +109,7 @@ export function RecipeCard({
               width: 38,
               height: 38,
               borderRadius: 19,
-              backgroundColor: 'rgba(29,25,23,0.42)',
+              backgroundColor: 'rgba(26,19,14,0.42)',
               alignItems: 'center',
               justifyContent: 'center',
             }}

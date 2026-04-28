@@ -58,7 +58,7 @@ function badgeConfig(quality: SwapQuality): { label: string; bg: string; text: s
     case 'good':
       return { label: 'Good swap', bg: tokens.bgDeep, text: tokens.inkSoft };
     case 'compromise':
-      return { label: 'Tradeoff', bg: '#F5E6C8', text: tokens.ochreDeep };
+      return { label: 'Tradeoff', bg: 'rgba(212,169,106,0.25)', text: tokens.ochreDeep };
   }
 }
 
@@ -92,7 +92,7 @@ export function SwapSheet({
     >
       {/* Dim backdrop */}
       <Pressable
-        style={{ flex: 1, backgroundColor: 'rgba(29,25,23,0.48)' }}
+        style={{ flex: 1, backgroundColor: 'rgba(26,19,14,0.48)' }}
         onPress={onClose}
       >
         {/* Sheet panel */}

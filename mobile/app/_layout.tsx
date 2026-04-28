@@ -2,9 +2,9 @@
  * Root layout.
  *
  * Responsibilities:
- *   - Load the bundled fonts (Lora for display, Inter for body) before
- *     anything renders. We keep the splash screen up until fonts are ready so
- *     the first frame doesn't flash system fonts.
+ *   - Load the bundled fonts (Playfair Display for display, Source Sans 3
+ *     for body) before anything renders. We keep the splash screen up until
+ *     fonts are ready so the first frame doesn't flash system fonts.
  *   - Set the background colour at the OS level (expo-system-ui) so the status
  *     bar region matches the app cream rather than flashing white on launch.
  *   - Stack host for expo-router. (tabs) is the default destination; future
@@ -26,14 +26,14 @@ import { SQLiteProvider } from 'expo-sqlite';
 import { useFonts } from 'expo-font';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
-  Lora_500Medium_Italic,
-  Lora_700Bold,
-} from '@expo-google-fonts/lora';
+  PlayfairDisplay_500Medium_Italic,
+  PlayfairDisplay_700Bold,
+} from '@expo-google-fonts/playfair-display';
 import {
-  Inter_500Medium,
-  Inter_700Bold,
-  Inter_800ExtraBold,
-} from '@expo-google-fonts/inter';
+  SourceSans3_400Regular,
+  SourceSans3_700Bold,
+  SourceSans3_800ExtraBold,
+} from '@expo-google-fonts/source-sans-3';
 import { tokens } from '../src/theme/tokens';
 import { initDatabase } from '../db/database';
 
@@ -44,11 +44,11 @@ SystemUI.setBackgroundColorAsync(tokens.bg).catch(() => {});
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    Lora_700Bold,
-    Lora_500Medium_Italic,
-    Inter_500Medium,
-    Inter_700Bold,
-    Inter_800ExtraBold,
+    PlayfairDisplay_700Bold,
+    PlayfairDisplay_500Medium_Italic,
+    SourceSans3_400Regular,
+    SourceSans3_700Bold,
+    SourceSans3_800ExtraBold,
   });
 
   useEffect(() => {
