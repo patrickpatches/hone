@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#F8F5F0"/>
+<title>Hone — Pantry Redesign Mock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #F8F5F0;
+    --bgDeep: #EDE8E0;
+    --cream: #FFFFFF;
+    --ink: #1D1917;
+    --inkSoft: #4D4540;
+    --muted: #9B8E85;
+    --primary: #D4845A;
+    --primaryDeep: #B86D45;
+    --primaryLight: rgba(212,132,90,0.12);
+    --sage: #6B9E8F;
+    --sageDeep: #4D8070;
+    --sageLight: rgba(107,158,143,0.12);
+    --ochre: #C4A05A;
+    --line: #E5DDD5;
+    --lineDark: #C8BFB5;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+  html,body{overscroll-behavior:none;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+  body{
+    font-family:'Manrope',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+    padding-bottom:140px;
+  }
+  .serif{font-family:'Fraunces',Georgia,serif}
+  .serif-it{font-family:'Fraunces',Georgia,serif;font-style:italic}
+  input,button{font-family:inherit;border:none;background:none;color:inherit}
+  button{cursor:pointer}
+
+  /* ── Header ── */
+  .header{
+    padding: 28px 20px 6px;
+  }
+  .kicker{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--primary);
+    margin-bottom:6px;
+  }
+  .h1{
+    font-size:36px;
+    line-height:1.05;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .h1 em{
+    font-style:italic;
+    font-weight:600;
+    color:var(--sage);
+  }
+  .sub{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:6px;
+  }
+
+  /* ── Search ── */
+  .search-wrap{
+    position:sticky;
+    top:0;
+    z-index:10;
+    background:linear-gradient(180deg, var(--bg) 80%, transparent);
+    padding:12px 20px 14px;
+  }
+  .search{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--cream);
+    border:1px solid var(--lineDark);
+    border-radius:14px;
+    padding:14px 16px;
+    box-shadow:0 1px 3px rgba(29,25,23,.04);
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .search.focused{
+    border-color:var(--primary);
+    box-shadow:0 0 0 3px var(--primaryLight);
+  }
+  .search input{
+    flex:1;
+    font-size:15px;
+    color:var(--ink);
+    outline:none;
+    min-width:0;
+  }
+  .search input::placeholder{color:var(--muted)}
+  .search-icon{width:18px;height:18px;color:var(--muted);flex-shrink:0}
+
+  /* ── Autocomplete dropdown ── */
+  .dropdown{
+    margin-top:8px;
+    background:var(--cream);
+    border:1px solid var(--line);
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:0 8px 24px rgba(29,25,23,.08);
+    max-height:340px;
+    overflow-y:auto;
+  }
+  .dropdown.hidden{display:none}
+  .ac-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:13px 16px;
+    border-bottom:1px solid var(--line);
+    transition:background .12s ease;
+  }
+  .ac-row:last-child{border-bottom:none}
+  .ac-row:active{background:var(--bgDeep)}
+  .ac-icon{
+    width:32px;height:32px;
+    border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+    font-size:15px;
+  }
+  .ac-icon.have{background:var(--sageLight);color:var(--sage)}
+  .ac-icon.suggest{background:var(--primaryLight);color:var(--primary)}
+  .ac-icon.new{background:var(--bgDeep);color:var(--inkSoft)}
+  .ac-text{flex:1;min-width:0}
+  .ac-name{font-size:14px;font-weight:600;color:var(--ink)}
+  .ac-meta{font-size:11px;color:var(--muted);margin-top:2px}
+  .ac-tag{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    padding:4px 8px;
+    border-radius:6px;
+    flex-shrink:0;
+  }
+  .ac-tag.have{background:var(--sageLight);color:var(--sageDeep)}
+  .ac-tag.suggest{background:var(--primaryLight);color:var(--primaryDeep)}
+  .ac-tag.new{background:var(--bgDeep);color:var(--inkSoft)}
+
+  /* ── Section card ── */
+  .card{
+    margin:0 20px 16px;
+    background:var(--cream);
+    border:1px solid var(--line);
+    border-radius:18px;
+    box-shadow:0 1px 3px rgba(29,25,23,.04);
+    overflow:hidden;
+  }
+  .card-head{
+    padding:14px 18px 6px;
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .card-title{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .card-count{font-size:11px;color:var(--muted)}
+
+  /* ── Pantry pills ── */
+  .pill-flow{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:6px 18px 18px;
+    min-height:60px;
+  }
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:9px 14px;
+    background:var(--sageLight);
+    border:1px solid transparent;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--sageDeep);
+    line-height:1;
+    min-height:36px;
+    animation:pop .22s cubic-bezier(.6,1.4,.5,1);
+    transition:transform .12s ease, background .15s ease;
+  }
+  .pill:active{transform:scale(.94)}
+  .pill .x{
+    width:16px;height:16px;
+    border-radius:999px;
+    background:rgba(77,128,112,.18);
+    color:var(--sageDeep);
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:700;
+    margin-right:-4px;
+    margin-left:2px;
+  }
+  .pill.fresh{background:var(--primaryLight);color:var(--primaryDeep)}
+  .pill.fresh .x{background:rgba(184,109,69,.18);color:var(--primaryDeep)}
+  @keyframes pop{
+    0%{transform:scale(.6);opacity:0}
+    60%{transform:scale(1.06)}
+    100%{transform:scale(1);opacity:1}
+  }
+  .empty-pantry{
+    padding:18px;
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.5;
+  }
+  .empty-pantry .arrow{font-size:18px;margin-bottom:6px;display:block}
+
+  .show-all{
+    width:100%;
+    padding:12px;
+    border-top:1px solid var(--line);
+    font-size:12px;
+    font-weight:600;
+    color:var(--inkSoft);
+    background:transparent;
+  }
+  .show-all:active{background:var(--bgDeep)}
+
+  /* ── Unlock card (Option C) ── */
+  .unlock{
+    margin:0 20px 16px;
+    padding:16px 18px;
+    background:linear-gradient(135deg, var(--primary), var(--primaryDeep));
+    border-radius:18px;
+    color:white;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    box-shadow:0 4px 12px rgba(184,109,69,.22);
+  }
+  .unlock-icon{
+    width:44px;height:44px;
+    border-radius:14px;
+    background:rgba(255,255,255,.18);
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;
+    flex-shrink:0;
+  }
+  .unlock-text{flex:1;min-width:0}
+  .unlock-kick{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    opacity:.78;
+    margin-bottom:3px;
+  }
+  .unlock-headline{
+    font-size:15px;
+    font-weight:700;
+    line-height:1.3;
+  }
+  .unlock-headline em{font-style:normal;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+  .unlock-arrow{
+    font-size:20px;
+    opacity:.85;
+    flex-shrink:0;
+  }
+
+  /* ── Almost there carousel (Option B) ── */
+  .section-head{
+    padding:6px 20px 10px;
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+  }
+  .section-title{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1.8px;
+    text-transform:uppercase;
+    color:var(--inkSoft);
+  }
+  .section-sub{font-size:11px;color:var(--muted)}
+
+  .carousel{
+    display:flex;
+    gap:12px;
+    overflow-x:auto;
+    overflow-y:visible;
+    scroll-snap-type:x mandatory;
+    padding:4px 20px 24px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .carousel::-webkit-scrollbar{display:none}
+  .recipe-card{
+    flex:0 0 260px;
+    background:var(--cream);
+    border:1px solid var(--line);
+    border-radius:18px;
+    overflow:hidden;
+    scroll-snap-align:start;
+    box-shadow:0 1px 3px rgba(29,25,23,.04);
+  }
+  .recipe-photo{
+    height:130px;
+    background:var(--bgDeep);
+    background-size:cover;
+    background-position:center;
+    position:relative;
+  }
+  .recipe-photo .badge{
+    position:absolute;
+    top:10px;left:10px;
+    background:rgba(29,25,23,.7);
+    color:white;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    padding:5px 9px;
+    border-radius:999px;
+    backdrop-filter:blur(6px);
+  }
+  .recipe-body{padding:14px}
+  .recipe-title{
+    font-size:15px;
+    font-weight:700;
+    color:var(--ink);
+    line-height:1.3;
+    margin-bottom:8px;
+    font-family:'Fraunces',Georgia,serif;
+  }
+  .recipe-need-label{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .recipe-needs{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .need-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:6px 10px;
+    background:var(--bgDeep);
+    border:1px dashed var(--lineDark);
+    border-radius:8px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--inkSoft);
+    transition:all .15s ease;
+  }
+  .need-chip:active{transform:scale(.96)}
+  .need-chip.added{
+    background:var(--sageLight);
+    border-style:solid;
+    border-color:transparent;
+    color:var(--sageDeep);
+  }
+  .need-chip .ico{font-size:11px;font-weight:800}
+
+  /* ── Just shopped pill ── */
+  .quick-actions{
+    padding:0 20px 14px;
+    display:flex;gap:8px;
+    overflow-x:auto;
+  }
+  .quick-actions::-webkit-scrollbar{display:none}
+  .qa-pill{
+    flex-shrink:0;
+    padding:9px 14px;
+    background:var(--cream);
+    border:1px solid var(--lineDark);
+    border-radius:999px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--inkSoft);
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .qa-pill:active{background:var(--bgDeep);transform:scale(.96)}
+
+  /* ── Toast ── */
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:30px;
+    transform:translateX(-50%) translateY(100px);
+    background:var(--ink);
+    color:white;
+    padding:12px 18px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:600;
+    box-shadow:0 8px 24px rgba(0,0,0,.2);
+    transition:transform .28s cubic-bezier(.2,.9,.3,1.2);
+    pointer-events:none;
+    z-index:50;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0)}
+
+  /* ── Note banner ── */
+  .note{
+    margin:14px 20px 0;
+    padding:10px 14px;
+    background:var(--ochre);
+    background:rgba(196,160,90,.18);
+    border:1px solid rgba(196,160,90,.4);
+    border-radius:12px;
+    font-size:11px;
+    color:var(--inkSoft);
+    line-height:1.45;
+  }
+  .note b{color:var(--ink);font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="kicker">Cook with what you have</div>
+  <h1 class="h1">Your <em class="serif-it">Pantry</em></h1>
+  <p class="sub" id="stocked-count">0 ingredients stocked</p>
+  <div class="note">
+    <b>Mock — Pantry redesign</b> · Type to add (autocomplete fires after 2 chars). Tap a pill's × to remove. Tap "missing" chips to drop into the shopping list.
+  </div>
+</div>
+
+<div class="search-wrap">
+  <div class="search" id="search-box">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="search-input" type="text" placeholder="Search or add an ingredient…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"/>
+    <button id="clear-btn" style="display:none;color:var(--muted);font-size:18px;padding:0 4px">×</button>
+  </div>
+  <div class="dropdown hidden" id="dropdown"></div>
+</div>
+
+<div class="quick-actions">
+  <button class="qa-pill" onclick="bulkAdd()">🛒 Just back from the shops</button>
+  <button class="qa-pill" onclick="document.getElementById('search-input').focus()">⚡ Add staples</button>
+</div>
+
+<!-- ── Pantry pill container ── -->
+<div class="card">
+  <div class="card-head">
+    <span class="card-title">In your pantry</span>
+    <span class="card-count" id="pantry-count">0 items</span>
+  </div>
+  <div class="pill-flow" id="pill-flow">
+    <div class="empty-pantry" id="empty-state">
+      <span class="arrow">↑</span>
+      Type above to add your first ingredient.<br>
+      We'll suggest as you type.
+    </div>
+  </div>
+  <button class="show-all hidden" id="show-all">Show all <span id="show-all-count"></span></button>
+</div>
+
+<!-- ── Unlock card (Option C) ── -->
+<div class="unlock" id="unlock-card" style="display:none">
+  <div class="unlock-icon">🔑</div>
+  <div class="unlock-text">
+    <div class="unlock-kick">One ingredient unlocks more</div>
+    <div class="unlock-headline">Pick up <em id="unlock-ingredient">garlic</em> → <span id="unlock-count">7</span> more recipes</div>
+  </div>
+  <div class="unlock-arrow">→</div>
+</div>
+
+<!-- ── Almost there carousel (Option B) ── -->
+<div id="almost-section" style="display:none">
+  <div class="section-head">
+    <span class="section-title">Almost there</span>
+    <span class="section-sub" id="almost-sub">1–2 missing</span>
+  </div>
+  <div class="carousel" id="almost-carousel"></div>
+</div>
+
+<div class="toast" id="toast">Added</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────
+const STAPLES = [
+  // category, name, aliases (US → AU)
+  { name: 'Salt',                cat: 'Spices' },
+  { name: 'Black pepper',        cat: 'Spices' },
+  { name: 'Olive oil',           cat: 'Pantry' },
+  { name: 'Plain flour',         cat: 'Pantry' },
+  { name: 'White sugar',         cat: 'Pantry' },
+  { name: 'Brown sugar',         cat: 'Pantry' },
+  { name: 'Eggs',                cat: 'Dairy & Eggs' },
+  { name: 'Unsalted butter',     cat: 'Dairy & Eggs' },
+  { name: 'Whole milk',          cat: 'Dairy & Eggs' },
+  { name: 'Garlic',              cat: 'Produce' },
+  { name: 'Brown onion',         cat: 'Produce' },
+  { name: 'Lemon',               cat: 'Produce' },
+  { name: 'Lime',                cat: 'Produce' },
+  { name: 'Capsicum',            cat: 'Produce', aliases:['bell pepper'] },
+  { name: 'Coriander',           cat: 'Produce', aliases:['cilantro'] },
+  { name: 'Parsley',             cat: 'Produce' },
+  { name: 'Basil',               cat: 'Produce' },
+  { name: 'Ginger',              cat: 'Produce' },
+  { name: 'Spring onion',        cat: 'Produce', aliases:['scallion','green onion'] },
+  { name: 'Tomato',              cat: 'Produce' },
+  { name: 'Soy sauce',           cat: 'Sauces' },
+  { name: 'Fish sauce',          cat: 'Sauces' },
+  { name: 'Dijon mustard',       cat: 'Sauces' },
+  { name: 'White wine vinegar',  cat: 'Sauces' },
+  { name: 'Sriracha',            cat: 'Sauces' },
+  { name: 'Cumin',               cat: 'Spices' },
+  { name: 'Paprika',             cat: 'Spices' },
+  { name: 'Smoked paprika',      cat: 'Spices' },
+  { name: 'Dried oregano',       cat: 'Spices' },
+  { name: 'Chilli flakes',       cat: 'Spices', aliases:['red pepper flakes','chili flakes'] },
+  { name: 'Bay leaves',          cat: 'Spices' },
+  { name: 'Cinnamon',            cat: 'Spices' },
+  { name: 'Turmeric',            cat: 'Spices' },
+  { name: 'Cumin seeds',         cat: 'Spices' },
+  { name: 'Chicken stock',       cat: 'Pantry' },
+  { name: 'Vegetable stock',     cat: 'Pantry' },
+  { name: 'Canned tomatoes',     cat: 'Pantry' },
+  { name: 'White rice',          cat: 'Pantry' },
+  { name: 'Pasta',               cat: 'Pantry' },
+  { name: 'Chicken thigh',       cat: 'Proteins' },
+  { name: 'Chicken breast',      cat: 'Proteins' },
+  { name: 'Beef mince',          cat: 'Proteins', aliases:['ground beef'] },
+  { name: 'Pork mince',          cat: 'Proteins', aliases:['ground pork'] },
+  { name: 'Bacon',               cat: 'Proteins' },
+  { name: 'Salmon',              cat: 'Proteins' },
+  { name: 'Prawns',              cat: 'Proteins', aliases:['shrimp'] },
+  { name: 'Parmesan',            cat: 'Dairy & Eggs' },
+  { name: 'Feta',                cat: 'Dairy & Eggs' },
+  { name: 'Greek yoghurt',       cat: 'Dairy & Eggs' },
+];
+
+// Recipes (fictional but plausible) — used to drive Option B + C
+const RECIPES = [
+  {
+    title: 'Spaghetti aglio e olio',
+    img: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=600&q=70',
+    needs: ['Pasta','Garlic','Olive oil','Chilli flakes','Parsley'],
+  },
+  {
+    title: 'One-pan lemon thyme chicken',
+    img: 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?auto=format&fit=crop&w=600&q=70',
+    needs: ['Chicken thigh','Lemon','Garlic','Olive oil','Salt','Black pepper'],
+  },
+  {
+    title: 'Smashburger with quick pickles',
+    img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=70',
+    needs: ['Beef mince','Brown onion','Salt','Black pepper','Olive oil'],
+  },
+  {
+    title: 'Salmon with crispy skin & herbs',
+    img: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=600&q=70',
+    needs: ['Salmon','Olive oil','Lemon','Salt','Black pepper','Parsley'],
+  },
+  {
+    title: 'Quick prawn stir-fry',
+    img: 'https://images.unsplash.com/photo-1527477396000-e27163b481c2?auto=format&fit=crop&w=600&q=70',
+    needs: ['Prawns','Garlic','Ginger','Soy sauce','Spring onion','Chilli flakes'],
+  },
+  {
+    title: 'Cumin-roasted carrots & yoghurt',
+    img: 'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?auto=format&fit=crop&w=600&q=70',
+    needs: ['Olive oil','Cumin','Garlic','Greek yoghurt','Salt'],
+  },
+];
+
+// ── State ─────────────────────────────────────────────────────────
+const pantry = new Map(); // name → {name, cat, freshlyAdded:bool, addedAt:number}
+const shoppingList = new Set(); // missing ingredient names that user tapped
+let toastTimer = null;
+
+// ── Helpers ───────────────────────────────────────────────────────
+function norm(s){ return (s||'').toLowerCase().trim(); }
+function fuzzyMatch(query, item) {
+  const q = norm(query);
+  if (norm(item.name).includes(q)) return true;
+  if (item.aliases && item.aliases.some(a => norm(a).includes(q))) return true;
+  return false;
+}
+function findExisting(query) {
+  const q = norm(query);
+  for (const [k, v] of pantry) {
+    if (norm(k) === q || (v.aliases && v.aliases.some(a => norm(a) === q))) return v;
+  }
+  return null;
+}
+
+// ── Search & autocomplete ─────────────────────────────────────────
+const $input    = document.getElementById('search-input');
+const $clear    = document.getElementById('clear-btn');
+const $box      = document.getElementById('search-box');
+const $dropdown = document.getElementById('dropdown');
+
+$input.addEventListener('focus', () => $box.classList.add('focused'));
+$input.addEventListener('blur',  () => setTimeout(() => $box.classList.remove('focused'), 80));
+$input.addEventListener('input', renderDropdown);
+$clear.addEventListener('click', () => { $input.value=''; $clear.style.display='none'; renderDropdown(); $input.focus(); });
+
+function renderDropdown(){
+  const q = $input.value.trim();
+  $clear.style.display = q ? 'block' : 'none';
+  if (q.length < 2) {
+    $dropdown.classList.add('hidden');
+    return;
+  }
+
+  const inPantry = [];
+  const suggested = [];
+  STAPLES.forEach(item => {
+    if (!fuzzyMatch(q, item)) return;
+    if (pantry.has(item.name)) inPantry.push(item);
+    else suggested.push(item);
+  });
+
+  let html = '';
+  inPantry.slice(0,3).forEach(item => {
+    html += `<div class="ac-row" onclick="acTapExisting('${item.name}')">
+      <div class="ac-icon have">✓</div>
+      <div class="ac-text">
+        <div class="ac-name">${item.name}</div>
+        <div class="ac-meta">Already in your pantry</div>
+      </div>
+      <div class="ac-tag have">In pantry</div>
+    </div>`;
+  });
+  suggested.slice(0,5).forEach(item => {
+    const aliasNote = item.aliases && item.aliases.some(a => norm(a).includes(norm(q)))
+      ? `Also known as ${item.aliases[0]}` : item.cat;
+    html += `<div class="ac-row" onclick="acTapAdd('${item.name}','${item.cat}')">
+      <div class="ac-icon suggest">+</div>
+      <div class="ac-text">
+        <div class="ac-name">${item.name}</div>
+        <div class="ac-meta">${aliasNote}</div>
+      </div>
+      <div class="ac-tag suggest">Add</div>
+    </div>`;
+  });
+
+  // Always allow free-text entry as last row
+  const exact = STAPLES.some(s => norm(s.name) === norm(q));
+  if (!exact && !pantry.has(q)) {
+    const titled = q.charAt(0).toUpperCase() + q.slice(1);
+    html += `<div class="ac-row" onclick="acTapAdd('${titled}','Custom')">
+      <div class="ac-icon new">＋</div>
+      <div class="ac-text">
+        <div class="ac-name">Add "${titled}" as new</div>
+        <div class="ac-meta">Not in our staples list — we'll add it for you</div>
+      </div>
+      <div class="ac-tag new">New</div>
+    </div>`;
+  }
+
+  if (!html) {
+    $dropdown.classList.add('hidden');
+    return;
+  }
+  $dropdown.innerHTML = html;
+  $dropdown.classList.remove('hidden');
+}
+
+function acTapExisting(name){
+  toast(`Already have ${name}`);
+  $input.value=''; renderDropdown();
+  // scroll to and pulse the existing pill
+  const el = document.querySelector(`[data-pill="${CSS.escape(name)}"]`);
+  if (el){ el.style.background='var(--primaryLight)'; el.style.color='var(--primaryDeep)'; setTimeout(()=>{el.style.background='';el.style.color='';},700); el.scrollIntoView({behavior:'smooth',block:'center'}); }
+}
+function acTapAdd(name, cat){
+  if (pantry.has(name)) { acTapExisting(name); return; }
+  pantry.set(name, { name, cat, freshlyAdded:true, addedAt:Date.now() });
+  if (navigator.vibrate) navigator.vibrate(10);
+  toast(`Added ${name}`);
+  $input.value=''; $input.focus(); renderDropdown();
+  render();
+}
+
+// ── Pantry render ─────────────────────────────────────────────────
+function render(){
+  const items = Array.from(pantry.values()).sort((a,b)=> b.addedAt - a.addedAt);
+  const $flow = document.getElementById('pill-flow');
+  const $empty = document.getElementById('empty-state');
+  const $count = document.getElementById('pantry-count');
+  const $stocked = document.getElementById('stocked-count');
+  const $showAll = document.getElementById('show-all');
+
+  $stocked.textContent = `${items.length} ingredient${items.length===1?'':'s'} stocked`;
+  $count.textContent = `${items.length} item${items.length===1?'':'s'}`;
+
+  if (items.length === 0) {
+    $empty.style.display='block';
+    $flow.querySelectorAll('.pill').forEach(p => p.remove());
+    $showAll.classList.add('hidden');
+  } else {
+    $empty.style.display='none';
+    const cap = 14;
+    const visible = items.slice(0, cap);
+    $flow.innerHTML = visible.map(it => `
+      <span class="pill ${it.freshlyAdded?'fresh':''}" data-pill="${it.name}">
+        ${it.name}
+        <button class="x" onclick="removePill('${it.name}')">×</button>
+      </span>
+    `).join('');
+    if (items.length > cap){
+      $showAll.classList.remove('hidden');
+      $showAll.textContent = `Show all ${items.length}`;
+    } else {
+      $showAll.classList.add('hidden');
+    }
+    // After 1.5s, "fresh" decay so they sort into chronology naturally next session
+    setTimeout(() => { items.forEach(it => it.freshlyAdded=false); }, 1500);
+  }
+
+  renderRecipes();
+}
+
+function removePill(name){
+  pantry.delete(name);
+  if (navigator.vibrate) navigator.vibrate(8);
+  render();
+}
+
+// ── Option B + C: closest matches ─────────────────────────────────
+function renderRecipes(){
+  const have = new Set(Array.from(pantry.keys()).map(n => norm(n)));
+  const aliasHave = new Set();
+  STAPLES.forEach(s => {
+    if (pantry.has(s.name) && s.aliases) s.aliases.forEach(a => aliasHave.add(norm(a)));
+  });
+
+  const isCovered = ing => have.has(norm(ing)) || aliasHave.has(norm(ing));
+
+  const scored = RECIPES.map(r => {
+    const missing = r.needs.filter(n => !isCovered(n));
+    return { ...r, missing, missingCount: missing.length, total: r.needs.length };
+  });
+
+  // ── B: Almost there (missing 1–2) ──
+  const almost = scored.filter(r => r.missingCount > 0 && r.missingCount <= 2)
+                       .sort((a,b)=>a.missingCount - b.missingCount);
+  const $almost = document.getElementById('almost-section');
+  const $car    = document.getElementById('almost-carousel');
+  const $sub    = document.getElementById('almost-sub');
+
+  if (almost.length === 0 || pantry.size < 2) {
+    $almost.style.display='none';
+  } else {
+    $almost.style.display='block';
+    $sub.textContent = `${almost.length} dish${almost.length===1?'':'es'} · 1–2 missing`;
+    $car.innerHTML = almost.map(r => `
+      <div class="recipe-card">
+        <div class="recipe-photo" style="background-image:url('${r.img}')">
+          <div class="badge">${r.missingCount} missing</div>
+        </div>
+        <div class="recipe-body">
+          <div class="recipe-title">${r.title}</div>
+          <div class="recipe-need-label">Tap to add to shopping list</div>
+          <div class="recipe-needs">
+            ${r.missing.map(m => `
+              <button class="need-chip ${shoppingList.has(m)?'added':''}" onclick="addToShopping('${m}', this)">
+                <span class="ico">${shoppingList.has(m)?'✓':'+'}</span>${m}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ── C: One ingredient unlocks more ──
+  const unlockCounts = {};
+  scored.forEach(r => {
+    if (r.missingCount === 0) return;
+    if (r.missingCount > 3) return; // only count near-misses
+    r.missing.forEach(m => {
+      unlockCounts[m] = (unlockCounts[m] || 0) + 1;
+    });
+  });
+  const ranked = Object.entries(unlockCounts).sort((a,b)=>b[1]-a[1]);
+  const $unlock = document.getElementById('unlock-card');
+  if (ranked.length === 0 || ranked[0][1] < 2 || pantry.size < 3) {
+    $unlock.style.display='none';
+  } else {
+    $unlock.style.display='flex';
+    document.getElementById('unlock-ingredient').textContent = ranked[0][0];
+    document.getElementById('unlock-count').textContent = ranked[0][1];
+  }
+}
+
+function addToShopping(name, btn){
+  if (shoppingList.has(name)) {
+    shoppingList.delete(name);
+    btn.classList.remove('added');
+    btn.querySelector('.ico').textContent='+';
+    toast(`Removed ${name} from list`);
+  } else {
+    shoppingList.add(name);
+    btn.classList.add('added');
+    btn.querySelector('.ico').textContent='✓';
+    if (navigator.vibrate) navigator.vibrate(10);
+    toast(`Added ${name} to shopping list`);
+  }
+}
+
+function bulkAdd(){
+  // Demo: add a typical "just shopped" haul
+  const haul = ['Chicken thigh','Brown onion','Garlic','Lemon','Olive oil','Pasta','Parmesan','Tomato'];
+  let delay = 0;
+  haul.forEach(n => {
+    if (pantry.has(n)) return;
+    setTimeout(() => {
+      const item = STAPLES.find(s => s.name === n) || { name: n, cat: 'Pantry' };
+      pantry.set(n, { name:n, cat:item.cat, freshlyAdded:true, addedAt:Date.now() });
+      render();
+      if (navigator.vibrate) navigator.vibrate(8);
+    }, delay);
+    delay += 90;
+  });
+  setTimeout(() => toast('Added 8 items from your last shop'), delay + 100);
+}
+
+// ── Toast ─────────────────────────────────────────────────────────
+function toast(msg){
+  const $t = document.getElementById('toast');
+  $t.textContent = msg;
+  $t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>$t.classList.remove('show'), 1800);
+}
+
+// Hide dropdown on outside tap
+document.addEventListener('click', (e) => {
+  if (!$box.contains(e.target) && !$dropdown.contains(e.target)) {
+    $dropdown.classList.add('hidden');
+  }
+});
+
+// Initial render
+render();
+</script>
+</body>
+</html>
