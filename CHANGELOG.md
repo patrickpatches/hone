@@ -220,7 +220,7 @@ deps change (new Expo modules, Gradle config) — bumped via
 
 ### Documented
 - `docs/session-12-backlog.md` — comprehensive PM backlog.
-- `docs/onedrive-fix.md` — root-cause writeup of the OneDrive sync corruption that mangles Edit-tool writes.
+- `docs/the file system-fix.md` — root-cause writeup of the file corruption that mangles Edit-tool writes.
 
 ## [0.0.1] — 2026-04-24 — First working APK (commit c2fa743)
 

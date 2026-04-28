@@ -226,7 +226,7 @@ Design doc: `docs/pantry-to-recipe.md`
   - Build pipeline: GitHub Actions (Ubuntu runner) → `expo prebuild --clean` → `./gradlew assembleDebug`. TypeScript: zero errors after all package upgrades.
   - **APK:** `hone-debug.apk` — 63.7 MB debug build, GitHub Actions run 24873454825. Download from: https://github.com/patrickpatches/hone/actions/runs/24873454825
   - **Next steps:** Install APK on Patrick's phone → test core loop → Play Store assets (icon 512×512, feature graphic, screenshots) → privacy policy → content rating → internal track submission. 
-## Session 12 (2026-04-25) — bug audit + OneDrive root-cause fix
+## Session 12 (2026-04-25) — bug audit + the file system root-cause fix
 
 **App working on Patrick's phone.** APK from session 11 installs and runs. Patrick reported a series of UX problems and bugs after testing.
 
@@ -244,14 +244,14 @@ Design doc: `docs/pantry-to-recipe.md`
 **File-system housekeeping (this session):**
 - Today's snapshot at `docs/archive/backup-2026-04-25/` (CLAUDE.md, hone.html, index.html, all 4 tab screens, recipe detail, seed-recipes, pantry-helpers, types).
 - Simmer Fresh rename leftovers archived to `docs/archive/simmer-fresh-rename-leftovers/`.
-- Stale Claude Code worktrees in `mobile/.claude/worktrees/` and `mobile/.validate-tmp*` directories could not be deleted via WSL bash (OneDrive ACL blocked rm). Patrick to delete in Windows Explorer. **NOTE:** the `silly-williams-21445f` worktree turned out to be the most recent CLEAN snapshot of the source code — see OneDrive corruption note below. Do NOT delete it until OneDrive is fixed and a fresh clean copy is verified.
+- Stale Claude Code worktrees in `mobile/.claude/worktrees/` and `mobile/.validate-tmp*` directories could not be deleted via WSL bash (file-system ACL blocked rm). Patrick to delete in Windows Explorer. **NOTE:** the `silly-williams-21445f` worktree turned out to be the most recent CLEAN snapshot of the source code — see file corruption note below. Do NOT delete it until the file system is fixed and a fresh clean copy is verified.
 
-**OneDrive corruption — root cause found and documented:**
-- `Edit` tool's incremental read-modify-write pattern races with OneDrive's file lock during background sync, producing files with correct byte count but truncated/garbled content past the lock point.
+**file corruption — root cause found and documented:**
+- `Edit` tool's incremental read-modify-write pattern races with the file system's file lock during background sync, producing files with correct byte count but truncated/garbled content past the lock point.
 - `Write` tool (full file rewrite) and shell `cp`/`echo`/`python` writes all produce intact files. Tested in session.
 - Several source files were already corrupted on disk before this session began — `seed-recipes.ts` truncated mid-string at line 3384, `recipe/[id].tsx` truncated mid-line, `(tabs)/index.tsx` truncated mid-JSX. CLAUDE.md's "TypeScript: zero errors" claim from session 11 was outdated; the corruption happened sometime between sessions 11 and 12.
 - Recovered all corrupted files from the stale `mobile/.claude/worktrees/silly-williams-21445f/` worktree (the most recent intact snapshot). Project source code is now back to a clean known-good state matching the working APK.
-- **Permanent fix written up at `docs/onedrive-fix.md`.** Two options for Patrick: (A) right-click `Cooking App` folder → "Always keep on this device" (quick), or (B) move project to `C:\Users\patri\Projects\Hone\` and symlink back into OneDrive (cleanest). Until applied, the rule for any future Claude session in this project is: **use Write tool only, never Edit, for source files.**
+- **Permanent fix written up at `docs/the file system-fix.md`.** Two options for Patrick: (A) right-click `Cooking App` folder → "Always keep on this device" (quick), or (B) move project to `C:\Users\patri\Projects\Hone\` and symlink back into the file system (cleanest). Until applied, the rule for any future Claude session in this project is: **use Write tool only, never Edit, for source files.**
 
 **Code changes attempted this session that DID NOT survive:**
 - Calendar icon added to Icon component
@@ -261,20 +261,20 @@ Design doc: `docs/pantry-to-recipe.md`
 - Calendar button on recipe detail
 - AddToPlanSheet wiring in Kitchen index.tsx and recipe/[id].tsx
 
-All Edit-tool changes above were silently corrupted by OneDrive and rolled back when files were restored. **`mobile/src/components/AddToPlanSheet.tsx` (320 lines, 9.6 KB) DID survive** — written via Write tool, sits orphan in the source tree, ready to wire up next session.
+All Edit-tool changes above were silently corrupted by the file system and rolled back when files were restored. **`mobile/src/components/AddToPlanSheet.tsx` (320 lines, 9.6 KB) DID survive** — written via Write tool, sits orphan in the source tree, ready to wire up next session.
 
-**Next session (Session 13) — first priority:** confirm OneDrive fix is applied (Option A or B from `docs/onedrive-fix.md`), then re-apply the P0 changes using `Write` tool only. The plan and the AddToPlanSheet are already in place; this is implementation, not design.
+**Next session (Session 13) — first priority:** confirm the file system fix is applied (Option A or B from `docs/the file system-fix.md`), then re-apply the P0 changes using `Write` tool only. The plan and the AddToPlanSheet are already in place; this is implementation, not design.
 
 **Outstanding asks for Patrick:**
 - App icon (chef knife + tomato on yellow): drag-drop the actual file into chat in next session, OR save it to `mobile/assets/source-icon.png`. The inline image was visible to me but not accessible as a file in this session.
-- Apply OneDrive fix per `docs/onedrive-fix.md`.
-- Delete stale worktrees + validate-tmp directories in Windows Explorer (after OneDrive fix and after a fresh clean source backup is taken).
+- Apply the file system fix per `docs/the file system-fix.md`.
+- Delete stale worktrees + validate-tmp directories in Windows Explorer (after the file system fix and after a fresh clean source backup is taken).
 
 ---
 
 ## Session 12 (continued, 2026-04-25) — P0 fixes shipped + app icon
 
-After diagnosing the OneDrive corruption (Edit tool unsafe in OneDrive folder), switched to shell-based writes (read original from worktree, modify in `/tmp` via Python, `cp` to project location). Every file written this way was intact on first attempt — confirmed via tail integrity checks.
+After diagnosing the file corruption (Edit tool unsafe in project folder), switched to shell-based writes (read original from worktree, modify in `/tmp` via Python, `cp` to project location). Every file written this way was intact on first attempt — confirmed via tail integrity checks.
 
 **Code changes shipped:**
 1. **Icon set extended** — `calendar` + `plus-circle` icons added to `Icon.tsx` for the new affordances.
@@ -290,14 +290,14 @@ After diagnosing the OneDrive corruption (Edit tool unsafe in OneDrive folder), 
    - `favicon.png` 48×48
    - `app.json` updated: `android.adaptiveIcon.backgroundColor` set to `#F9C43F` (sampled from icon yellow) so masked-icon edges match the foreground.
 
-**Status of OneDrive fix:** Patrick deferred to later. The shell-write workaround handled this session, but every future session in this folder should:
+**Status of the file system fix:** Patrick deferred to later. The shell-write workaround handled this session, but every future session in this folder should:
 - Use `Write` tool sparingly (it sometimes works, sometimes corrupts)
 - Prefer shell-based writes (`cp` from `/tmp`) for reliability
-- Or apply Option A from `docs/onedrive-fix.md` to remove the constraint entirely
+- Or apply Option A from `docs/the file system-fix.md` to remove the constraint entirely
 
 **What still needs Patrick:**
-- Apply OneDrive fix (Option A or B from `docs/onedrive-fix.md`) — still unresolved.
-- Delete stale `mobile/.claude/worktrees/` and `mobile/.validate-tmp*` folders in Windows Explorer. Wait until OneDrive fix is in place first — those worktrees were our recovery source today.
+- Apply the file system fix (Option A or B from `docs/the file system-fix.md`) — still unresolved.
+- Delete stale `mobile/.claude/worktrees/` and `mobile/.validate-tmp*` folders in Windows Explorer. Wait until the file system fix is in place first — those worktrees were our recovery source today.
 - Build a fresh APK to test the new pantry UX, calendar buttons, and icon. (`expo prebuild --clean && ./gradlew assembleDebug` via the same GitHub Actions pipeline as session 11.)
 
 **Backlog state:** P0 pantry + P0 add-to-plan items are now CODE COMPLETE. Remaining open: P0 recipe data audit ("X or Y" ingredient names — 35 instances catalogued in seed-recipes.ts), P0 add-recipe form rewrite (paste-and-parse), P2 recipe yield model (needs ADR), P3 clear-filter chip rail.

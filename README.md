@@ -81,7 +81,7 @@ Artifact attaches to the run. See [docs/RELEASING.md](./docs/RELEASING.md) for t
 - `CLAUDE.md` — single source of truth for project rules, decisions, session log
 - `CHANGELOG.md` — shipped versions
 - `docs/RELEASING.md` — how to cut a release
-- `docs/onedrive-fix.md` — known issue with the working-folder location
+- `docs/the file system-fix.md` — known issue with the working-folder location
 - `docs/adr/` — Architecture Decision Records
 - `docs/ux-redesign-research.md` — current UX redesign master plan
 - `docs/add-recipe-research.md` — Add Recipe screen design supplement

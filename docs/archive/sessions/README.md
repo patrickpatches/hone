@@ -6,8 +6,8 @@ of the matching session. The session number aligns with the entries in
 
 These exist so any session can:
 
-- Recover from accidental file corruption (the OneDrive sync issue
-  documented in `docs/onedrive-fix.md`)
+- Recover from accidental file corruption (the file sync issues
+  documented in `docs/the file system-fix.md`)
 - Diff against the current state to verify what changed
 - Restore a known-good source if a redesign turns out to be a regression
 
@@ -18,6 +18,6 @@ and there's no realistic recovery scenario. Default rule: keep the last
 | Session | Captured before | Notes |
 |---|---|---|
 | 11 | First Android APK build | Pre-SDK-54 package upgrade |
-| 12 | Bug audit + OneDrive corruption diagnosis | Pre-pantry-rework |
+| 12 | Bug audit + file corruption diagnosis | Pre-pantry-rework |
 | 13 | UX wave 2 (calendar→+, chip rail, yield types) | Pre-redesign |
 | 14 | Autocomplete + Plan & Shop merge + Pantry tag-cloud | Pre-Mona-Lisa-search |

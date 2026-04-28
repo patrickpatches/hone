@@ -410,7 +410,7 @@ Done in this session:
 - ✅ Today's snapshot at `docs/archive/backup-2026-04-25/` (CLAUDE.md, hone.html, index.html, 4 tab screens, recipe detail, seed-recipes, pantry-helpers, types).
 - ✅ Simmer Fresh rename leftovers archived to `docs/archive/simmer-fresh-rename-leftovers/`. The old XLSX dev log and `simmer-fresh.html` are out of the project root.
 
-Still needs Patrick's hand (Windows-side; OneDrive ACL prevented WSL bash from removing them):
+Still needs Patrick's hand (Windows-side; file-system ACL prevented WSL bash from removing them):
 
 1. **Stale Claude Code worktrees** — delete in Windows Explorer:
    - `mobile\.claude\worktrees\busy-kirch-162ad3`
@@ -424,7 +424,7 @@ Still needs Patrick's hand (Windows-side; OneDrive ACL prevented WSL bash from r
    - `mobile\.validate-tmp-1776800766321`
    - These are seed-validator scratch dirs that didn't get cleaned up. ~400 KB each. Future validator runs will recreate the canonical `.validate-tmp/` if needed.
 
-3. **Old OneDrive lock file:** `.~lock.Simmer_Fresh_Development_Log_FY2025-26.xlsx#` at the project root — held by OneDrive. Will clear itself when OneDrive next syncs, or right-click → delete in Explorer.
+3. **Old stale lock files:** `.~lock.Simmer_Fresh_Development_Log_FY2025-26.xlsx#` at the project root — held by the file system. Will clear itself when the file system next syncs, or right-click → delete in Explorer.
 
 After those three are gone, project root is fully clean: just CLAUDE.md, the Hone XLSX log, hone.html, index.html, mobile/, docs/, run-android.bat, .gitignore, .github/.
 
