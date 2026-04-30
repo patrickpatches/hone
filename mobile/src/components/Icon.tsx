@@ -47,7 +47,8 @@ export type IconName =
   | 'arrow-up'
   | 'calendar'
   | 'plus-circle'
-  | 'grip';
+  | 'grip'
+  | 'camera';
 
 type Props = {
   name: IconName;
@@ -109,5 +110,4 @@ const PATHS: Record<IconName, React.ReactNode> = {
   'arrow-up': <><Path d="M12 19V5" /><Path d="m5 12 7-7 7 7" /></>,
   'calendar': <><Rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><Line x1="16" x2="16" y1="2" y2="6" /><Line x1="8" x2="8" y1="2" y2="6" /><Line x1="3" x2="21" y1="10" y2="10" /></>,
   'plus-circle': <><Circle cx="12" cy="12" r="10" /><Line x1="12" x2="12" y1="8" y2="16" /><Line x1="8" x2="16" y1="12" y2="12" /></>,
-  'grip': <><Circle cx="9" cy="6" r="1" /><Circle cx="9" cy="12" r="1" /><Circle cx="9" cy="18" r="1" /><Circle cx="15" cy="6" r="1" /><Circle cx="15" cy="12" r="1" /><Circle cx="15" cy="18" r="1" /></>,
-};
+  'grip': <><Circle cx="9" cy="6" r="1" /><Circle cx="9" cy="12" r="1" /><Circle cx="9" cy="18" r="1" /><Circle cx="15" cy="6" r="1" /><Circle cx="15" cy="12" r="1" /><Circle cx="15" cy="18" r="

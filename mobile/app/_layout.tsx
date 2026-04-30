@@ -31,6 +31,7 @@ import * as SystemUI from 'expo-system-ui';
 import { SQLiteProvider } from 'expo-sqlite';
 import { useFonts } from 'expo-font';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import {
   PlayfairDisplay_500Medium_Italic,
   PlayfairDisplay_700Bold,
@@ -71,17 +72,9 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      {/* BottomSheetModalProvider must be inside GestureHandlerRootView and
+          wrap the entire nav tree so BottomSheetModal portals render correctly. */}
+      <BottomSheetModalProvider>
       <SQLiteProvider databaseName="hone.db" onInit={initDatabase}>
         <StatusBar style="light" />
         <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: tokens.bg },
-          }}
-        >
-          <Stack.Screen name="(tabs)" />
-        </Stack>
-      </SQLiteProvider>
-    </GestureHandlerRootView>
-  );
-}

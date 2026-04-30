@@ -33,6 +33,8 @@ export function RecipeCard({
   isPlanned = false,
 }: Props) {
   const gradient = recipe.hero_fallback ?? [tokens.ink, tokens.warmBrown, tokens.bgDeep];
+  // True only when every step has a photo_url. Derived — no schema field needed.
+  const hasStagePhotos = recipe.steps.every((s) => Boolean(s.photo_url));
 
   const handlePress = () => {
     Haptics.selectionAsync().catch(() => {});
@@ -174,6 +176,38 @@ export function RecipeCard({
             {recipe.difficulty}
           </Text>
         </View>
+
+        {/* "Photos soon" badge — bottom right, opposite corner from difficulty chip.
+            Only shown when the recipe has no stage photos yet.
+            Dark scrim + camera icon — unobtrusive but honest. */}
+        {!hasStagePhotos && (
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 12,
+              right: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4,
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+              borderRadius: 999,
+              backgroundColor: 'rgba(26,19,14,0.62)',
+            }}
+          >
+            <Icon name="camera" size={11} color="rgba(255,255,255,0.92)" />
+            <Text
+              style={{
+                fontSize: 10,
+                fontFamily: fonts.sansBold,
+                color: 'rgba(255,255,255,0.92)',
+                letterSpacing: 0.05,
+              }}
+            >
+              Photos soon
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Card body */}
@@ -208,41 +242,4 @@ export function RecipeCard({
             flexDirection: 'row',
             alignItems: 'center',
             gap: 14,
-            marginTop: 12,
-          }}
-        >
-          <MetaChip icon="clock" label={`${recipe.time_min} min`} />
-          <MetaChip icon="users" label={`${recipe.base_servings}`} />
-          {recipe.source ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Icon name="external" size={12} color={tokens.primaryInk} />
-              <Text
-                style={{
-                  fontSize: 11,
-                  fontFamily: fonts.sansBold,
-                  color: tokens.primaryInk,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}
-                numberOfLines={1}
-              >
-                {recipe.source.chef}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-      </View>
-    </Pressable>
-  );
-}
-
-function MetaChip({ icon, label }: { icon: 'clock' | 'users'; label: string }) {
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-      <Icon name={icon} size={12} color={tokens.muted} />
-      <Text style={{ fontSize: 12, fontFamily: fonts.sans, color: tokens.muted }}>
-        {label}
-      </Text>
-    </View>
-  );
-}
+          

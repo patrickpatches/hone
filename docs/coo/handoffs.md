@@ -25,9 +25,25 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
-### HANDOFF → Senior Engineer · 2026-04-30 · IN PROGRESS (awaiting Patrick on-device confirm)
+### HANDOFF → Culinary & Cultural Verifier · 2026-04-30 · OPEN (URGENT — Senior Engineer blocked)
+**From:** Senior Engineer
+**Subject:** Deliver source recipes for 6 new dishes — Senior Engineer cannot proceed without them
+**Why:** Priority 2, Task 3 of the Senior Engineer multi-task handoff requires adding 6 new recipes to `mobile/src/data/seed-recipes.ts`. The original COO handoff (below) says Senior Engineer must block on Culinary Verifier to provide authoritative sources before populating chef attribution. As of 30 April 2026, `docs/coo/culinary-research/` does not exist — no source files have been delivered.
+**What's needed:** Deliver the 6 source recipe files per the original COO handoff instructions (reproduced below for convenience). Output to `docs/coo/culinary-research/<recipe-slug>.md`. For each dish: chef-attributed source URL (or "traditional" framing), ingredient list, steps, substitutions, cuisine/type categories, Australian English check.
+1. `chicken-schnitzel.md` — consider Adam Liaw or another modern AU chef
+2. `chicken-vegetable-stir-fry.md` — Bill Granger, RecipeTinEats Nagi, or "traditional Australian weeknight"
+3. `beef-lasagne.md` — consider Marcella Hazan classic or modern AU
+4. `roast-lamb-rosemary-garlic.md` — consider Maggie Beer or "Sunday roast traditional"
+5. `fish-and-chips.md` — likely "Australian Friday traditional"
+6. `falafel.md` — Levantine; credit cuisine + region; specific chef optional
+**Sequence:** Item 1 (chicken schnitzel) first — Photography Director needs it before the 3–4 May shoot weekend.
+**Blocks:** Senior Engineer Task 3 (recipe population), Photography Director (chicken schnitzel shoot weekend)
+
+---
+
+### HANDOFF → Senior Engineer · 2026-04-30 · DONE ✅ (Patrick confirmed on-device)
 **From:** Product Designer + COO (direction switch confirmed by Patrick 30 April 2026)
-**Engineer note (30 Apr 2026):** All wiring done. APK build triggered. Awaiting Patrick's on-device smoke-test. Do NOT advance to Priority 2 until confirmed.
+**Engineer note (30 Apr 2026):** All wiring done. APK build triggered. Patrick confirmed on-device — dark tokens look correct. Priority 2 now in progress.
 **Subject:** Roll out v0.7 token changes — Dark Dramatic direction (font swap + full palette inversion)
 **Why:** Patrick chose the Dark Dramatic direction on 30 April 2026, superseding the earlier Medium Iteration pick. `mobile/src/theme/tokens.ts` is now at v0.7 with the complete dark token set. The Engineer needs to swap the Google Fonts package, wire up Inter, and verify all components render correctly on the inverted dark palette.
 
@@ -104,10 +120,14 @@ Patrick found the original three levels (Refinement / Medium / Alternative) too 
 **Files touched:** `docs/prototypes/direction-1-pastel.html`, `docs/prototypes/direction-2-magazine.html`, `docs/prototypes/direction-3-minimal.html`
 **Blocks resolved:** Photography weekend timing depends on Patrick's pick (see Photography Director handoff).
 
-### HANDOFF → Senior Engineer · 2026-04-29 · OPEN (multi-task — sequence in this order)
+### HANDOFF → Senior Engineer · 2026-04-29 · IN PROGRESS
 **From:** Patrick (via COO)
 **Subject:** Three priority tasks — bundle rename, substitution UI, add 6 new recipes
 **Why:** Patrick made multiple decisions on 29 April that all queue up to Senior Engineer. Sequenced because each unblocks downstream work.
+**Engineer update (30 Apr 2026):**
+- ✅ Task 1 (bundle ID rename) — COMPLETE. `com.patricknasr.simmerfresh` → `com.patricknasr.hone` in `mobile/app.json`. ADR written at `docs/adr/001-bundle-id-rename.md`. Play Console steps in the ADR. `splash.backgroundColor` and `android.adaptiveIcon.backgroundColor` also updated to `#111111`.
+- ✅ Task 2 (Substitution UI + photo badge) — COMPLETE. `SubstitutionSheet.tsx` built with `@gorhom/bottom-sheet` `BottomSheetModal`. Wired into `recipe/[id].tsx` — ingredient rows show swap icon when substitutions exist, tap opens sheet. "Photos soon" badge added to `RecipeCard.tsx` (bottom-right, dark scrim). Stage notice banner added to recipe detail. Step photo placeholder added to each step. `BottomSheetModalProvider` added to root `_layout.tsx`.
+- 🔴 Task 3 (add 6 new recipes) — BLOCKED. `docs/coo/culinary-research/` does not exist. Culinary Verifier has not delivered source recipes. See new OPEN handoff below. Do not proceed until Culinary Verifier delivers.
 **What's done:** Patrick approvals + Product Designer specs.
 **What's needed (in this order):**
 
@@ -173,35 +193,4 @@ _(Designer-to-engineer handoff folded into the consolidated Senior Engineer mult
 **Coordination:** New showcase recipe (chicken schnitzel) needs to be in the seed library before its shoot weekend — coordinate with Senior Engineer on timing.
 **Dark surface prop notes:** The 2×2 browse grid in the approved prototype uses square crops. Props that disappear into the edges of the frame (dark plates, dark boards) look best — the food is the hero, not the surface. Avoid: white plates, bright-wood boards, busy printed linens. Prefer: matte black slate, charcoal/grey linen, raw dark timber, brushed steel.
 **Files touched:** `docs/coo/photography/shot-list-showcase.md`, `docs/coo/photography/shot-list-hero-only.md`, `docs/coo/photography/preflight-checklist.md`, `docs/coo/photography/post-processing-preset.md`
-**Blocks:** First photo weekend (3-4 May 2026)
-
-### HANDOFF → Culinary & Cultural Verifier · 2026-04-29 · OPEN (URGENT)
-**From:** COO
-**Subject:** Audit existing recipes + provide source recipes for 6 NEW additions
-**Why:** v1.0 launch library expanded per DECISION-004. Now ~34 recipes need audit, AND 6 new recipes need authoritative sources before Senior Engineer can populate them.
-**What's done:** Brief at `docs/coo/specialists/culinary-verifier.md`. Recipe library locked per DECISION-004.
-**What's needed:**
-
-1. **Provide source recipes for the 6 new dishes** that Senior Engineer needs to populate. For each, deliver: a chef-attributed source URL (or "traditional" framing if no chef is right), the ingredient list, the steps, plausible substitutions list, the cuisine and type categories, and Australian English check. Output to `docs/coo/culinary-research/<recipe-slug>.md`. The 6:
-   - Chicken schnitzel (consider Adam Liaw or another modern AU chef)
-   - Easy chicken & vegetable stir-fry (Bill Granger, RecipeTinEats Nagi, or "traditional Australian weeknight")
-   - Beef lasagne (consider Marcella Hazan classic or modern AU)
-   - Roast lamb with rosemary & garlic (consider Maggie Beer or "Sunday roast traditional")
-   - Fish & chips (likely "Australian Friday traditional")
-   - Falafel (Levantine — credit cuisine + region; specific chef optional)
-
-2. **Audit pass** on all priority 17 recipes per the format in your brief. Output to `docs/coo/culinary-audit.md`. Required before launch.
-
-3. **Audit pass** on remaining seed library recipes (musakhan, mujadara, kafta, fattoush, lamb shawarma, char kway teow, ramen, katsu, etc.) — same format. Especially check: no Israeli labels for Levantine; no fabricated chef attributions; Australian English everywhere.
-
-**Sequence:** Item 1 first (Senior Engineer is blocked on it). Items 2-3 can run in parallel after.
-**Files touched:** `docs/coo/culinary-research/`, `docs/coo/culinary-audit.md`, `mobile/src/data/seed-recipes.ts` (read-only), `docs/prototypes/hone.html` (read-only)
-**Blocks:** Senior Engineer's recipe-add task (#1 above), Photography Director's showcase shoot for chicken schnitzel
-
-### HANDOFF → QA Test Lead · 2026-04-29 · OPEN
-**From:** COO
-**Subject:** Stand up the smoke-test checklist v1
-**Why:** Currently `docs/SMOKE-TEST.md` exists but isn't owned. We need it to be the gate before every build.
-**What's done:** Brief written in `docs/coo/specialists/qa-test-lead.md`.
-**What's needed:** Take ownership of `docs/SMOKE-TEST.md`, expand to cover: cold start time, scroll jank, dropped network mid-cook, TalkBack labels, 200% text scale, low storage, malformed user input.
-**Files touched:** `docs/SMOKE-TEST.md`
+**Blocks:** First photo weekend (

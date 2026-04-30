@@ -26,7 +26,7 @@ import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as Haptics from 'expo-haptics';
 import { useSQLiteContext } from 'expo-sqlite';
 
-import type { Recipe } from '../../src/data/types';
+import type { Recipe, Ingredient, Substitution } from '../../src/data/types';
 import {
   getRecipeById,
   getFavoriteIds,
@@ -36,6 +36,7 @@ import {
 } from '../../db/database';
 import { tokens, fonts } from '../../src/theme/tokens';
 import { Icon } from '../../src/components/Icon';
+import { SubstitutionSheet } from '../../src/components/SubstitutionSheet';
 import { ServingsSelector } from '../../src/components/ServingsSelector';
 import {
   formatAmount,
@@ -84,6 +85,12 @@ export default function RecipeDetailScreen() {
   const [cooking, setCooking]       = useState(false);
   const [stepsDone, setStepsDone]   = useState<Record<string, boolean>>({});
   const [ingTicked, setIngTicked]   = useState<Record<string, boolean>>({});
+
+  // Substitution sheet state.
+  // activeSwaps maps ingredient.id → chosen Substitution (null = restored original).
+  const [sheetIngredient, setSheetIngredient] = useState<Ingredient | null>(null);
+  const [sheetVisible, setSheetVisible]       = useState(false);
+  const [activeSwaps, setActiveSwaps]         = useState<Record<string, Substitution | null>>({});
 
   // Wake lock while cooking
   useEffect(() => {
@@ -136,6 +143,9 @@ export default function RecipeDetailScreen() {
 
   const option       = leftoverById(leftoverKey);
   const totalPortions = totalPortionsFor(option, people, recipe.base_servings);
+  // True only when every step already has a photo URL.
+  // Derived, not persisted — no schema change needed.
+  const hasStagePhotos = recipe.steps.every((s) => Boolean(s.photo_url));
   const stepsDoneCount = Object.values(stepsDone).filter(Boolean).length;
   const progress     = cooking ? stepsDoneCount / recipe.steps.length : 0;
   const gradient     = recipe.hero_fallback ?? [tokens.ink, tokens.warmBrown, tokens.bgDeep];
@@ -203,6 +213,26 @@ export default function RecipeDetailScreen() {
     if (!cooking) return;
     Haptics.selectionAsync().catch(() => {});
     setIngTicked((prev) => ({ ...prev, [ingId]: !prev[ingId] }));
+  };
+
+  // Opens the SubstitutionSheet for the given ingredient.
+  // Only called in non-cook mode (in cook mode, tapping ticks the ingredient).
+  const openSwapSheet = (ing: Ingredient) => {
+    Haptics.selectionAsync().catch(() => {});
+    setSheetIngredient(ing);
+    setSheetVisible(true);
+  };
+
+  // Called by SubstitutionSheet on confirm. null = restore original ingredient.
+  const handleSwap = (sub: Substitution | null) => {
+    if (!sheetIngredient) return;
+    setActiveSwaps((prev) => ({ ...prev, [sheetIngredient.id]: sub }));
+  };
+
+  const handleSheetDismiss = () => {
+    setSheetVisible(false);
+    // Keep sheetIngredient set until after dismiss — sheet animates out and
+    // still renders its content during the exit animation.
   };
 
   const handleTogglePlan = async () => {
@@ -481,6 +511,39 @@ export default function RecipeDetailScreen() {
           </View>
         </View>
 
+        {/* Stage photos notice — shown once when recipe has no stage photos.
+            Hidden in cook mode (no point showing it while actively cooking). */}
+        {!cooking && !hasStagePhotos && (
+          <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                gap: 10,
+                backgroundColor: tokens.skyLight,
+                borderRadius: 10,
+                borderWidth: 1,
+                borderColor: 'rgba(168,196,208,0.35)',
+                paddingHorizontal: 12,
+                paddingVertical: 10,
+              }}
+            >
+              <Icon name="camera" size={14} color={tokens.skyDeep} style={{ marginTop: 2 }} />
+              <Text
+                style={{
+                  fontFamily: fonts.sans,
+                  fontSize: 12,
+                  lineHeight: 17,
+                  color: tokens.inkSoft,
+                  flex: 1,
+                }}
+              >
+                Stage photos for this recipe are coming soon — we're shooting them shortly.
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* Servings selector */}
         <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
           <ServingsSelector
@@ -510,15 +573,28 @@ export default function RecipeDetailScreen() {
             }}
           >
             {recipe.ingredients.map((ing, idx) => {
-              const checked    = !!ingTicked[ing.id];
-              const amount     = scaleIngredient(ing, totalPortions, recipe.base_servings);
-              const showUnit   = ing.unit && ing.unit !== 'to taste' && ing.unit !== 'as needed';
-              const inlineUnit = ing.unit === 'to taste' || ing.unit === 'as needed';
+              const checked     = !!ingTicked[ing.id];
+              const amount      = scaleIngredient(ing, totalPortions, recipe.base_servings);
+              const showUnit    = ing.unit && ing.unit !== 'to taste' && ing.unit !== 'as needed';
+              const inlineUnit  = ing.unit === 'to taste' || ing.unit === 'as needed';
+              const hasSwaps    = (ing.substitutions?.length ?? 0) > 0;
+              // Active swap for this ingredient: null means "restored to original",
+              // undefined means "no swap ever chosen".
+              const activeSwap  = activeSwaps[ing.id];
+              const isSwapped   = activeSwap !== undefined && activeSwap !== null;
+              const displayName = isSwapped ? (activeSwap as Substitution).ingredient : ing.name;
+
               return (
                 <Pressable
                   key={ing.id}
-                  onPress={() => tickIngredient(ing.id)}
-                  disabled={!cooking}
+                  onPress={
+                    cooking
+                      ? () => tickIngredient(ing.id)
+                      : hasSwaps
+                        ? () => openSwapSheet(ing)
+                        : undefined
+                  }
+                  disabled={!cooking && !hasSwaps}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'flex-start',
@@ -562,11 +638,22 @@ export default function RecipeDetailScreen() {
                             {formatAmount(amount)}
                           </Text>
                           {showUnit ? <Text style={{ fontFamily: fonts.sansBold }}> {ing.unit}</Text> : null}
-                          <Text> {ing.name}</Text>
+                          {/* Show active swap name in gold if swapped, original otherwise */}
+                          <Text style={isSwapped ? { color: c.primary } : undefined}> {displayName}</Text>
+                          {isSwapped && (
+                            <Text style={{ fontFamily: fonts.sans, color: c.muted, textDecorationLine: 'line-through' }}>
+                              {' '}({ing.name})
+                            </Text>
+                          )}
                         </>
                       ) : (
                         <>
-                          <Text>{ing.name}</Text>
+                          <Text style={isSwapped ? { color: c.primary } : undefined}>{displayName}</Text>
+                          {isSwapped && (
+                            <Text style={{ fontFamily: fonts.sans, color: c.muted, textDecorationLine: 'line-through' }}>
+                              {' '}({ing.name})
+                            </Text>
+                          )}
                           <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic', color: c.muted }}>
                             {' — '}{ing.unit}
                           </Text>
@@ -579,6 +666,16 @@ export default function RecipeDetailScreen() {
                       </Text>
                     ) : null}
                   </View>
+
+                  {/* Swap affordance icon — shown in non-cook mode when swaps are available */}
+                  {!cooking && hasSwaps ? (
+                    <Icon
+                      name="swap"
+                      size={14}
+                      color={isSwapped ? c.primary : c.muted}
+                      style={{ marginTop: 3 }}
+                    />
+                  ) : null}
                 </Pressable>
               );
             })}
@@ -674,6 +771,40 @@ export default function RecipeDetailScreen() {
                           </Text>
                         </View>
                       ) : null}
+
+                      {/* Step photo — render image if available, placeholder if not.
+                          Shows in both browse and cook mode so users can see how
+                          the dish should look at each stage. */}
+                      {step.photo_url ? (
+                        <View style={{ marginTop: 12, borderRadius: 12, overflow: 'hidden', height: 160 }}>
+                          <Image
+                            source={{ uri: step.photo_url }}
+                            style={{ width: '100%', height: '100%' }}
+                            contentFit="cover"
+                            transition={200}
+                          />
+                        </View>
+                      ) : (
+                        <View
+                          style={{
+                            marginTop: 12,
+                            height: 100,
+                            borderRadius: 12,
+                            borderWidth: 1.5,
+                            borderStyle: 'dashed',
+                            borderColor: c.lineDark,
+                            backgroundColor: c.bgDeep,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 6,
+                          }}
+                        >
+                          <Icon name="camera" size={18} color={c.muted} />
+                          <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.muted }}>
+                            Photo coming soon
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   </View>
                 </View>
@@ -713,227 +844,4 @@ export default function RecipeDetailScreen() {
 
       {/* ── FLOATING START-COOKING PILL ──
           Solid paprika-tint pill, centered horizontally near the bottom.
-          Stays put while the recipe scrolls (ScrollView already pads
-          bottom 140 so content clears it).
-
-          Structure note: the Pressable is a bare tap target with no
-          layout/visual styling — all of that lives on an inner View.
-          On Android, Pressable + function-style + layout properties
-          (flexDirection, backgroundColor) sometimes renders without
-          the background. Splitting the roles makes the bg reliable
-          and lets android_ripple handle press feedback. */}
-      {!cooking ? (
-        <View
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            bottom: insets.bottom + 18,
-            alignItems: 'center',
-            pointerEvents: 'box-none',
-          }}
-        >
-          <Pressable
-            onPress={toggleCooking}
-            accessibilityRole="button"
-            accessibilityLabel="Start cooking"
-            android_ripple={{ color: 'rgba(255,255,255,0.22)', borderless: false }}
-            style={{ borderRadius: 999 }}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 10,
-                paddingVertical: 16,
-                paddingHorizontal: 32,
-                borderRadius: 999,
-                backgroundColor: tokens.primary,
-                shadowColor: tokens.ink,
-                shadowOffset: { width: 0, height: 6 },
-                shadowOpacity: 0.22,
-                shadowRadius: 14,
-                elevation: 8,
-              }}
-            >
-              <Icon name="chef" size={18} color={tokens.ink} />
-              <Text
-                style={{
-                  fontFamily: fonts.sansXBold,
-                  fontSize: 15,
-                  color: tokens.ink,
-                  letterSpacing: 0.3,
-                }}
-              >
-                Start Cooking
-              </Text>
-            </View>
-          </Pressable>
-        </View>
-      ) : progress === 1 ? (
-        <View
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            bottom: insets.bottom + 18,
-            alignItems: 'center',
-            pointerEvents: 'box-none',
-          }}
-        >
-          <Pressable
-            onPress={toggleCooking}
-            accessibilityRole="button"
-            accessibilityLabel="Finish cooking"
-            android_ripple={{ color: 'rgba(255,255,255,0.22)', borderless: false }}
-            style={{ borderRadius: 999 }}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 10,
-                paddingVertical: 16,
-                paddingHorizontal: 32,
-                borderRadius: 999,
-                backgroundColor: tokens.sage,
-                shadowColor: tokens.ink,
-                shadowOffset: { width: 0, height: 6 },
-                shadowOpacity: 0.22,
-                shadowRadius: 14,
-                elevation: 8,
-              }}
-            >
-              <Icon name="check" size={18} color={tokens.ink} />
-              <Text
-                style={{
-                  fontFamily: fonts.sansXBold,
-                  fontSize: 15,
-                  color: tokens.ink,
-                  letterSpacing: 0.3,
-                }}
-              >
-                Done — eat well
-              </Text>
-            </View>
-          </Pressable>
-        </View>
-      ) : null}
-    </View>
-  );
-}
-
-// ── Small pieces ──────────────────────────────────────────────────────────────
-
-function MetaPill({
-  icon,
-  label,
-  color = tokens.inkSoft,
-}: {
-  icon: React.ComponentProps<typeof Icon>['name'];
-  label: string;
-  color?: string;
-}) {
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-      <Icon name={icon} size={14} color={color} />
-      <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color }}>
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-function SectionHeader({
-  title,
-  hint,
-  inkColor = tokens.ink,
-  mutedColor = tokens.muted,
-}: {
-  title: string;
-  hint?: string;
-  inkColor?: string;
-  mutedColor?: string;
-}) {
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'baseline',
-        justifyContent: 'space-between',
-        marginBottom: 12,
-      }}
-    >
-      <Text style={{ fontFamily: fonts.display, fontSize: 22, color: inkColor }}>
-        {title}
-      </Text>
-      {hint ? (
-        <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: mutedColor }}>
-          {hint}
-        </Text>
-      ) : null}
-    </View>
-  );
-}
-
-function Callout({
-  label,
-  text,
-  accent,
-  italic,
-  bg = tokens.bgDeep,
-  bodyColor = tokens.inkSoft,
-}: {
-  label: string;
-  text: string;
-  accent: string;
-  italic?: boolean;
-  bg?: string;
-  bodyColor?: string;
-}) {
-  return (
-    <View
-      style={{
-        marginTop: 10,
-        padding: 10,
-        borderRadius: 12,
-        backgroundColor: bg,
-        borderLeftWidth: 3,
-        borderLeftColor: accent,
-      }}
-    >
-      <Text
-        style={{
-          fontFamily: fonts.sansBold,
-          fontSize: 9,
-          letterSpacing: 1.5,
-          textTransform: 'uppercase',
-          color: accent,
-          marginBottom: 3,
-        }}
-      >
-        {label}
-      </Text>
-      <Text
-        style={{
-          fontFamily: italic ? fonts.displayItalic : fonts.sans,
-          fontStyle: italic ? 'italic' : 'normal',
-          fontSize: 13,
-          lineHeight: 18,
-          color: bodyColor,
-        }}
-      >
-        {text}
-      </Text>
-    </View>
-  );
-}
-
-function formatTimer(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  const m = Math.round(seconds / 60);
-  if (m < 60) return `${m} min`;
-  const h = Math.floor(m / 60);
-  const rem = m % 60;
-  return rem === 0 ? `${h} h` : `${h} h ${rem} min`;
-}
+   
