@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hone — Colour Refinement v1 · before / after</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* app surfaces (dark sage) */
+    --bg:          #0F1A14;
+    --surface:     #1A2B20;
+    --surface2:    #223328;
+    --ink:         #FAFAF7;
+    --ink2:        rgba(250,250,247,0.62);
+    --ink3:        rgba(250,250,247,0.34);
+    --rust:        #B84030;
+    --sage:        #4A7C59;       /* the dusty surface/confirmation green — STAYS */
+    --gold:        #F2CC2A;
+    --gold-dim:    rgba(242,204,42,0.16);
+    --line:        rgba(250,250,247,0.08);
+    --line2:       rgba(250,250,247,0.13);
+
+    /* ── pills: BEFORE ── */
+    --green-old:    #5DB870;
+    --green-old-bg: rgba(93,184,112,0.14);
+    --green-old-bd: rgba(93,184,112,0.42);
+
+    /* ── pills: AFTER (only green moves) ── */
+    --green-new:    #4FBF85;
+    --green-new-bg: rgba(79,191,133,0.15);
+    --green-new-bd: rgba(79,191,133,0.45);
+
+    --yellow:       #F2CC2A;
+    --yellow-bg:    rgba(242,204,42,0.14);
+    --yellow-bd:    rgba(242,204,42,0.42);
+    --red:          #D4663A;
+    --red-bg:       rgba(212,102,58,0.14);
+    --red-bd:       rgba(212,102,58,0.40);
+
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-sans:    'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #080e0a;
+    font-family: var(--font-sans);
+    color: var(--ink);
+    padding: 44px 24px 90px;
+    line-height: 1.5;
+  }
+
+  /* page header */
+  .head { max-width: 980px; margin: 0 auto 14px; text-align: center; }
+  .tag {
+    display: inline-block; margin-bottom: 14px;
+    background: var(--gold-dim); border: 1px solid rgba(242,204,42,0.35);
+    border-radius: 20px; padding: 3px 13px;
+    font-size: 10px; font-weight: 600; color: var(--gold);
+    letter-spacing: 0.8px; text-transform: uppercase;
+  }
+  .head h1 { font-family: var(--font-display); font-size: 30px; margin-bottom: 8px; }
+  .head p { font-size: 13px; color: var(--ink2); max-width: 660px; margin: 0 auto; }
+  .frame-note {
+    max-width: 660px; margin: 16px auto 0; padding: 12px 16px;
+    background: var(--surface); border: 1px solid var(--line2);
+    border-left: 3px solid var(--gold); border-radius: 10px;
+    font-size: 12px; color: var(--ink2); text-align: left;
+  }
+  .frame-note strong { color: var(--ink); }
+
+  /* section scaffolding */
+  .section { max-width: 980px; margin: 56px auto 0; }
+  .section-kicker {
+    font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 6px;
+  }
+  .section h2 { font-family: var(--font-display); font-size: 22px; margin-bottom: 4px; }
+  .section .sub { font-size: 12.5px; color: var(--ink2); margin-bottom: 22px; max-width: 720px; }
+
+  .ba-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    align-items: stretch;
+  }
+  @media (max-width: 760px) { .ba-grid { grid-template-columns: 1fr; } }
+
+  .ba-col {
+    background: var(--bg); border: 1px solid var(--line2);
+    border-radius: 16px; padding: 20px 18px 22px;
+    display: flex; flex-direction: column;
+  }
+  .ba-col.after { border-color: rgba(242,204,42,0.30); }
+  .ba-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    margin-bottom: 16px; display: flex; align-items: center; gap: 7px;
+  }
+  .ba-label.before { color: var(--ink3); }
+  .ba-label.after { color: var(--gold); }
+  .ba-label .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .ba-label.before .dot { background: var(--ink3); }
+  .ba-label.after .dot { background: var(--gold); }
+
+  /* pills */
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    border-radius: 20px; padding: 5px 12px;
+    font-size: 12px; font-weight: 600; border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .pill .ic { font-size: 12px; }
+  .pill-stack { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+  .pill-row { display: flex; align-items: center; gap: 12px; }
+  .pill-desc { font-size: 11px; color: var(--ink2); }
+
+  .g-old { background: var(--green-old-bg); border-color: var(--green-old-bd); color: var(--green-old); }
+  .g-new { background: var(--green-new-bg); border-color: var(--green-new-bd); color: var(--green-new); }
+  .y     { background: var(--yellow-bg);   border-color: var(--yellow-bd);   color: var(--yellow); }
+  .r     { background: var(--red-bg);       border-color: var(--red-bd);      color: var(--red); }
+
+  .changed-flag {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+    color: var(--gold); background: var(--gold-dim);
+    border-radius: 5px; padding: 1px 6px; margin-left: 6px;
+  }
+  .same-flag {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;
+    color: var(--ink3); margin-left: 6px;
+  }
+
+  /* in-context: ingredient row + surface to show the clash */
+  .ctx-label { font-size: 10px; color: var(--ink3); text-transform: uppercase; letter-spacing: 0.6px; margin: 22px 0 10px; }
+  .ing-row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border-radius: 11px;
+    padding: 10px 12px; border: 1px solid var(--line);
+  }
+  .ing-amount { font-size: 11px; font-weight: 600; color: var(--ink); min-width: 34px; }
+  .ing-name { font-size: 13px; color: var(--ink); flex: 1; }
+
+  /* swatch chips */
+  .sw-row { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  .sw {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 9px; padding: 7px 10px;
+  }
+  .sw .chip { width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0; }
+  .sw .k { font-size: 10px; color: var(--ink3); font-family: monospace; }
+  .sw .v { font-size: 11px; color: var(--ink); font-family: monospace; }
+
+  /* phone header mock for pantry/shop */
+  .hdr-mock {
+    background: var(--bg); border-radius: 14px; padding: 22px 18px 24px;
+    border: 1px solid var(--line);
+  }
+  .eyebrow-old {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--sage); margin-bottom: 6px;
+  }
+  /* AFTER eyebrow treatments */
+  .eyebrow-new {
+    font-size: 12px; font-weight: 700; letter-spacing: 1.6px;
+    text-transform: uppercase; margin-bottom: 7px; color: var(--ink2);
+  }
+  .eyebrow-new .accent { color: var(--gold); }
+  .eyebrow-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--gold-dim); border: 1px solid rgba(242,204,42,0.34);
+    border-radius: 20px; padding: 5px 12px 5px 11px; margin-bottom: 9px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--gold);
+  }
+  .eyebrow-pill .gl { font-size: 12px; }
+  .scr-title {
+    font-family: var(--font-display); font-size: 34px; line-height: 38px; color: var(--ink);
+  }
+  .scr-title .it { font-family: var(--font-display); font-style: italic; }
+  .scr-title .sage-it { color: var(--sage); }
+  .scr-title .gold-it { color: var(--gold); }
+
+  /* step number badge mock */
+  .method-row { display: flex; align-items: flex-start; gap: 13px; }
+  .step-badge {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 700; font-size: 14px;
+    flex-shrink: 0;
+  }
+  .badge-old { background: #E8DECF; color: #EFE7DA; }   /* light-on-light — the bug */
+  .badge-new { background: #E8DECF; color: #141414; }   /* dark ink number */
+  .method-txt { font-size: 12px; color: var(--ink2); line-height: 1.55; }
+  .method-txt b { color: var(--ink); font-weight: 600; }
+
+  /* rationale strip */
+  .why {
+    margin-top: 18px; padding: 13px 15px;
+    background: rgba(79,191,133,0.07); border: 1px solid var(--line2);
+    border-left: 3px solid var(--green-new); border-radius: 10px;
+    font-size: 12.5px; color: var(--ink2);
+  }
+  .why b { color: var(--ink); }
+  .why .cost { color: var(--ink3); font-size: 11px; display: block; margin-top: 5px; }
+
+  /* summary table */
+  .summary { max-width: 980px; margin: 60px auto 0; }
+  .summary h2 { font-family: var(--font-display); font-size: 22px; margin-bottom: 18px; text-align:center; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--ink3); font-weight: 600; }
+  td .mono { font-family: monospace; font-size: 11px; }
+  td .swatch-inline { display:inline-block; width: 11px; height: 11px; border-radius: 3px; vertical-align: middle; margin-right: 5px; }
+  .locked {
+    max-width: 980px; margin: 32px auto 0; padding: 16px 18px;
+    background: var(--surface); border: 1px solid var(--line2); border-radius: 12px;
+    font-size: 12.5px; color: var(--ink2);
+  }
+  .locked h3 { font-size: 11px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--gold); margin-bottom: 9px; }
+  .locked ul { margin: 0 0 0 18px; }
+  .locked li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div class="tag">Colour Refinement v1 · refine, don't redirect</div>
+  <h1>Two targets Patrick named, side by side</h1>
+  <p>An upgrade of the current dark-sage look — not a fifth direction. Only colour and emphasis change. No new fonts, no new layout, no new direction. Sage stays the app's "done / checked" colour; gold stays the brand accent; rust stays the primary action.</p>
+  <div class="frame-note">
+    <strong>What Patrick said:</strong> "some of the green font and pills aren't the best choice… and the 'cook with what you have' / 'cook with what you buy' text doesn't pop." Both are addressed below, each as a before/after on the real screen.
+  </div>
+</div>
+
+<!-- ════════════ SECTION 1 — PILLS ════════════ -->
+<div class="section">
+  <div class="section-kicker">Target 1 · substitution pills</div>
+  <h2>The "great swap" green — lift it off the sage</h2>
+  <p class="sub">The three-state meaning is unchanged: good / some difference / noticeable change, each still carrying colour + icon + text label. The only colour that moves is the green. The yellow and red already work and stay exactly as they are.</p>
+
+  <div class="ba-grid">
+
+    <!-- BEFORE -->
+    <div class="ba-col before">
+      <div class="ba-label before"><span class="dot"></span>Before</div>
+      <div class="pill-stack">
+        <div class="pill-row">
+          <span class="pill g-old"><span class="ic">✓</span> Great swap</span>
+          <span class="pill-desc">#5DB870 — a second, muddy green</span>
+        </div>
+        <div class="pill-row">
+          <span class="pill y"><span class="ic">≈</span> Some difference</span>
+          <span class="pill-desc">#F2CC2A gold</span>
+        </div>
+        <div class="pill-row">
+          <span class="pill r"><span class="ic">⚠</span> Noticeable change</span>
+          <span class="pill-desc">#D4663A warm red</span>
+        </div>
+      </div>
+
+      <div class="ctx-label">On a recipe ingredient row</div>
+      <div class="ing-row" style="border-color:var(--green-old-bd);background:var(--green-old-bg)">
+        <span class="ing-amount">150g</span>
+        <span class="ing-name">Pancetta <span style="font-size:10px;color:var(--green-old);font-weight:500">↩ swapped</span></span>
+        <span class="pill g-old" style="font-size:10px;padding:3px 9px"><span class="ic">✓</span> Great swap</span>
+      </div>
+      <p style="font-size:11px;color:var(--ink3);margin-top:9px">The pill green and the sage surface are both dusty mid-greens — the eye can't tell which is "the app" and which is "the signal." They blur together.</p>
+    </div>
+
+    <!-- AFTER -->
+    <div class="ba-col after">
+      <div class="ba-label after"><span class="dot"></span>After</div>
+      <div class="pill-stack">
+        <div class="pill-row">
+          <span class="pill g-new"><span class="ic">✓</span> Great swap</span>
+          <span class="pill-desc">#4FBF85 — clean, brighter emerald<span class="changed-flag">changed</span></span>
+        </div>
+        <div class="pill-row">
+          <span class="pill y"><span class="ic">≈</span> Some difference</span>
+          <span class="pill-desc">#F2CC2A gold<span class="same-flag">unchanged</span></span>
+        </div>
+        <div class="pill-row">
+          <span class="pill r"><span class="ic">⚠</span> Noticeable change</span>
+          <span class="pill-desc">#D4663A warm red<span class="same-flag">unchanged</span></span>
+        </div>
+      </div>
+
+      <div class="ctx-label">On a recipe ingredient row</div>
+      <div class="ing-row" style="border-color:var(--green-new-bd);background:var(--green-new-bg)">
+        <span class="ing-amount">150g</span>
+        <span class="ing-name">Pancetta <span style="font-size:10px;color:var(--green-new);font-weight:500">↩ swapped</span></span>
+        <span class="pill g-new" style="font-size:10px;padding:3px 9px"><span class="ic">✓</span> Great swap</span>
+      </div>
+      <p style="font-size:11px;color:var(--ink3);margin-top:9px">The brighter, cleaner emerald sits a clear step above the dusty sage surface — it now reads as a deliberate "yes, go ahead" signal instead of a second background green.</p>
+
+      <div class="sw-row">
+        <div class="sw"><span class="chip" style="background:#4A7C59"></span><div><div class="k">surface sage</div><div class="v">#4A7C59</div></div></div>
+        <div class="sw"><span class="chip" style="background:#5DB870"></span><div><div class="k">old pill</div><div class="v">#5DB870</div></div></div>
+        <div class="sw"><span class="chip" style="background:#4FBF85"></span><div><div class="k">new pill</div><div class="v">#4FBF85</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="why">
+    <b>What shifts:</b> the "great swap" green moves from a muddy mid-green (#5DB870) to a cleaner, brighter emerald (#4FBF85). <b>What stays:</b> the three-state logic, the ✓/≈/⚠ icons, the labels, and the yellow + red colours. The sage that means "done / checked" everywhere else is untouched.
+    <span class="cost">Why it's the right green: the app already owns dusty sage for surfaces and confirmation. A second dusty green for "great swap" competes with it. Brightening and cleaning the signal green separates the two by lightness, not just hue — so they harmonise instead of clash. · Engineer cost: one value in <span class="mono">PILL_CONFIG.green</span> (colour + bg + border). ~10 minutes, no logic change.</span>
+  </div>
+</div>
+
+<!-- ════════════ SECTION 2 — PANTRY / SHOP STRINGS ════════════ -->
+<div class="section">
+  <div class="section-kicker">Target 2 · pantry-mode entry strings</div>
+  <h2>"Cook with what you have / buy" — make them earn their place</h2>
+  <p class="sub">These two lines are the gateway to the pantry-first kill feature, but today they're set as a tiny sage eyebrow — and that sage fails contrast (3.7:1, below the 4.5:1 readability floor), which is exactly why they read flat. Two treatments below; the recommended one is on the right.</p>
+
+  <!-- PANTRY -->
+  <div class="ba-grid">
+    <div class="ba-col before">
+      <div class="ba-label before"><span class="dot"></span>Before · Pantry tab</div>
+      <div class="hdr-mock">
+        <div class="eyebrow-old">Cook with what you have</div>
+        <div class="scr-title">Your <span class="it sage-it">Pantry</span></div>
+      </div>
+      <p style="font-size:11px;color:var(--ink3);margin-top:9px">Sage eyebrow @ 11px. Low contrast on the dark background, and it's the same green Patrick flagged — it sinks rather than invites.</p>
+    </div>
+
+    <div class="ba-col after">
+      <div class="ba-label after"><span class="dot"></span>After · Pantry tab <span style="font-weight:600;color:var(--ink3);letter-spacing:0;text-transform:none">(recommended)</span></div>
+      <div class="hdr-mock">
+        <div class="eyebrow-new">Cook with <span class="accent">what you have</span></div>
+        <div class="scr-title">Your <span class="it gold-it">Pantry</span></div>
+      </div>
+      <p style="font-size:11px;color:var(--ink3);margin-top:9px">Two-tone gold accent on the words that matter ("what you have"), at a slightly larger weight. The operative phrase pops; the italic title accent moves from sage to gold so the header reads as one warm, confident unit.</p>
+    </div>
+  </div>
+
+  <!-- SHOP -->
+  <div class="ba-grid" style="margin-top:20px">
+    <div class="ba-col before">
+      <div class="ba-label before"><span class="dot"></span>Before · Shop tab</div>
+      <div class="hdr-mock">
+        <div class="eyebrow-old">Cook with what you'll buy</div>
+        <div class="scr-title">Shopping <span class="it sage-it">List</span></div>
+      </div>
+    </div>
+    <div class="ba-col after">
+      <div class="ba-label after"><span class="dot"></span>After · Shop tab — variant B (contained pill)</div>
+      <div class="hdr-mock">
+        <div class="eyebrow-pill"><span class="gl">◆</span> Cook with what you'll buy</div>
+        <div class="scr-title">Shopping <span class="it gold-it">List</span></div>
+      </div>
+      <p style="font-size:11px;color:var(--ink3);margin-top:9px">Variant B: the phrase in a gold-tinted pill, so it reads as a clear gateway badge. Use the same treatment on both tabs — pick A (two-tone text) or B (pill); don't mix.</p>
+    </div>
+  </div>
+
+  <div class="why" style="border-left-color:var(--gold);background:rgba(242,204,42,0.06)">
+    <b>What shifts:</b> the entry strings move from low-contrast sage to gold — either two-tone text (A, recommended) or a contained gold pill (B). <b>What stays:</b> the words, the position above the title, and the Playfair title itself.
+    <span class="cost">Why gold, not a bigger size: gold is already the brand's "look here" colour (wordmark, search, active tile), so it lifts the phrase without inventing anything new — and it fixes a real contrast failure at the same time. No layout change: same text, same place, recoloured. · Engineer cost: two string styles in <span class="mono">pantry.tsx</span> + <span class="mono">shop.tsx</span> (and the title's italic colour). ~15 minutes.</span>
+  </div>
+</div>
+
+<!-- ════════════ SECTION 3 — OPTIONAL: STEP BADGE ════════════ -->
+<div class="section">
+  <div class="section-kicker">Optional refinement · same flavour</div>
+  <h2>Step-number badge — fix the light-on-light number</h2>
+  <p class="sub">A known issue, already queued for the engineer: in the recipe Method list the step number is near-invisible (cream number on a cream circle). The colour intent is simply a dark number. This documents the shade so it lands right.</p>
+
+  <div class="ba-grid">
+    <div class="ba-col before">
+      <div class="ba-label before"><span class="dot"></span>Before</div>
+      <div style="background:var(--surface);border-radius:12px;padding:14px 14px">
+        <div class="method-row">
+          <div class="step-badge badge-old">1</div>
+          <div class="method-txt"><b>Brown the mince.</b> Get the pan screaming hot, break the mince in, and leave it to catch colour before you stir.</div>
+        </div>
+      </div>
+      <p style="font-size:11px;color:var(--ink3);margin-top:9px">The "1" is there — cream on cream. Contrast ~1.1:1. Effectively invisible.</p>
+    </div>
+    <div class="ba-col after">
+      <div class="ba-label after"><span class="dot"></span>After</div>
+      <div style="background:var(--surface);border-radius:12px;padding:14px 14px">
+        <div class="method-row">
+          <div class="step-badge badge-new">1</div>
+          <div class="method-txt"><b>Brown the mince.</b> Get the pan screaming hot, break the mince in, and leave it to catch colour before you stir.</div>
+        </div>
+      </div>
+      <p style="font-size:11px;color:var(--ink3);margin-top:9px">Dark charcoal ink (#141414) on the cream circle. Contrast 13.8:1 — well past AA. The badge keeps its warm cream fill; only the number darkens.</p>
+    </div>
+  </div>
+  <div class="why" style="border-left-color:#E8DECF;background:rgba(232,222,207,0.05)">
+    <b>What shifts:</b> the step number's colour, from cream to charcoal ink. <b>What stays:</b> the cream circle, the size, the position. This is browse-mode only — cook mode's ghost watermark number is intentional and untouched.
+    <span class="cost">Engineer cost: one colour on the badge text in <span class="mono">recipe/[id].tsx</span> (Method list). ~5 minutes. Already on the engineer's open list — this just pins the exact shade.</span>
+  </div>
+</div>
+
+<!-- ════════════ TOKEN SUMMARY ════════════ -->
+<div class="summary">
+  <h2>Every change, in one table</h2>
+  <table>
+    <tr><th>Element</th><th>Before</th><th>After</th><th>Lives in</th></tr>
+    <tr>
+      <td>"Great swap" pill</td>
+      <td><span class="swatch-inline" style="background:#5DB870"></span><span class="mono">#5DB870</span></td>
+      <td><span class="swatch-inline" style="background:#4FBF85"></span><span class="mono">#4FBF85</span> + bg <span class="mono">rgba(79,191,133,.15)</span> / bd <span class="mono">.45</span></td>
+      <td><span class="mono">PILL_CONFIG.green</span></td>
+    </tr>
+    <tr>
+      <td>"Some difference" pill</td>
+      <td><span class="swatch-inline" style="background:#F2CC2A"></span><span class="mono">#F2CC2A</span></td>
+      <td>— unchanged —</td>
+      <td><span class="mono">PILL_CONFIG.yellow</span></td>
+    </tr>
+    <tr>
+      <td>"Noticeable change" pill</td>
+      <td><span class="swatch-inline" style="background:#D4663A"></span><span class="mono">#D4663A</span></td>
+      <td>— unchanged —</td>
+      <td><span class="mono">PILL_CONFIG.red</span></td>
+    </tr>
+    <tr>
+      <td>Pantry / Shop eyebrow</td>
+      <td><span class="swatch-inline" style="background:#4A7C59"></span>sage <span class="mono">#4A7C59</span> (3.7:1, fails AA)</td>
+      <td>cream <span class="mono">#C4B8A8</span> + gold accent <span class="swatch-inline" style="background:#F2CC2A"></span><span class="mono">#F2CC2A</span> (A), or gold pill (B)</td>
+      <td><span class="mono">pantry.tsx</span>, <span class="mono">shop.tsx</span></td>
+    </tr>
+    <tr>
+      <td>Header title italic accent</td>
+      <td><span class="swatch-inline" style="background:#4A7C59"></span>sage <span class="mono">#4A7C59</span></td>
+      <td><span class="swatch-inline" style="background:#F2CC2A"></span>gold <span class="mono">#F2CC2A</span></td>
+      <td><span class="mono">pantry.tsx</span>, <span class="mono">shop.tsx</span></td>
+    </tr>
+    <tr>
+      <td>Step-number badge (optional)</td>
+      <td>cream-on-cream (~1.1:1)</td>
+      <td>charcoal <span class="swatch-inline" style="background:#141414;border:1px solid #444"></span><span class="mono">#141414</span> on cream (13.8:1)</td>
+      <td><span class="mono">recipe/[id].tsx</span> Method list</td>
+    </tr>
+  </table>
+</div>
+
+<div class="locked">
+  <h3>What stays locked (not touched here)</h3>
+  <ul>
+    <li><b>Sage</b> stays the "done / checked / selected" colour everywhere it does that job — it's load-bearing, and changing it would be a redirection, not a refinement.</li>
+    <li><b>Gold #F2CC2A</b>, the <b>hone.</b> wordmark, the gold search border, the solid-gold active category tile, cook-mode OLED black, and the floating-pill CTA pattern are all unchanged.</li>
+    <li><b>No new fonts, no layout changes, no new direction.</b> Every change above is colour or emphasis only.</li>
+  </ul>
+  <p style="margin-top:11px;font-size:12px;color:var(--ink3)">Note for later (not proposed now): the gold is currently doing double duty as both the brand accent and the "some difference" pill. They never appear on the same screen, so it's fine — flagging only so it's on the record.</p>
+</div>
+
+</body>
+</html>
