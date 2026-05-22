@@ -40,6 +40,7 @@ import {
   Pressable,
   ScrollView,
   SectionList,
+  StyleSheet,
   Text,
   TextInput,
   useWindowDimensions,
@@ -64,6 +65,7 @@ import * as Haptics from 'expo-haptics';
 
 import { tokens, fonts, shadows } from '../../src/theme/tokens';
 import { Icon } from '../../src/components/Icon';
+import { FoodIcon, categoryIconName } from '../../src/components/PantryIcons';
 import { VersionFooter } from '../../src/components/VersionFooter';
 import {
   clearAllPantryItems,
@@ -83,7 +85,8 @@ import {
   normalizeForMatch,
   scoreRecipeAgainstPantry,
   INGREDIENT_CATALOG,
-  CATEGORY_EMOJI,
+  SHOPPING_SECTION_LABEL,
+  SHOPPING_SECTION_ORDER,
   fuzzyMatchCatalog,
   matchedAlias,
 } from '../../src/data/pantry-helpers';
@@ -133,6 +136,34 @@ function sameNorm(a: string, b: string): boolean {
   return normalizeForMatch(a) === normalizeForMatch(b);
 }
 
+// ── Build #122 Pass 1 — countable vs bulk judgment ─────────────────────────
+// Bulk staples you'd never count individually (you have flour, not "3 flours")
+// show a neutral "Stocked" pill instead of the +/− stepper. Everything else
+// defaults to the stepper. Curated set keyed on normalized names; covers the
+// launch catalog's bulk items. Safe default = countable (stepper).
+const UNCOUNTED_NAMES: ReadonlySet<string> = new Set(
+  [
+    'salt', 'fine salt', 'sea salt', 'table salt', 'black pepper', 'white pepper',
+    'olive oil', 'vegetable oil', 'sesame oil', 'cooking oil', 'oil',
+    'plain flour', 'bread flour', 'self raising flour', 'flour', 'cornflour', 'corn flour',
+    'white sugar', 'brown sugar', 'caster sugar', 'icing sugar', 'sugar',
+    'white rice', 'basmati rice', 'jasmine rice', 'rice',
+    'chicken stock', 'vegetable stock', 'beef stock', 'fish stock', 'stock', 'broth',
+    'water', 'baking powder', 'bicarbonate of soda', 'bicarb soda', 'bicarbonate',
+    'soy sauce', 'fish sauce', 'oyster sauce', 'hoisin sauce', 'worcestershire sauce',
+    'honey', 'maple syrup', 'tahini', 'miso paste', 'tomato paste',
+    'white wine vinegar', 'red wine vinegar', 'apple cider vinegar', 'rice vinegar', 'vinegar',
+    'milk', 'whole milk',
+  ].map((n) => normalizeForMatch(n)),
+);
+
+function isCountableItem(item: { name: string; category: string }): boolean {
+  if (UNCOUNTED_NAMES.has(normalizeForMatch(item.name))) return false;
+  // Spices & Seasonings are measured by spoon, never counted — treat as bulk.
+  if (item.category === 'Spices & Seasonings') return false;
+  return true;
+}
+
 // ── Main screen ──────────────────────────────────────────────────────────────
 
 export default function PantryTab() {
@@ -168,9 +199,6 @@ export default function PantryTab() {
   // visible underneath — no full-screen mode switch.
   const showDropdown = searchMode && addName.trim().length >= 1;
 
-  // Pill collapse — show first 5, expand on tap
-  const PILLS_SHOWN = 5;
-  const [pillsExpanded, setPillsExpanded] = useState(false);
 
   // Search bar border colour animates 150 ms between inactive/active gold
   const searchFocusAnim = useSharedValue(0);
@@ -217,6 +245,17 @@ export default function PantryTab() {
   } | null>(null);
   const shopUndoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // ── Build #122 Pass 1 — organised "what you have" list ─────────────────────
+  // Collapse state per category (component-local; persisting is a fine
+  // follow-up, not required for v1). Default: all expanded (empty set).
+  const [collapsedCats, setCollapsedCats] = useState<Set<string>>(new Set());
+
+  // Item-removal undo (stepper − at qty 1 removes the row). Modeled on the
+  // shopUndo pattern: hold a snapshot of the removed item so undo can re-insert
+  // it even after the list re-renders underneath.
+  const [itemUndo, setItemUndo] = useState<{ item: PantryItem; addedAtMs: number; label: string } | null>(null);
+  const itemUndoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const mountedRef = useRef(true);
   useEffect(() => {
     mountedRef.current = true;
@@ -226,6 +265,7 @@ export default function PantryTab() {
       if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
       if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
       if (shopUndoTimerRef.current) clearTimeout(shopUndoTimerRef.current);
+      if (itemUndoTimerRef.current) clearTimeout(itemUndoTimerRef.current);
     };
   }, []);
 
@@ -331,6 +371,108 @@ export default function PantryTab() {
     [sortedPantry],
   );
 
+  // ── Build #122 Pass 1 — grouped "what you have" + stepper helpers ──────────
+  // Group stocked items by category, ordered per SHOPPING_SECTION_ORDER, hiding
+  // empty categories. Items within a category keep recency order (havePills is
+  // already recency-sorted).
+  const groupedHaves = useMemo(() => {
+    const byCat = new Map<PantryCategory, PantryItem[]>();
+    for (const it of havePills) {
+      const cat = (it.category as PantryCategory);
+      const arr = byCat.get(cat);
+      if (arr) arr.push(it);
+      else byCat.set(cat, [it]);
+    }
+    return SHOPPING_SECTION_ORDER
+      .filter((cat) => (byCat.get(cat)?.length ?? 0) > 0)
+      .map((cat) => ({ category: cat, items: byCat.get(cat)! }));
+  }, [havePills]);
+
+  // Sub-line: which surfaced (carousel-ranked) recipes use this ingredient.
+  // Reuses the carousel's existing ranked set + normalizeForMatch — no new
+  // scoring. Returns recipe titles; empty when no surfaced recipe uses it.
+  const recipeTitlesForItem = useCallback(
+    (item: PantryItem): string[] => {
+      const titles: string[] = [];
+      for (const m of ranked) {
+        const used = m.recipe.ingredients.some((ing) =>
+          sameNorm(cleanIngredientName(ing.name), item.name),
+        );
+        if (used) titles.push(m.recipe.title);
+      }
+      return titles;
+    },
+    [ranked],
+  );
+
+  const toggleCategory = useCallback((cat: PantryCategory) => {
+    setCollapsedCats((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat);
+      else next.add(cat);
+      return next;
+    });
+  }, []);
+
+  // Stepper: write the row's quantity. Optimistic local update + background
+  // persist, mirroring the addItem/removeItem pattern already in this file.
+  const setItemQuantity = useCallback(
+    (item: PantryItem, nextQty: number) => {
+      const clamped = Math.max(1, Math.min(99, nextQty));
+      Haptics.selectionAsync().catch(() => {});
+      setPantryItems((prev) =>
+        prev.map((p) => (p.id === item.id ? { ...p, quantity: clamped } : p)),
+      );
+      upsertPantryItem(db, { ...item, quantity: clamped }).catch((e) =>
+        console.error('setItemQuantity upsert failed', e),
+      );
+    },
+    [db],
+  );
+
+  // Stepper − at qty 1 removes the row, with a brief undo toast (reuses the
+  // shopUndo visual pattern). Snapshot lets undo re-insert with its quantity.
+  const removeItemWithUndo = useCallback(
+    (item: PantryItem) => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      const snapAddedAt = addedAt[item.id] ?? Date.now();
+      setPantryItems((prev) => prev.filter((p) => p.id !== item.id));
+      deletePantryItem(db, item.id).catch((e) =>
+        console.error('deletePantryItem failed', e),
+      );
+      if (itemUndoTimerRef.current) clearTimeout(itemUndoTimerRef.current);
+      setItemUndo({ item, addedAtMs: snapAddedAt, label: `Removed ${item.name}` });
+      itemUndoTimerRef.current = setTimeout(() => {
+        if (!mountedRef.current) return;
+        setItemUndo(null);
+      }, SHOP_UNDO_TIMEOUT_MS);
+    },
+    [db, addedAt],
+  );
+
+  const undoItemRemove = useCallback(async () => {
+    if (!itemUndo) return;
+    if (itemUndoTimerRef.current) clearTimeout(itemUndoTimerRef.current);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    const { item, addedAtMs } = itemUndo;
+    setPantryItems((prev) => (prev.some((p) => p.id === item.id) ? prev : [item, ...prev]));
+    setAddedAt((prev) => ({ ...prev, [item.id]: addedAtMs }));
+    setItemUndo(null);
+    await upsertPantryItem(db, item).catch((e) =>
+      console.error('undoItemRemove upsert failed', e),
+    );
+  }, [db, itemUndo]);
+
+  // Stepper decrement: − at 1 removes; otherwise decrement quantity.
+  const decrementItem = useCallback(
+    (item: PantryItem) => {
+      const qty = item.quantity ?? 1;
+      if (qty <= 1) removeItemWithUndo(item);
+      else setItemQuantity(item, qty - 1);
+    },
+    [removeItemWithUndo, setItemQuantity],
+  );
+
   // ── Derived chip state (REGN-007) ─────────────────────────────────────────
   // The chip's added/needed visual is not its own — it's a function of the
   // current shopping list. Anything that changes the list (add, undo, ✓-tap,
@@ -395,7 +537,7 @@ export default function PantryTab() {
         id,
         name: clean,
         category: category ?? categorizeIngredient(clean),
-        quantity: null,
+        quantity: 1, // build #122 — stepper starts at 1 on add
         unit: null,
         have_it: true,
       };
@@ -446,29 +588,6 @@ export default function PantryTab() {
     setAddName('');
     requestAnimationFrame(() => inputRef.current?.focus());
   }, [addName, addByName]);
-
-  const removeItem = useCallback(
-    async (item: PantryItem) => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-      setPantryItems((prev) => prev.filter((p) => p.id !== item.id));
-      setAddedAt((prev) => {
-        if (!(item.id in prev)) return prev;
-        const next = { ...prev };
-        delete next[item.id];
-        return next;
-      });
-      setFreshIds((prev) => {
-        if (!prev.has(item.id)) return prev;
-        const next = new Set(prev);
-        next.delete(item.id);
-        return next;
-      });
-      deletePantryItem(db, item.id).catch((e) =>
-        console.error('deletePantryItem failed', e),
-      );
-    },
-    [db],
-  );
 
   // ── Clear all + undo ───────────────────────────────────────────────────────
   // v3: Modal confirmation replaces the inline button. This is the actual clear
@@ -806,137 +925,7 @@ export default function PantryTab() {
           </Animated.View>
         </View>
 
-        {/* Have-it pills card — collapsed to PILLS_SHOWN, expandable */}
-        {havePills.length > 0 ? (
-          <View
-            style={{
-              marginBottom: 10,
-              backgroundColor: tokens.cream,
-              borderRadius: 14,
-              borderWidth: 1,
-              borderColor: tokens.lineDark,
-              padding: 12,
-            }}
-          >
-            <Animated.View
-              layout={LinearTransition.springify().damping(18).stiffness(180)}
-              style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7 }}
-            >
-              {(pillsExpanded ? havePills : havePills.slice(0, PILLS_SHOWN)).map((it) => (
-                <Pill
-                  key={it.id}
-                  item={it}
-                  fresh={freshIds.has(it.id)}
-                  onRemove={() => removeItem(it)}
-                />
-              ))}
-              {/* Expand / collapse — filled action button, not a chip (build #120) */}
-              {havePills.length > PILLS_SHOWN ? (
-                <Pressable
-                  onPress={() => setPillsExpanded((x) => !x)}
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    pillsExpanded
-                      ? 'Show fewer ingredients'
-                      : `Show ${havePills.length - PILLS_SHOWN} more ingredient${havePills.length - PILLS_SHOWN === 1 ? '' : 's'}`
-                  }
-                  android_ripple={{ color: 'rgba(255,255,255,0.18)', borderless: false }}
-                  style={{ borderRadius: 999 }}
-                >
-                  <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingHorizontal: 12,
-                    paddingVertical: 6,
-                    borderRadius: 999,
-                    backgroundColor: tokens.primary,
-                    gap: 4,
-                  }}>
-                    <Text
-                      style={{
-                        fontFamily: fonts.sansBold,
-                        fontSize: 11,
-                        color: tokens.onPrimary,
-                        letterSpacing: 0.2,
-                      }}
-                    >
-                      {pillsExpanded
-                        ? 'Show less ↑'
-                        : `+${havePills.length - PILLS_SHOWN} more ↓`}
-                    </Text>
-                  </View>
-                </Pressable>
-              ) : null}
-            </Animated.View>
-          </View>
-        ) : null}
-
-        {/* Match banner — pinned in header so it stays above fold */}
-        {ranked.length > 0 ? (
-          <View
-            style={{
-              marginBottom: 10,
-              backgroundColor: tokens.cream,
-              borderRadius: 14,
-              borderWidth: 1,
-              borderColor: tokens.primaryLight,
-              paddingVertical: 11,
-              paddingHorizontal: 16,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 12,
-              overflow: 'hidden',
-            }}
-          >
-            <View
-              style={{
-                position: 'absolute',
-                left: 0, top: 0, bottom: 0, width: 4,
-                backgroundColor: tokens.primary, borderRadius: 4,
-              }}
-            />
-            <View style={{ flex: 1, paddingLeft: 8 }}>
-              <Text
-                style={{
-                  fontFamily: fonts.display,
-                  fontSize: 15,
-                  color: tokens.ink,
-                  lineHeight: 19,
-                  marginBottom: 2,
-                }}
-              >
-                {fullMatches > 0
-                  ? `${fullMatches} recipe${fullMatches === 1 ? '' : 's'} you can cook now`
-                  : `${ranked.length} match${ranked.length === 1 ? '' : 'es'} — keep adding`}
-              </Text>
-              <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: tokens.muted }}>
-                {fullMatches > 0
-                  ? (ranked.length - fullMatches > 0
-                      ? `${ranked.length - fullMatches} more within 1–3 ingredients`
-                      : 'You have everything you need')
-                  : `${ranked.length} recipe${ranked.length === 1 ? '' : 's'} ranked by coverage`}
-              </Text>
-            </View>
-            <Pressable
-              onPress={() => router.navigate('/')}
-              accessibilityRole="button"
-              accessibilityLabel="See all matching recipes in Kitchen tab"
-              android_ripple={{ color: tokens.sageLight, borderless: false }}
-              style={{ borderRadius: 999 }}
-            >
-              <View style={{
-                backgroundColor: tokens.sageLight,
-                borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4,
-                borderWidth: 1,
-                borderColor: 'rgba(46,94,62,0.22)',
-              }}>
-                <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, color: tokens.sage }}>
-                  See all
-                </Text>
-              </View>
-            </Pressable>
-          </View>
-        ) : null}
+        {/* Pills card + match banner removed in build #122 — replaced by the organised list in the browse scroll area below, and the carousel already conveys matches. */}
       </View>
 
       {/* ── Inline suggestion dropdown ─────────────────────────────────── */}
@@ -1215,6 +1204,171 @@ export default function PantryTab() {
           {/* Empty pantry state — shown when no pills */}
           {havePills.length === 0 ? (
             <EmptyPantry onAddFirst={() => inputRef.current?.focus()} />
+          ) : null}
+
+          {/* ── Build #122 Pass 1 — organised "what you have" list ─────────── */}
+          {havePills.length > 0 ? (
+            <View style={{ paddingHorizontal: 20, marginBottom: 8 }}>
+              <Text
+                style={{
+                  fontFamily: fonts.sansBold,
+                  fontSize: 11,
+                  letterSpacing: 1.6,
+                  textTransform: 'uppercase',
+                  color: tokens.inkSoft,
+                  marginBottom: 11,
+                }}
+              >
+                In your pantry
+              </Text>
+
+              {groupedHaves.map(({ category, items }) => {
+                const collapsed = collapsedCats.has(category);
+                return (
+                  <View key={category} style={{ marginBottom: 10 }}>
+                    {/* Category header — tap to collapse/expand */}
+                    <Pressable
+                      onPress={() => toggleCategory(category)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${SHOPPING_SECTION_LABEL[category]}, ${items.length} item${items.length === 1 ? '' : 's'}, ${collapsed ? 'collapsed' : 'expanded'}`}
+                      android_ripple={{ color: 'rgba(255,255,255,0.06)', borderless: false }}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 9,
+                        paddingVertical: 6,
+                        paddingHorizontal: 2,
+                        borderBottomWidth: collapsed ? 0 : StyleSheet.hairlineWidth,
+                        borderBottomColor: tokens.line,
+                        marginBottom: collapsed ? 0 : 8,
+                      }}
+                    >
+                      <FoodIcon name={categoryIconName(category)} size={20} color={tokens.inkSoft} />
+                      <Text
+                        style={{
+                          flex: 1,
+                          fontFamily: fonts.sansBold,
+                          fontSize: 11.5,
+                          letterSpacing: 0.4,
+                          color: tokens.ink,
+                        }}
+                      >
+                        {SHOPPING_SECTION_LABEL[category]}
+                      </Text>
+                      <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, color: tokens.muted, marginRight: 2 }}>
+                        {items.length}
+                      </Text>
+                      <View style={{ transform: [{ rotate: collapsed ? '-90deg' : '0deg' }] }}>
+                        <Icon name="arrow-down" size={15} color={tokens.muted} />
+                      </View>
+                    </Pressable>
+
+                    {/* Rows */}
+                    {!collapsed
+                      ? items.map((it) => {
+                          const titles = recipeTitlesForItem(it);
+                          let subline = '';
+                          if (titles.length === 1) subline = titles[0];
+                          else if (titles.length === 2) subline = `${titles[0]}, ${titles[1]}`;
+                          else if (titles.length > 2) subline = `${titles[0]}, ${titles[1]} +${titles.length - 2}`;
+                          const countable = isCountableItem(it);
+                          const qty = it.quantity ?? 1;
+                          return (
+                            <View
+                              key={it.id}
+                              style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 11,
+                                paddingVertical: 8,
+                                paddingHorizontal: 8,
+                                borderRadius: 11,
+                                backgroundColor: tokens.cream,
+                                borderWidth: 1,
+                                borderColor: tokens.line,
+                                marginBottom: 6,
+                              }}
+                            >
+                              <FoodIcon name={categoryIconName(category)} size={17} color={tokens.inkSoft} />
+                              <View style={{ flex: 1, minWidth: 0 }}>
+                                <Text style={{ fontFamily: fonts.sans, fontSize: 13.5, color: tokens.ink }} numberOfLines={1}>
+                                  {it.name}
+                                </Text>
+                                {subline ? (
+                                  <Text style={{ fontFamily: fonts.sans, fontSize: 10, color: tokens.inkSoft, marginTop: 1 }} numberOfLines={1}>
+                                    <Text style={{ color: tokens.muted }}>for </Text>
+                                    {subline}
+                                  </Text>
+                                ) : null}
+                              </View>
+
+                              {countable ? (
+                                <View
+                                  style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    backgroundColor: tokens.goldDim,
+                                    borderWidth: 1,
+                                    borderColor: 'rgba(242,204,42,0.42)',
+                                    borderRadius: 999,
+                                  }}
+                                >
+                                  <Pressable
+                                    onPress={() => decrementItem(it)}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`Remove one ${it.name}`}
+                                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 4 }}
+                                    style={{ width: 27, height: 27, alignItems: 'center', justifyContent: 'center' }}
+                                  >
+                                    <Icon name="minus" size={14} color={tokens.gold} />
+                                  </Pressable>
+                                  <Text
+                                    style={{ minWidth: 18, textAlign: 'center', fontFamily: fonts.sansBold, fontSize: 13, color: tokens.ink }}
+                                    accessibilityLabel={`Quantity ${qty}`}
+                                  >
+                                    {qty}
+                                  </Text>
+                                  <Pressable
+                                    onPress={() => setItemQuantity(it, qty + 1)}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`Add one ${it.name}`}
+                                    hitSlop={{ top: 10, bottom: 10, left: 4, right: 10 }}
+                                    style={{ width: 27, height: 27, alignItems: 'center', justifyContent: 'center' }}
+                                  >
+                                    <Icon name="plus" size={14} color={tokens.gold} />
+                                  </Pressable>
+                                </View>
+                              ) : (
+                                <Pressable
+                                  onPress={() => removeItemWithUndo(it)}
+                                  accessibilityRole="button"
+                                  accessibilityLabel={`${it.name} stocked — tap to remove`}
+                                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                >
+                                  <View
+                                    style={{
+                                      paddingVertical: 4,
+                                      paddingHorizontal: 10,
+                                      borderRadius: 999,
+                                      backgroundColor: tokens.cream,
+                                      borderWidth: 1,
+                                      borderColor: tokens.lineDark,
+                                    }}
+                                  >
+                                    <Text style={{ fontFamily: fonts.sansBold, fontSize: 10.5, letterSpacing: 0.3, color: tokens.inkSoft }}>
+                                      Stocked
+                                    </Text>
+                                  </View>
+                                </Pressable>
+                              )}
+                            </View>
+                          );
+                        })
+                      : null}
+                  </View>
+                );
+              })}
+            </View>
           ) : null}
 
           {/* Unlock nudge */}
@@ -1563,89 +1717,50 @@ export default function PantryTab() {
           </Pressable>
         </Animated.View>
       ) : null}
+
+      {/* ── Item-removal undo toast (build #122) ─────────────────────── */}
+      {itemUndo ? (
+        <Animated.View
+          entering={FadeIn.duration(160)}
+          exiting={FadeOut.duration(120)}
+          style={{
+            position: 'absolute',
+            bottom: insets.bottom + (undoSnapshot || shopUndo ? 152 : 92),
+            left: 16,
+            right: 16,
+            backgroundColor: tokens.ink,
+            borderRadius: 14,
+            paddingVertical: 14,
+            paddingHorizontal: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            ...shadows.toast,
+          }}
+        >
+          <Text style={{ flex: 1, fontFamily: fonts.sans, fontSize: 13, color: '#FFF' }}>
+            {itemUndo.label}
+          </Text>
+          <Pressable onPress={undoItemRemove} hitSlop={8}>
+            <Text
+              style={{
+                fontFamily: fonts.sansBold,
+                fontSize: 12,
+                letterSpacing: 1,
+                textTransform: 'uppercase',
+                color: tokens.primary,
+              }}
+            >
+              Undo
+            </Text>
+          </Pressable>
+        </Animated.View>
+      ) : null}
     </KeyboardAvoidingView>
   );
 }
 
 // ── Subcomponents ─────────────────────────────────────────────────────────────
-
-/**
- * Pill — have-it item in the tag-cloud above the search bar.
- *
- * Fresh flash: brief gold tint on the pill immediately after adding.
- * This is the tactile "yes, that landed" receipt before it settles to sage.
- */
-function Pill({
-  item,
-  fresh,
-  onRemove,
-}: {
-  item: PantryItem;
-  fresh: boolean;
-  onRemove: () => void;
-}) {
-  const bg = fresh ? tokens.primaryLight : tokens.sageLight;
-  const fg = fresh ? tokens.primaryDeep : tokens.sageDeep;
-  const borderColor = fresh ? 'rgba(184,64,48,0.45)' : 'rgba(170,204,168,0.50)';
-  const xBg = fresh ? 'rgba(163,68,31,0.18)' : 'rgba(70,94,64,0.18)';
-
-  return (
-    <Animated.View
-      entering={FadeIn.duration(180)}
-      exiting={FadeOut.duration(140)}
-      layout={LinearTransition.duration(180)}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        paddingVertical: 8,
-        paddingHorizontal: 13,
-        backgroundColor: bg,
-        borderRadius: 999,
-        borderWidth: 1,
-        borderColor,
-        minHeight: 34,
-      }}
-    >
-      <Text
-        style={{
-          fontFamily: fonts.sansBold,
-          fontSize: 13,
-          color: fg,
-        }}
-      >
-        {item.name}
-      </Text>
-      <Pressable
-        onPress={onRemove}
-        hitSlop={10}
-        accessibilityRole="button"
-        accessibilityLabel={`Remove ${item.name}`}
-        style={{
-          width: 18,
-          height: 18,
-          borderRadius: 999,
-          backgroundColor: xBg,
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginLeft: 2,
-          marginRight: -4,
-        }}
-      >
-        <Text
-          style={{
-            fontSize: 11,
-            fontFamily: fonts.sansBold,
-            color: fg,
-            lineHeight: 13,
-          }}
-        >
-          ×
-        </Text>
-      </Pressable>
-    </Animated.View>
-  );
-}
 
 function EmptyPantry({ onAddFirst }: { onAddFirst: () => void }) {
   return (
@@ -1691,7 +1806,7 @@ function EmptyPantry({ onAddFirst }: { onAddFirst: () => void }) {
           marginBottom: 20,
         }}
       >
-        Add a few ingredients and Hone finds the best recipes you can cook right now — no shopping required.
+        Nothing stocked yet — search above to add what you have.
       </Text>
       <Pressable
         onPress={onAddFirst}
@@ -1987,7 +2102,7 @@ function ChipAdd({
           ? `${ing.name} on shopping list — tap to remove`
           : `Add ${label} to shopping list`
       }
-      android_ripple={{ color: 'rgba(184,64,48,0.18)', borderless: false }}
+      android_ripple={{ color: 'rgba(255,255,255,0.10)', borderless: false }}
       style={{ borderRadius: 999 }}
     >
       <View
@@ -2000,14 +2115,14 @@ function ChipAdd({
           borderRadius: 999,
           backgroundColor: added ? tokens.primary : 'transparent',
           borderWidth: 2,
-          borderColor: added ? tokens.primary : tokens.primaryInk,
+          borderColor: added ? tokens.primary : tokens.lineDark,
         }}
       >
         <Text
           style={{
             fontFamily: fonts.sansBold,
             fontSize: 11,
-            color: added ? tokens.onPrimary : tokens.primaryInk,
+            color: added ? tokens.onPrimary : tokens.inkSoft,
           }}
         >
           {added ? '✓' : '+'}
@@ -2016,7 +2131,7 @@ function ChipAdd({
           style={{
             fontFamily: fonts.sansBold,
             fontSize: 11,
-            color: added ? tokens.onPrimary : tokens.primaryInk,
+            color: added ? tokens.onPrimary : tokens.inkSoft,
           }}
           numberOfLines={1}
         >
