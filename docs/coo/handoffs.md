@@ -61,23 +61,26 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ### HANDOFF → Senior Engineer · 2026-05-22 · OPEN — PENDING PATRICK'S VISUAL APPROVAL (pantry list redesign — category groups, line icons, recipe-driven quantities)
 **From:** Product Designer
-**Subject:** Patrick wants the pantry to stop being a flat pill list and become an organised, category-grouped shelf with clean icons and smart quantities ("a tomato in one recipe, then a second recipe wants a tomato → it should say 2"). Prototype: `docs/prototypes/pantry-list-v1.html`. **Do not build yet** — Patrick reviews and approves visually first (decision rights: Designer recommends, Patrick approves).
+**Subject:** Patrick wants the pantry to stop being a flat pill list and become an organised, category-grouped shelf with clean icons and smart quantities. Current prototype: **`docs/prototypes/pantry-list-v2.html`** (v1 superseded — see "model revised" note below). **Do not build yet** — Patrick reviews and approves visually first (decision rights: Designer recommends, Patrick approves).
 
 **The key finding (saves most of the work):** the "add up to 2" logic Patrick is asking for **already exists** in `mobile/src/data/shopping-helpers.ts`. `applyMealAdd` / `applyMealRemove` / `recomputeQuantity` already track each ingredient's source recipes (`sources[]`) and re-sum the scaled quantity on every meal add/remove. It also already handles units honestly — `sameSlot` merges only matching units (or when one side is null) and deliberately does **not** convert grams↔cups. So the aggregation maths is done. We are surfacing it, not inventing it.
 
 **What's actually new (the design proposes, engineer scopes):**
 1. **Group the pantry by `PANTRY_CATEGORY`** (Produce / Meat & Seafood / Dairy & Eggs / Pantry / Spices & Herbs / Sauces / Frozen) instead of one flat pill wrap. Categories + `categorizeIngredient()` already exist in `pantry-helpers.ts`.
 2. **Minimal line SVG icons** per category (7 drawn in the prototype, single 1.6px stroke, `currentColor` so they tint grey/emerald with row state) — replacing the current `CATEGORY_EMOJI`.
-3. **Per-row "Need" quantity + source attribution** ("need 2 · from Bolognese + Shakshuka") read from the existing `sources[]` on the shopping item.
-4. **The one genuinely new data link:** the pantry "have it" tick should subtract from the "to buy" quantity, so Pantry (have) + Shopping (need − have) become one coherent picture across the two tabs. This is the only piece that needs an architecture call — flagging it to you rather than deciding it. **This is a Senior Engineer architecture decision, not a design one.**
+3. **Per-row source attribution** ("from Bolognese + Shakshuka") read from the existing `sources[]` on the shopping item.
 
-**Honesty constraint (golden rule 5):** mismatched units stay split under one ingredient ("1 tin · 200 g"), never faked into a single number. The prototype shows this; the engine already behaves this way.
+**MODEL REVISED 2026-05-22 (Patrick feedback on v1 → v2):**
+- **Two states, not three numbers.** Patrick rejected the Need/Have/Buy summary dashboard ("if we need the ingredient it should just show in the pantry"). v2 drops the 3-stat strip. Every ingredient is in ONE of two states: **In your kitchen** (`have_it = true`) or **To buy** (needed by a planned recipe AND `have_it = false`). Each row renders one status; a filter control (All / To buy / In kitchen) replaces the dashboard. The Shop tab becomes this same list filtered to "to buy" — same data, two views.
+- **Buy-units, not recipe grams.** Quantities display in the unit the user actually buys: "2 tomatoes" not "200 g", "1 bunch" coriander, "1 bulb" garlic, "2 tins" canned tomatoes; bulk items (mince, flour, cheese) stay in grams. **This needs a NEW small reference table: per-ingredient buy-unit = count | weight | pack, plus an average weight for count conversions.** ~50–60 common ingredients seeded; everything else falls back to the recipe unit. This is the one genuinely new bit of data + logic — flagging it as the main build cost.
+
+**Honesty constraint (golden rule 5):** weight→count conversions are approximations and must be marked "≈" (tomatoes vary in size). Bulk-by-weight items stay in grams. Never invent a precise count we can't stand behind. (The existing shopping engine already refuses grams↔cups conversions — same spirit.)
 
 **Colours/idioms used:** current dark-sage tokens; the refined emerald `#4FBF85` (from `colour-refinement-v1.html`) for the positive "have" state; gold for the "need" accent; rust reserved for the primary CTA only. Consistent with the colour-refinement handoff above.
 
-**Files touched (Designer):** `docs/prototypes/pantry-list-v1.html` (new).
+**Files touched (Designer):** `docs/prototypes/pantry-list-v1.html`, `docs/prototypes/pantry-list-v2.html` (v2 is current; v1 kept for history of the model change).
 
-**Blocks:** nothing yet — exploratory. Once Patrick approves the look, Designer + Engineer agree the have→buy data flow before any build.
+**Blocks:** nothing yet — exploratory. Once Patrick approves the look, Designer + Engineer agree (a) the buy-unit reference table, and (b) the "to buy" filter feeding the Shop tab, before any build.
 
 ---
 
@@ -1541,13 +1544,4 @@ For each recipe below, either:
 | `RAMEN` | Ivan Orkin / Ivan Ramen | `ivanramen.com/` (site root) | Find specific recipe page or use *Ivan Ramen* book citation |
 | `DAL` | Madhur Jaffrey | `thehappyfoodie.co.uk/chefs/madhur-jaffrey/` (chef listing page) | Find specific tarka dal page on Happy Foodie or use *Madhur Jaffrey's Curry Easy* book citation |
 
-**Also flag for review:** `BEEF_LASAGNE` — the URL `https://www.nytimes.com/recipes/12869/marcella-hazans-bolognese-meat-sauce.html` is a specific page (PASS) but it links to a Bolognese sauce recipe, not a lasagne. The attribution notes should clarify: "Sauce adapted from Marcella Hazan's bolognese; assembled as lasagne — Hone Kitchen." Update `source.notes` accordingly.
-
-**Files touched:** `mobile/src/data/seed-recipes.ts` — `source.video_url` and `source.notes` fields only. No step or ingredient changes.
-**Full audit detail:** `docs/coo/culinary-audit.md` — per-recipe attribution notes with context on each failure.
-**Blocks:** All 16 affected recipes from shipping. This is a brand-safety issue, not just a QA item.
-
----
-
-### HANDOFF → COO · 2026-05-07 · DONE ✅ (Cook briefed in writing — engineer unblocked for 11-recipe migration)
-**Closed by COO 2026-05-07.** Cook's brief at `docs/coo/specialists/culinary-verifier.md` now carries an explicit "RETIRED FIELDS — DO NOT USE" section at the top of "How you work," naming `whole_food_verified` and i
+**Also flag for review:** `BEEF_LASAGNE` — the URL `https://www.nytimes.com/recipes/12869/marcella-hazans-bolognese-meat-sauce.html`
