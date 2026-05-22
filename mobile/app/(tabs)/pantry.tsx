@@ -65,7 +65,7 @@ import * as Haptics from 'expo-haptics';
 
 import { tokens, fonts, shadows } from '../../src/theme/tokens';
 import { Icon } from '../../src/components/Icon';
-import { FoodIcon, categoryIconName } from '../../src/components/PantryIcons';
+import { FoodIcon, categoryIconName, ingredientIconName } from '../../src/components/PantryIcons';
 import { VersionFooter } from '../../src/components/VersionFooter';
 import {
   clearAllPantryItems,
@@ -1289,7 +1289,7 @@ export default function PantryTab() {
                                 marginBottom: 6,
                               }}
                             >
-                              <FoodIcon name={categoryIconName(category)} size={17} color={tokens.inkSoft} />
+                              <FoodIcon name={ingredientIconName(it.name, category)} size={17} color={tokens.inkSoft} />
                               <View style={{ flex: 1, minWidth: 0 }}>
                                 <Text style={{ fontFamily: fonts.sans, fontSize: 13.5, color: tokens.ink }} numberOfLines={1}>
                                   {it.name}
