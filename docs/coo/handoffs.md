@@ -79,6 +79,8 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 **REFINED 2026-05-22 (Patrick: colour clash + drop banner) — same file `pantry-haves-v1.html`:** (1) **Removed the "N recipes you can cook now" summary banner** — redundant with the carousel. (2) **Calmer palette:** category + ingredient SVG icons are now **neutral warm-cream `#C4B8A8`**, NOT green or gold — icons are wayfinding, not status. **Gold is the single accent**, used only on the +/− stepper. **Green is off this screen** (in a "what you have" list every row is owned, so a green icon per row signals nothing; sage stays reserved for genuine "done" states like cook mode). Search border also softened from rust-tint to a neutral line on this screen. No locked-token changes — just stops painting icons with accent colours.
 
+**ASSEMBLED 2026-05-22 (Patrick: "show the recipes in a carousel like the current build. lets try all that") — `pantry-haves-v1.html` now shows the full screen:** organised collapsible list → **recipe-match carousel below** (current-build order), driven by the existing `scoreRecipeAgainstPantry`. Carousel restyled to the calm palette: **green returns for one job only — the "Ready to cook" pill** (a genuine go-signal, the one place green is meaningful); "still need" chips are **neutral** (moved off rust so they add no colour); icons stay neutral cream; gold stays on the stepper. Banner stays removed (carousel is the canonical match surface). Final colour map on this screen: cream surfaces/text/icons · gold = the stepper you tap · green = a recipe ready to cook. This is the current build target.
+
 **Honesty constraint (golden rule 5):** weight→count conversions are approximations and must be marked "≈" (tomatoes vary in size). Bulk-by-weight items stay in grams. Never invent a precise count we can't stand behind. (The existing shopping engine already refuses grams↔cups conversions — same spirit.)
 
 **Colours/idioms used:** current dark-sage tokens; the refined emerald `#4FBF85` (from `colour-refinement-v1.html`) for the positive "have" state; gold for the "need" accent; rust reserved for the primary CTA only. Consistent with the colour-refinement handoff above.
@@ -1524,12 +1526,4 @@ For v0.5.0 version bump:
 ### Original handoff (preserved for audit) → Senior Engineer · 2026-05-08 · OPEN (ATTR-FAIL — fix 16 broken attribution URLs in seed-recipes.ts)
 **From:** Culinary & Cultural Verifier
 **Subject:** 16 recipes have `video_url` values that violate Golden Rule 1 — fix before any recipe ships
-**Why:** The full attribution audit (`docs/coo/culinary-audit.md`, 2026-05-08) found 16 of 45 seed recipes link to a channel homepage, site root, about page, or chef listing page — none of which point to a specific recipe. Under Golden Rule 1, every chef-attributed link must be live and point to the specific recipe, not a channel or site. None of these recipes can ship until the link is correct or the attribution is reframed as a book citation / "inspired by" with no URL.
-**What's needed:**
-For each recipe below, either:
-(a) Find the specific YouTube `watch?v=` video or specific recipe page URL and update `video_url` in `seed-recipes.ts`, OR
-(b) Change attribution to a book citation format — update `source.notes` to include the book title, and remove or null `video_url`. The `chef` field stays as-is.
-
-| Recipe const | Chef | Current broken URL | Fix type |
-|---|---|---|---|
-| `CHICKEN_ADOBO` | Anthony Bourdain / No Reservations 
+**Why:** The full attribution audit (`docs/coo/culinary-audit.md`, 2026-05-08) found 16 of 45 seed recipes link to a channel homepag
