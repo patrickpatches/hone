@@ -73,6 +73,7 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 **MODEL REVISED 2026-05-22 (Patrick feedback on v1 → v2):**
 - **Two states, not three numbers.** Patrick rejected the Need/Have/Buy summary dashboard ("if we need the ingredient it should just show in the pantry"). v2 drops the 3-stat strip. Every ingredient is in ONE of two states: **In your kitchen** (`have_it = true`) or **To buy** (needed by a planned recipe AND `have_it = false`). Each row renders one status; a filter control (All / To buy / In kitchen) replaces the dashboard. The Shop tab becomes this same list filtered to "to buy" — same data, two views.
 - **Buy-units, not recipe grams.** Quantities display in the unit the user actually buys: "2 tomatoes" not "200 g", "1 bunch" coriander, "1 bulb" garlic, "2 tins" canned tomatoes; bulk items (mince, flour, cheese) stay in grams. **This needs a NEW small reference table: per-ingredient buy-unit = count | weight | pack, plus an average weight for count conversions.** ~50–60 common ingredients seeded; everything else falls back to the recipe unit. This is the one genuinely new bit of data + logic — flagging it as the main build cost.
+- **Recipe-match carousel kept (Patrick: it was missing from v1/v2-initial).** The existing `scoreRecipeAgainstPantry` carousel (Ready to cook / "X of Y matched" / "still need" chips, incl. derivation matches like "egg yolks from your eggs") is folded back in at the **top** of the screen — above the ingredient list — because the pantry's promise is "cook with what you have", so the answer comes first. No new matching logic; restyled into v2 tokens. Card "still need" chips use gold (the v2 "to buy" colour) instead of the build's rust — minor token alignment, flag if you'd rather keep rust.
 
 **Honesty constraint (golden rule 5):** weight→count conversions are approximations and must be marked "≈" (tomatoes vary in size). Bulk-by-weight items stay in grams. Never invent a precise count we can't stand behind. (The existing shopping engine already refuses grams↔cups conversions — same spirit.)
 
@@ -1540,8 +1541,4 @@ For each recipe below, either:
 | `FATTOUSH` | Anissa Helou / Lebanese Cuisine | `anissas.com/` (site root) | Find specific fattoush page or use *Lebanese Cuisine* book citation |
 | `SOURDOUGH_MAINTENANCE` | Chad Robertson / Tartine Bakery | `tartinebakery.com/about` (about page) | Find specific video or use *Tartine Bread* book citation |
 | `SOURDOUGH_LOAF` | Chad Robertson / Tartine Bakery | `tartinebakery.com/about` (about page) | Find specific video or use *Tartine Bread* book citation |
-| `RISOTTO` | Marcella Hazan | `giulianohazan.com/` (site root — also Giuliano's site, not Marcella's) | Find specific mushroom risotto page or use *Essentials of Classic Italian Cooking* book citation |
-| `RAMEN` | Ivan Orkin / Ivan Ramen | `ivanramen.com/` (site root) | Find specific recipe page or use *Ivan Ramen* book citation |
-| `DAL` | Madhur Jaffrey | `thehappyfoodie.co.uk/chefs/madhur-jaffrey/` (chef listing page) | Find specific tarka dal page on Happy Foodie or use *Madhur Jaffrey's Curry Easy* book citation |
-
-**Also flag for review:** `BEEF_LASAGNE` — the URL `https://www.nytimes.com/recipes/12869/marcella-hazans-bolognese-meat-sauce.html`
+| `RISOTTO` | Marcella Hazan | `giulianohazan.com/` (site root

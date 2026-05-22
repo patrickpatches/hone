@@ -1,7 +1,7 @@
 # Hone Session Report — 22 May 2026
 
 **Role:** Product Designer
-**Focus:** Colour refinement, then a two-part pantry redesign (smart quantities, two-state model, category icons).
+**Focus:** Colour refinement, then a multi-part pantry redesign (smart quantities, two-state model, buy-units, category icons, recipe-match carousel).
 
 ---
 
@@ -15,7 +15,7 @@ Delivered the colour-refinement before/after mockup Patrick asked for in the 202
 
 **Optional third:** step-number badge charcoal `#141414` on cream (1.1:1 → 13.8:1) — pins the shade for the engineer's already-open contrast fix.
 
-All contrast ratios computed programmatically before choosing colours. HTML structurally verified.
+All contrast ratios computed programmatically before choosing colours.
 
 ## Files touched (colour refinement)
 
@@ -30,17 +30,17 @@ All contrast ratios computed programmatically before choosing colours. HTML stru
 
 # Part 2 — Pantry list redesign v1 (smart quantities + category icons)
 
-Patrick asked for the same "improve the design" treatment on the pantry. He doesn't want to hand-type quantities — he wants **recipe-driven quantities that aggregate** (one recipe needs a tomato, add a second that also needs one → it shows 2). He chose **minimal line icons**.
+Patrick wants recipe-driven quantities that aggregate (one recipe needs a tomato, add a second that also needs one → it shows 2) and chose minimal line icons.
 
 ## The key finding (why this is cheap)
 
-The aggregation Patrick described **already exists** in `mobile/src/data/shopping-helpers.ts` — `applyMealAdd` / `applyMealRemove` / `recomputeQuantity` track each ingredient's source recipes (`sources[]`) and re-sum the scaled quantity on every meal add/remove, handling units honestly. The pantry just doesn't surface it.
+The aggregation already exists in `mobile/src/data/shopping-helpers.ts` — `applyMealAdd` / `applyMealRemove` / `recomputeQuantity` track each ingredient's source recipes (`sources[]`) and re-sum on every meal add/remove, handling units honestly. The pantry just doesn't surface it.
 
-`docs/prototypes/pantry-list-v1.html` showed the pantry as supply vs demand, category-grouped, with 7 hand-drawn line icons and source attribution. Later iterated to fold the existing search-first add bar + autocomplete back in (Patrick flagged it was missing).
+`docs/prototypes/pantry-list-v1.html` showed the pantry as supply vs demand, category-grouped, with line icons + source attribution. Later iterated to fold the existing search-first add bar + autocomplete back in (Patrick flagged it was missing).
 
 ## Files touched (pantry v1)
 
-- `docs/prototypes/pantry-list-v1.html` — NEW (later iterated to add the search bar, then superseded by v2).
+- `docs/prototypes/pantry-list-v1.html` — NEW (search bar added during iteration; superseded by v2).
 - `docs/coo/handoffs.md` — opened a Senior Engineer handoff (pending Patrick's visual approval).
 
 ---
@@ -49,25 +49,38 @@ The aggregation Patrick described **already exists** in `mobile/src/data/shoppin
 
 Patrick reviewed v1 and pushed back on two things, both correct:
 
-1. **Quantities should be in buy-units, not recipe grams.** "Tomatoes should be 1 or 2, because you buy a whole tomato at the supermarket, not 200g."
-2. **The Need/Have/Buy three-number dashboard is the wrong model.** "If we need the ingredient then it should be displayed in the pantry. Think of a smarter system."
+1. **Buy-units, not recipe grams.** "Tomatoes should be 1 or 2, because you buy a whole tomato at the supermarket, not 200g."
+2. **The Need/Have/Buy dashboard is the wrong model.** "If we need the ingredient then it should be displayed in the pantry. Think of a smarter system."
 
 ## The smarter system (`docs/prototypes/pantry-list-v2.html`)
 
-**Two states, not three numbers.** Every ingredient is either **In your kitchen** (you've got it) or **To buy** (a planned recipe needs it and you don't have it). The to-buy items live right in their category with the amount shown; one tap moves an item to "in your kitchen". "Need" was never a number to read — it's just *why* an item is on the list. A filter (All / To buy / In kitchen) replaces the dashboard, and the Shop tab becomes this same list filtered to "to buy" — one source of truth, two views.
+**Two states, not three numbers.** Every ingredient is either **In your kitchen** or **To buy** (a planned recipe needs it and you don't have it). To-buy items live in their category with the amount shown; one tap moves an item to "in your kitchen". "Need" was never a number to read — it's just *why* an item is on the list. A filter (All / To buy / In kitchen) replaces the dashboard, and the Shop tab becomes this same list filtered to "to buy".
 
-**Buy-units.** Quantities display as the user shops: "2 tomatoes" (≈, produce sold whole), "1 bunch" coriander, "1 bulb" garlic, "2 tins" canned tomatoes; bulk items (mince, flour, cheese) stay in grams. Weight→count conversions are marked "≈" because sizes vary — honest per golden rule 5.
+**Buy-units.** "2 tomatoes" (≈, sold whole), "1 bunch" coriander, "1 bulb" garlic, "2 tins"; bulk (mince, flour) stays in grams. Weight→count marked "≈" — honest per golden rule 5.
 
-## The one genuinely new build cost (named honestly)
+## The one genuinely new build cost
 
-A small per-ingredient **buy-unit reference table** (count / weight / pack, plus an average weight for count conversions), ~50–60 common ingredients seeded, recipe-unit fallback for the rest. Everything else (have/buy state, source-tracked aggregation) already exists. Flagged to the Senior Engineer.
+A small per-ingredient **buy-unit reference table** (count / weight / pack + average weight for count conversions), ~50–60 common ingredients, recipe-unit fallback. Everything else already exists. Flagged to the Senior Engineer.
 
 ## A process note
 
-While iterating v1's search bar, the sandbox file mount desynced from the real file (it served a truncated copy). I rebuilt that file through the shell and gated every push behind an assertion that the bytes end in `</html>` and contain the expected content, so no truncated file could ship. v2 was written fresh and synced cleanly.
+While iterating, the sandbox file mount repeatedly desynced from the real file (serving truncated copies). I rebuilt affected files through the shell and gated every push behind an assertion that the bytes end correctly and contain the expected content, so no truncated file could ship.
+
+---
+
+# Part 4 — Pantry v2: recipe-match carousel folded in
+
+Patrick: the v2 layout was missing what the current build has — the carousel of recipes you're close to cooking based on what you have — but he likes the v2 design (SVG icons, type, two-state list) and wants the carousel incorporated.
+
+Done in `docs/prototypes/pantry-list-v2.html`. The recipe-match carousel (driven by the existing `scoreRecipeAgainstPantry`) now sits at the **top** of the screen, above the ingredient list: "Ready to cook" cards with a sage "Tap to cook" pill when fully matched, "X of Y matched" + "still need" chips when close. Restyled into v2 tokens; no new matching logic.
+
+**Placement reasoning:** the pantry's promise is "cook with what you have", so the screen now reads top-to-bottom as one thought — *what can I cook?* (carousel) then *what's in my kitchen?* (the two-state list). The build had matches at the bottom; moving them up makes the payoff the first thing you see.
+
+Minor token note flagged to the engineer: the "still need" chips use gold (v2's "to buy" colour) rather than the build's rust — easy to revert if Patrick prefers rust.
 
 ## Files touched (pantry v2)
 
-- `docs/prototypes/pantry-list-v2.html` — NEW (current).
-- `docs/coo/handoffs.md` — engineer handoff revised to the two-state + buy-unit model.
+- `docs/prototypes/pantry-list-v2.html` — two-state + buy-units + recipe-match carousel (current).
+- `docs/prototypes/pantry-list-v1.html` — kept for history of the model change.
+- `docs/coo/handoffs.md` — engineer handoff revised to the two-state + buy-unit model + carousel.
 - `docs/sessions/Hone_Session_Report_22_May_2026.md` — this report.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hone — Pantry List v2 · two states, real buy-units</title>
+<title>Hone — Pantry List v2 · matches + two states + buy-units</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -28,26 +28,21 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background:#080e0a; font-family:var(--font-sans); color:var(--ink); padding:44px 22px 90px; line-height:1.5; }
-
   .head { max-width:1000px; margin:0 auto 10px; text-align:center; }
   .tag { display:inline-block; margin-bottom:13px; background:var(--gold-dim); border:1px solid rgba(242,204,42,0.35); border-radius:20px; padding:3px 13px; font-size:10px; font-weight:600; color:var(--gold); letter-spacing:0.8px; text-transform:uppercase; }
   .head h1 { font-family:var(--font-display); font-size:30px; margin-bottom:8px; }
-  .head p { font-size:13px; color:var(--ink2); max-width:680px; margin:0 auto; }
-  .model-note { max-width:680px; margin:18px auto 0; padding:14px 16px; text-align:left; background:var(--surface); border:1px solid var(--line2); border-left:3px solid var(--gold); border-radius:10px; font-size:12.5px; color:var(--ink2); }
+  .head p { font-size:13px; color:var(--ink2); max-width:700px; margin:0 auto; }
+  .model-note { max-width:700px; margin:18px auto 0; padding:14px 16px; text-align:left; background:var(--surface); border:1px solid var(--line2); border-left:3px solid var(--gold); border-radius:10px; font-size:12.5px; color:var(--ink2); }
   .model-note strong { color:var(--ink); }
   .model-note .row { display:flex; gap:12px; margin-top:11px; flex-wrap:wrap; }
   .state-chip { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink); background:var(--surface2); border:1px solid var(--line); border-radius:9px; padding:8px 12px; flex:1; min-width:230px; }
   .sdot { width:11px; height:11px; border-radius:50%; flex-shrink:0; }
   .sdot.have { background:var(--sage-bright); }
   .sdot.buy  { background:var(--gold); }
-  .strike { margin-top:11px; font-size:11.5px; color:var(--ink3); }
-  .strike del { color:var(--ink3); }
-
   .layout { max-width:1000px; margin:46px auto 0; display:grid; grid-template-columns:300px 1fr; gap:30px; align-items:start; }
   @media (max-width:860px){ .layout{ grid-template-columns:1fr; } }
   .section-kicker { font-size:10px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
   .section h2, h2.col { font-family:var(--font-display); font-size:20px; margin-bottom:14px; }
-
   .phone { width:300px; background:var(--bg); border-radius:40px; overflow:hidden; border:1.5px solid rgba(255,255,255,0.07); box-shadow:0 28px 72px rgba(0,0,0,0.6); position:relative; }
   .status { display:flex; justify-content:space-between; padding:11px 18px 0; font-size:11px; font-weight:600; }
   .status .r { opacity:0.6; font-size:10px; }
@@ -56,24 +51,37 @@
   .eyebrow .accent { color:var(--gold); }
   .scr-title { font-family:var(--font-display); font-size:30px; line-height:34px; margin-bottom:14px; }
   .scr-title .it { font-style:italic; color:var(--gold); }
-
-  .search { display:flex; align-items:center; gap:10px; background:var(--surface); border:1.5px solid var(--rust-dim); border-radius:14px; padding:11px 13px; margin-bottom:12px; }
+  .search { display:flex; align-items:center; gap:10px; background:var(--surface); border:1.5px solid var(--rust-dim); border-radius:14px; padding:11px 13px; margin-bottom:16px; }
   .search svg { width:16px; height:16px; color:var(--muted); flex-shrink:0; }
   .search .ph { font-size:14px; color:var(--muted); flex:1; }
-
-  /* filter segmented control — replaces the 3-number dashboard */
+  .match-section { margin-bottom:18px; }
+  .match-head { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:9px; }
+  .match-head .ttl { font-size:11px; font-weight:700; letter-spacing:1.6px; text-transform:uppercase; color:var(--ink2); }
+  .match-head .cnt { font-size:10.5px; color:var(--muted); }
+  .mcarousel { display:flex; gap:11px; overflow-x:auto; margin:0 -15px; padding:2px 15px 4px; }
+  .mcarousel::-webkit-scrollbar { display:none; }
+  .mcard { width:166px; flex-shrink:0; background:var(--surface); border:1px solid var(--line); border-radius:16px; overflow:hidden; }
+  .mcard-hero { height:94px; position:relative; background:linear-gradient(135deg,#2a3e30,#16241b); }
+  .mcard-hero.b1 { background:linear-gradient(135deg,#7a3f2c,#5a2c20); }
+  .mcard-hero.b2 { background:linear-gradient(135deg,#8a6a22,#4a3a16); }
+  .mcard-badge { position:absolute; bottom:8px; left:8px; background:rgba(8,14,10,0.72); padding:4px 8px; border-radius:999px; font-size:9px; font-weight:700; letter-spacing:0.7px; text-transform:uppercase; color:#fff; }
+  .mcard-body { padding:11px 12px 13px; }
+  .mcard-title { font-family:var(--font-display); font-size:14.5px; line-height:18px; color:var(--ink); margin-bottom:10px; }
+  .ready-pill { display:inline-flex; align-items:center; gap:5px; background:var(--sage-bright); color:#08120c; font-size:11.5px; font-weight:700; padding:6px 11px; border-radius:999px; }
+  .need-label { font-size:9px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted); margin-bottom:7px; }
+  .need-chips { display:flex; flex-wrap:wrap; gap:5px; }
+  .nchip { font-size:10.5px; font-weight:600; color:var(--gold); border:1px solid rgba(242,204,42,0.5); border-radius:999px; padding:3px 8px; }
   .filters { display:flex; gap:6px; margin-bottom:16px; }
   .fchip { flex:1; text-align:center; font-size:11.5px; font-weight:600; padding:7px 6px; border-radius:9px; border:1px solid var(--line2); color:var(--ink2); background:var(--surface); }
   .fchip .n { font-weight:700; }
   .fchip.active { background:var(--gold); color:#0F1A14; border-color:var(--gold); }
   .fchip.active .n { color:#0F1A14; }
-
+  .list-label { font-size:11px; font-weight:700; letter-spacing:1.6px; text-transform:uppercase; color:var(--ink2); margin-bottom:11px; }
   .cat { margin-bottom:14px; }
   .cat-head { display:flex; align-items:center; gap:9px; padding:0 2px 8px; border-bottom:1px solid var(--line); margin-bottom:8px; }
   .cat-ic { width:21px; height:21px; color:var(--gold); flex-shrink:0; }
   .cat-name { font-size:11.5px; font-weight:700; letter-spacing:0.4px; color:var(--ink); flex:1; }
   .cat-count { font-size:10px; color:var(--ink3); }
-
   .ing { display:flex; align-items:center; gap:11px; padding:9px 9px; border-radius:11px; background:var(--surface); border:1px solid var(--line); margin-bottom:6px; }
   .ing.have { border-color:rgba(79,191,133,0.28); background:var(--sage-dim); }
   .ing.buy  { border-color:rgba(242,204,42,0.30); }
@@ -82,21 +90,14 @@
   .ing.buy  .ing-ic { color:var(--gold); }
   .ing-body { flex:1; min-width:0; }
   .ing-name { font-size:13.5px; color:var(--ink); }
-  .ing-qty  { font-size:13.5px; color:var(--ink); font-weight:600; }
   .ing-sub  { font-size:10px; color:var(--ink3); margin-top:1px; }
-  .ing-sub .approx { color:var(--gold); }
-
-  /* trailing status / action */
   .have-tick { width:26px; height:26px; border-radius:50%; flex-shrink:0; background:var(--sage-bright); color:#08120c; display:flex; align-items:center; justify-content:center; font-size:14px; }
   .buy-action { display:flex; align-items:center; gap:8px; flex-shrink:0; }
   .buy-amt { font-size:13px; font-weight:700; color:var(--gold); white-space:nowrap; }
   .buy-add { width:26px; height:26px; border-radius:50%; border:1.5px solid var(--gold); color:var(--gold); display:flex; align-items:center; justify-content:center; font-size:15px; }
-
-  /* right column */
   .panel { background:var(--bg); border:1px solid var(--line2); border-radius:16px; padding:20px 18px; margin-bottom:20px; }
   .panel h3 { font-family:var(--font-display); font-size:17px; margin-bottom:5px; }
   .panel .sub { font-size:12px; color:var(--ink2); margin-bottom:14px; }
-
   .twostate { display:flex; flex-direction:column; gap:10px; }
   .ts-row { display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:11px; background:var(--surface); border:1px solid var(--line); }
   .ts-row.have { border-color:rgba(79,191,133,0.28); background:var(--sage-dim); }
@@ -107,14 +108,12 @@
   .ts-state { font-size:11px; font-weight:700; }
   .ts-state.have { color:var(--sage-bright); }
   .ts-state.buy { color:var(--gold); }
-
   table.units { width:100%; border-collapse:collapse; font-size:12px; margin-top:4px; }
   table.units th { text-align:left; font-size:9.5px; letter-spacing:0.6px; text-transform:uppercase; color:var(--ink3); font-weight:600; padding:6px 8px; border-bottom:1px solid var(--line); }
   table.units td { padding:8px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
   table.units .recipe { color:var(--ink3); }
   table.units .buyu { color:var(--ink); font-weight:600; }
   table.units .ap { color:var(--gold); font-size:10px; }
-
   .ac { border:1px solid rgba(184,64,48,0.28); border-radius:14px; background:var(--surface); overflow:hidden; margin-top:6px; }
   .ac-head { display:flex; align-items:center; gap:8px; padding:6px 14px; background:var(--bg); border-bottom:1px solid var(--line); }
   .ac-bar { width:3px; height:11px; border-radius:2px; background:var(--muted); opacity:0.55; }
@@ -124,13 +123,11 @@
   .ac-row .nm { flex:1; font-size:14px; color:var(--ink); }
   .ac-add { width:28px; height:28px; border-radius:50%; background:rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:15px; flex-shrink:0; }
   .ac-inpantry { display:flex; align-items:center; gap:4px; color:var(--sage-bright); font-size:11px; font-weight:700; }
-
   .gallery { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
   @media (max-width:520px){ .gallery{ grid-template-columns:repeat(2,1fr);} }
   .gi { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 8px; text-align:center; }
   .gi svg { width:30px; height:30px; color:var(--ink); margin-bottom:7px; }
   .gi .gl { font-size:10px; color:var(--ink2); }
-
   .why { margin-top:14px; padding:13px 15px; background:rgba(79,191,133,0.06); border:1px solid var(--line2); border-left:3px solid var(--sage-bright); border-radius:10px; font-size:12.5px; color:var(--ink2); }
   .why b { color:var(--ink); }
   .why .cost { display:block; margin-top:6px; font-size:11px; color:var(--ink3); }
@@ -140,25 +137,23 @@
 <body>
 
 <div class="head">
-  <div class="tag">Pantry List v2 · two states, real buy-units</div>
-  <h1>Your kitchen and your list — one place</h1>
-  <p>Two changes from v1, both Patrick's calls: quantities now read in the unit you actually buy (2 tomatoes, not 200g), and the three-number Need/Have/Buy dashboard is gone. An ingredient is only ever in one of two states, and the pantry just shows it.</p>
+  <div class="tag">Pantry List v2 · matches + two states + buy-units</div>
+  <h1>What you can cook, then what's in your kitchen</h1>
+  <p>Same v2 design Patrick liked — SVG icons, the type, the two-state list — now with the recipe-match carousel from the current build folded back in at the top, where the pantry's promise ("cook with what you have") gets answered first.</p>
   <div class="model-note">
-    <strong>No accounting. Every ingredient is in one of two states:</strong>
+    <strong>The screen reads top to bottom as a single thought:</strong>
     <div class="row">
-      <div class="state-chip"><span class="sdot have"></span><b>In your kitchen</b> — you've got it. One tap sets it.</div>
-      <div class="state-chip"><span class="sdot buy"></span><b>To buy</b> — a recipe needs it, you don't have it. Shows the amount.</div>
+      <div class="state-chip"><span class="sdot have"></span><b>What can I cook?</b> — the match carousel, ranked by what you have</div>
+      <div class="state-chip"><span class="sdot buy"></span><b>What's in my kitchen?</b> — the two-state ingredient list below</div>
     </div>
-    <div class="strike"><del>Need 14 · Have 9 · Buy 5</del> &nbsp;→&nbsp; "Need" was never a number you read — it's just <em>why</em> an item is on the list. Your shopping list is simply the "to buy" items, filtered out of this same list.</div>
   </div>
 </div>
 
 <div class="layout">
 
-  <!-- LEFT: the screen -->
   <div>
     <div class="section-kicker">The screen</div>
-    <h2 class="col">Pantry, two states</h2>
+    <h2 class="col">Matches up top, list below</h2>
     <div class="phone">
       <div class="status"><span>9:41</span><span class="r">●●● WiFi 88%</span></div>
       <div class="scr">
@@ -170,14 +165,43 @@
           <span class="ph">Search or add an ingredient…</span>
         </div>
 
-        <!-- filter replaces the 3-stat dashboard -->
+        <div class="match-section">
+          <div class="match-head"><span class="ttl">Ready to cook</span><span class="cnt">1 ready · 2 close</span></div>
+          <div class="mcarousel">
+            <div class="mcard">
+              <div class="mcard-hero b1"></div>
+              <div class="mcard-body">
+                <div class="mcard-title">Spaghetti Bolognese</div>
+                <span class="ready-pill">✓ Tap to cook</span>
+              </div>
+            </div>
+            <div class="mcard">
+              <div class="mcard-hero b2"><span class="mcard-badge">5 of 7 matched</span></div>
+              <div class="mcard-body">
+                <div class="mcard-title">Shakshuka</div>
+                <div class="need-label">Still need</div>
+                <div class="need-chips"><span class="nchip">+ Coriander</span><span class="nchip">+ Capsicum</span></div>
+              </div>
+            </div>
+            <div class="mcard">
+              <div class="mcard-hero"><span class="mcard-badge">4 of 6 matched</span></div>
+              <div class="mcard-body">
+                <div class="mcard-title">Teriyaki Salmon</div>
+                <div class="need-label">Still need</div>
+                <div class="need-chips"><span class="nchip">+ Salmon</span><span class="nchip">+ Mirin</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="list-label">Your ingredients</div>
+
         <div class="filters">
           <div class="fchip active">All</div>
           <div class="fchip">To buy <span class="n">5</span></div>
           <div class="fchip">In kitchen <span class="n">9</span></div>
         </div>
 
-        <!-- PRODUCE -->
         <div class="cat">
           <div class="cat-head">
             <svg class="cat-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c0-6 0-10 6-13"/><path d="M18 4c-5 0-8 2-9 5 3 0 6-1 9-5z"/><path d="M11 11C8 9 5 9 3 11c2 3 5 4 8 2"/></svg>
@@ -200,7 +224,6 @@
           </div>
         </div>
 
-        <!-- MEAT & SEAFOOD -->
         <div class="cat">
           <div class="cat-head">
             <svg class="cat-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4c2.5 0 4.5 2 4.5 4.5 0 1.6-.8 3-2 3.8L8.5 19c-.9.9-2.4.9-3.3 0s-.9-2.4 0-3.3l6.7-8c.8-1.2 1.4-3.7 2.1-3.7z"/><circle cx="5.4" cy="18.6" r="1.4"/></svg>
@@ -218,7 +241,6 @@
           </div>
         </div>
 
-        <!-- PANTRY -->
         <div class="cat">
           <div class="cat-head">
             <svg class="cat-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8h10v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/><path d="M8 8V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3"/><path d="M9.5 12h5"/></svg>
@@ -240,13 +262,33 @@
     </div>
   </div>
 
-  <!-- RIGHT: explainers -->
   <div>
+    <div class="section-kicker">The piece that was missing</div>
+    <h2 class="col">"What can I cook?" — back in</h2>
+    <div class="panel">
+      <h3>The match carousel, kept</h3>
+      <p class="sub">Same behaviour as the current build: every recipe is scored against your pantry and ranked by how much you already have. Cards you can make fully show a sage "Tap to cook"; the close ones show "X of Y matched" and a row of "still need" chips that drop the missing items onto your shopping list.</p>
+      <div style="display:flex; gap:11px;">
+        <div class="mcard" style="width:148px">
+          <div class="mcard-hero b1" style="height:74px"></div>
+          <div class="mcard-body"><div class="mcard-title" style="font-size:13px">Spaghetti Bolognese</div><span class="ready-pill" style="font-size:10.5px;padding:5px 9px">✓ Tap to cook</span></div>
+        </div>
+        <div class="mcard" style="width:148px">
+          <div class="mcard-hero b2" style="height:74px"><span class="mcard-badge">5 of 7</span></div>
+          <div class="mcard-body"><div class="mcard-title" style="font-size:13px">Shakshuka</div><div class="need-label">Still need</div><div class="need-chips"><span class="nchip">+ Coriander</span></div></div>
+        </div>
+      </div>
+      <div class="why">
+        <b>This is the existing engine.</b> <span class="mono">scoreRecipeAgainstPantry</span> already ranks recipes by coverage and even matches derived ingredients (it knows "egg yolks" are covered if you have eggs, tagged "from your eggs"). I only moved it to the top and restyled the cards in the v2 tokens — no new matching logic.
+        <span class="cost">Placement: matches go ABOVE the ingredient list because the pantry's whole promise is "cook with what you have" — the answer should be the first thing you see, not the last. The list below is the management area.</span>
+      </div>
+    </div>
+
     <div class="section-kicker">Why two states, not three numbers</div>
-    <h2 class="col">The system, simplified</h2>
+    <h2 class="col">The list, simplified</h2>
     <div class="panel">
       <h3>One list, one tap</h3>
-      <p class="sub">You asked: if we need an ingredient, it should show in the pantry. It does — right in its category, marked "to buy". When you've got it, one tap moves it to "in your kitchen". That tap is the only thing you maintain.</p>
+      <p class="sub">If we need an ingredient, it shows in the pantry — right in its category, marked "to buy". One tap moves it to "in your kitchen". That tap is the only thing you maintain.</p>
       <div class="twostate">
         <div class="ts-row have">
           <div class="have-tick">✓</div>
@@ -260,8 +302,8 @@
         </div>
       </div>
       <div class="why">
-        <b>Same data, two views.</b> The "to buy" rows <em>are</em> your shopping list — the Shop tab is just this list filtered to "to buy". Nothing to keep in sync, nothing to reconcile.
-        <span class="cost">Engineer cost: the have/buy state already exists (<span class="mono">have_it</span> + the shopping <span class="mono">sources[]</span>). This mostly removes the 3-stat block and renders one status per row. The new piece is the buy-unit lookup below.</span>
+        <b>Same data, two views.</b> The "to buy" rows <em>are</em> your shopping list — the Shop tab is just this list filtered to "to buy".
+        <span class="cost">Engineer cost: have/buy state already exists (<span class="mono">have_it</span> + shopping <span class="mono">sources[]</span>). This removes the 3-stat block and renders one status per row.</span>
       </div>
     </div>
 
@@ -269,7 +311,7 @@
     <h2 class="col">Real units, not recipe grams</h2>
     <div class="panel">
       <h3>Tomatoes are 2, not 200 g</h3>
-      <p class="sub">Recipes are written in cooking units; shoppers think in shopping units. Each ingredient carries the unit you actually buy it in, so the pantry talks like a shopping list, not a recipe.</p>
+      <p class="sub">Recipes are written in cooking units; shoppers think in shopping units. Each ingredient carries the unit you actually buy it in.</p>
       <table class="units">
         <tr><th>Recipe asks for</th><th>Pantry shows</th></tr>
         <tr><td class="recipe">200 g tomato</td><td class="buyu">2 tomatoes <span class="ap">≈ approx</span></td></tr>
@@ -277,36 +319,32 @@
         <tr><td class="recipe">handful coriander</td><td class="buyu">1 bunch</td></tr>
         <tr><td class="recipe">400 g canned tomato</td><td class="buyu">2 tins</td></tr>
         <tr><td class="recipe">500 g beef mince</td><td class="buyu">500 g <span class="ap">sold by weight</span></td></tr>
-        <tr><td class="recipe">6 eggs</td><td class="buyu">6 eggs</td></tr>
       </table>
       <div class="why" style="border-left-color:var(--gold); background:rgba(242,204,42,0.06)">
-        <b>Honesty kept (golden rule 5):</b> where a recipe weight becomes a whole count it's an estimate — marked "≈" because tomatoes vary in size. Things genuinely sold by weight (mince, flour, cheese) stay in grams. We never invent a precise number we can't stand behind.
-        <span class="cost">New work: a small "buy unit" reference per ingredient — count / weight / pack (bunch, bulb, tin), with an average weight for the count conversions. ~50–60 common ingredients to seed; the rest fall back to the recipe unit. This is the one genuinely new bit of data.</span>
+        <b>Honesty kept (golden rule 5):</b> weight→count is an estimate, marked "≈". Bulk-by-weight items stay in grams. We never invent a precise number we can't stand behind.
+        <span class="cost">New work: a small per-ingredient "buy unit" reference (count / weight / pack) + average weights for the count conversions. ~50–60 common ingredients; the rest fall back to the recipe unit.</span>
       </div>
     </div>
 
-    <div class="section-kicker">Adding ingredients</div>
-    <h2 class="col">Search — kept from the build</h2>
+    <div class="section-kicker">Kept from the build</div>
+    <h2 class="col">Search &amp; icons</h2>
     <div class="panel">
-      <p class="sub" style="margin-bottom:6px">Unchanged: the search-first add bar and its category autocomplete (AU names + US aliases, tap-to-add, "in pantry" tick, "add it anyway").</p>
+      <p class="sub" style="margin-bottom:6px">Unchanged: the search-first add bar + category autocomplete (AU names + US aliases, tap-to-add, "in pantry" tick).</p>
       <div class="ac">
         <div class="ac-head"><span class="ac-bar"></span><span class="ac-cat">Produce</span></div>
         <div class="ac-row dim"><span class="nm">Tomato</span><span class="ac-inpantry">✓ In kitchen</span></div>
         <div class="ac-row" style="border-bottom:none"><span class="nm">Cherry tomatoes</span><span class="ac-add">+</span></div>
       </div>
-    </div>
-
-    <div class="section-kicker">Category icons</div>
-    <h2 class="col" style="margin-bottom:6px">Minimal line set</h2>
-    <p style="font-size:12px;color:var(--ink2);margin-bottom:14px">Single 1.6px stroke, tinting with row state — emerald when in your kitchen, gold when to buy.</p>
-    <div class="gallery">
-      <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c0-6 0-10 6-13"/><path d="M18 4c-5 0-8 2-9 5 3 0 6-1 9-5z"/><path d="M11 11C8 9 5 9 3 11c2 3 5 4 8 2"/></svg><div class="gl">Produce</div></div>
-      <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4c2.5 0 4.5 2 4.5 4.5 0 1.6-.8 3-2 3.8L8.5 19c-.9.9-2.4.9-3.3 0s-.9-2.4 0-3.3l6.7-8c.8-1.2 1.4-3.7 2.1-3.7z"/><circle cx="5.4" cy="18.6" r="1.4"/></svg><div class="gl">Meat &amp; Seafood</div></div>
-      <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="14" rx="6" ry="8"/></svg><div class="gl">Dairy &amp; Eggs</div></div>
-      <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8h10v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/><path d="M8 8V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3"/><path d="M9.5 12h5"/></svg><div class="gl">Pantry</div></div>
-      <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9h6l-1 11a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1z"/><path d="M9 9V6h6v3"/><path d="M10 4h4"/></svg><div class="gl">Spices &amp; Herbs</div></div>
-      <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 9h4v10a2 2 0 0 1-2 2 2 2 0 0 1-2-2z"/><path d="M10.5 9V6.5a1.5 1.5 0 0 1 3 0V9"/><path d="M11 4.5h2"/></svg><div class="gl">Sauces</div></div>
-      <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7l14 10M19 7L5 17"/><path d="M12 6l-2.5-2M12 6l2.5-2M6.5 8.5 4 8M17.5 15.5l2.5.5M6.5 15.5 4 16M17.5 8.5 20 8"/></svg><div class="gl">Frozen</div></div>
+      <div class="gallery" style="margin-top:14px">
+        <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c0-6 0-10 6-13"/><path d="M18 4c-5 0-8 2-9 5 3 0 6-1 9-5z"/><path d="M11 11C8 9 5 9 3 11c2 3 5 4 8 2"/></svg><div class="gl">Produce</div></div>
+        <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4c2.5 0 4.5 2 4.5 4.5 0 1.6-.8 3-2 3.8L8.5 19c-.9.9-2.4.9-3.3 0s-.9-2.4 0-3.3l6.7-8c.8-1.2 1.4-3.7 2.1-3.7z"/><circle cx="5.4" cy="18.6" r="1.4"/></svg><div class="gl">Meat &amp; Seafood</div></div>
+        <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="14" rx="6" ry="8"/></svg><div class="gl">Dairy &amp; Eggs</div></div>
+        <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8h10v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/><path d="M8 8V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3"/><path d="M9.5 12h5"/></svg><div class="gl">Pantry</div></div>
+        <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 9h6l-1 11a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1z"/><path d="M9 9V6h6v3"/><path d="M10 4h4"/></svg><div class="gl">Spices &amp; Herbs</div></div>
+        <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 9h4v10a2 2 0 0 1-2 2 2 2 0 0 1-2-2z"/><path d="M10.5 9V6.5a1.5 1.5 0 0 1 3 0V9"/><path d="M11 4.5h2"/></svg><div class="gl">Sauces</div></div>
+        <div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7l14 10M19 7L5 17"/></svg><div class="gl">Frozen</div></div>
+        <div class="gi" style="display:flex;align-items:center;justify-content:center;color:var(--ink3);font-size:10px">+ more</div>
+      </div>
     </div>
   </div>
 </div>
