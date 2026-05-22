@@ -161,8 +161,8 @@ const FOOD_PATHS: Record<FoodIconName, React.ReactNode> = {
   'cat-frozen': <><Line x1="2" y1="12" x2="22" y2="12" /><Line x1="12" y1="2" x2="12" y2="22" /><Path d="m20 16-4-4 4-4" /><Path d="m4 8 4 4-4 4" /><Path d="m16 4-4 4-4-4" /><Path d="m8 20 4-4 4 4" /></>,
 
   // ── Ingredient icons ──────────────────────────────────────────────────────
-  // Tomato — round body + small stem leaves
-  'ing-tomato': <><Circle cx="12" cy="14" r="6.5" /><Path d="M12 7.5V5" /><Path d="M12 5c-1.2-.4-2.2-1-2.8-2" /><Path d="M12 5c1.2-.4 2.2-1 2.8-2" /></>,
+  // Tomato — round body + 3-leaf calyx on top
+  'ing-tomato': <><Circle cx="12" cy="14.5" r="6" /><Path d="M12 8.5V6.2" /><Path d="M12 7c-1.4 0-2.4-.8-2.7-2.1" /><Path d="M12 7c1.4 0 2.4-.8 2.7-2.1" /></>,
   // Carrot (Lucide "carrot")
   'ing-carrot': <><Path d="M2.27 21.7s9.87-3.5 12.73-6.36a4.5 4.5 0 0 0-6.36-6.37C5.77 11.84 2.27 21.7 2.27 21.7Z" /><Path d="M8.64 14 6.6 11.95" /><Path d="M15.34 15l-2.46-2.46" /><Path d="M22 9s-1.33-2-3.5-2C16.86 7 15 9 15 9s1.33 2 3.5 2S22 9 22 9Z" /><Path d="M15 2s-2 1.33-2 3.5S15 9 15 9s2-1.84 2-3.5C17 3.33 15 2 15 2Z" /></>,
   // Citrus (Lucide "citrus")
@@ -183,8 +183,8 @@ const FOOD_PATHS: Record<FoodIconName, React.ReactNode> = {
   'ing-egg': <Path d="M12 22c-3.3 0-6-2.69-6-6 0-4 3-12 6-12s6 8 6 12c0 3.31-2.7 6-6 6Z" />,
   // Poultry — drumstick
   'ing-poultry': <><Path d="M15.45 15.4c-2.13.65-4.3.32-5.7-1.1-2.29-2.27-1.76-6.5 1.17-9.42 2.93-2.93 7.15-3.46 9.42-1.17 1.42 1.41 1.74 3.57 1.1 5.71-1.4-.51-3.26-.02-4.64 1.36-1.38 1.38-1.87 3.23-1.35 4.62z" /><Path d="m11.25 15.6-2.16 2.16a2.5 2.5 0 1 1-4.56 1.73 2.49 2.49 0 0 1-1.41-4.24 2.5 2.5 0 0 1 3.14-.32l2.16-2.16" /></>,
-  // Red meat — marbled cut with bone nub
-  'ing-meat': <><Path d="M16.5 5.5a6.5 6.5 0 1 0-9 9.4c1.4 1.3 1.6 3 1 4.4a2.4 2.4 0 0 0 3.2 3.1c1.4-.6 3.1-.4 4.4 1" /><Circle cx="10.5" cy="10.5" r="2.2" /></>,
+  // Red meat — oval cut of meat with a bone nub
+  'ing-meat': <><Path d="M4 12.5c0-4.1 3.8-6.8 8-6.8s8 2.7 8 6.3-3.5 6.8-8 6.8-8-2.2-8-6.3Z" /><Circle cx="8" cy="11.5" r="2.1" /></>,
   // Grain — rice bowl
   'ing-grain': <><Path d="M4 11h16a8 8 0 0 1-16 0Z" /><Path d="M2 11h20" /><Path d="M9 7.5c-.8.6-1.1 1.6-.7 2.5" /><Path d="M12 6c-.8.6-1.1 1.6-.7 2.5" /><Path d="M15 7.5c-.8.6-1.1 1.6-.7 2.5" /></>,
   // Pasta — noodle bowl with strands
