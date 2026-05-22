@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hone — Pantry "What you have" → organised list + stepper</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0F1A14; --surface:#1A2B20; --surface2:#223328;
+    --ink:#FAFAF7; --ink2:rgba(250,250,247,0.62); --ink3:rgba(250,250,247,0.34);
+    --rust:#B84030; --sage:#4A7C59; --sage-bright:#4FBF85; --sage-dim:rgba(79,191,133,0.13);
+    --gold:#F2CC2A; --gold-dim:rgba(242,204,42,0.14); --rust-dim:rgba(184,64,48,0.30);
+    --muted:#8A7E72; --line:rgba(250,250,247,0.08); --line2:rgba(250,250,247,0.13);
+    --font-display:'Playfair Display',Georgia,serif; --font-sans:'Inter',system-ui,sans-serif;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:#080e0a; font-family:var(--font-sans); color:var(--ink); padding:44px 22px 90px; line-height:1.5; }
+
+  .head { max-width:1000px; margin:0 auto 10px; text-align:center; }
+  .tag { display:inline-block; margin-bottom:13px; background:var(--gold-dim); border:1px solid rgba(242,204,42,0.35); border-radius:20px; padding:3px 13px; font-size:10px; font-weight:600; color:var(--gold); letter-spacing:0.8px; text-transform:uppercase; }
+  .head h1 { font-family:var(--font-display); font-size:30px; margin-bottom:8px; }
+  .head p { font-size:13px; color:var(--ink2); max-width:700px; margin:0 auto; }
+  .scope { max-width:700px; margin:16px auto 0; padding:13px 16px; text-align:left; background:var(--surface); border:1px solid var(--line2); border-left:3px solid var(--gold); border-radius:10px; font-size:12.5px; color:var(--ink2); }
+  .scope b { color:var(--ink); }
+
+  .layout { max-width:1000px; margin:46px auto 0; display:grid; grid-template-columns:300px 1fr; gap:30px; align-items:start; }
+  @media (max-width:860px){ .layout{ grid-template-columns:1fr; } }
+  .section-kicker { font-size:10px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
+  h2.col { font-family:var(--font-display); font-size:20px; margin-bottom:14px; }
+
+  .phone { width:300px; background:var(--bg); border-radius:40px; overflow:hidden; border:1.5px solid rgba(255,255,255,0.07); box-shadow:0 28px 72px rgba(0,0,0,0.6); }
+  .status { display:flex; justify-content:space-between; padding:11px 18px 0; font-size:11px; font-weight:600; }
+  .status .r { opacity:0.6; font-size:10px; }
+  .scr { padding:12px 15px 20px; }
+  .eyebrow { font-size:12px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:var(--ink2); margin-bottom:6px; }
+  .eyebrow .accent { color:var(--gold); }
+  .titlerow { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:13px; }
+  .scr-title { font-family:var(--font-display); font-size:30px; line-height:34px; }
+  .scr-title .it { font-style:italic; color:var(--gold); }
+  .stocked-count { font-size:11px; color:var(--muted); }
+
+  .search { display:flex; align-items:center; gap:10px; background:var(--surface); border:1.5px solid var(--rust-dim); border-radius:14px; padding:11px 13px; margin-bottom:16px; }
+  .search svg { width:16px; height:16px; color:var(--muted); flex-shrink:0; }
+  .search .ph { font-size:14px; color:var(--muted); flex:1; }
+
+  /* the NEW box: organised, collapsible, category-grouped */
+  .box-label { font-size:11px; font-weight:700; letter-spacing:1.6px; text-transform:uppercase; color:var(--ink2); margin-bottom:11px; }
+  .cat { margin-bottom:10px; }
+  .cat-head { display:flex; align-items:center; gap:9px; padding:6px 2px; border-bottom:1px solid var(--line); margin-bottom:8px; cursor:pointer; }
+  .cat-ic { width:20px; height:20px; color:var(--gold); flex-shrink:0; }
+  .cat-name { font-size:11.5px; font-weight:700; letter-spacing:0.4px; color:var(--ink); flex:1; }
+  .cat-num { font-size:11px; color:var(--ink3); font-weight:600; }
+  .chev { width:15px; height:15px; color:var(--ink3); transition:transform .2s; }
+  .cat.collapsed .chev { transform:rotate(-90deg); }
+  .cat.collapsed .cat-body { display:none; }
+  .cat.collapsed .cat-head { border-bottom-color:transparent; margin-bottom:0; }
+
+  .ing { display:flex; align-items:center; gap:11px; padding:8px 8px; border-radius:11px; background:var(--surface); border:1px solid var(--line); margin-bottom:6px; }
+  .ing-ic { width:17px; height:17px; flex-shrink:0; color:var(--sage-bright); }
+  .ing-body { flex:1; min-width:0; }
+  .ing-name { font-size:13.5px; color:var(--ink); }
+  .ing-sub { font-size:10px; color:var(--ink3); margin-top:1px; }
+  .ing-sub .for { color:var(--ink2); }
+
+  /* the +/- stepper */
+  .stepper { display:inline-flex; align-items:center; background:var(--gold-dim); border:1px solid rgba(242,204,42,0.42); border-radius:999px; flex-shrink:0; }
+  .sbtn { width:25px; height:25px; display:flex; align-items:center; justify-content:center; color:var(--gold); font-size:16px; font-weight:700; line-height:1; }
+  .scount { min-width:20px; text-align:center; font-size:13px; font-weight:700; color:var(--ink); }
+  /* weight staples: no count, just stocked */
+  .stocked-pill { font-size:11px; font-weight:700; color:var(--sage-bright); background:var(--sage-dim); border:1px solid rgba(79,191,133,0.4); border-radius:999px; padding:4px 10px; flex-shrink:0; }
+
+  /* match banner — KEPT from current build */
+  .banner { display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid rgba(184,64,48,0.35); border-radius:14px; padding:11px 14px; margin-top:14px; position:relative; overflow:hidden; }
+  .banner .bar { position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--rust); }
+  .banner .bbody { flex:1; padding-left:6px; }
+  .banner .bt { font-family:var(--font-display); font-size:15px; color:var(--ink); line-height:19px; }
+  .banner .bs { font-size:11px; color:var(--muted); margin-top:2px; }
+  .banner .see { font-size:11px; font-weight:700; color:var(--sage-bright); background:var(--sage-dim); border:1px solid rgba(79,191,133,0.3); border-radius:999px; padding:5px 11px; flex-shrink:0; }
+
+  .kept-note { margin-top:11px; font-size:10.5px; color:var(--ink3); text-align:center; font-style:italic; }
+
+  /* right column */
+  .panel { background:var(--bg); border:1px solid var(--line2); border-radius:16px; padding:20px 18px; margin-bottom:20px; }
+  .panel h3 { font-family:var(--font-display); font-size:17px; margin-bottom:5px; }
+  .panel .sub { font-size:12px; color:var(--ink2); margin-bottom:15px; }
+
+  /* stepper demo (search result rows) */
+  .ac { border:1px solid rgba(184,64,48,0.28); border-radius:14px; background:var(--surface); overflow:hidden; }
+  .ac-head { display:flex; align-items:center; gap:8px; padding:6px 14px; background:var(--bg); border-bottom:1px solid var(--line); }
+  .ac-bar { width:3px; height:11px; border-radius:2px; background:var(--muted); opacity:0.55; }
+  .ac-cat { font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+  .ac-row { display:flex; align-items:center; gap:12px; padding:10px 14px; min-height:48px; border-bottom:1px solid var(--line); }
+  .ac-row:last-child { border-bottom:none; }
+  .ac-row .nm { flex:1; font-size:14px; color:var(--ink); }
+  .add-btn { width:30px; height:30px; border-radius:50%; background:var(--gold-dim); border:1px solid rgba(242,204,42,0.45); color:var(--gold); display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:700; flex-shrink:0; }
+
+  .seq-tag { font-size:9px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; color:var(--ink3); margin:14px 0 7px; }
+
+  .why { margin-top:14px; padding:13px 15px; background:rgba(242,204,42,0.06); border:1px solid var(--line2); border-left:3px solid var(--gold); border-radius:10px; font-size:12.5px; color:var(--ink2); }
+  .why b { color:var(--ink); }
+  .why .cost { display:block; margin-top:6px; font-size:11px; color:var(--ink3); }
+  .mono { font-family:monospace; font-size:11px; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div class="tag">Pantry · one change to the current build</div>
+  <h1>"What you have" — pill cloud → organised list</h1>
+  <p>Everything in the current pantry stays: the search, the "recipes you can cook now" banner, the match carousel. The single change is the box that holds your stocked ingredients — from a wrapping cloud of pills to a tidy, collapsible, category-grouped list with the line icons. Plus a +/− stepper so you set "3 tomatoes" without typing it three times.</p>
+  <div class="scope">
+    <b>One change, three details:</b> (1) grouped by category with collapsible sections + the SVG icons; (2) each row shows name, the amount you have, and which planned recipe uses it; (3) a +/− stepper to add multiples in one go. Nothing else on the screen moves.
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT: the pantry with the new box -->
+  <div>
+    <div class="section-kicker">The screen</div>
+    <h2 class="col">Current build, new box</h2>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span class="r">●●● WiFi 88%</span></div>
+      <div class="scr">
+        <div class="eyebrow">Cook with <span class="accent">what you have</span></div>
+        <div class="titlerow">
+          <div class="scr-title">Your <span class="it">Pantry</span></div>
+          <span class="stocked-count">12 stocked</span>
+        </div>
+
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <span class="ph">Search or add an ingredient…</span>
+        </div>
+
+        <div class="box-label">In your pantry</div>
+
+        <!-- PRODUCE (expanded) -->
+        <div class="cat">
+          <div class="cat-head">
+            <svg class="cat-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c0-6 0-10 6-13"/><path d="M18 4c-5 0-8 2-9 5 3 0 6-1 9-5z"/><path d="M11 11C8 9 5 9 3 11c2 3 5 4 8 2"/></svg>
+            <span class="cat-name">Produce</span><span class="cat-num">3</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="cat-body">
+            <div class="ing">
+              <svg class="ing-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="7"/><path d="M12 7c0-2 1-4 3-4"/></svg>
+              <div class="ing-body"><div class="ing-name">Tomatoes</div><div class="ing-sub"><span class="for">for</span> Bolognese, Shakshuka</div></div>
+              <div class="stepper"><span class="sbtn">−</span><span class="scount">3</span><span class="sbtn">+</span></div>
+            </div>
+            <div class="ing">
+              <svg class="ing-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c0-6 0-10 6-13"/><path d="M18 4c-5 0-8 2-9 5 3 0 6-1 9-5z"/><path d="M11 11C8 9 5 9 3 11c2 3 5 4 8 2"/></svg>
+              <div class="ing-body"><div class="ing-name">Garlic</div><div class="ing-sub"><span class="for">for</span> Bolognese, Butter Chicken +1</div></div>
+              <div class="stepper"><span class="sbtn">−</span><span class="scount">1</span><span class="sbtn">+</span></div>
+            </div>
+            <div class="ing">
+              <svg class="ing-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="7"/><path d="M12 7c0-2 1-4 3-4"/></svg>
+              <div class="ing-body"><div class="ing-name">Lemon</div><div class="ing-sub"><span class="for">for</span> Roast Chicken</div></div>
+              <div class="stepper"><span class="sbtn">−</span><span class="scount">2</span><span class="sbtn">+</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MEAT (expanded) -->
+        <div class="cat">
+          <div class="cat-head">
+            <svg class="cat-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4c2.5 0 4.5 2 4.5 4.5 0 1.6-.8 3-2 3.8L8.5 19c-.9.9-2.4.9-3.3 0s-.9-2.4 0-3.3l6.7-8c.8-1.2 1.4-3.7 2.1-3.7z"/><circle cx="5.4" cy="18.6" r="1.4"/></svg>
+            <span class="cat-name">Meat &amp; Seafood</span><span class="cat-num">1</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="cat-body">
+            <div class="ing">
+              <svg class="ing-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4c2.5 0 4.5 2 4.5 4.5 0 1.6-.8 3-2 3.8L8.5 19c-.9.9-2.4.9-3.3 0s-.9-2.4 0-3.3l6.7-8c.8-1.2 1.4-3.7 2.1-3.7z"/><circle cx="5.4" cy="18.6" r="1.4"/></svg>
+              <div class="ing-body"><div class="ing-name">Beef mince</div><div class="ing-sub"><span class="for">for</span> Bolognese</div></div>
+              <span class="stocked-pill">Stocked</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANTRY (collapsed) -->
+        <div class="cat collapsed">
+          <div class="cat-head">
+            <svg class="cat-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8h10v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/><path d="M8 8V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3"/><path d="M9.5 12h5"/></svg>
+            <span class="cat-name">Pantry</span><span class="cat-num">5</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="cat-body"></div>
+        </div>
+
+        <!-- match banner — KEPT -->
+        <div class="banner">
+          <span class="bar"></span>
+          <div class="bbody">
+            <div class="bt">4 recipes you can cook now</div>
+            <div class="bs">6 more within 1–3 ingredients</div>
+          </div>
+          <span class="see">See all</span>
+        </div>
+        <div class="kept-note">↓ match carousel continues below — unchanged from the build</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: explainers -->
+  <div>
+    <div class="section-kicker">The cool bit</div>
+    <h2 class="col">Add multiples with a stepper</h2>
+    <div class="panel">
+      <h3>Type once, step the count</h3>
+      <p class="sub">Search "tomato" once. Instead of adding it three separate times, tap + to set how many you've got. The row commits the quantity in one move — and the same stepper lives on the list row, so you can adjust later without re-searching.</p>
+
+      <div class="seq-tag">In search — not added yet</div>
+      <div class="ac">
+        <div class="ac-head"><span class="ac-bar"></span><span class="ac-cat">Produce</span></div>
+        <div class="ac-row"><span class="nm">Tomato</span><span class="add-btn">+</span></div>
+      </div>
+
+      <div class="seq-tag">Tap + → stepper appears at 1</div>
+      <div class="ac">
+        <div class="ac-row"><span class="nm">Tomato</span><div class="stepper"><span class="sbtn">−</span><span class="scount">1</span><span class="sbtn">+</span></div></div>
+      </div>
+
+      <div class="seq-tag">Tap + twice more → 3, added in one go</div>
+      <div class="ac">
+        <div class="ac-row"><span class="nm">Tomato</span><div class="stepper"><span class="sbtn">−</span><span class="scount">3</span><span class="sbtn">+</span></div></div>
+      </div>
+
+      <div class="why">
+        <b>No repeat typing.</b> One search, then the stepper does the counting. Tapping − back to 0 removes it. The count is the amount shown on the pantry row.
+        <span class="cost">Engineer cost: the pantry row already has a <span class="mono">quantity</span> field (currently unused/null) — the stepper writes to it. Small UI + wiring, no schema change.</span>
+      </div>
+    </div>
+
+    <div class="section-kicker">The list</div>
+    <h2 class="col">Grouped, collapsible, with the icons</h2>
+    <div class="panel">
+      <h3>Tap a category to fold it away</h3>
+      <p class="sub">Each category is a section you can collapse — handy once your pantry is full. The line icons carry the category so you read the shelf at a glance.</p>
+
+      <div class="seq-tag">Expanded</div>
+      <div style="background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:6px 11px 9px">
+        <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--line);margin-bottom:8px">
+          <svg style="width:18px;height:18px;color:var(--gold)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c0-6 0-10 6-13"/><path d="M18 4c-5 0-8 2-9 5 3 0 6-1 9-5z"/><path d="M11 11C8 9 5 9 3 11c2 3 5 4 8 2"/></svg>
+          <span style="flex:1;font-size:11.5px;font-weight:700;color:var(--ink)">Produce</span>
+          <span style="font-size:11px;color:var(--ink3);font-weight:600">3</span>
+          <svg style="width:14px;height:14px;color:var(--ink3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="ing" style="margin-bottom:0"><svg class="ing-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="7"/><path d="M12 7c0-2 1-4 3-4"/></svg><div class="ing-body"><div class="ing-name">Tomatoes</div><div class="ing-sub"><span class="for">for</span> Bolognese, Shakshuka</div></div><div class="stepper"><span class="sbtn">−</span><span class="scount">3</span><span class="sbtn">+</span></div></div>
+      </div>
+
+      <div class="seq-tag">Collapsed (tap the header)</div>
+      <div style="background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:9px 11px">
+        <div style="display:flex;align-items:center;gap:9px">
+          <svg style="width:18px;height:18px;color:var(--gold)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c0-6 0-10 6-13"/><path d="M18 4c-5 0-8 2-9 5 3 0 6-1 9-5z"/><path d="M11 11C8 9 5 9 3 11c2 3 5 4 8 2"/></svg>
+          <span style="flex:1;font-size:11.5px;font-weight:700;color:var(--ink)">Produce</span>
+          <span style="font-size:11px;color:var(--ink3);font-weight:600">3</span>
+          <svg style="width:14px;height:14px;color:var(--ink3);transform:rotate(-90deg)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+      </div>
+
+      <div class="why" style="border-left-color:var(--sage-bright); background:rgba(79,191,133,0.06)">
+        <b>Amount + recipe per row.</b> The number is what you have (from the stepper); the sub-line is the planned recipe(s) that use it. Countable things show the stepper; bulk staples (flour, oil, salt) just show "Stocked" — you don't count those.
+      </div>
+    </div>
+
+    <div class="section-kicker">Unchanged</div>
+    <h2 class="col">What stays from the build</h2>
+    <div class="panel">
+      <p class="sub" style="margin-bottom:12px">Only the box changed. These are untouched:</p>
+      <div class="banner" style="margin-top:0">
+        <span class="bar"></span>
+        <div class="bbody"><div class="bt" style="font-size:14px">4 recipes you can cook now</div><div class="bs">the match banner — kept</div></div>
+        <span class="see">See all</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:11px">
+        <div style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden">
+          <div style="height:48px;background:linear-gradient(135deg,#7a3f2c,#5a2c20)"></div>
+          <div style="padding:8px 9px"><div style="font-family:var(--font-display);font-size:12px">Bolognese</div></div>
+        </div>
+        <div style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden">
+          <div style="height:48px;background:linear-gradient(135deg,#8a6a22,#4a3a16);position:relative"><span style="position:absolute;bottom:6px;left:6px;background:rgba(8,14,10,0.72);font-size:8px;font-weight:700;color:#fff;padding:3px 6px;border-radius:999px;text-transform:uppercase">5 of 7</span></div>
+          <div style="padding:8px 9px"><div style="font-family:var(--font-display);font-size:12px">Shakshuka</div></div>
+        </div>
+      </div>
+      <div style="font-size:10.5px;color:var(--ink3);text-align:center;margin-top:9px;font-style:italic">match carousel — kept exactly as the build has it</div>
+
+      <div class="why" style="border-left-color:var(--rust); background:rgba(184,64,48,0.06)">
+        <b>Scope held to one change.</b> Search bar, "recipes you can cook now" banner, and the match carousel are all the current build's — I didn't touch them. Only the stocked-ingredients box became the organised list.
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
