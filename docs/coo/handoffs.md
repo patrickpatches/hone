@@ -77,6 +77,8 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 **LATEST DIRECTION 2026-05-22 — `docs/prototypes/pantry-haves-v1.html` (this is now the one to build toward).** Patrick pulled scope back: **keep the current pantry build entirely** (search, "recipes you can cook now" banner, match carousel all unchanged) and make **ONE change** — replace the "what you have" pills box with an organised, **collapsible**, category-grouped list using the new SVG line icons. Each stocked row shows **name + amount you have + which planned recipe uses it** ("Tomatoes · ×3 · for Bolognese, Shakshuka"). **New interaction: a +/− stepper** in the search-add flow (and on each list row) so you set "3 tomatoes" without typing it three times — writes to the pantry row's existing `quantity` field (currently null; no schema change). Countable items show the stepper; bulk staples (flour, oil, salt) show a plain "Stocked" (you don't count those). Stays stocked until removed (Patrick's pick). This SUPERSEDES the full-screen v1/v2 redesigns as the build target — those remain as exploration. The buy-unit reference table is now optional/future, not required for this scoped change.
 
+**REFINED 2026-05-22 (Patrick: colour clash + drop banner) — same file `pantry-haves-v1.html`:** (1) **Removed the "N recipes you can cook now" summary banner** — redundant with the carousel. (2) **Calmer palette:** category + ingredient SVG icons are now **neutral warm-cream `#C4B8A8`**, NOT green or gold — icons are wayfinding, not status. **Gold is the single accent**, used only on the +/− stepper. **Green is off this screen** (in a "what you have" list every row is owned, so a green icon per row signals nothing; sage stays reserved for genuine "done" states like cook mode). Search border also softened from rust-tint to a neutral line on this screen. No locked-token changes — just stops painting icons with accent colours.
+
 **Honesty constraint (golden rule 5):** weight→count conversions are approximations and must be marked "≈" (tomatoes vary in size). Bulk-by-weight items stay in grams. Never invent a precise count we can't stand behind. (The existing shopping engine already refuses grams↔cups conversions — same spirit.)
 
 **Colours/idioms used:** current dark-sage tokens; the refined emerald `#4FBF85` (from `colour-refinement-v1.html`) for the positive "have" state; gold for the "need" accent; rust reserved for the primary CTA only. Consistent with the colour-refinement handoff above.
@@ -1530,9 +1532,4 @@ For each recipe below, either:
 
 | Recipe const | Chef | Current broken URL | Fix type |
 |---|---|---|---|
-| `CHICKEN_ADOBO` | Anthony Bourdain / No Reservations | `@AnthonyBourdainPartsUnknown` (channel + wrong show) | Find No Reservations Philippines clip or use book citation |
-| `BEEF_STEW` | Jacques Pépin | `/c/HomeCookingwithJacquesPepin` (channel) | Find specific beef stew episode on that channel |
-| `ROAST_CHICKEN` | Thomas Keller / Bouchon | `@ChefThomasKeller` (channel) | Find specific roast chicken video or use Bouchon book citation |
-| `PRAWN_TACOS_PINEAPPLE` | Andy Cooks | `@andy_cooks` (channel) | Find specific prawn taco/pineapple video |
-| `FRENCH_ONION_SOUP` | Anthony Bourdain / Les Halles | `@AnthonyBourdainPartsUnknown` (channel + wrong show) | Find Les Halles video or use *Les Halles Cookbook* citation |
-| `SCRAMBLED_EGGS` | Gordon Ramsay | `@GordonRamsay` (channel) | The F W
+| `CHICKEN_ADOBO` | Anthony Bourdain / No Reservations 

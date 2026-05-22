@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hone — Pantry "What you have" → organised list + stepper</title>
+<title>Hone — Pantry "What you have" → organised list (calm palette)</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg:#0F1A14; --surface:#1A2B20; --surface2:#223328;
     --ink:#FAFAF7; --ink2:rgba(250,250,247,0.62); --ink3:rgba(250,250,247,0.34);
-    --rust:#B84030; --sage:#4A7C59; --sage-bright:#4FBF85; --sage-dim:rgba(79,191,133,0.13);
-    --gold:#F2CC2A; --gold-dim:rgba(242,204,42,0.14); --rust-dim:rgba(184,64,48,0.30);
+    --inksoft:#C4B8A8;                 /* warm cream — the neutral for icons + wayfinding */
+    --rust:#B84030; --sage:#4A7C59; --sage-bright:#4FBF85;
+    --gold:#F2CC2A; --gold-dim:rgba(242,204,42,0.14); --rust-dim:rgba(184,64,48,0.28);
     --muted:#8A7E72; --line:rgba(250,250,247,0.08); --line2:rgba(250,250,247,0.13);
     --font-display:'Playfair Display',Georgia,serif; --font-sans:'Inter',system-ui,sans-serif;
   }
@@ -40,61 +41,65 @@
   .scr-title .it { font-style:italic; color:var(--gold); }
   .stocked-count { font-size:11px; color:var(--muted); }
 
-  .search { display:flex; align-items:center; gap:10px; background:var(--surface); border:1.5px solid var(--rust-dim); border-radius:14px; padding:11px 13px; margin-bottom:16px; }
+  .search { display:flex; align-items:center; gap:10px; background:var(--surface); border:1.5px solid var(--line2); border-radius:14px; padding:11px 13px; margin-bottom:16px; }
   .search svg { width:16px; height:16px; color:var(--muted); flex-shrink:0; }
   .search .ph { font-size:14px; color:var(--muted); flex:1; }
 
-  /* the NEW box: organised, collapsible, category-grouped */
   .box-label { font-size:11px; font-weight:700; letter-spacing:1.6px; text-transform:uppercase; color:var(--ink2); margin-bottom:11px; }
   .cat { margin-bottom:10px; }
   .cat-head { display:flex; align-items:center; gap:9px; padding:6px 2px; border-bottom:1px solid var(--line); margin-bottom:8px; cursor:pointer; }
-  .cat-ic { width:20px; height:20px; color:var(--gold); flex-shrink:0; }
+  .cat-ic { width:20px; height:20px; color:var(--inksoft); flex-shrink:0; }     /* neutral, not coloured */
   .cat-name { font-size:11.5px; font-weight:700; letter-spacing:0.4px; color:var(--ink); flex:1; }
   .cat-num { font-size:11px; color:var(--ink3); font-weight:600; }
-  .chev { width:15px; height:15px; color:var(--ink3); transition:transform .2s; }
+  .chev { width:15px; height:15px; color:var(--ink3); }
   .cat.collapsed .chev { transform:rotate(-90deg); }
   .cat.collapsed .cat-body { display:none; }
   .cat.collapsed .cat-head { border-bottom-color:transparent; margin-bottom:0; }
 
   .ing { display:flex; align-items:center; gap:11px; padding:8px 8px; border-radius:11px; background:var(--surface); border:1px solid var(--line); margin-bottom:6px; }
-  .ing-ic { width:17px; height:17px; flex-shrink:0; color:var(--sage-bright); }
+  .ing-ic { width:17px; height:17px; flex-shrink:0; color:var(--inksoft); }      /* neutral, not green */
   .ing-body { flex:1; min-width:0; }
   .ing-name { font-size:13.5px; color:var(--ink); }
   .ing-sub { font-size:10px; color:var(--ink3); margin-top:1px; }
-  .ing-sub .for { color:var(--ink2); }
+  .ing-sub .for { color:var(--muted); }
 
-  /* the +/- stepper */
+  /* the +/- stepper — the ONE accent on this screen */
   .stepper { display:inline-flex; align-items:center; background:var(--gold-dim); border:1px solid rgba(242,204,42,0.42); border-radius:999px; flex-shrink:0; }
   .sbtn { width:25px; height:25px; display:flex; align-items:center; justify-content:center; color:var(--gold); font-size:16px; font-weight:700; line-height:1; }
   .scount { min-width:20px; text-align:center; font-size:13px; font-weight:700; color:var(--ink); }
-  /* weight staples: no count, just stocked */
-  .stocked-pill { font-size:11px; font-weight:700; color:var(--sage-bright); background:var(--sage-dim); border:1px solid rgba(79,191,133,0.4); border-radius:999px; padding:4px 10px; flex-shrink:0; }
+  /* weight staples: neutral, no green */
+  .stocked-pill { font-size:10.5px; font-weight:600; color:var(--ink2); background:var(--surface2); border:1px solid var(--line2); border-radius:999px; padding:4px 10px; flex-shrink:0; letter-spacing:0.3px; }
 
-  /* match banner — KEPT from current build */
-  .banner { display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid rgba(184,64,48,0.35); border-radius:14px; padding:11px 14px; margin-top:14px; position:relative; overflow:hidden; }
-  .banner .bar { position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--rust); }
-  .banner .bbody { flex:1; padding-left:6px; }
-  .banner .bt { font-family:var(--font-display); font-size:15px; color:var(--ink); line-height:19px; }
-  .banner .bs { font-size:11px; color:var(--muted); margin-top:2px; }
-  .banner .see { font-size:11px; font-weight:700; color:var(--sage-bright); background:var(--sage-dim); border:1px solid rgba(79,191,133,0.3); border-radius:999px; padding:5px 11px; flex-shrink:0; }
+  .kept-note { margin-top:14px; font-size:10.5px; color:var(--ink3); text-align:center; font-style:italic; }
 
-  .kept-note { margin-top:11px; font-size:10.5px; color:var(--ink3); text-align:center; font-style:italic; }
-
-  /* right column */
   .panel { background:var(--bg); border:1px solid var(--line2); border-radius:16px; padding:20px 18px; margin-bottom:20px; }
   .panel h3 { font-family:var(--font-display); font-size:17px; margin-bottom:5px; }
   .panel .sub { font-size:12px; color:var(--ink2); margin-bottom:15px; }
 
-  /* stepper demo (search result rows) */
-  .ac { border:1px solid rgba(184,64,48,0.28); border-radius:14px; background:var(--surface); overflow:hidden; }
+  /* palette swatches */
+  .pal { display:flex; flex-direction:column; gap:9px; }
+  .pal-row { display:flex; align-items:center; gap:11px; }
+  .pal-sw { width:30px; height:30px; border-radius:8px; flex-shrink:0; border:1px solid var(--line2); }
+  .pal-txt { font-size:11.5px; color:var(--ink2); }
+  .pal-txt b { color:var(--ink); }
+
+  .compare { display:flex; gap:10px; margin-top:6px; }
+  .comp { flex:1; background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:11px; }
+  .comp .lbl { font-size:9px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; margin-bottom:9px; }
+  .comp.before .lbl { color:var(--ink3); }
+  .comp.after .lbl { color:var(--gold); }
+  .comp .demo-row { display:flex; align-items:center; gap:9px; }
+  .comp .demo-row + .demo-row { margin-top:8px; }
+  .comp .demo-row span.nm { font-size:12px; color:var(--ink); }
+
+  /* stepper demo */
+  .ac { border:1px solid var(--line2); border-radius:14px; background:var(--surface); overflow:hidden; }
   .ac-head { display:flex; align-items:center; gap:8px; padding:6px 14px; background:var(--bg); border-bottom:1px solid var(--line); }
   .ac-bar { width:3px; height:11px; border-radius:2px; background:var(--muted); opacity:0.55; }
   .ac-cat { font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
-  .ac-row { display:flex; align-items:center; gap:12px; padding:10px 14px; min-height:48px; border-bottom:1px solid var(--line); }
-  .ac-row:last-child { border-bottom:none; }
+  .ac-row { display:flex; align-items:center; gap:12px; padding:10px 14px; min-height:48px; }
   .ac-row .nm { flex:1; font-size:14px; color:var(--ink); }
   .add-btn { width:30px; height:30px; border-radius:50%; background:var(--gold-dim); border:1px solid rgba(242,204,42,0.45); color:var(--gold); display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:700; flex-shrink:0; }
-
   .seq-tag { font-size:9px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; color:var(--ink3); margin:14px 0 7px; }
 
   .why { margin-top:14px; padding:13px 15px; background:rgba(242,204,42,0.06); border:1px solid var(--line2); border-left:3px solid var(--gold); border-radius:10px; font-size:12.5px; color:var(--ink2); }
@@ -106,11 +111,11 @@
 <body>
 
 <div class="head">
-  <div class="tag">Pantry · one change to the current build</div>
-  <h1>"What you have" — pill cloud → organised list</h1>
-  <p>Everything in the current pantry stays: the search, the "recipes you can cook now" banner, the match carousel. The single change is the box that holds your stocked ingredients — from a wrapping cloud of pills to a tidy, collapsible, category-grouped list with the line icons. Plus a +/− stepper so you set "3 tomatoes" without typing it three times.</p>
+  <div class="tag">Pantry · one change to the build · calmer palette</div>
+  <h1>"What you have" — organised, and quietly coloured</h1>
+  <p>The current pantry build stays. One box changes — the stocked-ingredients pill cloud becomes a tidy, collapsible, category-grouped list. And the palette is reined in: icons go neutral, a single gold accent sits on the stepper you touch, and green steps back. The "recipes you can cook now" banner is removed.</p>
   <div class="scope">
-    <b>One change, three details:</b> (1) grouped by category with collapsible sections + the SVG icons; (2) each row shows name, the amount you have, and which planned recipe uses it; (3) a +/− stepper to add multiples in one go. Nothing else on the screen moves.
+    <b>What changed since the last pass:</b> (1) removed the "recipes you can cook now" banner; (2) icons are now neutral warm-cream, not green or gold — they're wayfinding, not status; (3) one accent only — gold, on the stepper. Calmer, more intuitive, less to parse.
   </div>
 </div>
 
@@ -119,7 +124,7 @@
   <!-- LEFT: the pantry with the new box -->
   <div>
     <div class="section-kicker">The screen</div>
-    <h2 class="col">Current build, new box</h2>
+    <h2 class="col">Calm list, one accent</h2>
     <div class="phone">
       <div class="status"><span>9:41</span><span class="r">●●● WiFi 88%</span></div>
       <div class="scr">
@@ -188,92 +193,69 @@
           <div class="cat-body"></div>
         </div>
 
-        <!-- match banner — KEPT -->
-        <div class="banner">
-          <span class="bar"></span>
-          <div class="bbody">
-            <div class="bt">4 recipes you can cook now</div>
-            <div class="bs">6 more within 1–3 ingredients</div>
-          </div>
-          <span class="see">See all</span>
-        </div>
-        <div class="kept-note">↓ match carousel continues below — unchanged from the build</div>
+        <div class="kept-note">↓ search &amp; match carousel continue below — kept from the build</div>
       </div>
     </div>
   </div>
 
   <!-- RIGHT: explainers -->
   <div>
+    <div class="section-kicker">The colour call</div>
+    <h2 class="col">Fewer colours, each with a job</h2>
+    <div class="panel">
+      <h3>One accent, neutral everything else</h3>
+      <p class="sub">The clash came from three accents at once (gold + green + rust) and from colouring the icons. A world-class palette is restrained: structure stays quiet, and colour is saved for the one thing you act on.</p>
+      <div class="pal">
+        <div class="pal-row"><span class="pal-sw" style="background:#0F1A14"></span><span class="pal-txt"><b>Dark sage</b> — surfaces. The room.</span></div>
+        <div class="pal-row"><span class="pal-sw" style="background:#FAFAF7"></span><span class="pal-txt"><b>Warm cream</b> — text. Names you read.</span></div>
+        <div class="pal-row"><span class="pal-sw" style="background:#C4B8A8"></span><span class="pal-txt"><b>Soft cream</b> — icons. Quiet wayfinding, not status.</span></div>
+        <div class="pal-row"><span class="pal-sw" style="background:#F2CC2A"></span><span class="pal-txt"><b>Gold</b> — the one accent, on the stepper you touch.</span></div>
+      </div>
+      <div class="seq-tag">The icon, before &amp; after</div>
+      <div class="compare">
+        <div class="comp before">
+          <div class="lbl">Before — green icons</div>
+          <div class="demo-row"><svg style="width:17px;height:17px;color:#4FBF85" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="7"/><path d="M12 7c0-2 1-4 3-4"/></svg><span class="nm">Tomatoes</span></div>
+          <div class="demo-row"><svg style="width:17px;height:17px;color:#4FBF85" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4c2.5 0 4.5 2 4.5 4.5 0 1.6-.8 3-2 3.8L8.5 19c-.9.9-2.4.9-3.3 0s-.9-2.4 0-3.3l6.7-8c.8-1.2 1.4-3.7 2.1-3.7z"/><circle cx="5.4" cy="18.6" r="1.4"/></svg><span class="nm">Beef mince</span></div>
+        </div>
+        <div class="comp after">
+          <div class="lbl">After — neutral</div>
+          <div class="demo-row"><svg style="width:17px;height:17px;color:#C4B8A8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="7"/><path d="M12 7c0-2 1-4 3-4"/></svg><span class="nm">Tomatoes</span></div>
+          <div class="demo-row"><svg style="width:17px;height:17px;color:#C4B8A8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4c2.5 0 4.5 2 4.5 4.5 0 1.6-.8 3-2 3.8L8.5 19c-.9.9-2.4.9-3.3 0s-.9-2.4 0-3.3l6.7-8c.8-1.2 1.4-3.7 2.1-3.7z"/><circle cx="5.4" cy="18.6" r="1.4"/></svg><span class="nm">Beef mince</span></div>
+        </div>
+      </div>
+      <div class="why">
+        <b>Why green came off:</b> in a "what you have" list every row is something you own — so a green icon on every row signals nothing, it's just noise. Neutral icons let the gold stepper be the only thing that pops. Green stays reserved for true "done" moments (cook mode), where it actually means something.
+        <span class="cost">No token changes to the locked theme — this just stops painting icons with accent colours.</span>
+      </div>
+    </div>
+
     <div class="section-kicker">The cool bit</div>
     <h2 class="col">Add multiples with a stepper</h2>
     <div class="panel">
       <h3>Type once, step the count</h3>
-      <p class="sub">Search "tomato" once. Instead of adding it three separate times, tap + to set how many you've got. The row commits the quantity in one move — and the same stepper lives on the list row, so you can adjust later without re-searching.</p>
-
+      <p class="sub">Search "tomato" once, then tap + to set how many you've got — no adding it three separate times. The same stepper sits on the list row, so you adjust later without re-searching.</p>
       <div class="seq-tag">In search — not added yet</div>
-      <div class="ac">
-        <div class="ac-head"><span class="ac-bar"></span><span class="ac-cat">Produce</span></div>
-        <div class="ac-row"><span class="nm">Tomato</span><span class="add-btn">+</span></div>
-      </div>
-
-      <div class="seq-tag">Tap + → stepper appears at 1</div>
-      <div class="ac">
-        <div class="ac-row"><span class="nm">Tomato</span><div class="stepper"><span class="sbtn">−</span><span class="scount">1</span><span class="sbtn">+</span></div></div>
-      </div>
-
-      <div class="seq-tag">Tap + twice more → 3, added in one go</div>
-      <div class="ac">
-        <div class="ac-row"><span class="nm">Tomato</span><div class="stepper"><span class="sbtn">−</span><span class="scount">3</span><span class="sbtn">+</span></div></div>
-      </div>
-
+      <div class="ac"><div class="ac-head"><span class="ac-bar"></span><span class="ac-cat">Produce</span></div><div class="ac-row"><span class="nm">Tomato</span><span class="add-btn">+</span></div></div>
+      <div class="seq-tag">Tap + → stepper at 1</div>
+      <div class="ac"><div class="ac-row"><span class="nm">Tomato</span><div class="stepper"><span class="sbtn">−</span><span class="scount">1</span><span class="sbtn">+</span></div></div></div>
+      <div class="seq-tag">Tap + twice more → 3, in one go</div>
+      <div class="ac"><div class="ac-row"><span class="nm">Tomato</span><div class="stepper"><span class="sbtn">−</span><span class="scount">3</span><span class="sbtn">+</span></div></div></div>
       <div class="why">
-        <b>No repeat typing.</b> One search, then the stepper does the counting. Tapping − back to 0 removes it. The count is the amount shown on the pantry row.
-        <span class="cost">Engineer cost: the pantry row already has a <span class="mono">quantity</span> field (currently unused/null) — the stepper writes to it. Small UI + wiring, no schema change.</span>
-      </div>
-    </div>
-
-    <div class="section-kicker">The list</div>
-    <h2 class="col">Grouped, collapsible, with the icons</h2>
-    <div class="panel">
-      <h3>Tap a category to fold it away</h3>
-      <p class="sub">Each category is a section you can collapse — handy once your pantry is full. The line icons carry the category so you read the shelf at a glance.</p>
-
-      <div class="seq-tag">Expanded</div>
-      <div style="background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:6px 11px 9px">
-        <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--line);margin-bottom:8px">
-          <svg style="width:18px;height:18px;color:var(--gold)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c0-6 0-10 6-13"/><path d="M18 4c-5 0-8 2-9 5 3 0 6-1 9-5z"/><path d="M11 11C8 9 5 9 3 11c2 3 5 4 8 2"/></svg>
-          <span style="flex:1;font-size:11.5px;font-weight:700;color:var(--ink)">Produce</span>
-          <span style="font-size:11px;color:var(--ink3);font-weight:600">3</span>
-          <svg style="width:14px;height:14px;color:var(--ink3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-        </div>
-        <div class="ing" style="margin-bottom:0"><svg class="ing-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="7"/><path d="M12 7c0-2 1-4 3-4"/></svg><div class="ing-body"><div class="ing-name">Tomatoes</div><div class="ing-sub"><span class="for">for</span> Bolognese, Shakshuka</div></div><div class="stepper"><span class="sbtn">−</span><span class="scount">3</span><span class="sbtn">+</span></div></div>
-      </div>
-
-      <div class="seq-tag">Collapsed (tap the header)</div>
-      <div style="background:var(--surface); border:1px solid var(--line); border-radius:11px; padding:9px 11px">
-        <div style="display:flex;align-items:center;gap:9px">
-          <svg style="width:18px;height:18px;color:var(--gold)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c0-6 0-10 6-13"/><path d="M18 4c-5 0-8 2-9 5 3 0 6-1 9-5z"/><path d="M11 11C8 9 5 9 3 11c2 3 5 4 8 2"/></svg>
-          <span style="flex:1;font-size:11.5px;font-weight:700;color:var(--ink)">Produce</span>
-          <span style="font-size:11px;color:var(--ink3);font-weight:600">3</span>
-          <svg style="width:14px;height:14px;color:var(--ink3);transform:rotate(-90deg)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-        </div>
-      </div>
-
-      <div class="why" style="border-left-color:var(--sage-bright); background:rgba(79,191,133,0.06)">
-        <b>Amount + recipe per row.</b> The number is what you have (from the stepper); the sub-line is the planned recipe(s) that use it. Countable things show the stepper; bulk staples (flour, oil, salt) just show "Stocked" — you don't count those.
+        <b>No repeat typing.</b> Tapping − to 0 removes it. The count is the amount shown on the row.
+        <span class="cost">Engineer cost: writes to the pantry row's existing <span class="mono">quantity</span> field (currently null) — no schema change.</span>
       </div>
     </div>
 
     <div class="section-kicker">Unchanged</div>
     <h2 class="col">What stays from the build</h2>
     <div class="panel">
-      <p class="sub" style="margin-bottom:12px">Only the box changed. These are untouched:</p>
-      <div class="banner" style="margin-top:0">
-        <span class="bar"></span>
-        <div class="bbody"><div class="bt" style="font-size:14px">4 recipes you can cook now</div><div class="bs">the match banner — kept</div></div>
-        <span class="see">See all</span>
+      <p class="sub" style="margin-bottom:12px">Only the box changed (and the banner is gone). Search and the match carousel are untouched:</p>
+      <div class="search" style="margin-bottom:12px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <span class="ph">Search or add an ingredient…</span>
       </div>
-      <div style="display:flex;gap:10px;margin-top:11px">
+      <div style="display:flex;gap:10px">
         <div style="flex:1;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden">
           <div style="height:48px;background:linear-gradient(135deg,#7a3f2c,#5a2c20)"></div>
           <div style="padding:8px 9px"><div style="font-family:var(--font-display);font-size:12px">Bolognese</div></div>
@@ -284,9 +266,8 @@
         </div>
       </div>
       <div style="font-size:10.5px;color:var(--ink3);text-align:center;margin-top:9px;font-style:italic">match carousel — kept exactly as the build has it</div>
-
       <div class="why" style="border-left-color:var(--rust); background:rgba(184,64,48,0.06)">
-        <b>Scope held to one change.</b> Search bar, "recipes you can cook now" banner, and the match carousel are all the current build's — I didn't touch them. Only the stocked-ingredients box became the organised list.
+        <b>Removed:</b> the "4 recipes you can cook now" summary banner — the carousel already says this, so the banner was redundant clutter.
       </div>
     </div>
   </div>
