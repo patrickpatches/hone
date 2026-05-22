@@ -59,6 +59,28 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
+### HANDOFF → Senior Engineer · 2026-05-22 · OPEN — PENDING PATRICK'S VISUAL APPROVAL (pantry list redesign — category groups, line icons, recipe-driven quantities)
+**From:** Product Designer
+**Subject:** Patrick wants the pantry to stop being a flat pill list and become an organised, category-grouped shelf with clean icons and smart quantities ("a tomato in one recipe, then a second recipe wants a tomato → it should say 2"). Prototype: `docs/prototypes/pantry-list-v1.html`. **Do not build yet** — Patrick reviews and approves visually first (decision rights: Designer recommends, Patrick approves).
+
+**The key finding (saves most of the work):** the "add up to 2" logic Patrick is asking for **already exists** in `mobile/src/data/shopping-helpers.ts`. `applyMealAdd` / `applyMealRemove` / `recomputeQuantity` already track each ingredient's source recipes (`sources[]`) and re-sum the scaled quantity on every meal add/remove. It also already handles units honestly — `sameSlot` merges only matching units (or when one side is null) and deliberately does **not** convert grams↔cups. So the aggregation maths is done. We are surfacing it, not inventing it.
+
+**What's actually new (the design proposes, engineer scopes):**
+1. **Group the pantry by `PANTRY_CATEGORY`** (Produce / Meat & Seafood / Dairy & Eggs / Pantry / Spices & Herbs / Sauces / Frozen) instead of one flat pill wrap. Categories + `categorizeIngredient()` already exist in `pantry-helpers.ts`.
+2. **Minimal line SVG icons** per category (7 drawn in the prototype, single 1.6px stroke, `currentColor` so they tint grey/emerald with row state) — replacing the current `CATEGORY_EMOJI`.
+3. **Per-row "Need" quantity + source attribution** ("need 2 · from Bolognese + Shakshuka") read from the existing `sources[]` on the shopping item.
+4. **The one genuinely new data link:** the pantry "have it" tick should subtract from the "to buy" quantity, so Pantry (have) + Shopping (need − have) become one coherent picture across the two tabs. This is the only piece that needs an architecture call — flagging it to you rather than deciding it. **This is a Senior Engineer architecture decision, not a design one.**
+
+**Honesty constraint (golden rule 5):** mismatched units stay split under one ingredient ("1 tin · 200 g"), never faked into a single number. The prototype shows this; the engine already behaves this way.
+
+**Colours/idioms used:** current dark-sage tokens; the refined emerald `#4FBF85` (from `colour-refinement-v1.html`) for the positive "have" state; gold for the "need" accent; rust reserved for the primary CTA only. Consistent with the colour-refinement handoff above.
+
+**Files touched (Designer):** `docs/prototypes/pantry-list-v1.html` (new).
+
+**Blocks:** nothing yet — exploratory. Once Patrick approves the look, Designer + Engineer agree the have→buy data flow before any build.
+
+---
+
 ### HANDOFF → Senior Engineer · 2026-05-18 · OPEN (step-number contrast fix + build-log gap + hummus confirm)
 **From:** Patrick (via COO)
 **Subject:** Three items: fix the invisible step number in the recipe Method list, backfill the build log for #118–#121, and confirm the hummus hero fix landed.
@@ -1528,24 +1550,4 @@ For each recipe below, either:
 ---
 
 ### HANDOFF → COO · 2026-05-07 · DONE ✅ (Cook briefed in writing — engineer unblocked for 11-recipe migration)
-**Closed by COO 2026-05-07.** Cook's brief at `docs/coo/specialists/culinary-verifier.md` now carries an explicit "RETIRED FIELDS — DO NOT USE" section at the top of "How you work," naming `whole_food_verified` and instructing zero use in any new research file. A session-end `grep -i "whole_food..."` check has been added to the cook's "At session end" ritual so any drift is caught before close. Patrick is sending the cook a paste-back to acknowledge directly. Engineer cleared to proceed with the 11-recipe migration.
-
-### Original handoff (preserved for audit) → COO · 2026-05-07 · OPEN URGENT (brief the Cook — whole-food field is dead)
-**From:** Patrick (via Senior Engineer)
-**Subject:** The cook's research database had whole-food references throughout. Engineer cleaned them. Cook must be told to never use the term again.
-**Why:** The `whole_food_verified` field was retired across the entire repo on 2026-05-07 (commits `21198e5` + `474f500`). When the engineer ran the cleanup, fifteen of the sixteen recipe research files in `docs/coo/culinary-research/` still had a "Whole-food claim:" or "Whole-food verified:" line in their audit sections — the cook had been adding it as a standard audit checkbox. The lines have been stripped, but if the cook keeps following the old pattern, the term will leak back in next time research lands. Patrick's words: he wants this fully addressed before the 11-recipe migration proceeds, so we don't ship an APK with the term re-introduced through a new research file.
-
-**What's already done (Engineer):**
-- Stripped 15 `Whole-food claim:` / `Whole-food verified:` lines from the cook's research files in `docs/coo/culinary-research/`. Smash-burger left intentionally as the retirement narrative.
-- Verified `docs/coo/culinary-research/TEMPLATE.md` (the cook's template) is clean — no mention there.
-- Verified `docs/coo/specialists/culinary-verifier.md` (the cook's brief) is clean — Patrick had already cleaned this earlier.
-- Schema, seed data, SQLite column, prototypes, BUGS.md, command-centre.md, roadmap.md, handoffs.md — all stripped. Only the URGENT handoff and the smash-burger retirement narrative still mention it, both deliberately.
-
-**What's needed (COO actions):**
-1. **Brief the Cook explicitly:** the whole-food concept is retired. Don't add `whole_food_verified` to any new recipe data. Don't include a "Whole-food claim" or "Whole-food verified" line in the audit section of new research files.
-2. **Update the cook's standing brief if needed.** The current `docs/coo/specialists/culinary-verifier.md` is clean — confirm no follow-up edits required, or add an explicit "do not use" note if you think the cook needs the reminder in writing.
-3. **Confirm to Senior Engineer when done** so the 11-recipe migration can proceed without risk of re-introducing the term through new research files.
-4. **Future-proof:** consider adding a one-line check to the cook's session-end checklist — `grep "whole_food" docs/coo/culinary-research/<new-file>.md` should return zero hits.
-
-**Files referenced:**
-- `docs/coo/culinary-research/*.md` (clea
+**Closed by COO 2026-05-07.** Cook's brief at `docs/coo/specialists/culinary-verifier.md` now carries an explicit "RETIRED FIELDS — DO NOT USE" section at the top of "How you work," naming `whole_food_verified` and i

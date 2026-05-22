@@ -44,8 +44,8 @@ Once Patrick picks, I'll write the engineer build handoff with the final tokens.
 
 `docs/FILE_MAP.md` has **unresolved git merge-conflict markers** (`<<<<<<< HEAD` / `=======` / `>>>>>>>`, lines ~116–133). It needs a clean resolution. Flagging for the COO/Engineer — I didn't touch it to avoid resolving a conflict blind.
 
-## Files touched
+## Files touched (colour refinement)
 
 - `docs/prototypes/colour-refinement-v1.html` — NEW.
 - `docs/coo/handoffs.md` — marked the colour handoff DELIVERED, awaiting Patrick's pick.
-- `docs/sessions/Hone_Session_Report_22_May_2026.md` — this report.
+- `docs/sessions/Hone_Session_Report_22_May_2026.m
