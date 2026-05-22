@@ -59,7 +59,48 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
-### HANDOFF → Senior Engineer · 2026-05-22 · OPEN — PENDING PATRICK'S VISUAL APPROVAL (pantry list redesign — category groups, line icons, recipe-driven quantities)
+### HANDOFF → Senior Engineer · 2026-05-22 · OPEN — ✅ APPROVED BY PATRICK · BUILD (pantry "what you have" → organised list + stepper)
+**From:** Product Designer
+**Subject:** Patrick approved `docs/prototypes/pantry-haves-v1.html` ("lets do this send to engineer"). Build it. This is the authoritative spec; the layered exploration notes below (PENDING/MODEL REVISED/REFINED/ASSEMBLED) are now history — build to *this* entry.
+
+**Scope — ONE change to the current pantry (`mobile/app/(tabs)/pantry.tsx`):** replace the "what you have" pills card (the `havePills` flex-wrap card, ~lines 809–872) with an organised, category-grouped, collapsible list. Remove the match banner. Everything else stays: search + autocomplete, the match carousel, tabs.
+
+**1. The list (replaces the pills card)**
+- Group `have_it === true` items by their existing `PANTRY_CATEGORY`. Use `SHOPPING_SECTION_LABEL` for the header text ("Meat & Seafood", "Pantry", "Spices & Herbs", etc.) and `SHOPPING_SECTION_ORDER` for ordering. Hide categories with zero stocked items.
+- Each category is a **collapsible section**: header = icon + name + count + chevron; tapping the header toggles collapse. Default expanded. Collapse state in component state for v1 (persisting to storage is a fine follow-up, not required).
+- **Row** = icon · name · sub-line · trailing control.
+  - Sub-line: `for {planned recipe names}` — the recipes currently in the plan that use this ingredient (truncate to 1 line, "+N" overflow). Derive by matching the ingredient against planned-meal recipes via `normalizeForMatch` (same matcher the shopping/`sources[]` path uses). If no planned recipe uses it, show nothing.
+  - Trailing control: the **+/− stepper** for countable items; a neutral **"Stocked"** pill for bulk-by-weight items.
+
+**2. The +/− stepper (the interaction Patrick wanted)**
+- Writes to the pantry row's existing **`quantity`** field (`PantryItem.quantity`, currently always null) — **no schema change.**
+- In the **search-add** flow: an un-stocked result shows a gold `+` add button; tapping it sets `have_it=true`, `quantity=1`, and the row swaps to the stepper. `+`/`−` adjust quantity. `−` at 1 → removes (`have_it=false`). This is the "don't make me type tomato three times" fix.
+- On the **list row**: the same stepper adjusts `quantity`; `−` at 1 removes the item (consider a brief undo toast — reuse the existing pattern).
+- **Countable vs bulk** (one judgment call — confirm with me if unsure): produce, proteins, dairy & eggs, and pack items (tins/bunches) get the stepper; pure bulk staples you'd never count (flour, oil, salt, sugar, rice, stock) show the "Stocked" pill instead. A small curated "uncounted" set is fine for v1; default to the stepper when unsure.
+
+**3. Remove the match banner** — the "{N} recipes you can cook now / See all" View (~lines 874–939). The carousel already conveys this; the banner was redundant. **Keep the match carousel and `scoreRecipeAgainstPantry` exactly as-is.**
+
+**4. Colours — calm palette, each colour one job (this is the part Patrick cares most about):**
+- Category + ingredient **icons → `tokens.inkSoft` (#C4B8A8)** — neutral. NOT sage, NOT gold. Icons are wayfinding, not status.
+- **Stepper** = the one gold accent: bg `goldDim`, border `rgba(242,204,42,0.42)`, glyphs `tokens.gold`, count `tokens.ink`.
+- **"Stocked" pill**: text `inkSoft`/`ink2`, bg `surface2`/`cream`, border `lineDark`.
+- **Carousel "Ready to cook" pill stays GREEN** (`tokens.sage`) — this is the one meaningful green, a genuine go-signal. Do not neutralise it.
+- **Carousel "still need" chips: change rust → neutral** (text `inkSoft`/`ink2`, border `lineDark`, keep the `+`). Small change to `ChipAdd`. This keeps the screen to cream + one gold + one green.
+- Optional/your call: the pantry search border is currently rust-tinted; the prototype softens it to a neutral line for coherence. Fine to leave as the build has it.
+
+**5. States & edge cases**
+- Empty pantry → honest empty state: "Nothing stocked yet — search above to add what you have." (Point to the next action, no mascot.)
+- Long sub-line → 1 line + "+N".
+- Stepper `−` to 0 removes the row.
+- Accessibility: stepper buttons need `accessibilityLabel` ("Add one {name}" / "Remove one {name}") and a 44dp touch target via `hitSlop` (visual pill is ~25px). Category header = `accessibilityRole="button"`, label "{Category}, {N} items, expanded/collapsed". WCAG AA on all text (inkSoft on dark passes; verify the stepper count).
+
+**6. What NOT to touch:** search + autocomplete, the carousel's matching logic, recipe data, tab routing.
+
+**Reference:** `docs/prototypes/pantry-haves-v1.html` (commit on main). Build-log row + R-014 tail-check per your standing brief. **Per R-015: do not self-close — shipped, then await Patrick's on-device validation.** No build dispatched by Designer (build-trigger stays with Patrick).
+
+---
+
+### HANDOFF → Senior Engineer · 2026-05-22 · SUPERSEDED by the APPROVED build handoff above (pantry list redesign — category groups, line icons, recipe-driven quantities)
 **From:** Product Designer
 **Subject:** Patrick wants the pantry to stop being a flat pill list and become an organised, category-grouped shelf with clean icons and smart quantities. Current prototype: **`docs/prototypes/pantry-list-v2.html`** (v1 superseded — see "model revised" note below). **Do not build yet** — Patrick reviews and approves visually first (decision rights: Designer recommends, Patrick approves).
 
@@ -1469,61 +1510,4 @@ For v0.5.0 version bump:
 **What's done:** Portion sizing spec is locked in `docs/coo/culinary-research/launch-recipe-units.md` (section 13). `LAMB_SHAWARMA` stays in the seed file but must be flagged `not_yet_shipping` — it is a v1.2 candidate.
 **What's needed:**
 1. Create a new `CHICKEN_SHAWARMA` recipe const in `seed-recipes.ts`. Use the existing `LAMB_SHAWARMA` recipe object as the structural template — replace lamb with boneless chicken thighs, update marinade ratios, adjust cook time to 25–30 min at 220°C, update attribution.
-2. Set `LAMB_SHAWARMA` status to `not_yet_shipping` (or remove from the launch set — whichever the schema supports).
-3. Culinary Verifier will need to author a full DECISION-009 research file for `CHICKEN_SHAWARMA` before it can pass the pre-flight checklist — create a skeleton `.md` file at `docs/coo/culinary-research/chicken-shawarma.md` as a placeholder so the Verifier knows it's needed.
-**Files touched:** `mobile/src/data/seed-recipes.ts`, `docs/coo/culinary-research/launch-recipe-units.md`
-**Blocks:** DECISION-009 migration for the shawarma slot; photography scheduling
-
----
-
-### HANDOFF → Senior Engineer · 2026-05-08 · OPEN (DECISION-012 — bump version to v0.5.0 on next push)
-**From:** Patrick (via COO)
-**Subject:** Set `version` in `mobile/app.json` to `"0.5.0"` on the next commit. Adopt new versioning policy.
-**Why:** Per DECISION-012 (decision-log.md, 8 May), `v1.0.0` is reserved for Play Store production launch day. Pre-launch we use v0.x. Only the COO bumps minor versions — engineer continues to bump patches and build numbers freely. Current state has shipped enough to justify a retroactive bump from `0.4.1` to `0.5.0` to mark the Pantry v3/v4 + dark/sage palettes + Kitchen improvements + recipe template skeleton package.
-**What's needed:**
-1. In `mobile/app.json`, change `expo.version` from `"0.4.1"` to `"0.5.0"`. No other code changes.
-2. `expo.android.versionCode` (the build number) keeps auto-incrementing as normal — that's separate.
-3. Going forward: do NOT auto-bump the minor version on your own. Bug-fix patches go `0.5.0 → 0.5.1 → 0.5.2`. Minor bumps (`0.5.x → 0.6.0`) only happen on explicit COO instruction. The milestone map is in DECISION-012.
-4. Commit message: `chore(version): bump to v0.5.0 per DECISION-012`.
-**Files touched:** `mobile/app.json` only.
-**Cost:** ~5 minutes.
-**Blocks:** Nothing. Land alongside any other build.
-
----
-
-### HANDOFF → Patrick · 2026-05-08 · ON-DEVICE VALIDATION (three jobs landed, awaiting your install)
-**From:** Senior Engineer
-**Subject:** ATTR-FAIL + 11-recipe DECISION-009 + 27-recipe Batch 3+4 + audit placeholder all on origin/main; build not triggered per CLAUDE.md.
-**Commits:**
-- `ee111a0` — ATTR-FAIL: 16 broken attribution URLs converted to book citations
-- `5ac153b` — DECISION-009 Batch 2 (11 launch-priority recipes)
-- `e649f0f` — DECISION-009 Batch 3+4 (27 cook-extras)
-- `c5f6a2d` — UI placeholder for the one remaining empty recipe (sourdough-maintenance)
-
-**State after all four commits:**
-- 44 of 45 seed recipes carry full DECISION-008 sections (Equipment, Prep, Before-you-start, Finishing, Leftovers, total/active timings)
-- 1 still empty: `sourdough-maintenance` — intentional, it's a starter-feeder guide, not a meal recipe; renders the new "Equipment and prep notes are coming" placeholder
-- Zero broken attribution URLs in `seed-recipes.ts`
-- Zero `whole_food_verified` references anywhere outside historical session reports
-
-**On-device checks Patrick should walk through after triggering a build:**
-1. Open chicken-adobo (now book-cited "Anthony Bourdain, No Reservations Philippines" with no URL) — Equipment, Prep, Finishing, Leftovers should render
-2. Open butter-chicken — total time should read 270 min (4h 30m, including the 4-hour marinade) instead of the previous understated 90
-3. Open roast-chicken — total time should read 840 min (14h, dry-brine overnight) instead of 90
-4. Open lamb-shawarma — Prep checklist should be tappable, count should tick
-5. Open sourdough-maintenance — should show the sage-tinted "Equipment and prep notes are coming" placeholder, NOT empty space
-6. Open carbonara — `Watch the original` button should still work (the URL was already clean)
-
-**Per CLAUDE.md:** GitHub issue NOT closed. Patrick validates on-device and closes himself.
-
-**Build trigger:** Patrick decides when. The fixes are stacked on top of `4725618` (REGN-006 + REGN-007 fix that was last built as #92/#93). A new build dispatched on `c5f6a2d` will carry everything since the last validated APK.
-
----
-
-### HANDOFF → Senior Engineer · 2026-05-08 · DONE ✅ (ATTR-FAIL — 16 broken attribution URLs fixed)
-**Closed by Senior Engineer 2026-05-08 in commit `ee111a0`.** All 16 recipes converted to book citations per Patrick's default. Andy Cooks recipes (PRAWN_TACOS_PINEAPPLE, WEEKDAY_BOLOGNESE) used 'inspired by, no URL' framing because Andy Cooks doesn't have a published book. No video_url remains broken in seed-recipes.ts. Patrick validates on-device.
-
-### Original handoff (preserved for audit) → Senior Engineer · 2026-05-08 · OPEN (ATTR-FAIL — fix 16 broken attribution URLs in seed-recipes.ts)
-**From:** Culinary & Cultural Verifier
-**Subject:** 16 recipes have `video_url` values that violate Golden Rule 1 — fix before any recipe ships
-**Why:** The full attribution audit (`docs/coo/culinary-audit.md`, 2026-05-08) found 16 of 45 seed recipes link to a channel homepag
+2. S
