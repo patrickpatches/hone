@@ -11,18 +11,18 @@
    DESIGN TOKENS — locked from tokens.ts (DECISION-012)
    ───────────────────────────────────────────────────────────── */
 :root {
-  --bg:        #141414;   /* primary background */
-  --bg-deep:   #0F0F0F;   /* headers, pressed */
-  --surface:   #1E1E1E;   /* elevated cards, inputs */
-  --surface2:  #252525;   /* nested surfaces */
-  --ink:       #F5EFE8;   /* primary text */
-  --ink-soft:  #C4B8A8;   /* secondary text */
-  --muted:     #8A7E72;   /* captions, hints */
-  --rust:      #B84030;   /* buttons, active states — PRIMARY CTA ONLY on this page */
+  --bg:        #141414;
+  --bg-deep:   #0F0F0F;
+  --surface:   #1E1E1E;
+  --surface2:  #252525;
+  --ink:       #F5EFE8;
+  --ink-soft:  #C4B8A8;
+  --muted:     #8A7E72;
+  --rust:      #B84030;
   --rust-dim:  rgba(184,64,48,0.10);
   --rust-mid:  rgba(184,64,48,0.22);
-  --sage:      #3A7050;   /* completion/done — NOT used on recipe browse page */
-  --gold:      #F2CC2A;   /* Editorial accent — attribution, section headers, stepper */
+  --sage:      #3A7050;
+  --gold:      #F2CC2A;
   --gold-dim:  rgba(242,204,42,0.10);
   --gold-mid:  rgba(242,204,42,0.28);
   --line:      rgba(255,255,255,0.07);
@@ -42,11 +42,10 @@ body {
   flex-direction: column;
   align-items: center;
   padding: 40px 24px 80px;
-  gap: 0;
 }
 
 /* ─────────────────────────────────────────────────────────────
-   PAGE HEADER (outside phone)
+   PAGE HEADER
    ───────────────────────────────────────────────────────────── */
 .page-header {
   text-align: center;
@@ -92,9 +91,7 @@ body {
   flex-shrink: 0;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   STATUS BAR
-   ───────────────────────────────────────────────────────────── */
+/* Status bar */
 .status-bar {
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -117,12 +114,9 @@ body {
   align-items: center;
   gap: 5px;
   color: var(--ink);
-  font-size: 13px;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   NAV OVERLAY (transparent over hero)
-   ───────────────────────────────────────────────────────────── */
+/* Nav overlay */
 .nav-overlay {
   position: absolute;
   top: 52px; left: 0; right: 0;
@@ -146,17 +140,9 @@ body {
   cursor: pointer;
   pointer-events: all;
 }
-.nav-btn-icon {
-  color: var(--ink);
-  font-size: 15px;
-  line-height: 1;
-}
-.nav-btn-icon.saved { color: #E05050; }
 .nav-right { display: flex; gap: 8px; }
 
-/* ─────────────────────────────────────────────────────────────
-   SCROLLABLE PAGE CONTENT
-   ───────────────────────────────────────────────────────────── */
+/* Scrollable page */
 .page-scroll {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -167,12 +153,7 @@ body {
 .page-scroll::-webkit-scrollbar { display: none; }
 
 /* ─────────────────────────────────────────────────────────────
-   HERO — title INSIDE the image (editorial treatment)
-
-   WHY: The current design places title in a separate card below the
-   photo, creating a visual seam. This treatment fuses photo + title
-   as one editorial unit — the way food magazines lay out a dish.
-   Cost: zero — gradient overlay already exists in the app.
+   HERO
    ───────────────────────────────────────────────────────────── */
 .hero {
   position: relative;
@@ -180,14 +161,8 @@ body {
   overflow: hidden;
   flex-shrink: 0;
 }
-.hero-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
 .hero-placeholder {
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   background:
     radial-gradient(ellipse at 40% 30%, #3D1A0E 0%, transparent 60%),
     radial-gradient(ellipse at 70% 70%, #1A0D06 0%, transparent 60%),
@@ -198,8 +173,6 @@ body {
   font-size: 64px;
   opacity: 0.9;
 }
-
-/* Deep gradient so text is always legible — no light-on-light */
 .hero-gradient {
   position: absolute;
   bottom: 0; left: 0; right: 0;
@@ -212,8 +185,6 @@ body {
     transparent 100%
   );
 }
-
-/* Attribution + title block, bottom of hero */
 .hero-identity {
   position: absolute;
   bottom: 0; left: 0; right: 0;
@@ -233,12 +204,10 @@ body {
   color: var(--gold);
 }
 .chef-divider {
-  width: 1px;
-  height: 10px;
+  width: 1px; height: 10px;
   background: var(--gold);
   opacity: 0.3;
 }
-/* Watch original is inline text, not a pill — removes one button from the page */
 .chef-watch {
   font-size: 10px;
   font-weight: 500;
@@ -247,10 +216,7 @@ body {
   opacity: 0.55;
   cursor: pointer;
   text-decoration: none;
-  transition: opacity 0.15s;
 }
-.chef-watch:hover { opacity: 0.85; }
-
 .recipe-title {
   font-family: 'Playfair Display', serif;
   font-size: 32px;
@@ -269,20 +235,13 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   BODY CONTENT
+   BODY
    ───────────────────────────────────────────────────────────── */
-.body {
-  background: var(--bg);
-  padding: 0 20px;
-}
+.body { background: var(--bg); padding: 0 20px; }
 
 /* ─────────────────────────────────────────────────────────────
-   QUICK STATS — scannable chips, right after the hero
-
-   WHY: The current 5-column stats bar gives every stat equal weight.
-   These chips let the user scan at a glance: is this fast? is it hard?
-   The size difference creates natural hierarchy (time is primary).
-   Cost: minor — rework the stats bar component.
+   QUICK STATS — warm-tinted SVG icons, not grey
+   Patrick noted he likes the colour on these icons: keep.
    ───────────────────────────────────────────────────────────── */
 .quick-stats {
   display: flex;
@@ -294,32 +253,28 @@ body {
 .stat-chip {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 20px;
   padding: 5px 11px 5px 8px;
 }
-.stat-icon { font-size: 12px; }
+/* Each icon coloured to match its meaning */
+.stat-icon-wrap { display: flex; align-items: center; }
+.stat-icon-wrap svg { display: block; }
 .stat-label {
   font-size: 12px;
   color: var(--ink-soft);
   font-weight: 400;
+  white-space: nowrap;
 }
-.stat-label strong {
-  color: var(--ink);
-  font-weight: 600;
-}
+.stat-label strong { color: var(--ink); font-weight: 600; }
 
 /* ─────────────────────────────────────────────────────────────
-   PRIMARY CTA BLOCK — START COOKING owns this area
-
-   WHY: The current page has three pill-shaped buttons of similar size:
-   "Watch the original", "Plan this recipe", and the floating
-   "Start Cooking". Three equals = none dominant. The primary CTA
-   must be the clear visual boss. Watch + Plan become ghost text
-   links — present but not competing.
-   Cost: restyle existing buttons — no layout change.
+   PRIMARY CTA BLOCK
+   "Add to shopping list" replaces "Plan this recipe" —
+   the outcome (getting ingredients on a list) is more direct
+   and honest than the abstract "plan" framing.
    ───────────────────────────────────────────────────────────── */
 .cta-block {
   padding: 18px 0 6px;
@@ -344,9 +299,7 @@ body {
   transition: opacity 0.15s;
 }
 .btn-start:hover { opacity: 0.90; }
-.btn-start-icon { font-size: 17px; }
 
-/* Ghost secondary actions — present, not competing */
 .secondary-actions {
   display: flex;
   justify-content: center;
@@ -366,18 +319,14 @@ body {
   color: var(--ink-soft);
   cursor: pointer;
   padding: 4px 0;
-  transition: color 0.15s;
   text-decoration: none;
+  transition: color 0.15s;
 }
 .btn-ghost:hover { color: var(--ink); }
-.ghost-sep {
-  width: 1px;
-  height: 14px;
-  background: var(--line);
-}
+.ghost-sep { width: 1px; height: 14px; background: var(--line); }
 
 /* ─────────────────────────────────────────────────────────────
-   SCALING CONTROL — integrated into body, not floating
+   SCALING
    ───────────────────────────────────────────────────────────── */
 .scaling-row {
   display: flex;
@@ -386,7 +335,6 @@ body {
   padding: 15px 0;
   border-bottom: 1px solid var(--line);
 }
-.scaling-info {}
 .scaling-label {
   font-size: 10px;
   font-weight: 700;
@@ -395,11 +343,7 @@ body {
   color: var(--gold);
   margin-bottom: 3px;
 }
-.scaling-hint {
-  font-size: 12px;
-  color: var(--muted);
-}
-/* Gold accent stepper — the one gold interactive element on this page */
+.scaling-hint { font-size: 12px; color: var(--muted); }
 .stepper {
   display: flex;
   align-items: center;
@@ -420,9 +364,7 @@ body {
   font-weight: 300;
   cursor: pointer;
   line-height: 1;
-  transition: background 0.1s;
 }
-.stepper-btn:hover { background: var(--gold-dim); }
 .stepper-value {
   min-width: 40px;
   text-align: center;
@@ -434,21 +376,13 @@ body {
   padding-right: 12px;
   font-size: 12px;
   color: var(--muted);
-  font-weight: 400;
 }
 
 /* ─────────────────────────────────────────────────────────────
-   COLLAPSIBLE SECTIONS
-
-   All section headers use the same pattern:
-     GOLD UPPERCASE LABEL + optional count badge + chevron
-
-   This is the entire section language. No blue, no white,
-   no competing colours. Gold headers = every section entry point.
+   COLLAPSIBLE SECTIONS — shared pattern
+   Gold label + chevron = the single section language
    ───────────────────────────────────────────────────────────── */
-.section {
-  border-bottom: 1px solid var(--line);
-}
+.section { border-bottom: 1px solid var(--line); }
 .section-header {
   display: flex;
   align-items: center;
@@ -459,11 +393,7 @@ body {
   -webkit-user-select: none;
 }
 .section-header:active { opacity: 0.75; }
-.section-label-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.section-label-group { display: flex; align-items: center; gap: 8px; }
 .section-label {
   font-size: 10px;
   font-weight: 700;
@@ -480,49 +410,32 @@ body {
   border-radius: 10px;
 }
 .section-chevron {
-  font-size: 11px;
-  color: var(--muted);
-  transition: transform 0.22s ease;
   display: flex;
   align-items: center;
+  transition: transform 0.22s ease;
 }
 .section-chevron svg {
-  width: 12px; height: 12px;
+  width: 13px; height: 13px;
   stroke: var(--muted);
   fill: none;
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.section-chevron.open svg {
-  transform: rotate(180deg);
-}
+.section-chevron.open { transform: rotate(0deg); }
+.section-chevron.closed { transform: rotate(-90deg); }
+
 .section-body {
   overflow: hidden;
   transition: max-height 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease;
 }
-.section-body.expanded { max-height: 1200px; opacity: 1; }
+.section-body.expanded { max-height: 2400px; opacity: 1; }
 .section-body.collapsed { max-height: 0; opacity: 0; }
 
 /* ─────────────────────────────────────────────────────────────
-   BEFORE YOU START — collapsible
-
-   WHY this section is changing:
-   1. The current blue header ("#4A7C59 sage" reads as blue on dark —
-      it actually FAILS WCAG AA at 3.7:1) is jarring against the gold
-      visual language. Gold header = immediately coherent.
-   2. The section is long by design — "cast iron is not optional" is
-      important — but the user shouldn't see a wall of text on load.
-      Default: expanded (it IS important) but collapsible for repeat
-      users who already know the drill.
-   Cost: gold text + chevron + collapsible wrapper. Small.
+   BEFORE YOU START
    ───────────────────────────────────────────────────────────── */
-.bys-list {
-  padding-bottom: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
+.bys-list { padding-bottom: 14px; }
 .bys-item {
   display: flex;
   gap: 12px;
@@ -541,28 +454,61 @@ body {
   align-items: center;
   justify-content: center;
 }
-.bys-dot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--gold);
-  opacity: 0.7;
+.bys-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); opacity: 0.7; }
+.bys-text { font-size: 13.5px; line-height: 1.58; color: var(--ink-soft); }
+.bys-text strong { color: var(--ink); font-weight: 600; }
+
+/* ─────────────────────────────────────────────────────────────
+   EQUIPMENT
+   ───────────────────────────────────────────────────────────── */
+.equip-list { padding-bottom: 14px; }
+.equip-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-s);
 }
-.bys-text {
-  font-size: 13.5px;
-  line-height: 1.58;
-  color: var(--ink-soft);
+.equip-row:last-child { border-bottom: none; }
+.equip-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
 }
-.bys-text strong {
-  color: var(--ink);
+.equip-info { flex: 1; }
+.equip-name { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+.equip-note { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.equip-badge {
+  font-size: 10px;
   font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.equip-badge.essential {
+  background: var(--rust-dim);
+  border: 1px solid var(--rust-mid);
+  color: #D35040;
+}
+.equip-badge.optional {
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  color: var(--muted);
 }
 
 /* ─────────────────────────────────────────────────────────────
-   INGREDIENTS — collapsible
+   INGREDIENTS
    ───────────────────────────────────────────────────────────── */
-.ing-list {
-  padding-bottom: 6px;
-}
+.ing-list { padding-bottom: 6px; }
 .ing-row {
   display: flex;
   align-items: center;
@@ -573,23 +519,8 @@ body {
 }
 .ing-row:last-child { border-bottom: none; }
 .ing-info { flex: 1; min-width: 0; }
-.ing-name {
-  font-size: 14px;
-  color: var(--ink);
-  font-weight: 500;
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.ing-amount {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 2px;
-  font-weight: 400;
-}
-
-/* Swap pill — gold outlined when no swap, emerald when swapped */
+.ing-name { font-size: 14px; color: var(--ink); font-weight: 500; line-height: 1.3; }
+.ing-amount { font-size: 12px; color: var(--muted); margin-top: 2px; }
 .swap-pill {
   flex-shrink: 0;
   border: 1px solid var(--gold-mid);
@@ -601,11 +532,7 @@ body {
   background: var(--gold-dim);
   cursor: pointer;
   white-space: nowrap;
-  transition: opacity 0.15s;
-  letter-spacing: 0.01em;
 }
-.swap-pill:hover { opacity: 0.75; }
-/* Swapped state — the refined emerald from colour-refinement-v1 */
 .swap-pill.swapped {
   border-color: rgba(79,191,133,0.38);
   color: #4FBF85;
@@ -613,32 +540,26 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   METHOD — step preview strip + cook mode entry
+   METHOD — carousel + full steps list
 
-   WHY the strip: users commit more confidently when they can
-   see the shape of the cook before they start. 6 small cards
-   scrolling horizontally shows "here's the journey" in 2 seconds.
-   This is borrowed from recipe writing — chef books always show
-   the full process at a glance before detailed instructions.
-   Cost: medium — new component. Step data already exists.
+   Tapping a carousel card jumps to that step and flashes gold.
+   Full step list is anchored for navigation.
    ───────────────────────────────────────────────────────────── */
-.method-content {
-  padding-bottom: 6px;
-}
+.method-content { padding-bottom: 6px; }
 
-/* Horizontal scroll strip of step previews */
+/* Carousel */
 .steps-strip {
   display: flex;
   gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 2px 0 12px;
-  /* Bleed to phone edges */
+  padding: 2px 0 14px;
   margin: 0 -20px;
   padding-left: 20px;
   padding-right: 20px;
 }
 .steps-strip::-webkit-scrollbar { display: none; }
+
 .step-card {
   flex-shrink: 0;
   width: 90px;
@@ -647,9 +568,11 @@ body {
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, transform 0.12s;
+  -webkit-tap-highlight-color: transparent;
 }
 .step-card:hover { border-color: var(--gold-mid); }
+.step-card:active { transform: scale(0.96); }
 .step-photo {
   height: 58px;
   background: linear-gradient(135deg, #2A1810, #181008);
@@ -659,24 +582,22 @@ body {
   font-size: 24px;
   position: relative;
 }
-.step-photo-gradient {
+.step-photo-grad {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 24px;
+  height: 20px;
   background: linear-gradient(to top, var(--surface), transparent);
 }
-.step-info {
-  padding: 7px 8px 8px;
-}
+.step-info { padding: 7px 8px 8px; }
 .step-num {
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.10em;
   color: var(--gold);
   opacity: 0.8;
   margin-bottom: 3px;
 }
-.step-title {
+.step-title-preview {
   font-size: 10.5px;
   color: var(--ink-soft);
   line-height: 1.3;
@@ -686,7 +607,135 @@ body {
   overflow: hidden;
 }
 
-/* Photos coming notice — moved into method section, where it belongs */
+/* Divider between carousel and full steps */
+.method-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 6px 0 18px;
+}
+
+/* Full recipe steps list */
+.full-steps { display: flex; flex-direction: column; gap: 0; }
+
+.step-full {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line-s);
+  transition: background 0.3s ease;
+  border-radius: 8px;
+  margin: 0 -8px;
+  padding: 18px 8px;
+  scroll-margin-top: 80px; /* offset for nav overlay */
+}
+.step-full:last-child { border-bottom: none; }
+
+/* Gold flash when jumped to from carousel */
+@keyframes stepFlash {
+  0%   { background: rgba(242,204,42,0.14); }
+  60%  { background: rgba(242,204,42,0.08); }
+  100% { background: transparent; }
+}
+.step-full.highlighted { animation: stepFlash 0.8s ease forwards; }
+
+.step-full-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+.step-number-badge {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gold);
+  opacity: 0.35;
+  line-height: 1;
+  flex-shrink: 0;
+  min-width: 32px;
+  margin-top: -2px;
+}
+.step-full-title-wrap { flex: 1; }
+.step-full-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.3;
+  margin-bottom: 3px;
+}
+.step-timer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.step-body { padding-left: 46px; }
+.step-full-text {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+.step-full-text strong { color: var(--ink); font-weight: 600; }
+
+/* Why note — chef explains the reason */
+.step-why {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-left: 2px solid var(--gold-mid);
+  border-radius: 0 8px 8px 0;
+  margin-top: 4px;
+}
+.step-why-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.7;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.step-why-text {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+/* Photo placeholder for step */
+.step-photo-full {
+  height: 130px;
+  background: linear-gradient(135deg, #241510, #140C06);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  margin-top: 10px;
+  border: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+}
+.step-photo-coming {
+  position: absolute;
+  bottom: 8px; right: 10px;
+  font-size: 10px;
+  color: var(--muted);
+  background: rgba(0,0,0,0.5);
+  padding: 2px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+}
+
+/* Photos coming notice */
 .photos-notice {
   display: flex;
   align-items: flex-start;
@@ -696,21 +745,12 @@ body {
   border: 1px solid var(--line);
   border-left: 2px solid var(--gold-mid);
   border-radius: 10px;
-  margin-bottom: 14px;
+  margin: 14px 0;
 }
-.photos-icon {
-  font-size: 14px;
-  opacity: 0.5;
-  margin-top: 1px;
-  flex-shrink: 0;
-}
-.photos-text {
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.5;
-}
+.photos-icon { font-size: 14px; opacity: 0.5; margin-top: 1px; flex-shrink: 0; }
+.photos-text { font-size: 12px; color: var(--muted); line-height: 1.5; }
 
-/* Cook mode entry — outlined rust pill, secondary to Start Cooking above */
+/* Cook mode entry */
 .btn-cook-mode {
   width: 100%;
   background: none;
@@ -726,16 +766,13 @@ body {
   font-size: 14px;
   font-weight: 600;
   color: var(--rust);
+  margin-bottom: 32px;
   transition: border-color 0.15s, background 0.15s;
-  margin-bottom: 28px;
 }
-.btn-cook-mode:hover {
-  background: var(--rust-dim);
-  border-color: var(--rust);
-}
+.btn-cook-mode:hover { background: var(--rust-dim); border-color: var(--rust); }
 
 /* ─────────────────────────────────────────────────────────────
-   DESIGN RATIONALE TABLE (below phone)
+   DESIGN RATIONALE TABLE
    ───────────────────────────────────────────────────────────── */
 .rationale {
   width: 393px;
@@ -754,17 +791,8 @@ body {
   border-bottom: 1px solid var(--line);
 }
 .rationale-row:last-child { border-bottom: none; }
-.rationale-change {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink);
-  margin-bottom: 4px;
-}
-.rationale-reason {
-  font-size: 12px;
-  color: var(--ink-soft);
-  line-height: 1.6;
-}
+.rationale-change { font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.rationale-reason { font-size: 12px; color: var(--ink-soft); line-height: 1.6; }
 .rationale-cost {
   display: inline-block;
   margin-top: 6px;
@@ -782,16 +810,12 @@ body {
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════════════
-     PAGE HEADER
-═══════════════════════════════════════════════════════════════ -->
 <div class="page-header">
   <div class="page-eyebrow">Hone · Recipe Detail</div>
   <h1 class="page-title">v3 — The Kitchen Brief</h1>
   <p class="page-sub">
-    A redesigned recipe template that flows in cooking order —
-    hook → commitment → scaling → preparation → ingredients → method.
-    Every colour has one job. Tap section headers to collapse.
+    Tap any stat chip icon, section header, or step card to interact.
+    Tap a step in the carousel to jump to the full step below.
   </p>
 </div>
 
@@ -800,70 +824,57 @@ body {
 ═══════════════════════════════════════════════════════════════ -->
 <div class="phone-frame">
 
-  <!-- Status bar -->
   <div class="status-bar">
     <span class="status-time">00:43</span>
     <div class="status-icons">
+      <!-- Signal bars -->
       <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
-        <rect x="0" y="3" width="3" height="9" rx="1" fill="currentColor" opacity="0.4"/>
-        <rect x="4.5" y="2" width="3" height="10" rx="1" fill="currentColor" opacity="0.6"/>
-        <rect x="9" y="0" width="3" height="12" rx="1" fill="currentColor"/>
-        <rect x="13.5" y="0" width="2.5" height="12" rx="1" fill="currentColor"/>
+        <rect x="0" y="5" width="3" height="7" rx="1" fill="white" opacity="0.35"/>
+        <rect x="4.5" y="3" width="3" height="9" rx="1" fill="white" opacity="0.55"/>
+        <rect x="9" y="1" width="3" height="11" rx="1" fill="white" opacity="0.75"/>
+        <rect x="13.5" y="0" width="2.5" height="12" rx="1" fill="white"/>
       </svg>
-      <svg width="15" height="12" viewBox="0 0 15 12" fill="currentColor">
+      <!-- Wifi -->
+      <svg width="15" height="12" viewBox="0 0 15 12" fill="white">
         <path d="M7.5 1.5C10.5 1.5 13.2 3 14.8 5.3L13.5 6.5C12.2 4.6 10 3.5 7.5 3.5C5 3.5 2.8 4.6 1.5 6.5L0.2 5.3C1.8 3 4.5 1.5 7.5 1.5Z" opacity="0.5"/>
         <path d="M7.5 5.5C9.4 5.5 11.1 6.5 12.1 7.9L10.8 9.1C10 7.9 8.8 7.5 7.5 7.5C6.2 7.5 5 7.9 4.2 9.1L2.9 7.9C3.9 6.5 5.6 5.5 7.5 5.5Z" opacity="0.75"/>
         <circle cx="7.5" cy="10.5" r="1.5"/>
       </svg>
-      <svg width="26" height="12" viewBox="0 0 26 12" fill="none">
-        <rect x="0.5" y="0.5" width="22" height="11" rx="3.5" stroke="currentColor" opacity="0.35"/>
-        <rect x="2" y="2" width="16" height="8" rx="2" fill="currentColor"/>
-        <path d="M24 4V8C24.8 7.5 25.5 6.9 25.5 6C25.5 5.1 24.8 4.5 24 4Z" fill="currentColor" opacity="0.4"/>
+      <!-- Battery -->
+      <svg width="28" height="12" viewBox="0 0 28 12" fill="none">
+        <rect x="0.5" y="0.5" width="23" height="11" rx="3.5" stroke="white" opacity="0.35"/>
+        <rect x="2" y="2" width="17" height="8" rx="2" fill="white"/>
+        <path d="M25 4V8C25.8 7.5 26.5 6.8 26.5 6C26.5 5.2 25.8 4.5 25 4Z" fill="white" opacity="0.4"/>
       </svg>
     </div>
   </div>
 
-  <!-- Nav overlay (transparent over hero) -->
   <div class="nav-overlay">
     <div class="nav-btn">
-      <span class="nav-btn-icon">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
-          <path d="M9 2L4 7L9 12"/>
-        </svg>
-      </span>
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M9 2L4 7L9 12"/></svg>
     </div>
     <div class="nav-right">
       <div class="nav-btn">
-        <span class="nav-btn-icon">
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round">
-            <circle cx="10.5" cy="2.5" r="1.5"/>
-            <circle cx="2.5" cy="6.5" r="1.5"/>
-            <circle cx="10.5" cy="10.5" r="1.5"/>
-            <line x1="4" y1="7.2" x2="9" y2="3.5"/>
-            <line x1="4" y1="7.8" x2="9" y2="9.5"/>
-          </svg>
-        </span>
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round">
+          <circle cx="10.5" cy="2.5" r="1.5"/><circle cx="2.5" cy="6.5" r="1.5"/><circle cx="10.5" cy="10.5" r="1.5"/>
+          <line x1="4" y1="7.2" x2="9" y2="3.5"/><line x1="4" y1="7.8" x2="9" y2="9.5"/>
+        </svg>
       </div>
       <div class="nav-btn">
-        <span class="nav-btn-icon saved">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="#E05050">
-            <path d="M7 12.5L1.5 7C0.4 5.9 0.4 4.1 1.5 3C2.6 1.9 4.4 1.9 5.5 3L7 4.5L8.5 3C9.6 1.9 11.4 1.9 12.5 3C13.6 4.1 13.6 5.9 12.5 7L7 12.5Z"/>
-          </svg>
-        </span>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="#E05050">
+          <path d="M7 12.5L1.5 7C0.4 5.9 0.4 4.1 1.5 3C2.6 1.9 4.4 1.9 5.5 3L7 4.5L8.5 3C9.6 1.9 11.4 1.9 12.5 3C13.6 4.1 13.6 5.9 12.5 7L7 12.5Z"/>
+        </svg>
       </div>
     </div>
   </div>
 
-  <!-- Scrollable page content -->
-  <div class="page-scroll">
+  <div class="page-scroll" id="pageScroll">
 
-    <!-- ── HERO ─────────────────────────────────────────── -->
+    <!-- HERO -->
     <div class="hero">
-      <!-- Real image: <img class="hero-img" src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80" alt="Smash Burger"> -->
       <div class="hero-placeholder">🍔</div>
       <div class="hero-gradient"></div>
       <div class="hero-identity">
-        <!-- Attribution inline — not a pill button -->
         <div class="chef-credit">
           <span class="chef-name">Inspired by Andy Cooks</span>
           <span class="chef-divider"></span>
@@ -874,46 +885,80 @@ body {
       </div>
     </div>
 
-    <!-- ── BODY ──────────────────────────────────────────── -->
     <div class="body">
 
-      <!-- Quick stats -->
+      <!-- QUICK STATS — coloured SVG icons retained -->
       <div class="quick-stats">
         <div class="stat-chip">
-          <span class="stat-icon">⏱</span>
-          <span class="stat-label"><strong>20 min</strong> total</span>
+          <div class="stat-icon-wrap">
+            <!-- Clock — warm gold-tinted -->
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <circle cx="7" cy="7" r="5.5" stroke="#C4A050" stroke-width="1.4"/>
+              <path d="M7 4V7L9 8.5" stroke="#C4A050" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span class="stat-label"><strong>20 min</strong></span>
         </div>
         <div class="stat-chip">
-          <span class="stat-icon">🔥</span>
+          <div class="stat-icon-wrap">
+            <!-- Flame — rust-warm -->
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 12C4.2 12 2 9.8 2 7C2 4.5 3.5 3 4.5 2C4.5 3.5 5.5 4.5 6 5C6 3 7 1.5 8.5 1C8.5 2.5 9 4 10.5 5C11.2 5.8 12 6.8 12 8C12 10.2 9.8 12 7 12Z" stroke="#C06040" stroke-width="1.3" fill="rgba(192,96,64,0.15)"/>
+            </svg>
+          </div>
           <span class="stat-label"><strong>Beginner</strong></span>
         </div>
         <div class="stat-chip">
-          <span class="stat-icon">🌎</span>
+          <div class="stat-icon-wrap">
+            <!-- Globe — muted blue-grey -->
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <circle cx="7" cy="7" r="5.5" stroke="#7090A0" stroke-width="1.3"/>
+              <path d="M7 1.5C7 1.5 5 4 5 7C5 10 7 12.5 7 12.5" stroke="#7090A0" stroke-width="1.3"/>
+              <path d="M7 1.5C7 1.5 9 4 9 7C9 10 7 12.5 7 12.5" stroke="#7090A0" stroke-width="1.3"/>
+              <line x1="1.5" y1="7" x2="12.5" y2="7" stroke="#7090A0" stroke-width="1.3"/>
+            </svg>
+          </div>
           <span class="stat-label"><strong>American</strong></span>
         </div>
         <div class="stat-chip">
-          <span class="stat-icon">✓</span>
+          <div class="stat-icon-wrap">
+            <!-- Tick — sage green -->
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <circle cx="7" cy="7" r="5.5" stroke="#3A7050" stroke-width="1.3" fill="rgba(58,112,80,0.12)"/>
+              <path d="M4.5 7L6.2 8.8L9.5 5.5" stroke="#3A7050" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
           <span class="stat-label">No leftovers</span>
         </div>
       </div>
 
-      <!-- ── PRIMARY CTA ──────────────────────────────────── -->
-      <!-- ONE primary action. Watch + Plan are ghost text links. -->
+      <!-- PRIMARY CTA -->
       <div class="cta-block">
         <button class="btn-start">
-          <span class="btn-start-icon">🍳</span>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <circle cx="9" cy="9" r="7.5" stroke="rgba(245,239,232,0.6)" stroke-width="1.2"/>
+            <path d="M7 6L13 9L7 12V6Z" fill="#F5EFE8"/>
+          </svg>
           Start Cooking
         </button>
         <div class="secondary-actions">
-          <a class="btn-ghost" href="#">📅 Plan this recipe</a>
+          <!-- "Add to shopping list" — tells the user the exact outcome -->
+          <button class="btn-ghost">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+              <path d="M1 1H3L4.5 8H10L11.5 4H3.5"/>
+              <circle cx="5" cy="10.5" r="1" fill="currentColor" stroke="none"/>
+              <circle cx="9.5" cy="10.5" r="1" fill="currentColor" stroke="none"/>
+            </svg>
+            Add to shopping list
+          </button>
           <div class="ghost-sep"></div>
           <a class="btn-ghost" href="#">▶ Watch original</a>
         </div>
       </div>
 
-      <!-- ── SCALING ──────────────────────────────────────── -->
+      <!-- SCALING -->
       <div class="scaling-row">
-        <div class="scaling-info">
+        <div>
           <div class="scaling-label">How many burgers</div>
           <div class="scaling-hint">Ingredients scale automatically</div>
         </div>
@@ -925,58 +970,92 @@ body {
         </div>
       </div>
 
-      <!-- ── BEFORE YOU START — collapsible ──────────────── -->
-      <div class="section" id="sec-bys">
+      <!-- BEFORE YOU START -->
+      <div class="section">
         <div class="section-header" onclick="toggle('bys')">
           <div class="section-label-group">
             <span class="section-label">Before you start</span>
           </div>
           <span class="section-chevron open" id="chev-bys">
-            <svg viewBox="0 0 12 12"><polyline points="2,4 6,8 10,4"/></svg>
+            <svg viewBox="0 0 13 13"><polyline points="2,4 6.5,8.5 11,4"/></svg>
           </span>
         </div>
         <div class="section-body expanded" id="body-bys">
           <div class="bys-list">
             <div class="bys-item">
               <div class="bys-bullet"><div class="bys-dot"></div></div>
-              <p class="bys-text">
-                <strong>Cast iron or heavy steel is not optional.</strong>
-                Non-stick pans can't reach the temperature — they'll warp
-                and release PFOA. Cast iron, carbon steel, or stainless
-                steel frying pan works — just heat it longer.
-              </p>
+              <p class="bys-text"><strong>Cast iron or heavy steel is not optional.</strong> Non-stick pans can't reach the temperature — they'll warp and release PFOA. Cast iron, carbon steel, or stainless works — just heat it longer.</p>
             </div>
             <div class="bys-item">
               <div class="bys-bullet"><div class="bys-dot"></div></div>
-              <p class="bys-text">
-                <strong>Get your mise en place ready before you fire the pan.</strong>
-                Smashing happens fast — you have about 10 seconds once the
-                beef hits the heat. Pre-portion your balls, have the spatula
-                close, cheese sliced and waiting.
-              </p>
+              <p class="bys-text"><strong>Get your mise en place ready before you fire the pan.</strong> Smashing happens fast — you have about 10 seconds once the beef hits the heat. Pre-portion your balls, spatula close, cheese sliced and waiting.</p>
             </div>
             <div class="bys-item">
               <div class="bys-bullet"><div class="bys-dot"></div></div>
-              <p class="bys-text">
-                <strong>80/20 mince is the move.</strong>
-                Leaner mince = dry burger. The fat renders as it cooks
-                and creates the crispy lacy edge. That's what makes a
-                smash burger what it is.
-              </p>
+              <p class="bys-text"><strong>80/20 mince is the move.</strong> Leaner mince = dry burger. The fat renders and creates the crispy lacy edge. That's what makes a smash burger what it is.</p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ── INGREDIENTS — collapsible ───────────────────── -->
-      <div class="section" id="sec-ing">
+      <!-- EQUIPMENT -->
+      <div class="section">
+        <div class="section-header" onclick="toggle('equip')">
+          <div class="section-label-group">
+            <span class="section-label">Equipment</span>
+            <span class="section-badge">4 items</span>
+          </div>
+          <span class="section-chevron open" id="chev-equip">
+            <svg viewBox="0 0 13 13"><polyline points="2,4 6.5,8.5 11,4"/></svg>
+          </span>
+        </div>
+        <div class="section-body expanded" id="body-equip">
+          <div class="equip-list">
+            <div class="equip-row">
+              <div class="equip-icon">🍳</div>
+              <div class="equip-info">
+                <div class="equip-name">Cast iron or carbon steel frying pan</div>
+                <div class="equip-note">Must retain very high heat. 24–28 cm works well.</div>
+              </div>
+              <span class="equip-badge essential">Essential</span>
+            </div>
+            <div class="equip-row">
+              <div class="equip-icon">🔧</div>
+              <div class="equip-info">
+                <div class="equip-name">Flat metal spatula</div>
+                <div class="equip-note">Thin, rigid edge for smashing and scraping the crust.</div>
+              </div>
+              <span class="equip-badge essential">Essential</span>
+            </div>
+            <div class="equip-row">
+              <div class="equip-icon">🔲</div>
+              <div class="equip-info">
+                <div class="equip-name">Small saucepan lid or bacon press</div>
+                <div class="equip-note">For pressing the ball flat immediately after it hits the pan.</div>
+              </div>
+              <span class="equip-badge optional">Optional</span>
+            </div>
+            <div class="equip-row">
+              <div class="equip-icon">🌡</div>
+              <div class="equip-info">
+                <div class="equip-name">Instant-read thermometer</div>
+                <div class="equip-note">72°C internal if you're uncertain — though the crust is the real signal.</div>
+              </div>
+              <span class="equip-badge optional">Optional</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INGREDIENTS -->
+      <div class="section">
         <div class="section-header" onclick="toggle('ing')">
           <div class="section-label-group">
             <span class="section-label">Ingredients</span>
             <span class="section-badge">9 items</span>
           </div>
           <span class="section-chevron open" id="chev-ing">
-            <svg viewBox="0 0 12 12"><polyline points="2,4 6,8 10,4"/></svg>
+            <svg viewBox="0 0 13 13"><polyline points="2,4 6.5,8.5 11,4"/></svg>
           </span>
         </div>
         <div class="section-body expanded" id="body-ing">
@@ -1046,227 +1125,150 @@ body {
         </div>
       </div>
 
-      <!-- ── METHOD — step strip + cook mode entry ────────── -->
-      <div class="section" id="sec-method">
+      <!-- METHOD -->
+      <div class="section">
         <div class="section-header" onclick="toggle('method')">
           <div class="section-label-group">
             <span class="section-label">Method</span>
             <span class="section-badge">6 steps</span>
           </div>
           <span class="section-chevron open" id="chev-method">
-            <svg viewBox="0 0 12 12"><polyline points="2,4 6,8 10,4"/></svg>
+            <svg viewBox="0 0 13 13"><polyline points="2,4 6.5,8.5 11,4"/></svg>
           </span>
         </div>
         <div class="section-body expanded" id="body-method">
           <div class="method-content">
 
-            <!-- Step preview strip — shows the cook's shape before committing -->
+            <!-- Step carousel — tap to jump to full step below -->
             <div class="steps-strip">
-              <div class="step-card">
-                <div class="step-photo">
-                  🧅
-                  <div class="step-photo-gradient"></div>
-                </div>
+              <div class="step-card" onclick="jumpToStep(1)">
+                <div class="step-photo">🧅<div class="step-photo-grad"></div></div>
                 <div class="step-info">
                   <div class="step-num">STEP 01</div>
-                  <div class="step-title">Mise en place</div>
+                  <div class="step-title-preview">Mise en place</div>
                 </div>
               </div>
-              <div class="step-card">
-                <div class="step-photo">
-                  🔥
-                  <div class="step-photo-gradient"></div>
-                </div>
+              <div class="step-card" onclick="jumpToStep(2)">
+                <div class="step-photo">🔥<div class="step-photo-grad"></div></div>
                 <div class="step-info">
                   <div class="step-num">STEP 02</div>
-                  <div class="step-title">Heat the pan</div>
+                  <div class="step-title-preview">Heat the pan</div>
                 </div>
               </div>
-              <div class="step-card">
-                <div class="step-photo">
-                  🍔
-                  <div class="step-photo-gradient"></div>
-                </div>
+              <div class="step-card" onclick="jumpToStep(3)">
+                <div class="step-photo">🍔<div class="step-photo-grad"></div></div>
                 <div class="step-info">
                   <div class="step-num">STEP 03</div>
-                  <div class="step-title">Smash &amp; sear</div>
+                  <div class="step-title-preview">Smash &amp; sear</div>
                 </div>
               </div>
-              <div class="step-card">
-                <div class="step-photo">
-                  🧀
-                  <div class="step-photo-gradient"></div>
-                </div>
+              <div class="step-card" onclick="jumpToStep(4)">
+                <div class="step-photo">🧀<div class="step-photo-grad"></div></div>
                 <div class="step-info">
                   <div class="step-num">STEP 04</div>
-                  <div class="step-title">Cheese &amp; steam</div>
+                  <div class="step-title-preview">Cheese &amp; steam</div>
                 </div>
               </div>
-              <div class="step-card">
-                <div class="step-photo">
-                  🍞
-                  <div class="step-photo-gradient"></div>
-                </div>
+              <div class="step-card" onclick="jumpToStep(5)">
+                <div class="step-photo">🍞<div class="step-photo-grad"></div></div>
                 <div class="step-info">
                   <div class="step-num">STEP 05</div>
-                  <div class="step-title">Toast the bun</div>
+                  <div class="step-title-preview">Toast the bun</div>
                 </div>
               </div>
-              <div class="step-card">
-                <div class="step-photo">
-                  ✅
-                  <div class="step-photo-gradient"></div>
-                </div>
+              <div class="step-card" onclick="jumpToStep(6)">
+                <div class="step-photo">🎯<div class="step-photo-grad"></div></div>
                 <div class="step-info">
                   <div class="step-num">STEP 06</div>
-                  <div class="step-title">Build &amp; serve</div>
+                  <div class="step-title-preview">Build &amp; serve</div>
                 </div>
               </div>
             </div>
 
-            <!-- Photos notice — belongs here, not at the top of the page -->
-            <div class="photos-notice">
-              <span class="photos-icon">📷</span>
-              <span class="photos-text">Stage-by-stage photos coming — we'll photograph this recipe soon.</span>
-            </div>
+            <div class="method-divider"></div>
 
-            <!-- Cook mode entry — secondary to Start Cooking at top -->
-            <button class="btn-cook-mode">
-              <span>👨‍🍳</span>
-              Enter cook mode — step by step
-            </button>
+            <!-- Full recipe steps — anchored for carousel navigation -->
+            <div class="full-steps">
 
-          </div>
-        </div>
-      </div><!-- /section method -->
+              <div class="step-full" id="step-1">
+                <div class="step-full-header">
+                  <div class="step-number-badge">01</div>
+                  <div class="step-full-title-wrap">
+                    <div class="step-full-title">Mise en place</div>
+                    <div class="step-timer-chip">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5" cy="5" r="4"/><path d="M5 3V5L6.5 6" stroke-linecap="round"/></svg>
+                      5 min
+                    </div>
+                  </div>
+                </div>
+                <div class="step-body">
+                  <p class="step-full-text">
+                    Divide your mince into <strong>125 g balls per patty</strong> — don't pack them tight, loose is better.
+                    Dice the onion very finely. Slice the pickles. Get the cheese slices out so they're at room temperature.
+                    Set everything within arm's reach of the stove before you light the burner.
+                  </p>
+                  <div class="step-why">
+                    <span class="step-why-label">Why</span>
+                    <span class="step-why-text">Once the beef hits the pan you have 10 seconds to smash it before it steams instead of sears. There's no time to look for anything.</span>
+                  </div>
+                </div>
+              </div>
 
-    </div><!-- /body -->
-  </div><!-- /page-scroll -->
-</div><!-- /phone-frame -->
+              <div class="step-full" id="step-2">
+                <div class="step-full-header">
+                  <div class="step-number-badge">02</div>
+                  <div class="step-full-title-wrap">
+                    <div class="step-full-title">Heat the pan</div>
+                    <div class="step-timer-chip">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5" cy="5" r="4"/><path d="M5 3V5L6.5 6" stroke-linecap="round"/></svg>
+                      5 min
+                    </div>
+                  </div>
+                </div>
+                <div class="step-body">
+                  <p class="step-full-text">
+                    Place your cast iron pan over <strong>high heat</strong>. Wait until it's just starting to smoke — 4 to 5 minutes on a gas burner, longer on electric.
+                    Add a teaspoon of neutral oil and swirl. It should shimmer immediately.
+                  </p>
+                  <div class="step-photo-full">
+                    🔥
+                    <span class="step-photo-coming">Photo coming soon</span>
+                  </div>
+                  <div class="step-why" style="margin-top:10px;">
+                    <span class="step-why-label">Why</span>
+                    <span class="step-why-text">The Maillard reaction — the crust — needs surface temps above 150°C. A lukewarm pan steams the beef; a screaming-hot pan sears it.</span>
+                  </div>
+                </div>
+              </div>
 
+              <div class="step-full" id="step-3">
+                <div class="step-full-header">
+                  <div class="step-number-badge">03</div>
+                  <div class="step-full-title-wrap">
+                    <div class="step-full-title">Smash &amp; sear</div>
+                    <div class="step-timer-chip">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5" cy="5" r="4"/><path d="M5 3V5L6.5 6" stroke-linecap="round"/></svg>
+                      2 min
+                    </div>
+                  </div>
+                </div>
+                <div class="step-body">
+                  <p class="step-full-text">
+                    Drop a ball of mince in the pan. <strong>Immediately press it down hard</strong> with your spatula — lean your weight into it — and hold for 10 seconds.
+                    Season generously with sea salt. Don't touch it for 90 seconds.
+                    Lift when the edges are deeply browned and lacy.
+                  </p>
+                  <div class="step-why">
+                    <span class="step-why-label">Why</span>
+                    <span class="step-why-text">The smash maximises surface contact with the pan. More contact = more Maillard crust. The lacy edge is the whole point — that's where the flavour is.</span>
+                  </div>
+                </div>
+              </div>
 
-<!-- ══════════════════════════════════════════════════════════
-     DESIGN RATIONALE
-═══════════════════════════════════════════════════════════════ -->
-<div class="rationale">
-  <div class="rationale-title">Design decisions</div>
-
-  <div class="rationale-row">
-    <div class="rationale-change">Title moves inside the hero image</div>
-    <div class="rationale-reason">
-      The current layout breaks the hero with a separate dark card below it — two
-      things when one would do. Overlaying the title on a gradient inside the photo
-      is how food magazines frame a dish. Photo + name = one editorial unit.
-      The hierarchy is immediate: big photo, then the page.
-    </div>
-    <span class="rationale-cost">Engineer cost: gradient overlay already exists — small</span>
-  </div>
-
-  <div class="rationale-row">
-    <div class="rationale-change">Attribution becomes inline text, not a pill</div>
-    <div class="rationale-reason">
-      "Inspired by Andy Cooks · Watch original ↗" is credit, not an action.
-      Making it a pill gives it the same visual weight as "Start Cooking".
-      As inline gold text it reads as a byline — which is exactly what it is.
-    </div>
-    <span class="rationale-cost">Engineer cost: remove pill, replace with Text — small</span>
-  </div>
-
-  <div class="rationale-row">
-    <div class="rationale-change">One primary CTA — Plan and Watch become ghost text</div>
-    <div class="rationale-reason">
-      The current page has three pill-shaped buttons before you even reach
-      the ingredients. Three equals = none dominant. "Start Cooking" is the boss.
-      "Plan this recipe" and "Watch original" are secondary — they become ghost
-      links, present but quiet. The user who wants them finds them; the user who
-      doesn't isn't distracted.
-    </div>
-    <span class="rationale-cost">Engineer cost: restyle two buttons — small</span>
-  </div>
-
-  <div class="rationale-row">
-    <div class="rationale-change">"Before you start" section — gold header, collapsible</div>
-    <div class="rationale-reason">
-      The blue-ish header (sage token used as text) was failing WCAG AA contrast
-      (3.7:1 — needs 4.5:1). Gold reads clearly. The section is important —
-      "cast iron is not optional" matters — so it defaults to open. But repeat
-      users who already own the right pan can collapse it. The chevron makes the
-      behaviour obvious without an instruction.
-    </div>
-    <span class="rationale-cost">Engineer cost: gold colour + Animated.View collapse — small</span>
-  </div>
-
-  <div class="rationale-row">
-    <div class="rationale-change">All section headers speak the same language</div>
-    <div class="rationale-reason">
-      Before You Start, Ingredients, Method — all use the same gold uppercase
-      Inter label + chevron. One pattern for every collapsible section. The user
-      learns it once. Right now every section has its own visual dialect.
-    </div>
-    <span class="rationale-cost">Engineer cost: one reusable SectionHeader component — medium once, zero after</span>
-  </div>
-
-  <div class="rationale-row">
-    <div class="rationale-change">Method shows a step preview strip before cook mode</div>
-    <div class="rationale-reason">
-      Users commit more confidently when they can see the shape of the cook
-      before they start. Six small cards scrolling horizontally show "here's the
-      journey" in two seconds — the same reason recipe books show a process
-      overview before the detailed steps. The step titles are already in the data;
-      this surface is new.
-    </div>
-    <span class="rationale-cost">Engineer cost: horizontal FlatList of step cards — medium</span>
-  </div>
-
-  <div class="rationale-row">
-    <div class="rationale-change">"Stage photos on the way" moved into Method section</div>
-    <div class="rationale-reason">
-      Currently this notice lives near the top of the page — before the
-      ingredients, before you've even decided to cook this recipe. It's an
-      apology for something the user hasn't encountered yet. Moved into the
-      Method section, it appears at exactly the moment it's relevant:
-      when the user is looking at the steps.
-    </div>
-    <span class="rationale-cost">Engineer cost: move component — trivial</span>
-  </div>
-
-  <div class="rationale-row">
-    <div class="rationale-change">Colour map: one job per colour, nothing else</div>
-    <div class="rationale-reason">
-      Rust (#B84030): Start Cooking only.
-      Gold (#F2CC2A): section headers, stepper accent, chef attribution.
-      Emerald (#4FBF85): swapped ingredient only (from colour-refinement-v1).
-      Sage (#3A7050): not on this page — sage = completion states, no completions here.
-      Blue: zero. This is a browse page; it should feel calm and editorial.
-    </div>
-    <span class="rationale-cost">Engineer cost: colour token pass on recipe/[id].tsx — medium</span>
-  </div>
-
-</div><!-- /rationale -->
-
-<!-- ══════════════════════════════════════════════════════════
-     INTERACTIONS
-═══════════════════════════════════════════════════════════════ -->
-<script>
-  function toggle(id) {
-    const body = document.getElementById('body-' + id);
-    const chev = document.getElementById('chev-' + id);
-    const open = body.classList.contains('expanded');
-    body.classList.toggle('expanded', !open);
-    body.classList.toggle('collapsed', open);
-    chev.classList.toggle('open', !open);
-  }
-
-  function adjustCount(delta) {
-    const el = document.getElementById('count');
-    const unit = document.getElementById('unit-label');
-    let v = parseInt(el.textContent) + delta;
-    if (v < 1) v = 1;
-    if (v > 12) v = 12;
-    el.textContent = v;
-    unit.textContent = v === 1 ? 'burger' : 'burgers';
-  }
-</script>
-
-</body>
-</html>
+              <div class="step-full" id="step-4">
+                <div class="step-full-header">
+                  <div class="step-number-badge">04</div>
+                  <div class="step-full-title-wrap">
+                    <div class="step-full-title">Cheese &amp; steam</div>
+                    <div class="step-timer-chip">
+                      <svg width="
