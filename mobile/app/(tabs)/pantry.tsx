@@ -761,7 +761,7 @@ export default function PantryTab() {
             fontSize: 11,
             letterSpacing: 2,
             textTransform: 'uppercase',
-            color: tokens.sage,
+            color: tokens.bronze,
             marginBottom: 4,
           }}
         >
@@ -791,7 +791,7 @@ export default function PantryTab() {
                 style={{
                   fontFamily: fonts.displayItalic,
                   fontStyle: 'italic',
-                  color: tokens.sage,
+                  color: tokens.bronze,
                 }}
               >
                 Pantry
@@ -1225,7 +1225,7 @@ export default function PantryTab() {
               {groupedHaves.map(({ category, items }) => {
                 const collapsed = collapsedCats.has(category);
                 return (
-                  <View key={category} style={{ marginBottom: 10 }}>
+                  <View key={category} style={{ marginBottom: 18 }}>
                     {/* Category header — tap to collapse/expand */}
                     <Pressable
                       onPress={() => toggleCategory(category)}
@@ -1236,11 +1236,12 @@ export default function PantryTab() {
                         flexDirection: 'row',
                         alignItems: 'center',
                         gap: 9,
-                        paddingVertical: 6,
+                        paddingTop: 4,
+                        paddingBottom: 7,
                         paddingHorizontal: 2,
-                        borderBottomWidth: collapsed ? 0 : StyleSheet.hairlineWidth,
-                        borderBottomColor: tokens.line,
-                        marginBottom: collapsed ? 0 : 8,
+                        borderBottomWidth: 1,
+                        borderBottomColor: tokens.lineDark,
+                        marginBottom: collapsed ? 0 : 9,
                       }}
                     >
                       <FoodIcon name={categoryIconName(category)} size={20} color={tokens.inkSoft} />
@@ -1248,8 +1249,9 @@ export default function PantryTab() {
                         style={{
                           flex: 1,
                           fontFamily: fonts.sansBold,
-                          fontSize: 11.5,
-                          letterSpacing: 0.4,
+                          fontSize: 12,
+                          letterSpacing: 1.4,
+                          textTransform: 'uppercase',
                           color: tokens.ink,
                         }}
                       >

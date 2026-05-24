@@ -82,6 +82,9 @@ export const tokens = {
   // for the gold accent so any future tweak propagates everywhere at once.
   gold:    '#F2CC2A',
   goldDim: 'rgba(242,204,42,0.15)',
+  // Soft antique bronze-gold — header accents (eyebrow, title italic). Deliberately
+  // darker/desaturated vs the bright stepper gold so the two never compete.
+  bronze:  '#C2A15A',
 
   // Structural — white-alpha on dark surfaces
   line:     'rgba(255,255,255,0.07)',   // subtle dividers
