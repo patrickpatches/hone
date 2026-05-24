@@ -474,7 +474,7 @@ export default function ShopTab() {
                 fontSize: 11,
                 letterSpacing: 2,
                 textTransform: 'uppercase',
-                color: tokens.sage,
+                color: tokens.bronze,
                 marginBottom: 4,
               }}
             >
@@ -493,7 +493,7 @@ export default function ShopTab() {
                 style={{
                   fontFamily: fonts.displayItalic,
                   fontStyle: 'italic',
-                  color: tokens.sage,
+                  color: tokens.bronze,
                 }}
               >
                 Shop

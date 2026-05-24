@@ -1252,7 +1252,7 @@ export default function PantryTab() {
                           fontSize: 12,
                           letterSpacing: 1.4,
                           textTransform: 'uppercase',
-                          color: tokens.ink,
+                          color: tokens.bronze,
                         }}
                       >
                         {SHOPPING_SECTION_LABEL[category]}
