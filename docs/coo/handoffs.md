@@ -29,12 +29,6 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 | Build | Commit | Summary |
 |---|---|---|
-| #123 | `0781040` | **Pantry header polish — bronze header accent + section-label category headers (Patrick on-device feedback after #122).** (1) **New `bronze` token (`#C2A15A`)** — a soft, desaturated antique bronze-gold, deliberately darker/browner than the bright stepper gold (`#F2CC2A`) so the two never compete. Applied to the "Cook with what you have" eyebrow and the "Pantry" title italic, which were `tokens.sage` (green). This also fixes a palette leak: per the Designer's calm-palette brief green should mean "ready to cook" only — the green header text was a leftover. Green now appears on the pantry screen solely on the carousel "Ready to cook" pill. (2) **Category headers now read as editorial section labels, distinct from ingredient rows** — Patrick reported the headers blended into the item cards. Headers are now UPPERCASE, 12sp, letter-spacing 1.4, **bronze** (gold-family, distinct from the cream ingredient names — Patrick's call to use the app's gold theme; bronze not the bright stepper gold so the two never compete), with an always-on 1px `lineDark` divider rule beneath (was a hairline `line`, only when expanded) and more breathing room above and between sections (section gap 10→18). The ingredient rows stay as `cream` cards, so headers (label-on-background) and items (filled cards) are now clearly different visual tiers. **Smart pre-flight:** tsc clean (only the pre-existing `@react-navigation/native` sandbox note), R-014 26/26 balanced, brace/paren/bracket diff 0 on both files, tail bytes verified. The bronze eyebrow + title treatment is also replicated on the **Shop tab** header (`shop.tsx`) so the two tabs match. 4 files: `mobile/app/(tabs)/pantry.tsx`, `mobile/app/(tabs)/shop.tsx`, `mobile/src/theme/tokens.ts`, + this handoff. **Build dispatched on Patrick's go.** Per R-015: not self-closing. |
-| #122 | `bd3c7ee` | **Pantry "what you have" → organised list + stepper + per-ingredient icons (Designer's 2026-05-22 APPROVED handoff, `pantry-haves-v1.html`). Two commits, one build.** **Pass 1 (`f282758`):** replaced the `havePills` pills card with a category-grouped, collapsible list (moved into the browse scroll area — a list needs to scroll; the pills card lived in the fixed header). Grouping by `PANTRY_CATEGORY` with `SHOPPING_SECTION_LABEL` headers + `SHOPPING_SECTION_ORDER`; empty categories hidden; collapse in component state (default expanded). Each row = neutral category icon + name + "for {recipe}" sub-line + trailing control. Sub-line reuses the carousel's existing `scoreRecipeAgainstPantry` ranked set inverted via `normalizeForMatch` (no new scoring; 1 line + "+N"; quiet when no surfaced recipe uses the item). Trailing control = +/− stepper for countable items (writes the row's existing `quantity` field — **no schema change**) or a neutral "Stocked" pill for bulk staples (curated `UNCOUNTED` set + Spices treated as bulk). Stepper `−` at qty 1 removes the row with a brief undo toast (reuses the shopUndo pattern). Add-flow sets `quantity=1` so the stepper starts at 1. Removed the "{N} recipes you can cook now" banner (carousel conveys it). Carousel "still need" chips recoloured rust→neutral (border `lineDark`, text `inkSoft`); "Ready to cook" pill stays green — the one meaningful green. Empty state: "Nothing stocked yet — search above to add what you have." Accessibility: stepper `accessibilityLabel` + 44dp `hitSlop`; category header `accessibilityRole="button"` with expanded/collapsed label. Removed now-dead code (Pill, PILLS_SHOWN, pillsExpanded, removeItem, CATEGORY_EMOJI import). **Pass 2 (`pending` = this commit):** new `mobile/src/components/PantryIcons.tsx` — 7 neutral category line-icons (Pass 1) extended to ~19 per-ingredient line-icons + an `ingredientIconName(name, category)` resolver (garlic→allium, lemon→citrus, salmon→fish, beef→meat, etc.), keyword-matched in priority order, **falling back to the category icon when no confident match** so no row shows a rough shape. Icons sourced as Lucide/Tabler-style stroke paths (MIT-licensable family), tinted `inkSoft` (wayfinding, not status). Each list row's icon switched from the category icon to `ingredientIconName`. **Colours, final:** cream surfaces/text; icons neutral `inkSoft`; gold only on the stepper; green only on the carousel "Ready to cook" pill. **Smart pre-flight (both files):** tsc clean (only the pre-existing `@react-navigation/native` sandbox-resolution note, not a real error); R-014 truncation 26/26 balanced; brace/paren/bracket all diff 0; tail bytes verified; PantryIcons.tsx was truncated once by the Write tool mid-resolver and recovered via bash heredoc (caught by the balance check before push). 2 files: `mobile/app/(tabs)/pantry.tsx`, `mobile/src/components/PantryIcons.tsx`. **No EAS build dispatched — awaiting Patrick's go.** _Note: build-log rows #118–#121 were restored in this push — they were dropped when the 2026-05-22 Designer-chat commits rebuilt handoffs.md from a pre-#118 base; the code for those builds was always on main, only these log rows were lost._ |
-| #121 | `adc4522` | **Hero slideshow + hero stays in list (Patrick's #120 follow-up).** Two coupled changes in `mobile/app/(tabs)/index.tsx`: (1) **Hero rejoins the list.** Build #120 hid the section entirely when the only matching recipe was already the hero (the "Indian · 1 recipe / Nothing here yet" contradiction). Patrick decided he prefers the hero to ALSO show in the list below, so Butter Chicken (when Indian is filtered) appears both as the hero and as the first list row. Implementation: `listResults = results` (no exclusion). The #120 wrapping conditional was reverted because once the hero stays in the list, `listResults.length === results.length` and the original `listResults > 0 ? list : empty` works again. (2) **Hero auto-rotates every 8 seconds.** New `heroPool` memo (results + any planned recipe pinned at slot 0 if not already inside the filtered results); new `heroIdx` state; `useEffect` clears + restarts a `setInterval` keyed on `heroPool.length`; resets `heroIdx` to 0 when category, search, or pool size changes. Rotation skips when `heroPool.length < 2` (no point cycling 1 recipe). Pagination dots overlay added inside the hero Pressable — small 5×5 dots at the bottom, the active dot stretches to 14×5 gold; renders only when `heroPool.length >= 2`; folds positions 8+ into the trailing dot so a 16-recipe "All" filter doesn't overflow the row. `pointerEvents="none"` on the dots container so they don't intercept the hero's tap-to-open. **Design decisions (not literally in brief — flag back if intent differs):** (a) Instant swap on each tick, not a cross-fade. 8 seconds is slow enough that an opaque transition feels deliberate; adding cross-fade is a 30-min follow-up if Patrick wants softer transitions. (b) No tap-to-pause logic. Tapping the hero opens the recipe (existing behaviour). If the user wants to dwell, they tap. Less code, fewer race conditions. (c) Planned recipe still pins at slot 0 of the rotation if it exists — preserves the "Tonight" eyebrow for the first rotation frame. **Smart pre-flight green:** tsc clean on index.tsx; R-014 truncation 25/25; brace/paren/bracket balance 283/180/41 (all diff 0); tail bytes verified; diff vs origin exactly the intended ~75 lines added + ~13 removed in the hero region. 1 file: `mobile/app/(tabs)/index.tsx`. |
-| #120 | `9edbdff` | **4-item bundle — Patrick's on-device polish + Photography Director's brief.** (1) **Hero/list contradiction (Kitchen tab).** When the active cuisine filter had exactly 1 recipe AND that recipe was the hero, the screen showed the hero at top, "Indian · 1 recipe" header below, then "Nothing here yet" empty-state. The count was correct but the empty-state copy contradicted it. Root cause: the hero is excluded from `listResults` to avoid rendering the same card twice, so when there's only 1 result it becomes a real empty list — but `results.length` still reports 1. Fix: wrap the "section header + list body + empty-state" block inside `{listResults.length > 0 || results.length === 0 ? (...) : null}`. When the hero is the only matching recipe, the section disappears entirely — no redundant header, no contradictory empty state. True empty (results.length === 0, e.g. a search-string with no matches) still shows the "Nothing here yet" message. Considered Patrick's slideshow proposal and pushed back for now — most cuisines at launch have 1–3 recipes, and the "calm head chef" voice favours a single decisive hero over a rotating banner. Worth revisiting when a cuisine has 5+ recipes. (2) **Pantry "Show less" button differentiation.** Was a rust-OUTLINED chip (0.08 alpha bg + 0.30 alpha border) sitting at the end of a row of sage-bordered ingredient pills — read as "another ingredient", not an action. Fix: convert to a filled rust action button (`backgroundColor: tokens.primary`, `color: tokens.onPrimary`) with a directional chevron (`↑` collapsed / `↓` expanded). Clear button affordance, distinct from chip family. (3) **SubstitutionSheet confirm button text overflow.** Long sub names like "Aleppo pepper (sweet, mild, fruity)" prefixed with "Swap to " wrapped across 3 lines inside the rust pill, looking cramped/broken. Fix: shortened the visible label to fixed strings — `'Confirm swap'` when a sub is staged, `'Restore original'` when reverting. The selected radio row above the button already shows the destination by name, so the button just needs to say "do it". `accessibilityLabel` keeps the full descriptive form (`Swap to {ingredient}` / `Restore {ingredient}`) for screen readers. Added `numberOfLines={1}` to the Text as belt-and-braces. (4) **Levantine cuisine tile — olive emoji.** Was 🇱🇧 (Lebanese flag); category covers Lebanese + Syrian + Jordanian + Palestinian per CLAUDE.md. Flipped to 🫒 (olive) — pan-Levantine, food-anchored (matches the cooking-app context), distinct from every other cuisine tile, no national-flag politics. **Smart pre-flight (every guardrail green):** tsc clean on all 3 touched files; R-014 truncation guardrail 25/25 balanced; brace/paren/bracket balance 0 diff across all 3 files (index 273/157/37, pantry 594/538/71, SubstitutionSheet 164/84/11); tail bytes verified on each. 3 files: `mobile/app/(tabs)/index.tsx`, `mobile/app/(tabs)/pantry.tsx`, `mobile/src/components/SubstitutionSheet.tsx`. |
-| #119 | `2326d6f` | **HUMMUS chocolate-sundae fix (Photography Director's 2026-05-18 brief).** Single-line data-only build. Patrick reported the Hummus card was rendering a chocolate milkshake in a mason jar with a Twix bar instead of hummus. Root cause (per Photography Director's session report, `Hone_Session_Report_18_May_2026.md`): `seed-recipes.ts` line 924 carried `photo-1577805947697-89e18249d767` from the 2026-05-15 hero-migration pass; that photo ID is a chocolate milkshake (CDN still serves it HTTP 200 — the bug is content, not link health). The ledger-approved interim was `photo-1637949385162-e416fb15b2ce` (Ludovic Avice, plain Levantine hummus) but never landed in the seed. **Fix:** swap the URL value to the Ludovic Avice photo, add `hero_attribution: 'Photo: Ludovic Avice / Unsplash'`, and migrate HUMMUS to the post-#118 convention (hero_url + hero_attribution BEFORE hero_fallback, matching the 11 recipes wired in #118). **Interim, not final:** Patrick will generate an AI-rendered traditional hummus wa rummaan (pomegranate arils piled in centre well) per the brief at `docs/coo/photography/image-briefs/hummus.md`; cook validates; engineer migrates as a future build. The Ludovic Avice photo ships now so users stop seeing the milkshake. **Smart pre-flight (every guardrail green):** tsc clean on seed-recipes.ts; R-014 truncation 25 files balanced; tail bytes end on `];`; brace/paren/bracket balance 1604/623/757 (all diff 0); new URL HTTP 200, old URL also HTTP 200 (so the bug was identity not link health); zero duplicate hero_url/hero_attribution; diff vs origin shows ONLY HUMMUS changed, exactly 3 lines (+2 added, -1 removed); 56-byte delta matches the line math. **Process flag for COO (not for me to action):** the 2026-05-15 ledger said one URL; the seed got another. Per Photography Director, no ledger-vs-seed comparison check existed. Worth a future automation — diff every `hero_url` in seed-recipes.ts against the ledger's APPROVED URL column. 1 file: `mobile/src/data/seed-recipes.ts`. |
-| #118 | `808970d` | **10 cook-approved hero URLs wired into seed-recipes.ts (Photography Director's 2026-05-15 handoff).** Data-only build. Wires the photo_url + photographer attribution for SMASH_BURGER (Eiliv Aceron), ROAST_CHICKEN (Unsplash), CHICKEN_SCHNITZEL (Mark König), ROAST_LAMB (James Kern), BEEF_LASAGNE (Unsplash), THAI_GREEN_CURRY (Unsplash), BUTTER_CHICKEN (Raman), WEEKDAY_BOLOGNESE (Homescreenify), FALAFEL (Unsplash, new CDN URL replacing 404'd `photo-pQnsKWk5ljQ`), PAVLOVA (Eugene Krasnaok, new CDN URL replacing 404'd `photo-5nCTfEru3Do`). PASTA_CARBONARA already wired since #110 — unchanged. **Design decisions (not literally in brief):** (1) Used `?w=1200&q=80` not the brief's `?w=600&q=80` — the hero block renders at 224px screen height with retina scaling, so 1200px is the right source width for sharpness; existing entries already used 1200; consistency wins. (2) Recovery from regex misfire — initial pass placed the bolognese URL in AGLIO_E_OLIO because the anchor `\n  hero_fallback:\s*fallback\(...\),` falls through past WEEKDAY_BOLOGNESE's array-literal `hero_fallback: ['#8B3A2F', '#C44536', '#D4A574']` and matched AGLIO's `fallback('#D4900A')`; caught by sanity grep, surgically reverted, anchored to the array-literal form, re-applied. (3) ROAST_CHICKEN and THAI_GREEN_CURRY each had a stale `hero_url` AFTER their `hero_fallback` from an older layout convention — would have caused TS1117 duplicate-property errors; removed both. **Not in this build:** FISH_AND_CHIPS, CHICKEN_SHAWARMA, HUMMUS, PAD_THAI all need cook signoff on their 15 May replacement candidates first (handoff still OPEN to cook). FLOUR_TORTILLAS replacement URL in the 15 May report is incomplete (`photo-1693193433392` without the dash-hash suffix); flagged to COO/Photography Director to recover the full CDN ID. **Tail-byte verified.** **R-014 truncation guardrail:** 25 files balanced. **tsc:** clean on seed-recipes.ts; pre-existing legacy-quality errors in `recipes-holding/index.ts` (good_swap / great_swap / perfect_swap / compromise — DECISION-015 migration not yet applied to holding) flagged for a future housekeeping pass — they don't reach the launch build because SEED_RECIPES_HOLDING is never seeded into SQLite (DECISION-013). 1 file: `mobile/src/data/seed-recipes.ts`. |
 | #117 | `0f9063c` | **Cook-mode v2 single-step navigator** — Designer's prototype (`docs/prototypes/cook-mode-v2.html`, commit `8cf7b08`) wired into `recipe/[id].tsx`. Cook mode now shows ONE step at a time with: 224px hero photo block (uses `step.photo_url` or falls back to `recipe.hero_url` or gradient bands), 5-segment gold progress bar overlaid at top, step tag pill bottom-left, 64sp ghost step number watermark bottom-right, 24sp Playfair title, 14.5sp Inter body, gold-bordered "Look for this" doneness cue from `step.stage_note`, 38sp Playfair timer when `timer_seconds` present, italic Playfair why-note when `why_note` present, full-width rust "Next step → [title]" pill (sage "Done — finish cooking" on the final step, exits cook mode on tap), and a ghost "‹ [prev step]" back link below. **Preserves:** DECISION-015 step_overrides with sage border + "adapted for your swap" cue (#107), step-done tracking on tap (the Next pill marks the current step done before advancing — fully replaces the #114 knuckle-tap-card pattern with a clearer affordance), browse-mode list view unchanged. **No schema change** — uses existing `stage_note`/`timer_seconds`/`why_note`/`photo_url`/`hero_url`/`hero_fallback` fields. State: new `currentStepIdx` that resets on every `toggleCooking`. One file: `recipe/[id].tsx`. Pre-flight bug check: tsc clean, R-014 guardrail green, brace/paren/bracket balanced (824/403/56 diff 0), tail bytes verified, manual render-path trace clean. |
 | #116 | `6ac056e` | **Rewrite SubstitutionSheet on React Native's built-in Modal — kills the @gorhom portal layer entirely.** Patrick reported on #115 that the bottom sheet still re-opens on stray taps, AND that the same symptom appears when ticking ingredients in cook mode (where the swap path is never invoked). That ruled out swap-trigger races: the bug was inside `@gorhom/bottom-sheet`'s portal layer keeping itself mounted and re-presenting on stray taps. Three rounds of patches (row-Pressable inert in #114, single dismiss path + 350ms debounce in #115) couldn't kill it because the bug wasn't in the call sites. Build #116 replaces `BottomSheetModal` with React Native's native `Modal` — no portal, no global gesture handler, no library. Custom slide-up animation via Animated.Value. Backdrop is a plain Pressable. The Modal renders only when `visible=true` (early-return when ingredient is null) so when closed there's nothing in the tree to intercept taps. Same `<SubstitutionSheet>` API for the parent. versionCode 49 → 50 so Patrick's install picks up unambiguously as an upgrade. 2 files: `SubstitutionSheet.tsx` (537-line rewrite), `app.json`. tsc clean. R-014 guardrail green. |
 | #115 | `e722cff` | **Defensive sheet-dismiss rewrite — bugs persisted on #114.** Patrick reported the swap popup still re-opens after dismiss and the prep-tap-opens-popup symptom persists. Diagnosis: even with the row body inert from #114, there were still TWO dismissal paths racing each other inside the substitution sheet — `handleConfirm` called `ref.current?.dismiss()` directly which triggered @gorhom's `onDismiss` callback which set parent `visible=false` which fired the sheet's `useEffect` which called `dismiss()` AGAIN. Two competing dismiss calls produce odd post-dismiss re-open behaviour. Fix: single dismiss path through parent state. `handleConfirm` now only fires `onSwap`; the parent's `handleSwap` ALSO sets `sheetVisible=false`. The sheet's `useEffect` on `visible` is now the only thing that calls `ref.current?.dismiss()` — one direction, no race. The close X button at the top of the sheet header now calls `onDismiss()` instead of `ref.current?.dismiss()` for the same reason. Added a 350ms debounce in `openSwapSheet`: refuses to fire if the sheet is already visible OR was just dismissed within the last 350ms. Stops any stray tap during the dismiss animation from re-opening the sheet. Bumped `versionCode` 48 → 49 so Patrick's install genuinely picks up the new APK. 3 files: `SubstitutionSheet.tsx`, `recipe/[id].tsx`, `app.json`. tsc clean. |
@@ -65,96 +59,27 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
-### HANDOFF → Product Designer · 2026-05-24 · OPEN (pantry-haves built across #122 + #123 — review + bless the new `bronze` token)
-**From:** Senior Engineer
-**Subject:** Your APPROVED `pantry-haves-v1.html` is built and shipped (builds #122 + #123). Two things need your eyes: a new design token I had to introduce, and one place where Patrick's direction overrode the calm-palette rule.
-**Why:** You own the design system + tokens. I made calls during the build that you should bless, tune, or push back on.
+### HANDOFF → Senior Engineer · 2026-05-25 · OPEN — EXPLORATORY (recipe detail v3 — data fields to preserve when building)
+**From:** Product Designer
+**Subject:** Recipe detail redesign is in prototype phase — this note locks the data fields that must survive any layout change. Do not build yet. Read this now so the schema contract is clear when the approved design arrives.
 
-**What shipped (your spec, builds #122 + #123):**
-- The "what you have" pills card → category-grouped, collapsible list (moved into the browse scroll — a list needs to scroll). Headers, `SHOPPING_SECTION_LABEL` + `SHOPPING_SECTION_ORDER`, empty cats hidden, collapse in state.
-- Each row: icon · name · "for {recipe}" sub-line (driven by the existing carousel matcher, no new logic) · +/− stepper (writes the existing `quantity` field, no schema change) or a neutral "Stocked" pill for bulk staples.
-- Match banner removed; carousel "still need" chips recoloured rust→neutral; "Ready to cook" pill stays green.
-- Per-ingredient icon system (`mobile/src/components/PantryIcons.tsx`): 7 category line-icons + ~19 ingredient line-icons + a name→icon resolver with category fallback. Lucide/Tabler-style stroke paths, tinted `inkSoft`.
+**All of these fields must have a visible home in whatever recipe detail layout ships:**
 
-**Decision 1 — NEW TOKEN `bronze` (#C2A15A). Your call to bless or tune.** The header eyebrow + "Pantry" title italic were `tokens.sage` (green). Per your own calm-palette brief, green should mean "ready to cook" only — so the green header text was a leftover. Patrick picked a soft bronze-gold to replace it. I added `bronze: '#C2A15A'` to `tokens.ts` — deliberately darker/desaturated vs the bright stepper gold (`#F2CC2A`) so the two never compete. Applied to: pantry eyebrow + title italic, AND replicated on the Shop tab header for consistency. **If you'd rather fold this into an existing token or tune the hex, it's a one-line change — your domain, flag it.**
+1. **Portion scaling (DECISION-014):** `output_unit`, `output_unit_plural`, `output_default`, `base_servings` — the stepper label ("How many burgers / loaves / cups") is recipe-specific. The v3 prototype uses "How many burgers" as an example. The engineer must pull the `output_unit` token from the recipe, not hardcode it.
+2. **Leftover mode:** `leftover_mode` + `extra_for_tomorrow_label` — if the recipe supports leftovers (`leftover_mode !== 'none'`), the scaling section must still surface the leftover nudge (e.g. "Make extra for tomorrow?"). v3's scaling row has room for this as a sub-line or toggle. Do not silently drop it.
+3. **Attribution:** `source.chef`, `source.video_url`, `source.notes` — the chef credit line in the hero and the "Watch original ↗" ghost link both pull from these fields. `source.video_url` controls whether "Watch original" is shown at all (hide if null).
+4. **Time fields:** `total_time_mins`, `active_time_mins` — the stat chips show total time. If `active_time_mins` is significantly lower than `total_time_mins` (e.g. 20 active vs 90 total for a braise), render both ("20 min active · 90 min total"). If they're the same, show just the one.
+5. **Steps:** `steps[].timer_seconds` (timer chip), `steps[].why_note` (gold left-border callout), `steps[].photo_url` (step photo — show placeholder if null), `steps[].stage_note` / `stage_note` (doneness cue in cook mode — this is browse mode so not applicable here, but don't strip the field from the data object).
+6. **Equipment:** the v3 prototype restored the Equipment section. This data currently lives in recipe research files, not in the typed schema. Before building the equipment section, raise a schema question: does `equipment[]` exist on the Recipe type? If not, flag it — it needs adding before this can render. Do not silently skip the section.
+7. **Categories:** `categories.cuisines[0]` populates the cuisine stat chip. `categories.types[0]` could optionally render as a secondary tag if design calls for it.
 
-**Decision 2 — category headers are now `bronze` (gold-family), which overrides the calm-palette "gold only on the stepper" rule.** On-device, Patrick found the category headers blended into the ingredient rows. He directed "use the app's theme of gold" for the headers. I used `bronze` (not the bright stepper gold) so the two golds don't clash, but you should know: gold-family now appears in TWO places on the pantry screen (category headers + stepper), where your brief reserved gold for the stepper alone. Headers are also UPPERCASE + letter-spaced + divider rule + more spacing, so they're differentiated by treatment as well as colour. **If this dilutes the "gold = the thing you tap" signal too much for you, propose an alternative and I'll swap it.**
+**Constraint:** No schema changes in this build without flagging here first. The goal is a layout change, not a data model change.
 
-**What's needed from you:**
-1. Bless or tune the `bronze` hex / decide if it should be a named system token.
-2. Confirm you're OK with gold-family on the category headers, or propose an alternative differentiator.
-3. Optional: review the per-ingredient icon glyphs (I rendered + audited them; meat + tomato were redrawn). If any read poorly to your eye, they're quick path swaps; unmatched ingredients fall back to the category icon.
-
-**Files:** `mobile/app/(tabs)/pantry.tsx`, `mobile/app/(tabs)/shop.tsx`, `mobile/src/theme/tokens.ts`, `mobile/src/components/PantryIcons.tsx`.
-**Status:** shipped to main, build #123 dispatched. Per R-015, awaiting Patrick's on-device validation — not self-closed.
+**Files:** `mobile/app/recipe/[id].tsx` (the only file that needs touching), `mobile/src/types.ts` (read-only — check Equipment field existence).
 
 ---
 
-### CLOSEOUT — Build #123 · Engineer · 2026-05-22
-
-**Scope:** Patrick's on-device feedback after validating #122 — two header refinements.
-
-| Item | Status | Where |
-|---|---|---|
-| New `bronze` token (#C2A15A) | ✅ | `tokens.ts` — soft antique bronze-gold, distinct from stepper gold |
-| Eyebrow + "Pantry" italic green → bronze | ✅ | `pantry.tsx` — both were `tokens.sage`; also fixes a green-palette leak |
-| Category headers stand out as section labels | ✅ | `pantry.tsx` — UPPERCASE, 12sp, letterSpacing 1.4, bright cream, always-on `lineDark` rule, more space above/between |
-
-**Design reasoning (Patrick chose both options):**
-- **Bronze, not gold or cream:** Patrick picked a soft bronze-gold so the header has warmth and character without using the stepper's bright gold (which must stay "the thing you tap"). New token `bronze: #C2A15A` is darker, browner, desaturated — reads as antique gold, never confused with the stepper. Flag for the Designer: this is a new token; if you'd rather fold it into an existing one or tune the hex, it's a one-line change.
-- **Section-label headers, not a filled band:** Patrick picked the editorial treatment over a background strip. Headers now match the "IN YOUR PANTRY" kicker language (uppercase, letter-spaced), with a real divider rule and breathing room, so they read as a tier above the `cream` item cards rather than another row.
-
-**Preserved:** the whole #122 list/stepper/icon system, the carousel (green "Ready to cook" pill untouched — still the one meaningful green), DECISION-013/014/015, schema.
-
-**Smart pre-flight:** tsc clean on both files (only the pre-existing `@react-navigation/native` sandbox note); R-014 26/26 balanced; brace/paren/bracket diff 0 on both; tail bytes verified.
-
-**What the COO should track next:**
-1. **Held for Patrick's go** — code is on main; no EAS build dispatched (build-trigger stays with Patrick).
-2. On-device after build: confirm the eyebrow + "Pantry" italic are the warm bronze (not green), and the category headers clearly separate from the item rows.
-3. **New `bronze` token** is the Designer's to bless/tune — flagged above.
-
----
-
-### CLOSEOUT — Build #122 · Engineer · 2026-05-22
-
-**Scope:** Designer's APPROVED `pantry-haves-v1.html` — replace the pantry "what you have" pills card with an organised, collapsible, category-grouped list + +/− stepper, recolour the carousel, and (Pass 2) give each row a per-ingredient icon. Two commits, one build.
-
-**Per-item coverage of the brief:**
-
-| Item | Status | Where |
-|---|---|---|
-| Category-grouped collapsible list (replaces pills card) | ✅ | `pantry.tsx` browse scroll — `groupedHaves` by `SHOPPING_SECTION_ORDER`, `SHOPPING_SECTION_LABEL` headers, empty cats hidden, collapse in state |
-| Row: icon · name · "for {recipe}" sub-line · trailing control | ✅ | sub-line reuses carousel `ranked` + `normalizeForMatch`, 1 line + "+N" |
-| +/− stepper → writes `quantity` (no schema change) | ✅ | `setItemQuantity` / `decrementItem` via `upsertPantryItem` |
-| "Stocked" pill for bulk staples | ✅ | `UNCOUNTED_NAMES` set + Spices treated as bulk; default countable |
-| Stepper `−` at 1 removes + undo toast | ✅ | `removeItemWithUndo` / `undoItemRemove`, reuses shopUndo pattern |
-| Search-add sets `quantity=1` | ✅ | add-flow item literal |
-| Remove "{N} recipes you can cook now" banner | ✅ | deleted from header |
-| Carousel "still need" chips rust → neutral | ✅ | `ChipAdd` border `lineDark`, text `inkSoft` |
-| "Ready to cook" pill stays green | ✅ | untouched |
-| Empty state copy | ✅ | "Nothing stocked yet — search above to add what you have." |
-| Accessibility (stepper labels + 44dp, header role/label) | ✅ | `hitSlop` 44dp, `accessibilityRole`/labels set |
-| Per-ingredient icons (Pass 2) | ✅ | `PantryIcons.tsx` ~19 ingredient icons + `ingredientIconName` resolver, category fallback |
-
-**Design decisions I made (flag back if intent differs):**
-1. **List moved into the browse scroll area, not the fixed header.** The pills card lived in the fixed header (no scroll). A category list can be tall, so it belongs in the scroll region above the carousel. Logically still "replaces the pills card."
-2. **Icon family = Lucide/Tabler-style stroke paths, not emoji or AI.** Stroke-based so they tint to `inkSoft` (emoji can't); one coherent family; MIT-licensable. ~19 ingredient icons cover the catalog's common types; the resolver falls back to the category icon for anything unmatched, so no row shows a rough shape. If you want a specific ingredient to have its own icon that currently falls back, it's a one-line resolver addition.
-3. **Countable-vs-bulk** is a curated `UNCOUNTED` set (flour/oil/salt/sugar/rice/stock/vinegars/honey/etc.) + Spices treated as bulk; everything else defaults to the stepper. Confirm the set on-device; easy to move items either way.
-4. **Sub-line is driven by the carousel's surfaced recipes** (your "use the current carousel settings" call), so rows whose ingredient isn't used by a surfaced recipe show name + control only. Quiet and honest.
-
-**Preserved:** search + autocomplete, carousel matching logic (`scoreRecipeAgainstPantry`), recipe data, tab routing, schema. DECISION-013/014/015 untouched. All #118–#121 shipped behaviour intact.
-
-**Smart pre-flight (every guardrail):** tsc clean on both touched files (only the pre-existing `@react-navigation/native` sandbox-resolution note); R-014 truncation 26/26 balanced; brace/paren/bracket diff 0 on both files; tail bytes verified. PantryIcons.tsx was truncated once by the Write tool mid-resolver — caught by the balance check, recovered via bash heredoc, re-verified clean before push.
-
-**What the COO should track next:**
-1. **Patrick on-device validation gate** — install build #122 (after dispatch), check: Pantry tab shows the organised collapsible list; tapping a category header collapses it; +/− stepper adjusts quantity and `−` at 1 removes with an undo toast; bulk staples (flour/oil/salt) show "Stocked" not a stepper; the "for {recipe}" sub-line appears on items used by surfaced recipes; each row has a recognisable per-ingredient icon (tomato/garlic/fish/etc.) tinted neutral cream; the carousel "still need" chips are neutral and the "Ready to cook" pill is green. Per R-015, not self-closing.
-2. **No EAS build dispatched** — held for Patrick's go (two commits are on main; the build covers both).
-3. **handoffs.md build-log regression fixed** — rows #118–#121 were dropped when the 2026-05-22 Designer-chat commits rebuilt handoffs.md from a pre-#118 base. Restored in this push. Worth a process note for specialist chats: always base handoffs.md edits on the latest main, or the build-log loses rows. (A markdown-tail guardrail like the R-014 `.ts` one was previously flagged for the visual-assets ledger — same idea would catch this.)
-4. **Icon resolver coverage** — ~19 icons cover common ingredients; uncommon ones fall back to the category icon. If on-device you spot a frequent ingredient that should have its own icon, it's a quick resolver + path addition.
-
----
-
-### HANDOFF → Senior Engineer · 2026-05-22 · IN PROGRESS — BUILT in #122 + #123, awaiting Patrick's on-device validation (pantry "what you have" → organised list + stepper)
+### HANDOFF → Senior Engineer · 2026-05-22 · OPEN — ✅ APPROVED BY PATRICK · BUILD (pantry "what you have" → organised list + stepper)
 **From:** Product Designer
 **Subject:** Patrick approved `docs/prototypes/pantry-haves-v1.html` ("lets do this send to engineer"). Build it. This is the authoritative spec; the layered exploration notes below (PENDING/MODEL REVISED/REFINED/ASSEMBLED) are now history — build to *this* entry.
 
@@ -1605,4 +1530,115 @@ For v0.5.0 version bump:
 **What's done:** Portion sizing spec is locked in `docs/coo/culinary-research/launch-recipe-units.md` (section 13). `LAMB_SHAWARMA` stays in the seed file but must be flagged `not_yet_shipping` — it is a v1.2 candidate.
 **What's needed:**
 1. Create a new `CHICKEN_SHAWARMA` recipe const in `seed-recipes.ts`. Use the existing `LAMB_SHAWARMA` recipe object as the structural template — replace lamb with boneless chicken thighs, update marinade ratios, adjust cook time to 25–30 min at 220°C, update attribution.
-2. S
+2. Set `LAMB_SHAWARMA` status to `not_yet_shipping` (or remove from the launch set — whichever the schema supports).
+3. Culinary Verifier will need to author a full DECISION-009 research file for `CHICKEN_SHAWARMA` before it can pass the pre-flight checklist — create a skeleton `.md` file at `docs/coo/culinary-research/chicken-shawarma.md` as a placeholder so the Verifier knows it's needed.
+**Files touched:** `mobile/src/data/seed-recipes.ts`, `docs/coo/culinary-research/launch-recipe-units.md`
+**Blocks:** DECISION-009 migration for the shawarma slot; photography scheduling
+
+---
+
+### HANDOFF → Senior Engineer · 2026-05-08 · OPEN (DECISION-012 — bump version to v0.5.0 on next push)
+**From:** Patrick (via COO)
+**Subject:** Set `version` in `mobile/app.json` to `"0.5.0"` on the next commit. Adopt new versioning policy.
+**Why:** Per DECISION-012 (decision-log.md, 8 May), `v1.0.0` is reserved for Play Store production launch day. Pre-launch we use v0.x. Only the COO bumps minor versions — engineer continues to bump patches and build numbers freely. Current state has shipped enough to justify a retroactive bump from `0.4.1` to `0.5.0` to mark the Pantry v3/v4 + dark/sage palettes + Kitchen improvements + recipe template skeleton package.
+**What's needed:**
+1. In `mobile/app.json`, change `expo.version` from `"0.4.1"` to `"0.5.0"`. No other code changes.
+2. `expo.android.versionCode` (the build number) keeps auto-incrementing as normal — that's separate.
+3. Going forward: do NOT auto-bump the minor version on your own. Bug-fix patches go `0.5.0 → 0.5.1 → 0.5.2`. Minor bumps (`0.5.x → 0.6.0`) only happen on explicit COO instruction. The milestone map is in DECISION-012.
+4. Commit message: `chore(version): bump to v0.5.0 per DECISION-012`.
+**Files touched:** `mobile/app.json` only.
+**Cost:** ~5 minutes.
+**Blocks:** Nothing. Land alongside any other build.
+
+---
+
+### HANDOFF → Patrick · 2026-05-08 · ON-DEVICE VALIDATION (three jobs landed, awaiting your install)
+**From:** Senior Engineer
+**Subject:** ATTR-FAIL + 11-recipe DECISION-009 + 27-recipe Batch 3+4 + audit placeholder all on origin/main; build not triggered per CLAUDE.md.
+**Commits:**
+- `ee111a0` — ATTR-FAIL: 16 broken attribution URLs converted to book citations
+- `5ac153b` — DECISION-009 Batch 2 (11 launch-priority recipes)
+- `e649f0f` — DECISION-009 Batch 3+4 (27 cook-extras)
+- `c5f6a2d` — UI placeholder for the one remaining empty recipe (sourdough-maintenance)
+
+**State after all four commits:**
+- 44 of 45 seed recipes carry full DECISION-008 sections (Equipment, Prep, Before-you-start, Finishing, Leftovers, total/active timings)
+- 1 still empty: `sourdough-maintenance` — intentional, it's a starter-feeder guide, not a meal recipe; renders the new "Equipment and prep notes are coming" placeholder
+- Zero broken attribution URLs in `seed-recipes.ts`
+- Zero `whole_food_verified` references anywhere outside historical session reports
+
+**On-device checks Patrick should walk through after triggering a build:**
+1. Open chicken-adobo (now book-cited "Anthony Bourdain, No Reservations Philippines" with no URL) — Equipment, Prep, Finishing, Leftovers should render
+2. Open butter-chicken — total time should read 270 min (4h 30m, including the 4-hour marinade) instead of the previous understated 90
+3. Open roast-chicken — total time should read 840 min (14h, dry-brine overnight) instead of 90
+4. Open lamb-shawarma — Prep checklist should be tappable, count should tick
+5. Open sourdough-maintenance — should show the sage-tinted "Equipment and prep notes are coming" placeholder, NOT empty space
+6. Open carbonara — `Watch the original` button should still work (the URL was already clean)
+
+**Per CLAUDE.md:** GitHub issue NOT closed. Patrick validates on-device and closes himself.
+
+**Build trigger:** Patrick decides when. The fixes are stacked on top of `4725618` (REGN-006 + REGN-007 fix that was last built as #92/#93). A new build dispatched on `c5f6a2d` will carry everything since the last validated APK.
+
+---
+
+### HANDOFF → Senior Engineer · 2026-05-08 · DONE ✅ (ATTR-FAIL — 16 broken attribution URLs fixed)
+**Closed by Senior Engineer 2026-05-08 in commit `ee111a0`.** All 16 recipes converted to book citations per Patrick's default. Andy Cooks recipes (PRAWN_TACOS_PINEAPPLE, WEEKDAY_BOLOGNESE) used 'inspired by, no URL' framing because Andy Cooks doesn't have a published book. No video_url remains broken in seed-recipes.ts. Patrick validates on-device.
+
+### Original handoff (preserved for audit) → Senior Engineer · 2026-05-08 · OPEN (ATTR-FAIL — fix 16 broken attribution URLs in seed-recipes.ts)
+**From:** Culinary & Cultural Verifier
+**Subject:** 16 recipes have `video_url` values that violate Golden Rule 1 — fix before any recipe ships
+**Why:** The full attribution audit (`docs/coo/culinary-audit.md`, 2026-05-08) found 16 of 45 seed recipes link to a channel homepage, site root, about page, or chef listing page — none of which point to a specific recipe. Under Golden Rule 1, every chef-attributed link must be live and point to the specific recipe, not a channel or site. None of these recipes can ship until the link is correct or the attribution is reframed as a book citation / "inspired by" with no URL.
+**What's needed:**
+For each recipe below, either:
+(a) Find the specific YouTube `watch?v=` video or specific recipe page URL and update `video_url` in `seed-recipes.ts`, OR
+(b) Change attribution to a book citation format — update `source.notes` to include the book title, and remove or null `video_url`. The `chef` field stays as-is.
+
+| Recipe const | Chef | Current broken URL | Fix type |
+|---|---|---|---|
+| `CHICKEN_ADOBO` | Anthony Bourdain / No Reservations | `@AnthonyBourdainPartsUnknown` (channel + wrong show) | Find No Reservations Philippines clip or use book citation |
+| `BEEF_STEW` | Jacques Pépin | `/c/HomeCookingwithJacquesPepin` (channel) | Find specific beef stew episode on that channel |
+| `ROAST_CHICKEN` | Thomas Keller / Bouchon | `@ChefThomasKeller` (channel) | Find specific roast chicken video or use Bouchon book citation |
+| `PRAWN_TACOS_PINEAPPLE` | Andy Cooks | `@andy_cooks` (channel) | Find specific prawn taco/pineapple video |
+| `FRENCH_ONION_SOUP` | Anthony Bourdain / Les Halles | `@AnthonyBourdainPartsUnknown` (channel + wrong show) | Find Les Halles video or use *Les Halles Cookbook* citation |
+| `SCRAMBLED_EGGS` | Gordon Ramsay | `@GordonRamsay` (channel) | The F Word scrambled eggs clip is widely available — find `watch?v=` |
+| `WEEKDAY_BOLOGNESE` | Andy Cooks | `@andy_cooks` (channel) | Find specific bolognese video |
+| `MUSAKHAN` | Reem Kassis / The Palestinian Table | `reemkassis.com/` (site root) | Find specific musakhan page or use *The Palestinian Table* book citation |
+| `KAFTA` | Anissa Helou / Feast | `anissas.com/` (site root) | Find specific kafta page or use *Feast* book citation |
+| `HUMMUS` | Reem Kassis / The Palestinian Table | `reemkassis.com/` (site root) | Find specific hummus page or use *The Palestinian Table* book citation |
+| `FATTOUSH` | Anissa Helou / Lebanese Cuisine | `anissas.com/` (site root) | Find specific fattoush page or use *Lebanese Cuisine* book citation |
+| `SOURDOUGH_MAINTENANCE` | Chad Robertson / Tartine Bakery | `tartinebakery.com/about` (about page) | Find specific video or use *Tartine Bread* book citation |
+| `SOURDOUGH_LOAF` | Chad Robertson / Tartine Bakery | `tartinebakery.com/about` (about page) | Find specific video or use *Tartine Bread* book citation |
+| `RISOTTO` | Marcella Hazan | `giulianohazan.com/` (site root — also Giuliano's site, not Marcella's) | Find specific mushroom risotto page or use *Essentials of Classic Italian Cooking* book citation |
+| `RAMEN` | Ivan Orkin / Ivan Ramen | `ivanramen.com/` (site root) | Find specific recipe page or use *Ivan Ramen* book citation |
+| `DAL` | Madhur Jaffrey | `thehappyfoodie.co.uk/chefs/madhur-jaffrey/` (chef listing page) | Find specific tarka dal page on Happy Foodie or use *Madhur Jaffrey's Curry Easy* book citation |
+
+**Also flag for review:** `BEEF_LASAGNE` — the URL `https://www.nytimes.com/recipes/12869/marcella-hazans-bolognese-meat-sauce.html` is a specific page (PASS) but it links to a Bolognese sauce recipe, not a lasagne. The attribution notes should clarify: "Sauce adapted from Marcella Hazan's bolognese; assembled as lasagne — Hone Kitchen." Update `source.notes` accordingly.
+
+**Files touched:** `mobile/src/data/seed-recipes.ts` — `source.video_url` and `source.notes` fields only. No step or ingredient changes.
+**Full audit detail:** `docs/coo/culinary-audit.md` — per-recipe attribution notes with context on each failure.
+**Blocks:** All 16 affected recipes from shipping. This is a brand-safety issue, not just a QA item.
+
+---
+
+### HANDOFF → COO · 2026-05-07 · DONE ✅ (Cook briefed in writing — engineer unblocked for 11-recipe migration)
+**Closed by COO 2026-05-07.** Cook's brief at `docs/coo/specialists/culinary-verifier.md` now carries an explicit "RETIRED FIELDS — DO NOT USE" section at the top of "How you work," naming `whole_food_verified` and instructing zero use in any new research file. A session-end `grep -i "whole_food..."` check has been added to the cook's "At session end" ritual so any drift is caught before close. Patrick is sending the cook a paste-back to acknowledge directly. Engineer cleared to proceed with the 11-recipe migration.
+
+### Original handoff (preserved for audit) → COO · 2026-05-07 · OPEN URGENT (brief the Cook — whole-food field is dead)
+**From:** Patrick (via Senior Engineer)
+**Subject:** The cook's research database had whole-food references throughout. Engineer cleaned them. Cook must be told to never use the term again.
+**Why:** The `whole_food_verified` field was retired across the entire repo on 2026-05-07 (commits `21198e5` + `474f500`). When the engineer ran the cleanup, fifteen of the sixteen recipe research files in `docs/coo/culinary-research/` still had a "Whole-food claim:" or "Whole-food verified:" line in their audit sections — the cook had been adding it as a standard audit checkbox. The lines have been stripped, but if the cook keeps following the old pattern, the term will leak back in next time research lands. Patrick's words: he wants this fully addressed before the 11-recipe migration proceeds, so we don't ship an APK with the term re-introduced through a new research file.
+
+**What's already done (Engineer):**
+- Stripped 15 `Whole-food claim:` / `Whole-food verified:` lines from the cook's research files in `docs/coo/culinary-research/`. Smash-burger left intentionally as the retirement narrative.
+- Verified `docs/coo/culinary-research/TEMPLATE.md` (the cook's template) is clean — no mention there.
+- Verified `docs/coo/specialists/culinary-verifier.md` (the cook's brief) is clean — Patrick had already cleaned this earlier.
+- Schema, seed data, SQLite column, prototypes, BUGS.md, command-centre.md, roadmap.md, handoffs.md — all stripped. Only the URGENT handoff and the smash-burger retirement narrative still mention it, both deliberately.
+
+**What's needed (COO actions):**
+1. **Brief the Cook explicitly:** the whole-food concept is retired. Don't add `whole_food_verified` to any new recipe data. Don't include a "Whole-food claim" or "Whole-food verified" line in the audit section of new research files.
+2. **Update the cook's standing brief if needed.** The current `docs/coo/specialists/culinary-verifier.md` is clean — confirm no follow-up edits required, or add an explicit "do not use" note if you think the cook needs the reminder in writing.
+3. **Confirm to Senior Engineer when done** so the 11-recipe migration can proceed without risk of re-introducing the term through new research files.
+4. **Future-proof:** consider adding a one-line check to the cook's session-end checklist — `grep "whole_food" docs/coo/culinary-research/<new-file>.md` should return zero hits.
+
+**Files referenced:**
+- `docs/coo/culinary-research/*.md` (clea
