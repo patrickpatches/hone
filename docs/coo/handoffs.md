@@ -65,6 +65,31 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
+### HANDOFF → Product Designer · 2026-05-24 · OPEN (pantry-haves built across #122 + #123 — review + bless the new `bronze` token)
+**From:** Senior Engineer
+**Subject:** Your APPROVED `pantry-haves-v1.html` is built and shipped (builds #122 + #123). Two things need your eyes: a new design token I had to introduce, and one place where Patrick's direction overrode the calm-palette rule.
+**Why:** You own the design system + tokens. I made calls during the build that you should bless, tune, or push back on.
+
+**What shipped (your spec, builds #122 + #123):**
+- The "what you have" pills card → category-grouped, collapsible list (moved into the browse scroll — a list needs to scroll). Headers, `SHOPPING_SECTION_LABEL` + `SHOPPING_SECTION_ORDER`, empty cats hidden, collapse in state.
+- Each row: icon · name · "for {recipe}" sub-line (driven by the existing carousel matcher, no new logic) · +/− stepper (writes the existing `quantity` field, no schema change) or a neutral "Stocked" pill for bulk staples.
+- Match banner removed; carousel "still need" chips recoloured rust→neutral; "Ready to cook" pill stays green.
+- Per-ingredient icon system (`mobile/src/components/PantryIcons.tsx`): 7 category line-icons + ~19 ingredient line-icons + a name→icon resolver with category fallback. Lucide/Tabler-style stroke paths, tinted `inkSoft`.
+
+**Decision 1 — NEW TOKEN `bronze` (#C2A15A). Your call to bless or tune.** The header eyebrow + "Pantry" title italic were `tokens.sage` (green). Per your own calm-palette brief, green should mean "ready to cook" only — so the green header text was a leftover. Patrick picked a soft bronze-gold to replace it. I added `bronze: '#C2A15A'` to `tokens.ts` — deliberately darker/desaturated vs the bright stepper gold (`#F2CC2A`) so the two never compete. Applied to: pantry eyebrow + title italic, AND replicated on the Shop tab header for consistency. **If you'd rather fold this into an existing token or tune the hex, it's a one-line change — your domain, flag it.**
+
+**Decision 2 — category headers are now `bronze` (gold-family), which overrides the calm-palette "gold only on the stepper" rule.** On-device, Patrick found the category headers blended into the ingredient rows. He directed "use the app's theme of gold" for the headers. I used `bronze` (not the bright stepper gold) so the two golds don't clash, but you should know: gold-family now appears in TWO places on the pantry screen (category headers + stepper), where your brief reserved gold for the stepper alone. Headers are also UPPERCASE + letter-spaced + divider rule + more spacing, so they're differentiated by treatment as well as colour. **If this dilutes the "gold = the thing you tap" signal too much for you, propose an alternative and I'll swap it.**
+
+**What's needed from you:**
+1. Bless or tune the `bronze` hex / decide if it should be a named system token.
+2. Confirm you're OK with gold-family on the category headers, or propose an alternative differentiator.
+3. Optional: review the per-ingredient icon glyphs (I rendered + audited them; meat + tomato were redrawn). If any read poorly to your eye, they're quick path swaps; unmatched ingredients fall back to the category icon.
+
+**Files:** `mobile/app/(tabs)/pantry.tsx`, `mobile/app/(tabs)/shop.tsx`, `mobile/src/theme/tokens.ts`, `mobile/src/components/PantryIcons.tsx`.
+**Status:** shipped to main, build #123 dispatched. Per R-015, awaiting Patrick's on-device validation — not self-closed.
+
+---
+
 ### CLOSEOUT — Build #123 · Engineer · 2026-05-22
 
 **Scope:** Patrick's on-device feedback after validating #122 — two header refinements.
@@ -129,7 +154,7 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ---
 
-### HANDOFF → Senior Engineer · 2026-05-22 · OPEN — ✅ APPROVED BY PATRICK · BUILD (pantry "what you have" → organised list + stepper)
+### HANDOFF → Senior Engineer · 2026-05-22 · IN PROGRESS — BUILT in #122 + #123, awaiting Patrick's on-device validation (pantry "what you have" → organised list + stepper)
 **From:** Product Designer
 **Subject:** Patrick approved `docs/prototypes/pantry-haves-v1.html` ("lets do this send to engineer"). Build it. This is the authoritative spec; the layered exploration notes below (PENDING/MODEL REVISED/REFINED/ASSEMBLED) are now history — build to *this* entry.
 
