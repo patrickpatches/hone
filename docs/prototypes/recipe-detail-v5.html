@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hone · Recipe Detail v5 — The Pass</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+/* ─────────────────────────────────────────────────────────────
+   DESIGN TOKENS — locked from tokens.ts (DECISION-012)
+   No new tokens. rgba() variations of locked colours only.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --bg:        #141414;
+  --bg-deep:   #0F0F0F;
+  --surface:   #1E1E1E;
+  --surface2:  #252525;
+  --ink:       #F5EFE8;
+  --ink-soft:  #C4B8A8;
+  --muted:     #8A7E72;
+  --rust:      #B84030;
+  --rust-soft: #D35040;
+  --rust-dim:  rgba(184,64,48,0.10);
+  --rust-mid:  rgba(184,64,48,0.22);
+  --sage:      #3A7050;
+  --gold:      #F2CC2A;
+  --gold-dim:  rgba(242,204,42,0.10);
+  --gold-mid:  rgba(242,204,42,0.30);
+  --gold-soft: rgba(242,204,42,0.55);
+  --line:      rgba(255,255,255,0.07);
+  --line-s:    rgba(255,255,255,0.04);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: #0B0B0B;
+  font-family: 'Inter', -apple-system, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 24px 80px;
+}
+
+/* ── PAGE HEADER ─────────────────────────────────────────────── */
+.page-header { text-align: center; margin-bottom: 28px; }
+.page-eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 8px;
+}
+.page-title {
+  font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700;
+  color: var(--ink); letter-spacing: -0.3px; margin-bottom: 6px;
+}
+.page-sub { font-size: 12px; color: var(--muted); line-height: 1.6; max-width: 480px; }
+
+/* ── PHONE FRAME ─────────────────────────────────────────────── */
+.phone-frame {
+  width: 393px; height: 852px; background: var(--bg);
+  border-radius: 52px; overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.10),
+    0 60px 160px rgba(0,0,0,0.80),
+    inset 0 0 0 1px rgba(255,255,255,0.03);
+  position: relative; flex-shrink: 0;
+}
+
+/* Status bar */
+.status-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 52px; z-index: 45;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px; pointer-events: none;
+}
+.status-time { font-size: 15px; font-weight: 600; color: var(--ink); }
+.status-icons { display: flex; align-items: center; gap: 5px; color: var(--ink); }
+
+/* Floating nav (over hero) */
+.nav-overlay {
+  position: absolute; top: 52px; left: 0; right: 0; z-index: 30;
+  padding: 10px 20px; display: flex; justify-content: space-between;
+  align-items: center; pointer-events: none;
+}
+.nav-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(0,0,0,0.42); border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(10px) saturate(1.4);
+  -webkit-backdrop-filter: blur(10px) saturate(1.4);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; pointer-events: all;
+}
+.nav-right { display: flex; gap: 8px; }
+
+/* ── COLLAPSING TOP APP BAR (Material 3 large→small pattern) ──────
+   Fades in once the hero has scrolled away. Keeps you oriented
+   deep in a long method without scrolling back to find the title. */
+.topbar {
+  position: absolute; top: 0; left: 0; right: 0; height: 92px; z-index: 38;
+  display: flex; align-items: flex-end; gap: 8px; padding: 0 12px 9px;
+  background: rgba(18,18,18,0.86);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  border-bottom: 1px solid var(--line);
+  opacity: 0; transform: translateY(-6px); pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.topbar.visible { opacity: 1; transform: none; pointer-events: auto; }
+.topbar-btn {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.topbar-title {
+  flex: 1; text-align: center; font-family: 'Playfair Display', serif;
+  font-size: 16px; font-weight: 700; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Scrollable page */
+.page-scroll {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
+}
+.page-scroll::-webkit-scrollbar { display: none; }
+
+/* ── HERO — photo present ────────────────────────────────────── */
+.hero { position: relative; height: 340px; overflow: hidden; flex-shrink: 0; }
+.hero-photo {
+  width: 100%; height: 100%;
+  background:
+    radial-gradient(ellipse at 32% 26%, rgba(214,128,64,0.55) 0%, transparent 46%),
+    radial-gradient(ellipse at 72% 58%, rgba(150,52,30,0.55) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 88%, rgba(60,28,14,0.9) 0%, transparent 60%),
+    linear-gradient(158deg, #6B3A1E 0%, #3C1C0E 48%, #1A0D06 100%);
+}
+.hero-grain {
+  position: absolute; inset: 0;
+  background:
+    repeating-linear-gradient(115deg, rgba(255,255,255,0.025) 0 2px, transparent 2px 5px),
+    radial-gradient(circle at 60% 40%, rgba(255,210,140,0.12) 0 1px, transparent 2px);
+  mix-blend-mode: screen; opacity: 0.5;
+}
+.hero-gradient {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 250px;
+  background: linear-gradient(to top,
+    var(--bg) 0%, rgba(20,20,20,0.88) 42%, rgba(20,20,20,0.42) 70%, transparent 100%);
+}
+.hero-attr {
+  position: absolute; top: 100px; right: 14px;
+  font-size: 9px; color: rgba(245,239,232,0.55);
+  background: rgba(0,0,0,0.42); padding: 2px 7px; border-radius: 6px;
+  backdrop-filter: blur(4px); letter-spacing: 0.02em;
+}
+.hero-identity { position: absolute; bottom: 0; left: 0; right: 0; padding: 0 20px 18px; }
+.chef-credit { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.chef-name {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--gold);
+}
+.chef-divider { width: 1px; height: 10px; background: var(--gold); opacity: 0.35; }
+.chef-watch {
+  font-size: 10px; font-weight: 500; letter-spacing: 0.06em;
+  color: var(--gold); opacity: 0.6; cursor: pointer; text-decoration: none;
+}
+.recipe-title {
+  font-family: 'Playfair Display', serif; font-size: 33px; font-weight: 700;
+  color: var(--ink); line-height: 1.1; letter-spacing: -0.5px; margin-bottom: 5px;
+}
+.recipe-tagline {
+  font-family: 'Playfair Display', serif; font-style: italic; font-size: 14px;
+  color: var(--ink-soft); line-height: 1.4;
+}
+
+/* ── BODY ────────────────────────────────────────────────────── */
+.body { background: var(--bg); padding: 0 20px; }
+
+/* ── AT A GLANCE — a trio that tells the 2-second story.
+   v5: yield removed (the stepper below sets quantity); replaced by ORIGIN
+   with a flag chip. Three weighted, evenly-spaced facts: time · effort · origin. */
+.glance {
+  display: flex; align-items: center; gap: 0;
+  padding: 16px 0 14px; border-bottom: 1px solid var(--line);
+}
+.glance-item { flex: 1; display: flex; align-items: center; gap: 8px; }
+.glance-item + .glance-item { padding-left: 14px; }
+.glance-ic { display: flex; align-items: center; flex-shrink: 0; }
+.glance-ic svg { display: block; }
+.gp-text { line-height: 1.15; min-width: 0; }
+.gp-value { font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+.gp-label { font-size: 10px; color: var(--muted); letter-spacing: 0.03em; margin-top: 1px; white-space: nowrap; }
+.glance-vrule { width: 1px; align-self: stretch; background: var(--line); margin: 2px 0; }
+/* Flag chip — SVG, not emoji (Android emoji-flag support is unreliable) */
+.flag-chip {
+  width: 22px; height: 22px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.14);
+}
+
+/* ── ALLERGENS / DIETARY ─────────────────────────────────────── */
+.diet-strip {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  padding: 12px 0 13px; border-bottom: 1px solid var(--line);
+}
+.diet-key {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--muted); margin-right: 2px;
+}
+.diet-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 500; color: var(--ink-soft);
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 14px; padding: 3px 9px;
+}
+.diet-chip svg { display: block; opacity: 0.85; }
+.diet-chip.neg { color: var(--muted); }
+
+/* ── PRIMARY CTA (inline) ────────────────────────────────────── */
+.cta-block { padding: 18px 0 6px; border-bottom: 1px solid var(--line); }
+.btn-start {
+  width: 100%; background: var(--rust); border: none; border-radius: 100px;
+  padding: 17px 24px; display: flex; align-items: center; justify-content: center;
+  gap: 9px; cursor: pointer; font-family: 'Inter', sans-serif;
+  font-size: 15px; font-weight: 600; color: var(--ink); transition: opacity 0.15s;
+}
+.btn-start:hover { opacity: 0.90; }
+.secondary-actions {
+  display: flex; justify-content: center; align-items: center; gap: 20px;
+  padding: 12px 0 16px;
+}
+.btn-ghost {
+  display: flex; align-items: center; gap: 6px; background: none; border: none;
+  font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 500;
+  color: var(--ink-soft); cursor: pointer; padding: 4px 0;
+  text-decoration: none; transition: color 0.15s;
+}
+.btn-ghost:hover { color: var(--ink); }
+.ghost-sep { width: 1px; height: 14px; background: var(--line); }
+
+/* ── SCALING + leftover nudge ────────────────────────────────── */
+.scaling-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 8px; }
+.scaling-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 3px;
+}
+.scaling-hint { font-size: 12px; color: var(--muted); }
+.stepper {
+  display: flex; align-items: center; background: var(--gold-dim);
+  border: 1px solid var(--gold-mid); border-radius: 100px; overflow: hidden;
+}
+.stepper-btn {
+  width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+  background: none; border: none; color: var(--gold); font-size: 20px;
+  font-weight: 300; cursor: pointer; line-height: 1;
+}
+.stepper-value { min-width: 30px; text-align: center; font-size: 16px; font-weight: 600; color: var(--ink); }
+.stepper-unit { padding-right: 14px; padding-left: 4px; font-size: 12px; color: var(--muted); }
+.scaling-foot { padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+
+/* ── COLLAPSIBLE SECTIONS ────────────────────────────────────── */
+.section { border-bottom: 1px solid var(--line); }
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 15px 0; cursor: pointer; user-select: none; -webkit-user-select: none;
+}
+.section-header:active { opacity: 0.75; }
+.section-label-group { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.section-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--gold); white-space: nowrap;
+}
+.section-summary {
+  font-size: 11.5px; color: var(--muted); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.section-badge {
+  font-size: 10px; color: var(--muted); background: var(--surface);
+  border: 1px solid var(--line); padding: 2px 7px; border-radius: 10px; white-space: nowrap;
+}
+.section-chevron { display: flex; align-items: center; transition: transform 0.22s ease; flex-shrink: 0; }
+.section-chevron svg { width: 13px; height: 13px; stroke: var(--muted); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.section-chevron.closed { transform: rotate(-90deg); }
+.section-body { overflow: hidden; transition: max-height 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease; }
+.section-body.expanded { max-height: 2600px; opacity: 1; }
+.section-body.collapsed { max-height: 0; opacity: 0; }
+
+/* Before you start */
+.bys-list { padding-bottom: 14px; }
+.bys-item { display: flex; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line-s); }
+.bys-item:last-child { border-bottom: none; }
+.bys-bullet {
+  width: 20px; height: 20px; border-radius: 50%; background: var(--gold-dim);
+  border: 1px solid var(--gold-mid); flex-shrink: 0; margin-top: 2px;
+  display: flex; align-items: center; justify-content: center;
+}
+.bys-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); opacity: 0.75; }
+.bys-text { font-size: 13.5px; line-height: 1.58; color: var(--ink-soft); }
+.bys-text strong { color: var(--ink); font-weight: 600; }
+
+/* Equipment */
+.equip-list { padding-bottom: 14px; }
+.equip-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line-s); }
+.equip-row:last-child { border-bottom: none; }
+.equip-icon {
+  width: 32px; height: 32px; border-radius: 8px; background: var(--surface2);
+  border: 1px solid var(--line); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; color: var(--ink-soft);
+}
+.equip-info { flex: 1; }
+.equip-name { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+.equip-note { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.equip-badge {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.06em; padding: 2px 7px;
+  border-radius: 10px; white-space: nowrap; flex-shrink: 0; margin-top: 2px;
+}
+.equip-badge.essential { background: var(--rust-dim); border: 1px solid var(--rust-mid); color: var(--rust-soft); }
+.equip-badge.optional { background: var(--surface2); border: 1px solid var(--line); color: var(--muted); }
+
+/* Ingredients */
+.ing-list { padding-bottom: 6px; }
+.ing-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 0; border-bottom: 1px solid var(--line-s); gap: 10px;
+}
+.ing-row:last-child { border-bottom: none; }
+.ing-info { flex: 1; min-width: 0; }
+.ing-name { font-size: 14px; color: var(--ink); font-weight: 500; line-height: 1.3; }
+.ing-amount { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.swap-pill {
+  flex-shrink: 0; border: 1px solid var(--gold-mid); border-radius: 20px;
+  padding: 4px 10px; font-size: 11px; font-weight: 500; color: var(--gold);
+  background: var(--gold-dim); cursor: pointer; white-space: nowrap;
+}
+.swap-pill.swapped { border-color: rgba(79,191,133,0.38); color: #4FBF85; background: rgba(79,191,133,0.08); }
+
+/* Method — carousel + full steps */
+.method-content { padding-bottom: 6px; }
+.steps-strip {
+  display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+  padding: 2px 20px 14px; margin: 0 -20px;
+}
+.steps-strip::-webkit-scrollbar { display: none; }
+.step-card {
+  flex-shrink: 0; width: 92px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 12px; overflow: hidden; cursor: pointer;
+  transition: border-color 0.15s, transform 0.12s;
+}
+.step-card:hover { border-color: var(--gold-mid); }
+.step-card:active { transform: scale(0.96); }
+.step-photo {
+  height: 58px; position: relative;
+  background:
+    radial-gradient(ellipse at 40% 35%, rgba(214,128,64,0.4) 0%, transparent 55%),
+    linear-gradient(135deg, #4A2614, #1A0F08);
+}
+.step-photo-grad { position: absolute; bottom: 0; left: 0; right: 0; height: 20px; background: linear-gradient(to top, var(--surface), transparent); }
+.step-info { padding: 7px 8px 8px; }
+.step-num { font-size: 9px; font-weight: 700; letter-spacing: 0.10em; color: var(--gold); opacity: 0.85; margin-bottom: 3px; }
+.step-title-preview {
+  font-size: 10.5px; color: var(--ink-soft); line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.method-divider { height: 1px; background: var(--line); margin: 6px 0 18px; }
+.full-steps { display: flex; flex-direction: column; }
+.step-full {
+  border-bottom: 1px solid var(--line-s); transition: background 0.3s ease;
+  border-radius: 8px; margin: 0 -8px; padding: 18px 8px; scroll-margin-top: 100px;
+}
+.step-full:last-child { border-bottom: none; }
+@keyframes stepFlash {
+  0% { background: rgba(242,204,42,0.14); } 60% { background: rgba(242,204,42,0.08); } 100% { background: transparent; }
+}
+.step-full.highlighted { animation: stepFlash 0.8s ease forwards; }
+.step-full-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 10px; }
+.step-number-badge {
+  font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700;
+  color: var(--gold); opacity: 0.38; line-height: 1; flex-shrink: 0;
+  min-width: 32px; margin-top: -2px;
+}
+.step-full-title-wrap { flex: 1; }
+.step-full-title { font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.3; margin-bottom: 3px; }
+.step-timer-chip {
+  display: inline-flex; align-items: center; gap: 4px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 10px; padding: 2px 8px;
+  font-size: 11px; color: var(--muted); font-weight: 500;
+}
+.step-body { padding-left: 46px; }
+.step-full-text { font-size: 13.5px; line-height: 1.65; color: var(--ink-soft); margin-bottom: 11px; }
+.step-full-text strong { color: var(--ink); font-weight: 600; }
+
+/* WHY note — elevated */
+.step-why {
+  display: flex; gap: 11px; padding: 11px 13px;
+  background: var(--gold-dim); border-left: 3px solid var(--gold);
+  border-radius: 0 10px 10px 0;
+}
+.step-why-mark {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--gold); flex-shrink: 0; margin-top: 2px;
+}
+.step-why-text {
+  font-family: 'Playfair Display', serif; font-style: italic; font-size: 13px;
+  color: var(--ink-soft); line-height: 1.55;
+}
+.step-photo-full {
+  height: 130px; border-radius: 10px; margin-top: 11px; border: 1px solid var(--line);
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(ellipse at 45% 38%, rgba(214,128,64,0.42) 0%, transparent 58%),
+    linear-gradient(135deg, #43230F, #160C06);
+}
+.step-photo-coming {
+  position: absolute; bottom: 8px; right: 10px; font-size: 10px; color: var(--ink-soft);
+  background: rgba(0,0,0,0.5); padding: 2px 7px; border-radius: 6px; letter-spacing: 0.03em;
+}
+
+.btn-cook-mode {
+  width: 100%; background: none; border: 1.5px solid var(--rust-mid); border-radius: 100px;
+  padding: 14px 20px; display: flex; align-items: center; justify-content: center; gap: 9px;
+  cursor: pointer; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+  color: var(--rust-soft); margin: 18px 0 24px; transition: border-color 0.15s, background 0.15s;
+}
+.btn-cook-mode:hover { background: var(--rust-dim); border-color: var(--rust); }
+
+/* Spacer so the sticky bottom bar never covers the last content */
+.scroll-spacer { height: 96px; }
+
+/* ── STICKY BOTTOM ACTION BAR ────────────────────────────────────
+   Fades in once the inline CTA scrolls out of view, so the primary
+   action is always one tap away on a long recipe. */
+.bottombar {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 38;
+  display: flex; align-items: center; gap: 10px; padding: 14px 16px 24px;
+  background: rgba(18,18,18,0.92);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  border-top: 1px solid var(--line);
+  opacity: 0; transform: translateY(14px); pointer-events: none;
+  transition: opacity 0.24s ease, transform 0.24s ease;
+}
+.bottombar.visible { opacity: 1; transform: none; pointer-events: auto; }
+.bb-start {
+  flex: 1; background: var(--rust); border: none; border-radius: 100px;
+  padding: 15px 22px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  cursor: pointer; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; color: var(--ink);
+}
+.bb-icon-btn {
+  width: 50px; height: 50px; border-radius: 50%; flex-shrink: 0;
+  background: var(--surface); border: 1px solid var(--line); color: var(--ink-soft);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+
+/* ── RATIONALE + GENERALISATION ─────────────────────────────── */
+.below { width: 393px; margin-top: 44px; }
+.below-eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 14px;
+}
+.below h2 {
+  font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700;
+  color: var(--ink); margin: 30px 0 12px; letter-spacing: -0.2px;
+}
+.below p { font-size: 13px; color: var(--ink-soft); line-height: 1.66; margin-bottom: 11px; }
+.below p strong { color: var(--ink); font-weight: 600; }
+.rationale-row { padding: 13px 0; border-bottom: 1px solid var(--line); }
+.rationale-row:last-child { border-bottom: none; }
+.rationale-change { font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.rationale-reason { font-size: 12px; color: var(--ink-soft); line-height: 1.6; }
+.rationale-cost {
+  display: inline-block; margin-top: 6px; font-size: 10px; font-weight: 500; color: var(--muted);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+  padding: 2px 7px; letter-spacing: 0.03em;
+}
+.demo {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  padding: 16px; margin-bottom: 12px;
+}
+.demo-cap {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 12px;
+}
+.demo-cap b { color: var(--gold); }
+.mini-glance { display: flex; gap: 14px; align-items: center; }
+.mini-item { display: flex; align-items: center; gap: 7px; }
+.mini-item svg { display: block; }
+.mini-val { font-size: 13px; font-weight: 600; color: var(--ink); }
+.mini-lab { font-size: 9.5px; color: var(--muted); }
+.mini-vrule { width: 1px; height: 26px; background: var(--line); }
+.mini-flag { width: 20px; height: 20px; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 1px rgba(255,255,255,0.14); flex-shrink: 0; }
+
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="page-eyebrow">Hone · Recipe Detail</div>
+  <h1 class="page-title">v5 — The Pass</h1>
+  <p class="page-sub">
+    v4 plus three best-practice patterns: a sticky bottom Start-Cooking bar, a collapsing top app
+    bar, and origin shown as a flag. Scroll the frame — watch the top bar and bottom bar appear.
+    Yield is gone from the top (you set it with the stepper). Rationale + all-recipe proofs below.
+  </p>
+</div>
+
+<!-- ══════════════ PHONE FRAME — Smash Burger ══════════════ -->
+<div class="phone-frame">
+
+  <div class="status-bar">
+    <span class="status-time">00:43</span>
+    <div class="status-icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+        <rect x="0" y="5" width="3" height="7" rx="1" fill="white" opacity="0.35"/>
+        <rect x="4.5" y="3" width="3" height="9" rx="1" fill="white" opacity="0.55"/>
+        <rect x="9" y="1" width="3" height="11" rx="1" fill="white" opacity="0.75"/>
+        <rect x="13.5" y="0" width="2.5" height="12" rx="1" fill="white"/>
+      </svg>
+      <svg width="15" height="12" viewBox="0 0 15 12" fill="white">
+        <path d="M7.5 1.5C10.5 1.5 13.2 3 14.8 5.3L13.5 6.5C12.2 4.6 10 3.5 7.5 3.5C5 3.5 2.8 4.6 1.5 6.5L0.2 5.3C1.8 3 4.5 1.5 7.5 1.5Z" opacity="0.5"/>
+        <path d="M7.5 5.5C9.4 5.5 11.1 6.5 12.1 7.9L10.8 9.1C10 7.9 8.8 7.5 7.5 7.5C6.2 7.5 5 7.9 4.2 9.1L2.9 7.9C3.9 6.5 5.6 5.5 7.5 5.5Z" opacity="0.75"/>
+        <circle cx="7.5" cy="10.5" r="1.5"/>
+      </svg>
+      <svg width="28" height="12" viewBox="0 0 28 12" fill="none">
+        <rect x="0.5" y="0.5" width="23" height="11" rx="3.5" stroke="white" opacity="0.35"/>
+        <rect x="2" y="2" width="17" height="8" rx="2" fill="white"/>
+        <path d="M25 4V8C25.8 7.5 26.5 6.8 26.5 6C26.5 5.2 25.8 4.5 25 4Z" fill="white" opacity="0.4"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Collapsing top app bar (hidden until scrolled) -->
+  <div class="topbar" id="topbar">
+    <div class="topbar-btn">
+      <svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="#F5EFE8" stroke-width="2" stroke-linecap="round"><path d="M9 2L4 7L9 12"/></svg>
+    </div>
+    <div class="topbar-title">Smash Burger</div>
+    <div class="topbar-btn">
+      <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="#E05050" stroke-width="1.5"><path d="M7 12.5L1.5 7C0.4 5.9 0.4 4.1 1.5 3C2.6 1.9 4.4 1.9 5.5 3L7 4.5L8.5 3C9.6 1.9 11.4 1.9 12.5 3C13.6 4.1 13.6 5.9 12.5 7L7 12.5Z"/></svg>
+    </div>
+  </div>
+
+  <div class="nav-overlay">
+    <div class="nav-btn">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M9 2L4 7L9 12"/></svg>
+    </div>
+    <div class="nav-right">
+      <div class="nav-btn">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round">
+          <circle cx="10.5" cy="2.5" r="1.5"/><circle cx="2.5" cy="6.5" r="1.5"/><circle cx="10.5" cy="10.5" r="1.5"/>
+          <line x1="4" y1="7.2" x2="9" y2="3.5"/><line x1="4" y1="7.8" x2="9" y2="9.5"/>
+        </svg>
+      </div>
+      <div class="nav-btn">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="#E05050">
+          <path d="M7 12.5L1.5 7C0.4 5.9 0.4 4.1 1.5 3C2.6 1.9 4.4 1.9 5.5 3L7 4.5L8.5 3C9.6 1.9 11.4 1.9 12.5 3C13.6 4.1 13.6 5.9 12.5 7L7 12.5Z"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-scroll" id="pageScroll">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-photo"></div>
+      <div class="hero-grain"></div>
+      <div class="hero-gradient"></div>
+      <div class="hero-attr">Photo: Andy Cooks</div>
+      <div class="hero-identity">
+        <div class="chef-credit">
+          <span class="chef-name">Inspired by Andy Cooks</span>
+          <span class="chef-divider"></span>
+          <a class="chef-watch" href="#">Watch original ↗</a>
+        </div>
+        <h1 class="recipe-title">Smash Burger</h1>
+        <p class="recipe-tagline">The crispy-edged diner classic</p>
+      </div>
+    </div>
+
+    <div class="body">
+
+      <!-- AT A GLANCE — time · effort · origin (flag). Yield removed. -->
+      <div class="glance">
+        <div class="glance-item">
+          <span class="glance-ic">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <circle cx="9" cy="9" r="7" stroke="#C4A050" stroke-width="1.5"/>
+              <path d="M9 5V9L11.5 10.5" stroke="#C4A050" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span class="gp-text"><span class="gp-value">20 min</span><span class="gp-label">start to plate</span></span>
+        </div>
+        <div class="glance-vrule"></div>
+        <div class="glance-item">
+          <span class="glance-ic">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M9 16C5.4 16 2.5 13.2 2.5 9.5C2.5 6.2 4.5 4.2 5.8 3C5.8 5 7 6.2 7.7 6.8C7.7 4.2 9 2 11 1.3C11 3.3 11.6 5.2 13.5 6.5C14.4 7.5 15.5 8.8 15.5 10.5C15.5 13.8 12.6 16 9 16Z" stroke="#C06040" stroke-width="1.4" fill="rgba(192,96,64,0.16)"/>
+            </svg>
+          </span>
+          <span class="gp-text"><span class="gp-value">Beginner</span><span class="gp-label">fast &amp; forgiving</span></span>
+        </div>
+        <div class="glance-vrule"></div>
+        <div class="glance-item">
+          <span class="flag-chip">
+            <!-- USA flag, SVG (not emoji) -->
+            <svg width="22" height="22" viewBox="0 0 22 22">
+              <defs><clipPath id="us"><circle cx="11" cy="11" r="11"/></clipPath></defs>
+              <g clip-path="url(#us)">
+                <rect width="22" height="22" fill="#B22234"/>
+                <rect y="1.7" width="22" height="1.7" fill="#fff"/>
+                <rect y="5.1" width="22" height="1.7" fill="#fff"/>
+                <rect y="8.5" width="22" height="1.7" fill="#fff"/>
+                <rect y="11.9" width="22" height="1.7" fill="#fff"/>
+                <rect y="15.3" width="22" height="1.7" fill="#fff"/>
+                <rect y="18.7" width="22" height="1.7" fill="#fff"/>
+                <rect width="10" height="10" fill="#3C3B6E"/>
+              </g>
+            </svg>
+          </span>
+          <span class="gp-text"><span class="gp-value">American</span><span class="gp-label">diner classic</span></span>
+        </div>
+      </div>
+
+      <!-- ALLERGENS / DIETARY -->
+      <div class="diet-strip">
+        <span class="diet-key">Contains</span>
+        <span class="diet-chip">Gluten</span>
+        <span class="diet-chip">Dairy</span>
+        <span class="diet-chip">Egg</span>
+        <span class="diet-chip neg">
+          <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="5.5" cy="5.5" r="4.2"/><path d="M2.7 2.7L8.3 8.3"/></svg>
+          Not vegetarian
+        </span>
+      </div>
+
+      <!-- PRIMARY CTA (inline) -->
+      <div class="cta-block" id="inlineCta">
+        <button class="btn-start">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <circle cx="9" cy="9" r="7.5" stroke="rgba(245,239,232,0.6)" stroke-width="1.2"/>
+            <path d="M7 6L13 9L7 12V6Z" fill="#F5EFE8"/>
+          </svg>
+          Start Cooking
+        </button>
+        <div class="secondary-actions">
+          <button class="btn-ghost">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+              <path d="M1 1H3L4.5 8H10L11.5 4H3.5"/>
+              <circle cx="5" cy="10.5" r="1" fill="currentColor" stroke="none"/>
+              <circle cx="9.5" cy="10.5" r="1" fill="currentColor" stroke="none"/>
+            </svg>
+            Add to shopping list
+          </button>
+          <div class="ghost-sep"></div>
+          <a class="btn-ghost" href="#">▶ Watch original</a>
+        </div>
+      </div>
+
+      <!-- SCALING (recipe-generic label) -->
+      <div>
+        <div class="scaling-row">
+          <div>
+            <div class="scaling-label">How many burgers</div>
+            <div class="scaling-hint">Ingredients scale automatically</div>
+          </div>
+          <div class="stepper">
+            <button class="stepper-btn" onclick="adjustCount(-1)">−</button>
+            <span class="stepper-value" id="count">2</span>
+            <span class="stepper-unit" id="unit-label">burgers</span>
+            <button class="stepper-btn" onclick="adjustCount(1)">+</button>
+          </div>
+        </div>
+        <div class="scaling-foot"></div>
+      </div>
+
+      <!-- BEFORE YOU START -->
+      <div class="section">
+        <div class="section-header" onclick="toggle('bys')">
+          <div class="section-label-group"><span class="section-label">Before you start</span></div>
+          <span class="section-chevron" id="chev-bys"><svg viewBox="0 0 13 13"><polyline points="2,4 6.5,8.5 11,4"/></svg></span>
+        </div>
+        <div class="section-body expanded" id="body-bys">
+          <div class="bys-list">
+            <div class="bys-item">
+              <div class="bys-bullet"><div class="bys-dot"></div></div>
+              <p class="bys-text"><strong>A heavy steel or cast-iron pan is not optional.</strong> Non-stick can't reach the heat — it warps and releases fumes. Cast iron, carbon steel, or stainless works; just give it longer to heat.</p>
+            </div>
+            <div class="bys-item">
+              <div class="bys-bullet"><div class="bys-dot"></div></div>
+              <p class="bys-text"><strong>Get your mise en place ready before the pan goes on.</strong> Smashing happens fast — you have about 10 seconds once the beef hits the heat. Portion the balls, spatula close, cheese sliced and waiting.</p>
+            </div>
+            <div class="bys-item">
+              <div class="bys-bullet"><div class="bys-dot"></div></div>
+              <p class="bys-text"><strong>80/20 mince is the move.</strong> Leaner mince makes a dry burger. The fat renders and builds the crispy, lacy edge — that's what makes a smash burger a smash burger.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EQUIPMENT (collapsed by default; essentials named in summary) -->
+      <div class="section">
+        <div class="section-header" onclick="toggle('equip')">
+          <div class="section-label-group">
+            <span class="section-label">Equipment</span>
+            <span class="section-summary">Needs: cast-iron pan, flat spatula · +2 more</span>
+          </div>
+          <span class="section-chevron closed" id="chev-equip"><svg viewBox="0 0 13 13"><polyline points="2,4 6.5,8.5 11,4"/></svg></span>
+        </div>
+        <div class="section-body collapsed" id="body-equip">
+          <div class="equip-list">
+            <div class="equip-row">
+              <div class="equip-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="9" r="4.5"/><path d="M11 7L16 5.5" stroke-linecap="round"/></svg></div>
+              <div class="equip-info"><div class="equip-name">Cast-iron or carbon-steel frypan</div><div class="equip-note">Must hold very high heat. 24–28 cm works well.</div></div>
+              <span class="equip-badge essential">Essential</span>
+            </div>
+            <div class="equip-row">
+              <div class="equip-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3 12L8 7"/><rect x="7" y="2" width="6" height="6" rx="1" transform="rotate(45 10 5)"/></svg></div>
+              <div class="equip-info"><div class="equip-name">Flat metal spatula</div><div class="equip-note">Thin, rigid edge for smashing and scraping the crust.</div></div>
+              <span class="equip-badge essential">Essential</span>
+            </div>
+            <div class="equip-row">
+              <div class="equip-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 9.5C2 9.5 5 6 8.5 6C12 6 15 9.5 15 9.5" stroke-linecap="round"/><line x1="8.5" y1="6" x2="8.5" y2="3" stroke-linecap="round"/></svg></div>
+              <div class="equip-info"><div class="equip-name">Saucepan lid or bacon press</div><div class="equip-note">To press the ball flat the second it hits the pan.</div></div>
+              <span class="equip-badge optional">Optional</span>
+            </div>
+            <div class="equip-row">
+              <div class="equip-icon"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><line x1="8.5" y1="3" x2="8.5" y2="11"/><circle cx="8.5" cy="13" r="1.4"/></svg></div>
+              <div class="equip-info"><div class="equip-name">Instant-read thermometer</div><div class="equip-note">72°C internal if you're unsure — though the crust is the real signal.</div></div>
+              <span class="equip-badge optional">Optional</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INGREDIENTS -->
+      <div class="section">
+        <div class="section-header" onclick="toggle('ing')">
+          <div class="section-label-group"><span class="section-label">Ingredients</span><span class="section-badge">9 items</span></div>
+          <span class="section-chevron" id="chev-ing"><svg viewBox="0 0 13 13"><polyline points="2,4 6.5,8.5 11,4"/></svg></span>
+        </div>
+        <div class="section-body expanded" id="body-ing">
+          <div class="ing-list">
+            <div class="ing-row"><div class="ing-info"><div class="ing-name">Beef mince, 80/20</div><div class="ing-amount">250 g per burger · 500 g total</div></div><button class="swap-pill">Swap</button></div>
+            <div class="ing-row"><div class="ing-info"><div class="ing-name">American cheese</div><div class="ing-amount">2 slices per burger · 4 total</div></div><button class="swap-pill swapped">✓ Cheddar</button></div>
+            <div class="ing-row"><div class="ing-info"><div class="ing-name">Brioche buns, seeded</div><div class="ing-amount">1 per burger · 2 total</div></div><button class="swap-pill">Swap</button></div>
+            <div class="ing-row"><div class="ing-info"><div class="ing-name">Iceberg lettuce</div><div class="ing-amount">2–3 leaves per burger</div></div><button class="swap-pill">Swap</button></div>
+            <div class="ing-row"><div class="ing-info"><div class="ing-name">Dill pickles, sliced</div><div class="ing-amount">4–5 slices per burger</div></div><button class="swap-pill">Swap</button></div>
+            <div class="ing-row"><div class="ing-info"><div class="ing-name">White onion, finely diced</div><div class="ing-amount">¼ onion per burger</div></div><button class="swap-pill">Swap</button></div>
+            <div class="ing-row"><div class="ing-info"><div class="ing-name">Burger sauce</div><div class="ing-amount">2–3 tbsp · see sauce recipe</div></div></div>
+            <div class="ing-row"><div class="ing-info"><div class="ing-name">Fine sea salt</div><div class="ing-amount">Season to taste</div></div></div>
+            <div class="ing-row"><div class="ing-info"><div class="ing-name">Neutral oil</div><div class="ing-amount">1 tsp for the pan</div></div><button class="swap-pill">Swap</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- METHOD -->
+      <div class="section">
+        <div class="section-header" onclick="toggle('method')">
+          <div class="section-label-group"><span class="section-label">Method</span><span class="section-badge">6 steps</span></div>
+          <span class="section-chevron" id="chev-method"><svg viewBox="0 0 13 13"><polyline points="2,4 6.5,8.5 11,4"/></svg></span>
+        </div>
+        <div class="section-body expanded" id="body-method">
+          <div class="method-content">
+
+            <div class="steps-strip">
+              <div class="step-card" onclick="jumpToStep(1)"><div class="step-photo"><div class="step-photo-grad"></div></div><div class="step-info"><div class="step-num">STEP 01</div><div class="step-title-preview">Mise en place</div></div></div>
+              <div class="step-card" onclick="jumpToStep(2)"><div class="step-photo"><div class="step-photo-grad"></div></div><div class="step-info"><div class="step-num">STEP 02</div><div class="step-title-preview">Heat the pan</div></div></div>
+              <div class="step-card" onclick="jumpToStep(3)"><div class="step-photo"><div class="step-photo-grad"></div></div><div class="step-info"><div class="step-num">STEP 03</div><div class="step-title-preview">Smash &amp; sear</div></div></div>
+              <div class="step-card" onclick="jumpToStep(4)"><div class="step-photo"><div class="step-photo-grad"></div></div><div class="step-info"><div class="step-num">STEP 04</div><div class="step-title-preview">Cheese &amp; steam</div></div></div>
+              <div class="step-card" onclick="jumpToStep(5)"><div class="step-photo"><div class="step-photo-grad"></div></div><div class="step-info"><div class="step-num">STEP 05</div><div class="step-title-preview">Toast the bun</div></div></div>
+              <div class="step-card" onclick="jumpToStep(6)"><div class="step-photo"><div class="step-photo-grad"></div></div><div class="step-info"><div class="step-num">STEP 06</div><div class="step-title-preview">Build &amp; serve</div></div></div>
+            </div>
+
+            <div class="method-divider"></div>
+
+            <div class="full-steps">
+
+              <div class="step-full" id="step-1">
+                <div class="step-full-header">
+                  <div class="step-number-badge">01</div>
+                  <div class="step-full-title-wrap">
+                    <div class="step-full-title">Mise en place</div>
+                    <div class="step-timer-chip"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5" cy="5" r="4"/><path d="M5 3V5L6.5 6" stroke-linecap="round"/></svg> 5 min</div>
+                  </div>
+                </div>
+                <div class="step-body">
+                  <p class="step-full-text">Divide your mince into <strong>125 g balls per patty</strong> — don't pack them tight, loose is better. Dice the onion very finely, slice the pickles, and get the cheese out so it's at room temperature. Set everything within arm's reach of the stove before you light the burner.</p>
+                  <div class="step-why"><span class="step-why-mark">Why</span><span class="step-why-text">Once the beef hits the pan you have 10 seconds to smash it before it steams instead of sears. There's no time to go looking for anything.</span></div>
+                </div>
+              </div>
+
+              <div class="step-full" id="step-2">
+                <div class="step-full-header">
+                  <div class="step-number-badge">02</div>
+                  <div class="step-full-title-wrap">
+                    <div class="step-full-title">Heat the pan</div>
+                    <div class="step-timer-chip"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5" cy="5" r="4"/><path d="M5 3V5L6.5 6" stroke-linecap="round"/></svg> 5 min</div>
+                  </div>
+                </div>
+                <div class="step-body">
+                  <p class="step-full-text">Put the pan over <strong>high heat</strong>. Wait until it's just starting to smoke — 4 to 5 minutes on gas, longer on electric. Add a teaspoon of neutral oil and swirl; it should shimmer straight away.</p>
+                  <div class="step-photo-full"><span class="step-photo-coming">Stage photo</span></div>
+                  <div class="step-why" style="margin-top:11px;"><span class="step-why-mark">Why</span><span class="step-why-text">The crust — the Maillard reaction — needs surface temps above 150°C. A lukewarm pan steams the beef grey; a screaming-hot pan sears it brown.</span></div>
+                </div>
+              </div>
+
+              <div class="step-full" id="step-3">
+                <div class="step-full-header">
+                  <div class="step-number-badge">03</div>
+                  <div class="step-full-title-wrap">
+                    <div class="step-full-title">Smash &amp; sear</div>
+                    <div class="step-timer-chip"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5" cy="5" r="4"/><path d="M5 3V5L6.5 6" stroke-linecap="round"/></svg> 2 min</div>
+                  </div>
+                </div>
+                <div class="step-body">
+                  <p class="step-full-text">Drop a ball of mince in the pan. <strong>Press it down hard straight away</strong> with the spatula — lean your weight in — and hold for 10 seconds. Season generously with sea salt. Don't touch it for 90 seconds. Lift when the edges are deeply browned and lacy.</p>
+                  <div class="step-why"><span class="step-why-mark">Why</span><span class="step-why-text">The smash maximises contact with the pan, and more contact means more crust. The lacy edge is the whole point — that's where the flavour lives.</span></div>
+                </div>
+              </div>
+
+              <div class="step-full" id="step-4">
+                <div class="step-full-header">
+                  <div class="step-number-badge">04</div>
+                  <div class="step-full-title-wrap">
+                    <div class="step-full-title">Cheese &amp; steam</div>
+                    <div class="step-timer-chip"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5" cy="5" r="4"/><path d="M5 3V5L6.5 6" stroke-linecap="round"/></svg> 45 sec</div>
+                  </div>
+                </div>
+                <div class="step-body">
+                  <p class="step-full-text">Flip the patty and <strong>lay two slices of cheese</strong> across the top straight away. Add a splash of water to the pan and cover with a lid or foil for 30–45 seconds. Lift the lid — the cheese should be melted and glossy.</p>
+                  <div class="step-why"><span class="step-why-mark">Why</span><span class="step-why-text">American cheese melts flawlessly because it's engineered to. The steam pocket finishes the melt without overcooking the beef. If you swapped to cheddar, give it an extra 15 seconds.</span></div>
+                </div>
+              </div>
+
+              <div class="step-full" id="step-5">
+                <div class="step-full-header">
+                  <div class="step-number-badge">05</div>
+                  <div class="step-full-title-wrap">
+                    <div class="step-full-title">Toast the bun</div>
+                    <div class="step-timer-chip"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="5" cy="5" r="4"/><path d="M5 3V5L6.5 6" stroke-linecap="round"/></svg> 1 min</div>
+                  </div>
+                </div>
+                <div class="step-body">
+                  <p class="step-full-text">In the same pan (don't wipe it — that fond is flavour), drop to medium heat. Press the cut sides of the bun face-down for <strong>45 to 60 seconds</strong> until golden. Watch it — brioche burns fast.</p>
+                  <div class="step-why"><span class="step-why-mark">Why</span><span class="step-why-text">A toasted bun is structural as much as it is flavour — it won't sog out under the sauce and juices the way a raw bun does.</span></div>
+                </div>
+              </div>
+
+              <div class="step-full" id="step-6">
+                <div class="step-full-header">
+                  <div class="step-number-badge">06</div>
+                  <div class="step-full-title-wrap"><div class="step-full-title">Build &amp; serve</div></div>
+                </div>
+                <div class="step-body">
+                  <p class="step-full-text">Bottom bun → sauce → diced onion → lettuce → patty (cheese up) → pickles → sauce on the top bun → close. <strong>Serve straight away</strong> — a smash burger is a 90-second window.</p>
+                  <div class="step-why"><span class="step-why-mark">Why</span><span class="step-why-text">Order matters: onion under the patty catches the residual heat and softens slightly; pickles on top stay crisp. Sauce on both sides is non-negotiable.</span></div>
+                </div>
+              </div>
+
+            </div><!-- /full-steps -->
+
+            <button class="btn-cook-mode">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="6.5" stroke="#D35040" stroke-width="1.3"/>
+                <path d="M6.5 5.5L11.5 8L6.5 10.5V5.5Z" fill="#D35040"/>
+              </svg>
+              Enter cook mode — one step at a time
+            </button>
+
+          </div>
+        </div>
+      </div><!-- /method -->
+
+      <div class="scroll-spacer"></div>
+    </div><!-- /body -->
+  </div><!-- /page-scroll -->
+
+  <!-- Sticky bottom action bar (fades in on scroll) -->
+  <div class="bottombar" id="bottombar">
+    <button class="bb-start">
+      <svg width="17" height="17" viewBox="0 0 18 18" fill="none">
+        <circle cx="9" cy="9" r="7.5" stroke="rgba(245,239,232,0.6)" stroke-width="1.2"/>
+        <path d="M7 6L13 9L7 12V6Z" fill="#F5EFE8"/>
+      </svg>
+      Start Cooking
+    </button>
+    <div class="bb-icon-btn">
+      <svg width="17" height="17" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+        <path d="M1 1H3L4.5 8H10L11.5 4H3.5"/>
+        <circle cx="5" cy="10.5" r="1" fill="currentColor" stroke="none"/>
+        <circle cx="9.5" cy="10.5" r="1" fill="currentColor" stroke="none"/>
+      </svg>
+    </div>
+  </div>
+
+</div><!-- /phone-frame -->
+
+<!-- ══════════════ DESIGN RATIONALE ══════════════ -->
+<div class="below">
+  <div class="below-eyebrow">Design rationale — v5 "The Pass"</div>
+
+  <p>
+    v5 keeps every v4 decision and adds three patterns that the best mobile recipe and product-detail
+    pages all converge on — plus the two changes you asked for at the top.
+  </p>
+
+  <h2>What you asked for</h2>
+
+  <div class="rationale-row">
+    <div class="rationale-change">1 · "Makes 2 burgers" removed from the top</div>
+    <div class="rationale-reason">
+      You set the quantity with the stepper a few lines down, so showing a fixed yield up top was both
+      redundant and slightly contradictory (it said "2" before you'd chosen). Gone. The glance row is now a
+      clean trio — <strong>time · effort · origin</strong> — three facts that don't change when you scale.
+    </div>
+    <span class="rationale-cost">Engineer cost: trivial</span>
+  </div>
+
+  <div class="rationale-row">
+    <div class="rationale-change">2 · Origin shown as a flag</div>
+    <div class="rationale-reason">
+      The third glance slot is now the cuisine origin with a small circular flag. <strong>It's drawn as an
+      SVG, not an emoji</strong> — Android's emoji flags render inconsistently (some system fonts drop
+      regional-indicator flags to two grey letters), and a recipe app can't gamble the look of every card on
+      that. An SVG flag set looks identical on every device.
+    </div>
+    <span class="rationale-cost">Engineer cost: small SVG flag set, one per launch cuisine</span>
+  </div>
+
+  <h2>The three best-practice upgrades</h2>
+
+  <div class="rationale-row">
+    <div class="rationale-change">3 · Sticky bottom "Start Cooking" bar</div>
+    <div class="rationale-reason">
+      A recipe page is long. In v3/v4 the primary action lived only near the top, so once you'd read down to
+      the method you had to scroll back up to act. v5 adds a bottom bar that fades in the moment the inline
+      button leaves the screen — the single most-validated pattern on commerce and recipe detail pages (NYT
+      Cooking, Airbnb, every checkout). The inline button stays for above-the-fold; the bar takes over below.
+      One primary action, always reachable.
+    </div>
+    <span class="rationale-cost">Engineer cost: a sticky View + scroll listener — medium</span>
+  </div>
+
+  <div class="rationale-row">
+    <div class="rationale-change">4 · Collapsing top app bar</div>
+    <div class="rationale-reason">
+      As the hero scrolls away, a compact bar with back + the recipe title fades in. This is Material 3's
+      large-to-small top-app-bar behaviour and it's what makes a long Android page feel native: you always
+      know what recipe you're in and the back affordance is always there, without the hero eating the top of
+      the screen the whole way down.
+    </div>
+    <span class="rationale-cost">Engineer cost: Animated header on scroll offset — medium (RN has this pattern built in)</span>
+  </div>
+
+  <div class="rationale-row">
+    <div class="rationale-change">Carried over from v4</div>
+    <div class="rationale-reason">
+      Elevated why-notes (no longer the quietest text on the step), the allergen/dietary strip, equipment
+      collapsed-but-naming-its-blockers, the leftover nudge under the stepper, the story-telling glance row
+      with active-vs-total time, one rust CTA, one gold section language, carousel → full method.
+    </div>
+    <span class="rationale-cost">All as v4</span>
+  </div>
+
+  <h2>Honest note on flags — this is the limitation worth naming</h2>
+  <p>
+    A flag works cleanly for a <em>country</em> cuisine: American, Italian, Japanese, Thai, Mexican, French,
+    Indian, Malaysian. It does <strong>not</strong> work for a region. <strong>Levantine</strong> spans
+    Lebanon, Syria, Jordan and Palestine — there is no single honest flag for it, and per the project rules
+    there is deliberately no Israeli labelling. "Australian — modern and indigenous-inspired" is also not a
+    flag story. So the rule is: <strong>country cuisine → flag; regional cuisine → a neutral region glyph
+    (the globe mark from v4) + the name.</strong> I'd rather show an honest globe for Levantine than fly a
+    flag that misrepresents four countries as one. The demos below show both paths.
+  </p>
+
+  <!-- DEMO 1: no-photo fallback (carried from v4) -->
+  <div class="demo">
+    <div class="demo-cap">Future recipe, <b>no photo yet</b> — a designed title card, not a missing image</div>
+    <div style="position:relative;height:168px;border-radius:10px;overflow:hidden;background:linear-gradient(150deg,#1C1C1C 0%,#161616 60%,#121212 100%);border:1px solid var(--line);">
+      <div style="position:absolute;top:8px;right:14px;font-family:'Playfair Display',serif;font-size:64px;font-weight:900;color:rgba(242,204,42,0.06);line-height:1;">そ</div>
+      <div style="position:absolute;top:22px;left:18px;width:34px;height:2px;background:var(--gold);opacity:0.8;"></div>
+      <div style="position:absolute;bottom:0;left:0;right:0;padding:0 18px 16px;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Inspired by Tetsuya Wakuda</div>
+        <div style="font-family:'Playfair Display',serif;font-size:25px;font-weight:700;color:var(--ink);line-height:1.08;">Miso-Glazed Eggplant</div>
+        <div style="font-family:'Playfair Display',serif;font-style:italic;font-size:12.5px;color:var(--ink-soft);margin-top:4px;">Nasu dengaku — caramelised, savoury, ten minutes under the grill</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEMO 2: braise — active vs total, JAPAN flag, count unit -->
+  <div class="demo">
+    <div class="demo-cap">Slow braise — <b>active ≠ total time</b>, country cuisine → <b>flag</b></div>
+    <div class="mini-glance">
+      <div class="mini-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.2" stroke="#C4A050" stroke-width="1.4"/><path d="M8 4.5V8L10 9.5" stroke="#C4A050" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span><span class="mini-val">25 min active</span><br><span class="mini-lab">2 hr total</span></span>
+      </div>
+      <div class="mini-vrule"></div>
+      <div class="mini-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 14C5 14 2.5 11.6 2.5 8.5C2.5 5.8 4 4 5.2 3C5.2 4.8 6.2 5.8 6.8 6.3C6.8 4 8 2 9.7 1.4C9.7 3.1 10.2 4.6 11.8 5.7C12.6 6.5 13.5 7.6 13.5 9C13.5 11.8 11 14 8 14Z" stroke="#C06040" stroke-width="1.3" fill="rgba(192,96,64,0.16)"/></svg>
+        <span><span class="mini-val">Intermediate</span><br><span class="mini-lab">mostly hands-off</span></span>
+      </div>
+      <div class="mini-vrule"></div>
+      <div class="mini-item">
+        <span class="mini-flag">
+          <svg width="20" height="20" viewBox="0 0 20 20"><rect width="20" height="20" fill="#fff"/><circle cx="10" cy="10" r="5" fill="#BC002D"/></svg>
+        </span>
+        <span><span class="mini-val">Japanese</span><br><span class="mini-lab">izakaya style</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEMO 3: Levantine — regional cuisine → globe, NOT a flag -->
+  <div class="demo">
+    <div class="demo-cap">Levantine — <b>regional cuisine → honest globe glyph, no flag</b></div>
+    <div class="mini-glance">
+      <div class="mini-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.2" stroke="#C4A050" stroke-width="1.4"/><path d="M8 4.5V8L10 9.5" stroke="#C4A050" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span><span class="mini-val">15 min</span><br><span class="mini-lab">start to plate</span></span>
+      </div>
+      <div class="mini-vrule"></div>
+      <div class="mini-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 14C5 14 2.5 11.6 2.5 8.5C2.5 5.8 4 4 5.2 3C5.2 4.8 6.2 5.8 6.8 6.3C6.8 4 8 2 9.7 1.4C9.7 3.1 10.2 4.6 11.8 5.7C12.6 6.5 13.5 7.6 13.5 9C13.5 11.8 11 14 8 14Z" stroke="#C06040" stroke-width="1.3" fill="rgba(192,96,64,0.16)"/></svg>
+        <span><span class="mini-val">Beginner</span><br><span class="mini-lab">no cooking</span></span>
+      </div>
+      <div class="mini-vrule"></div>
+      <div class="mini-item">
+        <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
+          <circle cx="9" cy="9" r="7" stroke="#8A7E72" stroke-width="1.3"/>
+          <path d="M9 2C9 2 6.5 5 6.5 9C6.5 13 9 16 9 16" stroke="#8A7E72" stroke-width="1.3"/>
+          <path d="M9 2C9 2 11.5 5 11.5 9C11.5 13 9 16 9 16" stroke="#8A7E72" stroke-width="1.3"/>
+          <line x1="2" y1="9" x2="16" y2="9" stroke="#8A7E72" stroke-width="1.3"/>
+        </svg>
+        <span><span class="mini-val">Levantine</span><br><span class="mini-lab">Lebanon · Syria · Jordan · Palestine</span></span>
+      </div>
+    </div>
+    <p style="margin-top:12px;font-size:11.5px;color:var(--muted);line-height:1.55;">
+      No single flag can honestly stand for four countries — so we don't fake one. The globe mark + the
+      region's countries named underneath is the honest call, and it sidesteps the project's no-Israeli-labelling rule entirely.
+    </p>
+  </div>
+
+  <h2>Honest note for Patrick</h2>
+  <p>
+    The sticky bar and collapsing header are the two upgrades I'd fight for — they're the difference between
+    "a long page" and "a page that feels built for a phone." They cost a bit more engineering than the v4
+    changes (a scroll listener and an animated header), so if you want to ship lean first, v4 stands on its
+    own and these two can follow. The flag is cheap and yours either way; the only thing I won't do is fly a
+    flag for a region that doesn't have one.
+  </p>
+</div>
+
+<script>
+  function toggle(id) {
+    const body = document.getElementById('body-' + id);
+    const chev = document.getElementById('chev-' + id);
+    const isOpen = body.classList.contains('expanded');
+    body.classList.toggle('expanded', !isOpen);
+    body.classList.toggle('collapsed', isOpen);
+    chev.classList.toggle('closed', isOpen);
+  }
+  function adjustCount(delta) {
+    const el = document.getElementById('count');
+    const unit = document.getElementById('unit-label');
+    let v = parseInt(el.textContent) + delta;
+    if (v < 1) v = 1;
+    if (v > 12) v = 12;
+    el.textContent = v;
+    unit.textContent = v === 1 ? 'burger' : 'burgers';
+  }
+  function jumpToStep(n) {
+    const target = document.getElementById('step-' + n);
+    const scroller = document.getElementById('pageScroll');
+    if (!target || !scroller) return;
+    scroller.scrollTo({ top: target.offsetTop - 100, behavior: 'smooth' });
+    target.classList.remove('highlighted');
+    void target.offsetWidth;
+    target.classList.add('highlighted');
+    setTimeout(() => target.classList.remove('highlighted'), 900);
+  }
+  /* Scroll-aware chrome: collapsing top bar + sticky bottom CTA */
+  (function () {
+    const scroller = document.getElementById('pageScroll');
+    const topbar = document.getElementById('topbar');
+    const bottombar = document.getElementById('bottombar');
+    const inlineCta = document.getElementById('inlineCta');
+    function onScroll() {
+      const y = scroller.scrollTop;
+      topbar.classList.toggle('visible', y > 250);
+      const inlineBottom = inlineCta.offsetTop + inlineCta.offsetHeight;
+      bottombar.classList.toggle('visible', y > inlineBottom - 90);
+    }
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+</script>
+</body>
+</html>

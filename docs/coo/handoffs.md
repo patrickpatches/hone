@@ -59,9 +59,12 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
-### HANDOFF → Patrick (visual review) + Senior Engineer (build when approved) · 2026-05-25 · OPEN — AWAITING PATRICK'S PICK (recipe detail v4 "The Pass")
+### HANDOFF → Patrick (visual review) + Senior Engineer (build when approved) · 2026-05-25 · OPEN — AWAITING PATRICK'S PICK (recipe detail v4 → **v5** "The Pass")
 **From:** Product Designer
-**Subject:** A redesign that builds on v3 rather than replacing it. `docs/prototypes/recipe-detail-v4.html` — open in a browser. Photo hero retained (every recipe has a photo), but four places where v3 was quiet, incomplete, or only-worked-because-it-was-a-burger are fixed. **Recipe-generic by construction — no burger assumptions; proven below the frame for a no-photo recipe, a slow braise, and a baked-goods count unit.** Patrick reviews visually and picks before any engineer build.
+
+**🔁 UPDATE 2026-05-25 — `docs/prototypes/recipe-detail-v5.html` is now the latest candidate (v4 still on disk for comparison).** Patrick liked v4, asked for two changes + "improve it with the best design resources." v5 = v4 plus: (a) **removed the "Makes N" yield from the top** (redundant — the stepper sets quantity) and **replaced it with cuisine ORIGIN shown as a flag**; (b) a **sticky bottom "Start Cooking" bar** that fades in once the inline CTA scrolls away (NYT Cooking / Airbnb / checkout pattern — primary action always one tap away on a long page); (c) a **collapsing Material-3 top app bar** (back + recipe title fades in as the hero scrolls off). **Flag is rendered as SVG, not emoji** — Android emoji-flag support is unreliable across fonts. **Honesty rule for flags: country cuisine → flag (American, Italian, Japanese, Thai, Mexican, French, Indian, Malaysian); regional cuisine → neutral globe glyph + countries named (Levantine = Lebanon/Syria/Jordan/Palestine — no single flag, and sidesteps the no-Israeli-labelling rule). Do NOT fly a flag for a region.** Extra engineer cost vs v4: a scroll listener (sticky bar), an animated header (RN has this pattern built in), and a small SVG flag set keyed to cuisine. Everything below still applies; v5 changes are additive layout/chrome, no new data beyond v4's allergen note. **Build target once Patrick approves = v5.**
+
+**Subject:** A redesign that builds on v3 rather than replacing it. `docs/prototypes/recipe-detail-v5.html` (latest) / `recipe-detail-v4.html` (prior) — open in a browser. Photo hero retained (every recipe has a photo), but four places where v3 was quiet, incomplete, or only-worked-because-it-was-a-burger are fixed. **Recipe-generic by construction — no burger assumptions; proven below the frame for a no-photo recipe, a slow braise, and a baked-goods count unit.** Patrick reviews visually and picks before any engineer build.
 
 **Patrick's direction this session (verbatim intent):** keep the current working version, this is a design change only; retain the photo hero (photos exist per recipe); the head-chef "before you commit" signal he wants surfaced = **allergens / dietary**; and *"this concept should apply to all recipes now and future… make sure it works for all types of food not just burgers."*
 
@@ -1617,17 +1620,4 @@ For v0.5.0 version bump:
 **Subject:** 16 recipes have `video_url` values that violate Golden Rule 1 — fix before any recipe ships
 **Why:** The full attribution audit (`docs/coo/culinary-audit.md`, 2026-05-08) found 16 of 45 seed recipes link to a channel homepage, site root, about page, or chef listing page — none of which point to a specific recipe. Under Golden Rule 1, every chef-attributed link must be live and point to the specific recipe, not a channel or site. None of these recipes can ship until the link is correct or the attribution is reframed as a book citation / "inspired by" with no URL.
 **What's needed:**
-For each recipe below, either:
-(a) Find the specific YouTube `watch?v=` video or specific recipe page URL and update `video_url` in `seed-recipes.ts`, OR
-(b) Change attribution to a book citation format — update `source.notes` to include the book title, and remove or null `video_url`. The `chef` field stays as-is.
-
-| Recipe const | Chef | Current broken URL | Fix type |
-|---|---|---|---|
-| `CHICKEN_ADOBO` | Anthony Bourdain / No Reservations | `@AnthonyBourdainPartsUnknown` (channel + wrong show) | Find No Reservations Philippines clip or use book citation |
-| `BEEF_STEW` | Jacques Pépin | `/c/HomeCookingwithJacquesPepin` (channel) | Find specific beef stew episode on that channel |
-| `ROAST_CHICKEN` | Thomas Keller / Bouchon | `@ChefThomasKeller` (channel) | Find specific roast chicken video or use Bouchon book citation |
-| `PRAWN_TACOS_PINEAPPLE` | Andy Cooks | `@andy_cooks` (channel) | Find specific prawn taco/pineapple video |
-| `FRENCH_ONION_SOUP` | Anthony Bourdain / Les Halles | `@AnthonyBourdainPartsUnknown` (channel + wrong show) | Find Les Halles video or use *Les Halles Cookbook* citation |
-| `SCRAMBLED_EGGS` | Gordon Ramsay | `@GordonRamsay` (channel) | The F Word scrambled eggs clip is widely available — find `watch?v=` |
-| `WEEKDAY_BOLOGNESE` | Andy Cooks | `@andy_cooks` (channel) | Find specific bolognese video |
-| `MUSAKHAN` | Reem Kassis / The Palestinian Table | `reemkassis.com/` (site root) | Find specific musakhan page or use *The Palest
+For each recipe below, eit
