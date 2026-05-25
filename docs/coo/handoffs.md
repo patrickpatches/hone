@@ -59,6 +59,34 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
+### HANDOFF → Patrick (visual review) + Senior Engineer (build when approved) · 2026-05-25 · OPEN — AWAITING PATRICK'S PICK (recipe detail v4 "The Pass")
+**From:** Product Designer
+**Subject:** A redesign that builds on v3 rather than replacing it. `docs/prototypes/recipe-detail-v4.html` — open in a browser. Photo hero retained (every recipe has a photo), but four places where v3 was quiet, incomplete, or only-worked-because-it-was-a-burger are fixed. **Recipe-generic by construction — no burger assumptions; proven below the frame for a no-photo recipe, a slow braise, and a baked-goods count unit.** Patrick reviews visually and picks before any engineer build.
+
+**Patrick's direction this session (verbatim intent):** keep the current working version, this is a design change only; retain the photo hero (photos exist per recipe); the head-chef "before you commit" signal he wants surfaced = **allergens / dietary**; and *"this concept should apply to all recipes now and future… make sure it works for all types of food not just burgers."*
+
+**The five changes (each with engineer cost):**
+1. **Why-note elevated.** v3 set the per-step "why" in muted grey — the lowest-contrast text on the page — while CLAUDE.md mandates "explain the underlying reason, *always*." v4 lifts it to `inkSoft` on a `goldDim` panel with a full-strength gold marker + solid gold left rule. Still calm, still Playfair italic, but no longer a footnote. *CSS only — trivial.*
+2. **"At a glance" tells a story.** v3 gave time / difficulty / cuisine / leftovers equal weight. v4 leads with the two decision-drivers (time + effort, weighted and labelled), drops yield + cuisine to a quieter column, and **renders active vs total time when they diverge** ("25 min active · 2 hr total"). Reads existing `total_time_minutes` / `active_time_minutes`. *Small.*
+3. **Allergen / dietary strip** under the glance row — neutral, honest, no alarm colours: what the dish *contains* + a plain dietary marker ("Not vegetarian"). **This is the one genuinely new DATA need — flagged, not faked (see schema note).** *Render small; needs schema fields first.*
+4. **Equipment defaults collapsed but names the blockers while closed** — summary line "Needs: cast-iron pan, flat spatula · +2 more". First-timers open it; repeat cooks scroll past; the blocking info (you need a cast-iron pan) is still visible without a tap. *Collapse default + summary — small.*
+5. **Leftover nudge has a home.** v3 dropped `leftover_mode` entirely. v4 adds a gold-dim "Make extra for tomorrow?" tap-target under the stepper, rendered only when `leftover_mode !== 'none'` (hidden on the burger; shown in the braise demo). *Conditional render of existing fields — small.*
+
+**Kept from v3 (these were right):** single rust "Start Cooking" CTA + ghost secondary actions; one gold section-header language; equipment before ingredients; step carousel → full method with gold-flash jump; a why-note on every step; "Add to shopping list" wording.
+
+**⚠ SCHEMA NOTES — read before building (no schema change without flagging, per the v3 contract below):**
+- **NEW fields required for the allergen strip:** the Recipe type has **no `allergens` and no `dietary` field today** (confirmed in `mobile/src/data/types.ts`). To ship change #3, add something like `allergens: z.array(z.string()).optional()` and `dietary: z.array(z.string()).optional()` (or a small enum), plus a SQLite migration + seed values for the 16 launch recipes. If Patrick wants the layout shipped first, the strip drops out cleanly and the other four changes stand alone.
+- **Equipment schema is thinner than the UI.** `equipment` is currently `z.array(z.string()).optional()` — plain strings. v3 *and* v4 render an **Essential/Optional badge + a note line per item**, which the string array can't carry. To render the badges/notes you'll need to enrich the field (e.g. `equipment: z.array(z.object({ name, note?, essential: boolean }))`) or keep it as strings and drop the badges. Flagging the gap — don't silently render badges off data that isn't there.
+- Everything else (`hero_url` + `hero_fallback`, `output_unit`/`output_unit_plural`, `total/active_time_minutes`, `leftover_mode` + `extra_for_tomorrow_label`, `steps[].timer_seconds`/`why_note`/`photo_url`) already exists — v4 only reads it.
+
+**No-photo state (mandatory in the brief, and matters for future recipes):** when `hero_url` is null the hero becomes a designed typographic title card — Playfair name, chef credit, italic tagline, thin gold rule, faint Playfair watermark — on a refined dark surface. It looks intentional, never broken. The instant a photo is added the full image hero takes over with no layout change. Rendered in the first demo card below the frame.
+
+**Decision needed from Patrick:** visual approval of v4 as the recipe-detail direction, and a steer on whether to (a) build all five changes including the allergen schema work, or (b) ship the four no-schema changes now and add allergens as a data follow-up. **No engineer build dispatched — Designer recommends, Patrick approves.**
+
+**Files touched (Designer):** `docs/prototypes/recipe-detail-v4.html` (new), `docs/coo/handoffs.md`, `docs/sessions/Hone_Session_Report_25_May_2026.md`.
+
+---
+
 ### HANDOFF → Senior Engineer · 2026-05-25 · OPEN — EXPLORATORY (recipe detail v3 — data fields to preserve when building)
 **From:** Product Designer
 **Subject:** Recipe detail redesign is in prototype phase — this note locks the data fields that must survive any layout change. Do not build yet. Read this now so the schema contract is clear when the approved design arrives.
@@ -1602,43 +1630,4 @@ For each recipe below, either:
 | `FRENCH_ONION_SOUP` | Anthony Bourdain / Les Halles | `@AnthonyBourdainPartsUnknown` (channel + wrong show) | Find Les Halles video or use *Les Halles Cookbook* citation |
 | `SCRAMBLED_EGGS` | Gordon Ramsay | `@GordonRamsay` (channel) | The F Word scrambled eggs clip is widely available — find `watch?v=` |
 | `WEEKDAY_BOLOGNESE` | Andy Cooks | `@andy_cooks` (channel) | Find specific bolognese video |
-| `MUSAKHAN` | Reem Kassis / The Palestinian Table | `reemkassis.com/` (site root) | Find specific musakhan page or use *The Palestinian Table* book citation |
-| `KAFTA` | Anissa Helou / Feast | `anissas.com/` (site root) | Find specific kafta page or use *Feast* book citation |
-| `HUMMUS` | Reem Kassis / The Palestinian Table | `reemkassis.com/` (site root) | Find specific hummus page or use *The Palestinian Table* book citation |
-| `FATTOUSH` | Anissa Helou / Lebanese Cuisine | `anissas.com/` (site root) | Find specific fattoush page or use *Lebanese Cuisine* book citation |
-| `SOURDOUGH_MAINTENANCE` | Chad Robertson / Tartine Bakery | `tartinebakery.com/about` (about page) | Find specific video or use *Tartine Bread* book citation |
-| `SOURDOUGH_LOAF` | Chad Robertson / Tartine Bakery | `tartinebakery.com/about` (about page) | Find specific video or use *Tartine Bread* book citation |
-| `RISOTTO` | Marcella Hazan | `giulianohazan.com/` (site root — also Giuliano's site, not Marcella's) | Find specific mushroom risotto page or use *Essentials of Classic Italian Cooking* book citation |
-| `RAMEN` | Ivan Orkin / Ivan Ramen | `ivanramen.com/` (site root) | Find specific recipe page or use *Ivan Ramen* book citation |
-| `DAL` | Madhur Jaffrey | `thehappyfoodie.co.uk/chefs/madhur-jaffrey/` (chef listing page) | Find specific tarka dal page on Happy Foodie or use *Madhur Jaffrey's Curry Easy* book citation |
-
-**Also flag for review:** `BEEF_LASAGNE` — the URL `https://www.nytimes.com/recipes/12869/marcella-hazans-bolognese-meat-sauce.html` is a specific page (PASS) but it links to a Bolognese sauce recipe, not a lasagne. The attribution notes should clarify: "Sauce adapted from Marcella Hazan's bolognese; assembled as lasagne — Hone Kitchen." Update `source.notes` accordingly.
-
-**Files touched:** `mobile/src/data/seed-recipes.ts` — `source.video_url` and `source.notes` fields only. No step or ingredient changes.
-**Full audit detail:** `docs/coo/culinary-audit.md` — per-recipe attribution notes with context on each failure.
-**Blocks:** All 16 affected recipes from shipping. This is a brand-safety issue, not just a QA item.
-
----
-
-### HANDOFF → COO · 2026-05-07 · DONE ✅ (Cook briefed in writing — engineer unblocked for 11-recipe migration)
-**Closed by COO 2026-05-07.** Cook's brief at `docs/coo/specialists/culinary-verifier.md` now carries an explicit "RETIRED FIELDS — DO NOT USE" section at the top of "How you work," naming `whole_food_verified` and instructing zero use in any new research file. A session-end `grep -i "whole_food..."` check has been added to the cook's "At session end" ritual so any drift is caught before close. Patrick is sending the cook a paste-back to acknowledge directly. Engineer cleared to proceed with the 11-recipe migration.
-
-### Original handoff (preserved for audit) → COO · 2026-05-07 · OPEN URGENT (brief the Cook — whole-food field is dead)
-**From:** Patrick (via Senior Engineer)
-**Subject:** The cook's research database had whole-food references throughout. Engineer cleaned them. Cook must be told to never use the term again.
-**Why:** The `whole_food_verified` field was retired across the entire repo on 2026-05-07 (commits `21198e5` + `474f500`). When the engineer ran the cleanup, fifteen of the sixteen recipe research files in `docs/coo/culinary-research/` still had a "Whole-food claim:" or "Whole-food verified:" line in their audit sections — the cook had been adding it as a standard audit checkbox. The lines have been stripped, but if the cook keeps following the old pattern, the term will leak back in next time research lands. Patrick's words: he wants this fully addressed before the 11-recipe migration proceeds, so we don't ship an APK with the term re-introduced through a new research file.
-
-**What's already done (Engineer):**
-- Stripped 15 `Whole-food claim:` / `Whole-food verified:` lines from the cook's research files in `docs/coo/culinary-research/`. Smash-burger left intentionally as the retirement narrative.
-- Verified `docs/coo/culinary-research/TEMPLATE.md` (the cook's template) is clean — no mention there.
-- Verified `docs/coo/specialists/culinary-verifier.md` (the cook's brief) is clean — Patrick had already cleaned this earlier.
-- Schema, seed data, SQLite column, prototypes, BUGS.md, command-centre.md, roadmap.md, handoffs.md — all stripped. Only the URGENT handoff and the smash-burger retirement narrative still mention it, both deliberately.
-
-**What's needed (COO actions):**
-1. **Brief the Cook explicitly:** the whole-food concept is retired. Don't add `whole_food_verified` to any new recipe data. Don't include a "Whole-food claim" or "Whole-food verified" line in the audit section of new research files.
-2. **Update the cook's standing brief if needed.** The current `docs/coo/specialists/culinary-verifier.md` is clean — confirm no follow-up edits required, or add an explicit "do not use" note if you think the cook needs the reminder in writing.
-3. **Confirm to Senior Engineer when done** so the 11-recipe migration can proceed without risk of re-introducing the term through new research files.
-4. **Future-proof:** consider adding a one-line check to the cook's session-end checklist — `grep "whole_food" docs/coo/culinary-research/<new-file>.md` should return zero hits.
-
-**Files referenced:**
-- `docs/coo/culinary-research/*.md` (clea
+| `MUSAKHAN` | Reem Kassis / The Palestinian Table | `reemkassis.com/` (site root) | Find specific musakhan page or use *The Palest
