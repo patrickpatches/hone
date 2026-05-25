@@ -59,10 +59,32 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
-### HANDOFF → Patrick (visual review) + Senior Engineer (build when approved) · 2026-05-25 · OPEN — AWAITING PATRICK'S PICK (recipe detail v4 → **v5** "The Pass")
+### HANDOFF → Senior Engineer · 2026-05-25 · ✅ APPROVED BY PATRICK · BUILD (recipe detail **v5** "The Pass")
 **From:** Product Designer
 
-**🔁 UPDATE 2026-05-25 — `docs/prototypes/recipe-detail-v5.html` is now the latest candidate (v4 still on disk for comparison).** Patrick liked v4, asked for two changes + "improve it with the best design resources." v5 = v4 plus: (a) **removed the "Makes N" yield from the top** (redundant — the stepper sets quantity) and **replaced it with cuisine ORIGIN shown as a flag**; (b) a **sticky bottom "Start Cooking" bar** that fades in once the inline CTA scrolls away (NYT Cooking / Airbnb / checkout pattern — primary action always one tap away on a long page); (c) a **collapsing Material-3 top app bar** (back + recipe title fades in as the hero scrolls off). **Flag is rendered as SVG, not emoji** — Android emoji-flag support is unreliable across fonts. **Honesty rule for flags: country cuisine → flag (American, Italian, Japanese, Thai, Mexican, French, Indian, Malaysian); regional cuisine → neutral globe glyph + countries named (Levantine = Lebanon/Syria/Jordan/Palestine — no single flag, and sidesteps the no-Israeli-labelling rule). Do NOT fly a flag for a region.** Extra engineer cost vs v4: a scroll listener (sticky bar), an animated header (RN has this pattern built in), and a small SVG flag set keyed to cuisine. Everything below still applies; v5 changes are additive layout/chrome, no new data beyond v4's allergen note. **Build target once Patrick approves = v5.**
+**🔁 UPDATE 2026-05-25 — `docs/prototypes/recipe-detail-v5.html` is now the latest candidate (v4 still on disk for comparison).** Patrick liked v4, asked for two changes + "improve it with the best design resources." v5 = v4 plus: (a) **removed the "Makes N" yield from the top** (redundant — the stepper sets quantity) and **replaced it with cuisine ORIGIN shown as a flag**; (b) a **sticky bottom "Start Cooking" bar** that fades in once the inline CTA scrolls away (NYT Cooking / Airbnb / checkout pattern — primary action always one tap away on a long page); (c) a **collapsing Material-3 top app bar** (back + recipe title fades in as the hero scrolls off). **Flag is rendered as SVG, not emoji** — Android emoji-flag support is unreliable across fonts. **Honesty rule for flags: country cuisine → flag (American, Italian, Japanese, Thai, Mexican, French, Indian, Malaysian); regional cuisine → neutral globe glyph + countries named (Levantine = Lebanon/Syria/Jordan/Palestine — no single flag, and sidesteps the no-Israeli-labelling rule). Do NOT fly a flag for a region.** Extra engineer cost vs v4: a scroll listener (sticky bar), an animated header (RN has this pattern built in), and a small SVG flag set keyed to cuisine. Everything below still applies; v5 changes are additive layout/chrome, no new data beyond v4's allergen note.
+
+**✅ APPROVED 2026-05-25 — Patrick: "get the engineer to build it." Build v5. The v3 EXPLORATORY data-fields note below still holds as the schema contract.**
+
+**Glance-row formatting fix shipped to the prototype:** Patrick's screenshot showed value+label inline ("20 min start to plate" on one line, pushing "American" off-screen). Fixed — value sits above its label (`.gp-text` is a flex column). Replicate that stacking in RN.
+
+**BUILD SCOPE — `mobile/app/recipe/[id].tsx`, BROWSE MODE ONLY. Do NOT touch cook mode.** Pitch your plan to Patrick before editing. Recommended split: ship the no-schema changes as the core build now; allergens + richer equipment schema = a clearly-scoped follow-up (need schema + data for 16 recipes). Patrick may fold allergens in — confirm.
+
+1. **Hero:** photo via `hero_url` (expo-image, wired) + v5 gradient/title overlay. **No-photo fallback (mandatory):** `hero_url` null → typographic title card (Playfair name + chef credit + italic tagline + thin gold rule + faint Playfair watermark) over `hero_fallback` bands.
+2. **Collapsing top app bar:** Animated header on scroll (~250dp) — back + title + favourite (Material 3).
+3. **Sticky bottom Start-Cooking bar:** fades in once the inline CTA scrolls off; rust pill + add-to-list icon.
+4. **Glance trio = time · effort · origin (NO yield).** Time = one value or `"X min active · Y total"` when active≪total. Origin: **SVG flag for COUNTRY cuisines**; **globe + countries named for REGIONAL** (Levantine, modern Australian). Key off `categories.cuisines[0]`. **SVG, not emoji.** Never one flag for a region.
+5. **CTA:** single rust "Start Cooking"; ghost "Add to shopping list" + "Watch original" (hide when `source.video_url` null).
+6. **Scaling:** label from `output_unit`/`output_unit_plural` — never hardcode. Leftover nudge under stepper only when `leftover_mode !== 'none'`.
+7. **Before you start:** from `before_you_start[]`; default open.
+8. **Equipment:** collapsed, summary names essentials. ⚠ `equipment` is `string[]` — can't carry Essential/Optional + note. Enrich it (+migration+seed, root-cause) OR render names only. Don't fake badges.
+9. **Ingredients:** rows + swap pills unchanged.
+10. **Method:** carousel → full steps. **Elevated why-note:** `inkSoft` on `goldDim` + gold marker + gold left rule (AA). Timer from `timer_seconds`; step photo from `photo_url` with no-photo state.
+11. **Allergen/dietary strip (FOLLOW-UP unless Patrick says now):** NEW `allergens[]` + `dietary` + migration + seed.
+
+**Colours:** rust = Start Cooking only; gold = headers/stepper/why-marker/step numbers; emerald `#4FBF85` = swapped ingredient only; sage NOT here; zero blue.
+
+**Reference:** `recipe-detail-v5.html` (latest) · `recipe-detail-v4.html` (prior). **Discipline:** R-014 tail-check; tsc clean; **build-log row in the SAME tree**; **R-015 — no self-close**; **no EAS build — Patrick triggers.**
 
 **Subject:** A redesign that builds on v3 rather than replacing it. `docs/prototypes/recipe-detail-v5.html` (latest) / `recipe-detail-v4.html` (prior) — open in a browser. Photo hero retained (every recipe has a photo), but four places where v3 was quiet, incomplete, or only-worked-because-it-was-a-burger are fixed. **Recipe-generic by construction — no burger assumptions; proven below the frame for a no-photo recipe, a slow braise, and a baked-goods count unit.** Patrick reviews visually and picks before any engineer build.
 
@@ -84,7 +106,7 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 **No-photo state (mandatory in the brief, and matters for future recipes):** when `hero_url` is null the hero becomes a designed typographic title card — Playfair name, chef credit, italic tagline, thin gold rule, faint Playfair watermark — on a refined dark surface. It looks intentional, never broken. The instant a photo is added the full image hero takes over with no layout change. Rendered in the first demo card below the frame.
 
-**Decision needed from Patrick:** visual approval of v4 as the recipe-detail direction, and a steer on whether to (a) build all five changes including the allergen schema work, or (b) ship the four no-schema changes now and add allergens as a data follow-up. **No engineer build dispatched — Designer recommends, Patrick approves.**
+**Decision — RESOLVED 2026-05-25:** Patrick approved v5 and said build it. See the APPROVED BUILD SCOPE at top. Engineer ships to main; Patrick triggers the EAS build + validates on-device (R-015).
 
 **Files touched (Designer):** `docs/prototypes/recipe-detail-v4.html` (new), `docs/coo/handoffs.md`, `docs/sessions/Hone_Session_Report_25_May_2026.md`.
 
