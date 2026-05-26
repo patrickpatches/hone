@@ -40,6 +40,8 @@
 | `docs/adr/002-delivery-targets.md` | Why Android-first, iOS post-launch. |
 | `docs/sessions/` | Per-session reports. Filename: `Hone_Session_Report_DD_Month_YYYY.md`. |
 | `docs/coo/` | COO operating system — cadence, handoffs, command centre, launch plan, specialist briefs. |
+| `docs/coo/tickets/` | Engineer build tickets — focused work orders with acceptance criteria + Definition of Done. |
+| `docs/coo/tickets/recipe-detail-v5-build.md` | Recipe detail v5 "The Pass" browse-mode build ticket. READY TO BUILD. |
 | `docs/coo/specialists/` | Role briefs for each specialist chat. One file per role. |
 | `docs/coo/photography/` | Photography Director outputs — shot lists, preset, pre-flight checklist, shoot retrospectives. |
 | `docs/coo/photography/preflight-checklist.md` | Pre-flight checklist Patrick runs every shoot weekend. Print-ready, one page. |
