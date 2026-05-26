@@ -59,4 +59,16 @@ The page is built from recipe fields, never burger assumptions — stepper label
 
 ## Housekeeping flag (still outstanding, outside my lane)
 
-`docs/FILE_MAP.md` still has unresolved git merge-conflict markers (`<<<<<<< HEAD` / `=======` / `>>>>>>>`, ~lines 116–133). Flagged previously; not yet resolved. For COO/Engineer.
+`docs/FILE_MAP.md` — **✅ FIXED 2026-05-25.** On `main` the file was truncated mid-line (a prior conflict resolution kept a broken HEAD fragment and silently dropped the repo-hygiene rules + the entire "What does NOT belong in this repo" section). Restored the lost content, refreshed the date, and added the current prototype index. (My local checkout still showed the older unresolved markers — another symptom of the stale-local problem.)
+
+## Acting-lead housekeeping pass (2026-05-25)
+
+Patrick flagged that my read of the build state was stale and told me to take ownership and organise things. Root cause found and fixed:
+
+- **The build log in `handoffs.md` had silently lost rows #118–#123.** The builds shipped (commits exist) but the table stopped at #117, so the repo's own ledger sat six builds behind Patrick's phone. **Backfilled all six** from real commit history: #118 `808970d` (10 hero URLs wired) · #119 `2326d6f` (hummus chocolate-sundae fix) · #120 `9edbdff` (UI polish bundle) · #121 `adc4522` (kitchen hero slideshow) · #122 `bd3c7ee` (approved pantry-haves redesign + icon library) · #123 `0781040` (pantry bronze headers).
+- **Added a build-log integrity rule** at the top of the build-log section: top row must equal Patrick's installed build; reconcile against `git log`/`main` before trusting it; never edit from a stale local checkout.
+- **Restored the truncated `FILE_MAP.md`** (see above).
+
+**Two systemic causes, named for the record:** (1) the recurring R-014 truncation gremlin has now eaten content from at least three files (seed-recipes, this session's report, FILE_MAP, and the build-log rows) — the CI guard from build #112 only covers `.ts`/`.tsx`, not markdown; widening it to docs is worth a ticket. (2) The local working tree at `C:\Users\patri\hone` runs behind `main`, so reading local files gives a stale picture — repo/build state must be reconciled against GitHub `main`, which is what surfaced this whole issue.
+
+**Current truth (reconciled):** build #123 on Patrick's phone = the pantry redesign + bronze category headers. Recipe-detail v4/v5 = prototype + APPROVED build spec, **not yet implemented in the app** — that's the engineer's next build.

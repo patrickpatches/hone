@@ -1,6 +1,6 @@
 # FILE_MAP.md — Canonical File & Folder Index
 
-> Last updated: 2026-04-29. This is the authoritative map of what lives where in the Hone repo.
+> Last updated: 2026-05-25. This is the authoritative map of what lives where in the Hone repo.
 > If you create a new file and aren't sure where it goes, this doc has the answer.
 > If something is missing from this map, add it here when you create it.
 
@@ -56,6 +56,12 @@
 | `docs/prototypes/` | HTML mockups used during design exploration. Read-only reference — not deployed code. |
 | `docs/prototypes/recipe-card-states.html` | Recipe card component states prototype. |
 | `docs/prototypes/substitution-sheet.html` | Ingredient substitution sheet UI prototype. |
+| `docs/prototypes/colour-refinement-v1.html` | Colour upgrade before/after (substitution pill green + pantry-mode eyebrow). Awaiting Patrick's A/B pick. |
+| `docs/prototypes/pantry-haves-v1.html` | Approved pantry "what you have" list + stepper + carousel — shipped as build #122. |
+| `docs/prototypes/cook-mode-v2.html` | Cook-mode single-step navigator — shipped as build #117. |
+| `docs/prototypes/recipe-detail-v3.html` | Recipe detail "Kitchen Brief" concept (24 May). Superseded by v5 as the direction. |
+| `docs/prototypes/recipe-detail-v4.html` | Recipe detail "The Pass" — elevated why-note, story glance, allergen strip, leftover nudge. |
+| `docs/prototypes/recipe-detail-v5.html` | Recipe detail "The Pass" (latest) — v4 + origin flag, sticky CTA, collapsing app bar. APPROVED for engineer build. |
 | `docs/archive/` | Completed checklists, old backups, superseded documents. Nothing here is current. |
 | `docs/archive/sessions/` | Numbered session backup folders (11–14, README). |
 | `docs/archive/backup-*/` | Point-in-time snapshot backups created during risky refactors. |
@@ -113,4 +119,17 @@
 - **Specialist briefs:** `<role-name>.md` → `docs/coo/specialists/`
 - **Decision log entries:** `DECISION-NNN` numbered, all in `docs/coo/decision-log.md` (one file, newest at top)
 - **Risk register entries:** `R-NNN` numbered, all in `docs/coo/risk-register.md` (one file)
-- **Backups created during a risky refactor:** `backup-YYYY-MM-DD[-descriptor]/` → `d
+- **Backups created during a risky refactor:** `backup-YYYY-MM-DD[-descriptor]/` → `docs/archive/`
+- **Worktree branch files:** never leave `-Desktop-P` or similar suffixed duplicates in the working tree — delete them when the worktree is pruned
+- **No files in repo root** except: CLAUDE.md, BUGS.md, CHANGELOG.md, README.md, and the four standard hidden dirs (.git, .github, .claude, .gitignore)
+
+---
+
+## What does NOT belong in this repo
+
+- `node_modules/` — gitignored, never commit
+- `.expo/` — gitignored
+- `mobile/android/` generated files — prebuild output, do not hand-edit or commit changes
+- APK files — upload as GitHub Actions artifacts, never commit to git
+- Secrets, API keys, PATs — never hardcoded anywhere
+- ~~AI-generated food photography~~ — **Rescinded per DECISION-014 (10 May 2026).** AI and CC-licensed stock images are now permitted as temporary placeholders until real photography catches up; cook validates accuracy per recipe.
