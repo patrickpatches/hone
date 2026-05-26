@@ -31,6 +31,7 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 | Build | Commit | Summary |
 |---|---|---|
+| #124 | `pending` | **Recipe Detail v5 "The Pass" — Phase 1 (GitHub Issue #5, browse mode only; cook mode untouched).** Built to `docs/coo/tickets/recipe-detail-v5-build.md` + `recipe-detail-v5.html`, respecting the v3 schema-preserve contract. **No schema changes.** Two files: new `mobile/src/components/OriginFlag.tsx` + `mobile/app/recipe/[id].tsx`. **(1) Collapsing top app bar:** browse `ScrollView` → `Animated.ScrollView` driving `scrollY`; Back stays visible throughout, title + plan + heart fade in (`scrollY.interpolate([150,240]→[0,1])`); a scroll listener toggles `pointerEvents` so invisible controls aren't tappable. **(2) Hero no-photo fallback:** the old gradient-bands + 72px emoji replaced with a typographic title card — Playfair name + "Inspired by {chef}" + italic tagline + thin gold rule + faint Playfair initial watermark over the `hero_fallback` bands. No emoji block ever. **(3) Glance trio = time · effort · origin** (dropped yield/leftovers chips), value stacked ABOVE label. Time collapses to `"{active} active" / "{total} min total"` only when active < 70% of total, else one value. **Origin keyed off `categories.cuisines[0]`:** SVG flag for country cuisines (US/IT/JP/TH/MX/FR/IN/MY) via the new `OriginFlag` module; neutral globe glyph + named countries for regional cuisines (Levantine → Lebanon · Syria · Jordan · Palestine; modern Australian → Australia). Flags are SVG `react-native-svg`, never emoji; never a single flag for a region (keeps the no-Israeli rule); rendered + visually audited via cairosvg before ship. **(4) CTA hierarchy:** one inline rust "Start Cooking" + a ghost "Add to shopping list" (real handler — upserts all scaled ingredients via `upsertShoppingItem`, source `kind:'meal'`; shows "Added to shopping list ✓" confirmation) + the existing "Watch the original" (hidden when `source.video_url` null). **(5) Sticky bottom Start-Cooking bar:** the existing always-on bar now fades in only once the inline CTA scrolls out of view — gated on `scrollY` vs the inline CTA's measured bottom (`onLayout`), with `pointerEvents` off while hidden. **(6) Elevated why-note:** was Playfair-italic muted grey; now `inkSoft` body on `goldDim` with a full-gold "WHY" marker + solid 3px gold left rule (WCAG AA on the dark card). **Already-correct, left as-is:** `ServingsSelector` recipe-generic stepper from `output_unit` + leftover nudge (DECISION-014); `before_you_start`; equipment renders names-only (no fake badges — `equipment` is `string[]`; enrichment is Phase 2); ingredients + swap pills unchanged. **Colour discipline:** rust = Start Cooking only; gold = section headers/stepper/why-marker/step numbers; emerald `#4FBF85` = swapped ingredient only; no bronze on this screen; no sage; zero blue. **Phase 2 (allergen/dietary strip + equipment enrichment) NOT started — awaiting Patrick's scope confirmation.** **Pre-flight:** `tsc --noEmit` clean on both touched files (remaining project errors are pre-existing + unrelated: sandbox `@gorhom`/`@expo-google-fonts` module resolution, and the long-known `recipes-holding` legacy-enum issue never on the launch path); R-014 tail-check 27/27 balanced; brace/paren/bracket diff 0 on both; flag SVGs render-audited. **No EAS build dispatched — Patrick triggers it.** Per R-015: not self-closing. |
 | #123 | `0781040` | **Pantry bronze headers + section-label categories.** Patrick on-device feedback after #122. New soft antique-bronze token `#C2A15A` (darker/browner than the bright stepper gold so the two never compete), applied to the "Cook with what you have" category headers; bronze + gold-category-header treatment replicated on the Shop tab. |
 | #122 | `bd3c7ee` | **Approved pantry "what you have" redesign (pantry-haves-v1).** Organised, category-grouped, collapsible stocked list with a +/− stepper (writes the existing `quantity` field — no schema change) replacing the flat pills card; match-carousel recoloured to the calm palette; match banner removed. Pass 2 added a per-ingredient icon library + resolver in `PantryIcons.tsx` (7 category + ~19 ingredient line-icons, keyword-matched). |
 | #121 | `adc4522` | **Kitchen hero slideshow + hero also shown in the list.** Patrick's #120 follow-up in `(tabs)/index.tsx`: hero recipe now also appears in the list below it (#120 had hidden the section when the only match was the hero), plus a rotating hero slideshow. |
@@ -66,6 +67,44 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 ---
 
 ## Open handoffs
+
+### CLOSEOUT — Build #124 · Engineer · 2026-05-25
+
+**Scope:** GitHub Issue #5 — Recipe Detail v5 "The Pass", **Phase 1, browse mode only**. Cook mode untouched. No schema changes.
+
+**Phase 1 acceptance criteria — coverage:**
+
+| AC | Status | Notes |
+|---|---|---|
+| Hero + no-photo fallback both look intentional | ✅ | Typographic title card (Playfair name + chef + tagline + gold rule + watermark) replaces the emoji block |
+| Collapsing top app bar (hidden at top, in once hero scrolled away; back works throughout) | ✅ | Back always visible; title+plan+heart fade `scrollY.interpolate([150,240])`; pointerEvents gated |
+| Sticky bottom Start-Cooking bar (hidden while inline CTA on screen) | ✅ | Existing bar gated on `scrollY` vs inline CTA `onLayout` bottom; pointerEvents off while hidden |
+| Glance trio time · effort · origin, value above label | ✅ | Yield/leftovers chips dropped; value stacked above label |
+| Origin: SVG flag for country, globe+countries for region; never a flag for a region | ✅ | `OriginFlag` module; 8 country flags + globe; Levantine/Australian → globe |
+| CTA hierarchy — one rust primary | ✅ | Inline rust Start Cooking + ghost Add-to-list + Watch (hidden if no video_url) |
+| Stepper from `output_unit`, leftover nudge | ✅ (pre-existing) | `ServingsSelector` already recipe-generic (DECISION-014); left as-is |
+| Before-you-start | ✅ (pre-existing) | renders from `before_you_start[]` |
+| Equipment names-only, no fake badges | ✅ | `equipment` is `string[]`; names only; enrichment deferred to Phase 2 |
+| Ingredients + swap pills unchanged | ✅ | untouched |
+| Method — elevated why-note (inkSoft on goldDim, gold marker + solid gold left rule, WCAG AA) | ✅ | rewritten from muted-grey italic |
+
+**Design decisions I made (flag back if intent differs):**
+1. **Collapsing bar fits the existing fixed-strip layout.** The header is a fixed top strip above the ScrollView (not an overlay on the hero), so "hidden at top" = Back visible + title/plan/heart faded; they fade in on scroll. Matches the AC without restructuring the header into a hero overlay.
+2. **"Add to shopping list" is a real handler**, not a stub — it upserts every scaled ingredient via the existing `upsertShoppingItem` (source `kind:'meal'`) and shows an "Added ✓" confirmation. No new schema.
+3. **Bottom-bar gating uses the inline CTA's `onLayout` bottom** (a direct ScrollView child, so its `y` is content-relative). Initialised hidden until measured to avoid a first-paint flash.
+4. **Flags simplified for legibility at ~24px** (MX emblem → a small ring so it's distinct from IT; IN chakra → a ring; US/MY cantons simplified). Render-audited via cairosvg; all 8 read correctly. If you want a more detailed flag for any country it's a one-entry SVG swap in `OriginFlag.tsx`.
+
+**Preserved:** cook mode (every `cooking` branch untouched), DECISION-008/014/015 data + rendering, ingredients/swaps, tab routing, recipe data.
+
+**Pre-flight:** `tsc --noEmit` clean on `recipe/[id].tsx` + `OriginFlag.tsx` (remaining project errors pre-existing + unrelated — sandbox `@gorhom`/`@expo-google-fonts` resolution; `recipes-holding` legacy-enum never on launch path). R-014 27/27 balanced. Brace/paren/bracket diff 0 on both. Flag SVGs render-audited.
+
+**What the COO should track next:**
+1. **No EAS build dispatched — Patrick triggers it.** Code on main; build-log row + this closeout in the same tree as the code.
+2. **Patrick on-device validation** (per R-015, not self-closed): photo + no-photo recipes both look intentional; collapsing bar; sticky bar appears only after the inline CTA scrolls off; glance trio with the right flag/globe; long `output_unit` wraps; elevated why-note; equipment names-only.
+3. **Phase 2 awaiting scope confirmation:** allergen/dietary strip + equipment enrichment (both need NEW schema fields + migration + reseed). NOT started.
+4. **`OriginFlag` is a new component** — Designer may want to review the flag glyphs (render-audit montage was produced during the build).
+
+---
 
 ### HANDOFF → Senior Engineer · 2026-05-25 · ✅ APPROVED BY PATRICK · BUILD (recipe detail **v5** "The Pass")
 **From:** Product Designer
