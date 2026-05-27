@@ -12,6 +12,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
+  Dimensions,
   ActivityIndicator,
   Alert,
   Linking,
@@ -128,7 +129,7 @@ export default function RecipeDetailScreen() {
   const [inlineCtaBottom, setInlineCtaBottom] = useState(2000);
   const [headerShown, setHeaderShown] = useState(false);
   const [bottomBarShown, setBottomBarShown] = useState(false);
-  const { height: viewportH } = require('react-native').Dimensions.get('window');
+  const { height: viewportH } = Dimensions.get('window');
   const [activeSwaps, setActiveSwaps]         = useState<Record<string, Substitution | null>>({});
 
   // Wake lock while cooking
@@ -530,7 +531,11 @@ export default function RecipeDetailScreen() {
         scrollEventThrottle={16}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true },
+          // useNativeDriver MUST be false here: this scroll value is read by a
+          // scrollY.addListener (for pointerEvents toggling). On the New
+          // Architecture (Fabric), attaching a JS listener to a natively-driven
+          // scroll node crashes at mount. JS-driven opacity fades are smooth.
+          { useNativeDriver: false },
         )}
       >
         {/* Hero — hidden in cook mode */}
