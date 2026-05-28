@@ -85,6 +85,8 @@ export const tokens = {
   // Soft antique bronze-gold — header accents (eyebrow, title italic). Deliberately
   // darker/desaturated vs the bright stepper gold so the two never compete.
   bronze:  '#C2A15A',
+  // Bronze tinted at low alpha — honest-swap callout bg, swap-pill 'on' state (v7).
+  bronzeSoft: 'rgba(194,161,90,0.10)',
 
   // Structural — white-alpha on dark surfaces
   line:     'rgba(255,255,255,0.07)',   // subtle dividers
@@ -145,19 +147,19 @@ export const shadows = {
  * Font family tokens.
  * Must match exactly what _layout.tsx loads via useFonts.
  *
- * Playfair Display (display) + Inter (body): editorial serif paired with
+ * Fraunces (display) + Inter (body): editorial serif paired with
  * a geometric sans. v0.6 change: Source Sans 3 → Inter for body text.
  * Inter is more architectural and confident at UI sizes (12–15sp); it
  * also has tighter default letter-spacing which suits the deeper terracotta
  * palette — less delicate, more considered.
  *
- * Engineer note: swap @expo-google-fonts/source-sans-3 → @expo-google-fonts/inter
+ * Engineer note: swap @expo-google-fonts/playfair-display → @expo-google-fonts/fraunces (v7, build #127)
  * in package.json and update useFonts() in mobile/app/_layout.tsx.
  * Constant names are unchanged — no component rename pass required.
  */
 export const fonts = {
-  display:       'PlayfairDisplay_700Bold',
-  displayItalic: 'PlayfairDisplay_500Medium_Italic',
+  display:       'Fraunces_700Bold',
+  displayItalic: 'Fraunces_500Medium_Italic',
   sans:          'Inter_400Regular',
   sansBold:      'Inter_600SemiBold',
   sansXBold:     'Inter_800ExtraBold',

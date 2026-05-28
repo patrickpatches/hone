@@ -2,7 +2,7 @@
  * Root layout.
  *
  * Responsibilities:
- *   - Load the bundled fonts (Playfair Display for display headings, Inter
+ *   - Load the bundled fonts (Fraunces for display headings, Inter
  *     for body) before anything renders. We keep the splash screen up until
  *     fonts are ready so the first frame doesn't flash system fonts.
  *   - Set the background colour at the OS level (expo-system-ui) so the status
@@ -11,7 +11,7 @@
  *     full-screen routes like /recipe/[id] and /cook/[id] will live as
  *     sibling routes so the bottom nav can hide for those screens.
  *
- * Font pairing: Playfair Display (display/headings) + Inter (body/UI).
+ * Font pairing: Fraunces (display/headings) + Inter (body/UI).
  * v0.7 change: Source Sans 3 → Inter. Inter is more architectural at UI
  * sizes (12-15sp) and suits the dark dramatic palette better.
  *
@@ -41,9 +41,10 @@ import { useFonts } from 'expo-font';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import {
-  PlayfairDisplay_500Medium_Italic,
-  PlayfairDisplay_700Bold,
-} from '@expo-google-fonts/playfair-display';
+  Fraunces_400Regular,
+  Fraunces_500Medium_Italic,
+  Fraunces_700Bold,
+} from '@expo-google-fonts/fraunces';
 import {
   Inter_400Regular,
   Inter_600SemiBold,
@@ -111,8 +112,9 @@ SystemUI.setBackgroundColorAsync(tokens.bg).catch(() => {});
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    PlayfairDisplay_700Bold,
-    PlayfairDisplay_500Medium_Italic,
+    Fraunces_400Regular,
+    Fraunces_500Medium_Italic,
+    Fraunces_700Bold,
     Inter_400Regular,
     Inter_600SemiBold,
     Inter_800ExtraBold,

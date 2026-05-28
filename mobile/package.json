@@ -11,8 +11,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@expo-google-fonts/fraunces": "^0.2.3",
     "@expo-google-fonts/inter": "^0.2.3",
-    "@expo-google-fonts/playfair-display": "^0.2.3",
     "@expo/metro-runtime": "~6.1.2",
     "@gorhom/bottom-sheet": "^5.2.12",
     "expo": "~54.0.33",
