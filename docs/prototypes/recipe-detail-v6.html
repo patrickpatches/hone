@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hone · Recipe Detail v6 — aesthetic restyle (safe, no behaviour change)</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────────────────────
+   REAL tokens.ts values (DECISION-012 dark palette) — verified
+   against main on 2026-05-28. Aesthetic restyle only: no new
+   tokens, no new data, no scroll-driven behaviour.
+   ───────────────────────────────────────────────────────────── */
+:root{
+  --bg:#141414; --bgDeep:#0F0F0F; --card:#1E1E1E; --card2:#252525;
+  --ink:#F5EFE8; --inkSoft:#C4B8A8; --muted:#8A7E72;
+  --rust:#B84030; --rustInk:#D05040; --rustDeep:#8E2E20; --onPrimary:#FAFAF7; --rustLight:rgba(184,64,48,0.18);
+  --sage:#3A7050; --sageInk:#5FB07E; --sageLight:rgba(46,94,62,0.20);
+  --ochre:#C07038; --ochreLight:rgba(192,112,56,0.16);
+  --gold:#F2CC2A; --goldDim:rgba(242,204,42,0.15); --goldMid:rgba(242,204,42,0.30);
+  --bronze:#C2A15A;
+  --sky:#7AAABB; --skyDeep:#5A8A9B; --skyLight:rgba(122,170,187,0.16);
+  --warmBrown:#B08060;
+  --line:rgba(255,255,255,0.07); --lineDark:rgba(255,255,255,0.13);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0B0B0B;font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 24px 80px}
+
+.page-header{text-align:center;margin-bottom:26px;max-width:520px}
+.page-eyebrow{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--bronze);margin-bottom:8px}
+.page-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:6px}
+.page-sub{font-size:12px;color:var(--muted);line-height:1.6}
+
+.phone{width:393px;height:852px;background:var(--bg);border-radius:52px;overflow:hidden;position:relative;flex-shrink:0;
+  box-shadow:0 0 0 1px rgba(255,255,255,.10),0 60px 160px rgba(0,0,0,.8),inset 0 0 0 1px rgba(255,255,255,.03)}
+.scroll{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+
+/* status bar */
+.status{position:absolute;top:0;left:0;right:0;height:50px;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:0 28px;pointer-events:none}
+.status-time{font-size:15px;font-weight:600;color:var(--ink)}
+.status svg{display:block}
+
+/* ── BACK BAR — static, sits in flow above the hero (no animated header) ── */
+.backbar{display:flex;align-items:center;gap:6px;padding:56px 12px 8px}
+.icon-btn{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;background:transparent;flex-shrink:0;transition:background .15s}
+.icon-btn:hover{background:rgba(255,255,255,.05)}
+.icon-btn.on{background:var(--rustLight)}
+.backbar-title{flex:1;font-family:'Playfair Display',serif;font-size:16px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.0}
+/* title in the bar only fades in via plain CSS on scroll-less hover demo; kept subtle */
+
+/* ── HERO ── */
+.hero{position:relative;height:300px;margin:0 14px;border-radius:20px;overflow:hidden}
+.hero-photo{position:absolute;inset:0;background:
+  radial-gradient(ellipse at 34% 26%,rgba(214,128,64,.55) 0%,transparent 46%),
+  radial-gradient(ellipse at 72% 60%,rgba(150,52,30,.55) 0%,transparent 52%),
+  linear-gradient(158deg,#6B3A1E,#3C1C0E 50%,#160B05)}
+.hero-fade{position:absolute;inset:0;background:linear-gradient(to top,var(--bg) 2%,rgba(20,20,20,.5) 38%,transparent 72%)}
+.hero-body{position:absolute;left:0;right:0;bottom:0;padding:18px}
+.eyebrow{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--bronze);margin-bottom:7px}
+.hero-title{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--ink);line-height:1.08;letter-spacing:-.5px}
+.hero-tag{font-family:'Playfair Display',serif;font-style:italic;font-size:14px;color:var(--inkSoft);margin-top:4px}
+
+.body{padding:0 16px}
+
+/* ── attribution + watch ── */
+.attrib{display:flex;align-items:center;gap:10px;padding:16px 4px 4px}
+.attrib-chef{flex:1;font-size:12px;color:var(--muted)}
+.attrib-chef b{color:var(--inkSoft);font-weight:600}
+.btn-watch{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--lineDark);background:var(--card);
+  color:var(--inkSoft);font-size:12px;font-weight:600;border-radius:100px;padding:8px 13px;cursor:pointer;white-space:nowrap}
+.btn-watch:hover{border-color:var(--sky);color:var(--ink)}
+.btn-watch svg{display:block}
+
+/* ── QUICK FACTS row ── */
+.facts{display:flex;background:var(--card);border:1px solid var(--line);border-radius:16px;margin-top:14px;overflow:hidden}
+.fact{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:13px 6px;position:relative}
+.fact + .fact::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:1px;background:var(--line)}
+.fact svg{display:block;margin-bottom:1px}
+.fact-val{font-size:13px;font-weight:700;color:var(--ink)}
+.fact-sub{font-size:10px;color:var(--muted)}
+
+/* ── PRIMARY CTA — big, tactile, thumb-friendly ── */
+.cta{margin-top:16px}
+.btn-cook{width:100%;height:54px;border:none;border-radius:16px;background:var(--rust);color:var(--onPrimary);
+  font-family:'Inter';font-size:16px;font-weight:700;letter-spacing:.01em;display:flex;align-items:center;justify-content:center;gap:10px;
+  cursor:pointer;box-shadow:0 6px 18px rgba(184,64,48,.32);transition:transform .08s,box-shadow .15s,background .15s}
+.btn-cook:hover{background:#C8493A}
+.btn-cook:active{transform:translateY(1px);box-shadow:0 3px 10px rgba(184,64,48,.3)}
+.btn-cook svg{display:block}
+
+/* ── info callouts (stage notice + what-to-know) — unified on the SKY token,
+     replacing the build-126 mix of a raw #5B8FD4 blue + sky token ── */
+.note{display:flex;gap:10px;align-items:flex-start;background:var(--skyLight);border:1px solid rgba(122,170,187,.28);
+  border-radius:12px;padding:11px 13px;margin-top:14px}
+.note svg{flex-shrink:0;margin-top:1px}
+.note p{font-size:12px;line-height:1.5;color:var(--inkSoft)}
+.know{background:var(--skyLight);border:1px solid rgba(122,170,187,.28);border-left:3px solid var(--sky);
+  border-radius:0 14px 14px 0;padding:13px 14px 5px;margin-top:14px}
+.know-h{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--sky);margin-bottom:9px}
+.know-row{display:flex;gap:9px;margin-bottom:9px}
+.know-dot{width:5px;height:5px;border-radius:50%;background:var(--sky);margin-top:7px;flex-shrink:0}
+.know-row p{font-size:13px;line-height:1.5;color:var(--inkSoft)}
+
+/* ── SERVINGS / SCALING — smart stepper + leftover chips ── */
+.scale{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px;margin-top:18px}
+.scale-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.scale-label{font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--bronze)}
+.scale-hint{font-size:11px;color:var(--muted);margin-top:2px}
+.stepper{display:flex;align-items:center;background:var(--bg);border:1px solid var(--goldMid);border-radius:100px;overflow:hidden}
+.stepper button{width:42px;height:42px;border:none;background:transparent;color:var(--gold);font-size:22px;font-weight:300;cursor:pointer;line-height:1}
+.stepper button:active{background:var(--goldDim)}
+.stepper .v{min-width:30px;text-align:center;font-size:17px;font-weight:700;color:var(--ink)}
+.stepper .u{padding:0 14px 0 5px;font-size:12px;color:var(--muted)}
+.leftover{display:flex;gap:8px;margin-top:13px}
+.chip{flex:1;text-align:center;padding:9px 6px;border-radius:11px;border:1px solid var(--lineDark);background:var(--bg);
+  font-size:12px;font-weight:600;color:var(--inkSoft);cursor:pointer;transition:all .15s}
+.chip .s{display:block;font-size:9.5px;font-weight:500;color:var(--muted);margin-top:1px}
+.chip.sel{border-color:var(--goldMid);background:var(--goldDim);color:var(--ink)}
+.chip.sel .s{color:var(--bronze)}
+
+/* ── SECTION header ── */
+.section{margin-top:26px}
+.sec-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.sec-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--ink)}
+.sec-hint{font-size:11px;color:var(--muted)}
+.sec-count{margin-left:auto;font-size:11px;color:var(--muted);background:var(--card);border:1px solid var(--line);padding:2px 9px;border-radius:10px}
+
+/* ── INGREDIENTS ── */
+.ing{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line)}
+.ing:last-child{border-bottom:none}
+.ing-info{flex:1;min-width:0}
+.ing-name{font-size:14px;color:var(--ink);font-weight:500}
+.ing-amt{font-size:12px;color:var(--muted);margin-top:2px}
+.swap{flex-shrink:0;display:inline-flex;align-items:center;gap:5px;border:1px solid var(--goldMid);background:var(--goldDim);
+  color:var(--gold);font-size:11px;font-weight:600;border-radius:100px;padding:6px 12px;cursor:pointer}
+.swap.on{border-color:rgba(95,176,126,.4);background:var(--sageLight);color:var(--sageInk)}
+
+/* ── EQUIPMENT / PREP ── */
+.equip{display:flex;align-items:flex-start;gap:12px;padding:11px 2px;border-bottom:1px solid var(--line)}
+.equip:last-child{border-bottom:none}
+.equip-ic{width:34px;height:34px;border-radius:10px;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--inkSoft)}
+.equip-info{flex:1}
+.equip-name{font-size:14px;color:var(--ink);font-weight:500}
+.equip-note{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.4}
+.tag{font-size:10px;font-weight:700;letter-spacing:.04em;padding:3px 8px;border-radius:8px;flex-shrink:0;margin-top:1px}
+.tag.req{background:var(--rustLight);color:var(--rustInk)}
+.tag.opt{background:var(--card2);color:var(--muted);border:1px solid var(--line)}
+
+/* mise/prep zone — amber */
+.prep{background:var(--amberLine,rgba(160,92,40,.10));background:rgba(192,112,56,.08);border:1px solid rgba(160,92,40,.32);border-radius:14px;padding:13px 14px;margin-top:14px}
+.prep-h{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ochre);margin-bottom:9px}
+.prep-row{display:flex;gap:9px;margin-bottom:8px}
+.prep-row:last-child{margin-bottom:0}
+.prep-dot{width:5px;height:5px;border-radius:50%;background:var(--ochre);margin-top:7px;flex-shrink:0}
+.prep-row p{font-size:13px;line-height:1.5;color:var(--inkSoft)}
+
+/* ── METHOD steps ── */
+.step{padding:18px 0;border-bottom:1px solid var(--line)}
+.step:last-child{border-bottom:none}
+.step-head{display:flex;align-items:center;gap:13px;margin-bottom:11px}
+.step-num{width:34px;height:34px;border-radius:50%;background:var(--bg);border:1px solid var(--goldMid);color:var(--gold);
+  font-family:'Playfair Display',serif;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-title{flex:1;font-size:15px;font-weight:600;color:var(--ink)}
+.timer{display:inline-flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--lineDark);border-radius:10px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--inkSoft)}
+.step-body{padding-left:47px}
+.step-text{font-size:13.5px;line-height:1.65;color:var(--inkSoft);margin-bottom:11px}
+.step-text b{color:var(--ink);font-weight:600}
+
+/* doneness "Look for" — sage (a real signal cue) */
+.callout{display:flex;gap:11px;padding:11px 13px;border-radius:0 12px 12px 0;margin-top:9px}
+.callout .lab{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;flex-shrink:0;margin-top:2px}
+.callout .txt{font-size:12.5px;line-height:1.5}
+.look{background:var(--sageLight);border-left:3px solid var(--sage)}
+.look .lab{color:var(--sageInk)} .look .txt{color:var(--inkSoft)}
+.why{background:var(--goldDim);border-left:3px solid var(--gold)}
+.why .lab{color:var(--gold)} .why .txt{color:var(--inkSoft);font-family:'Playfair Display',serif;font-style:italic;font-size:13px}
+.heads{background:var(--ochreLight);border-left:3px solid var(--ochre)}
+.heads .lab{color:var(--ochre)} .heads .txt{color:var(--inkSoft)}
+
+/* finishing & tasting band — warm brown */
+.finish{background:rgba(176,128,96,.10);border:1px solid rgba(176,128,96,.3);border-radius:16px;padding:16px;margin-top:22px}
+.finish-h{font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--warmBrown);margin-bottom:8px}
+.finish p{font-size:13.5px;line-height:1.6;color:var(--inkSoft)}
+
+/* cook-mode entry (secondary, ghost) */
+.btn-cook2{width:100%;height:50px;border:1.5px solid var(--rustLight);border-radius:14px;background:transparent;color:var(--rustInk);
+  font-family:'Inter';font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;margin:22px 0 36px}
+.btn-cook2:hover{background:var(--rustLight);border-color:var(--rust)}
+
+/* rationale */
+.below{width:393px;margin-top:42px}
+.below-eyebrow{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--bronze);margin-bottom:14px}
+.below h2{font-family:'Playfair Display',serif;font-size:18px;color:var(--ink);margin:26px 0 11px}
+.below p{font-size:13px;color:var(--inkSoft);line-height:1.65;margin-bottom:10px}
+.below p b{color:var(--ink)}
+.rrow{padding:12px 0;border-bottom:1px solid var(--line)}
+.rrow:last-child{border-bottom:none}
+.rrow .c{font-size:12.5px;font-weight:600;color:var(--ink);margin-bottom:3px}
+.rrow .r{font-size:12px;color:var(--inkSoft);line-height:1.55}
+.safe{background:var(--sageLight);border:1px solid rgba(95,176,126,.3);border-radius:12px;padding:14px;margin-top:8px}
+.safe p{font-size:12.5px;color:var(--inkSoft);line-height:1.6;margin:0}
+.safe b{color:var(--sageInk)}
+.palette{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+.sw{display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:7px 11px;font-size:11px;color:var(--inkSoft)}
+.dot{width:14px;height:14px;border-radius:4px;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="page-eyebrow">Hone · Recipe Detail</div>
+  <h1 class="page-title">v6 — aesthetic restyle (safe)</h1>
+  <p class="page-sub">Every piece of content from the working build-#126 screen, kept. Pure visual polish: tactile buttons, one-job-per-colour palette, calmer hierarchy. <b>No animated header, no sticky bar, no scroll listeners, no new data</b> — so it can't reproduce the Fabric scroll crash. Rationale + palette below.</p>
+</div>
+
+<div class="phone">
+  <div class="status">
+    <span class="status-time">00:43</span>
+    <span style="display:flex;gap:5px">
+      <svg width="16" height="12" viewBox="0 0 16 12"><rect x="0" y="5" width="3" height="7" rx="1" fill="#F5EFE8" opacity=".4"/><rect x="4.5" y="3" width="3" height="9" rx="1" fill="#F5EFE8" opacity=".6"/><rect x="9" y="1" width="3" height="11" rx="1" fill="#F5EFE8" opacity=".8"/><rect x="13.5" width="2.5" height="12" rx="1" fill="#F5EFE8"/></svg>
+      <svg width="26" height="12" viewBox="0 0 28 12"><rect x="0.5" y="0.5" width="23" height="11" rx="3.5" stroke="#F5EFE8" opacity=".4" fill="none"/><rect x="2" y="2" width="17" height="8" rx="2" fill="#F5EFE8"/><path d="M25 4V8C25.8 7.5 26.5 6.8 26.5 6C26.5 5.2 25.8 4.5 25 4Z" fill="#F5EFE8" opacity=".4"/></svg>
+    </span>
+  </div>
+
+  <div class="scroll">
+
+    <!-- BACK BAR (static, in flow — no animated/collapsing header) -->
+    <div class="backbar">
+      <button class="icon-btn" aria-label="Back">
+        <svg width="20" height="20" viewBox="0 0 14 14" fill="none" stroke="#F5EFE8" stroke-width="2" stroke-linecap="round"><path d="M9 2L4 7L9 12"/></svg>
+      </button>
+      <span class="backbar-title">Smash Burger</span>
+      <button class="icon-btn on" aria-label="Add to plan">
+        <svg width="19" height="19" viewBox="0 0 14 14" fill="none" stroke="#D05040" stroke-width="2" stroke-linecap="round"><path d="M3 7L6 10L11 4"/></svg>
+      </button>
+      <button class="icon-btn" aria-label="Favourite">
+        <svg width="19" height="19" viewBox="0 0 14 14" fill="none" stroke="#F5EFE8" stroke-width="1.6"><path d="M7 12.2L1.7 7C.7 6 .7 4.2 1.7 3.2C2.7 2.1 4.4 2.1 5.4 3.2L7 4.7L8.6 3.2C9.6 2.1 11.3 2.1 12.3 3.2C13.3 4.2 13.3 6 12.3 7L7 12.2Z"/></svg>
+      </button>
+    </div>
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-photo"></div>
+      <div class="hero-fade"></div>
+      <div class="hero-body">
+        <div class="eyebrow">Inspired by Andy Cooks</div>
+        <div class="hero-title">Smash Burger</div>
+        <div class="hero-tag">The crispy-edged diner classic</div>
+      </div>
+    </div>
+
+    <div class="body">
+
+      <!-- attribution + watch -->
+      <div class="attrib">
+        <span class="attrib-chef">Recipe by <b>Andy Cooks</b> · adapted for Hone</span>
+        <button class="btn-watch">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5.3" stroke="#7AAABB" stroke-width="1.2"/><path d="M4.8 4L8.2 6L4.8 8V4Z" fill="#7AAABB"/></svg>
+          Watch the original video
+        </button>
+      </div>
+
+      <!-- QUICK FACTS -->
+      <div class="facts">
+        <div class="fact">
+          <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="#C2A15A" stroke-width="1.5"/><path d="M9 5V9L11.5 10.5" stroke="#C2A15A" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span class="fact-val">20 min</span><span class="fact-sub">start to plate</span>
+        </div>
+        <div class="fact">
+          <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><path d="M9 16C5.4 16 2.5 13.2 2.5 9.5C2.5 6.2 4.5 4.2 5.8 3C5.8 5 7 6.2 7.7 6.8C7.7 4.2 9 2 11 1.3C11 3.3 11.6 5.2 13.5 6.5C14.4 7.5 15.5 8.8 15.5 10.5C15.5 13.8 12.6 16 9 16Z" stroke="#C07038" stroke-width="1.4" fill="rgba(192,112,56,.16)"/></svg>
+          <span class="fact-val">Beginner</span><span class="fact-sub">fast &amp; forgiving</span>
+        </div>
+        <div class="fact">
+          <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><path d="M3 15.5V6L9 2.5L15 6V15.5" stroke="#7AAABB" stroke-width="1.4" stroke-linejoin="round"/><path d="M6.5 15.5V10h5v5.5" stroke="#7AAABB" stroke-width="1.4"/></svg>
+          <span class="fact-val">American</span><span class="fact-sub">diner</span>
+        </div>
+        <div class="fact">
+          <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="#3A7050" stroke-width="1.4" fill="rgba(46,94,62,.2)"/><path d="M5.8 9L8 11.2L12.2 7" stroke="#5FB07E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="fact-val">Serves 2</span><span class="fact-sub">eat now</span>
+        </div>
+      </div>
+
+      <!-- PRIMARY CTA -->
+      <div class="cta">
+        <button class="btn-cook">
+          <svg width="20" height="20" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="rgba(250,250,247,.55)" stroke-width="1.3"/><path d="M7 6L13 9L7 12V6Z" fill="#FAFAF7"/></svg>
+          Start cooking
+        </button>
+      </div>
+
+      <!-- stage photos notice (sky) -->
+      <div class="note">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#7AAABB" stroke-width="1.4"><rect x="1" y="3.5" width="12" height="8" rx="1.5"/><circle cx="7" cy="7.5" r="2.2"/><path d="M4.5 3.5L5.3 2h3.4l.8 1.5"/></svg>
+        <p>Stage-by-stage photos are on the way — we'll photograph this recipe soon.</p>
+      </div>
+
+      <!-- what to know -->
+      <div class="know">
+        <div class="know-h">What to know before you start</div>
+        <div class="know-row"><span class="know-dot"></span><p>A heavy steel or cast-iron pan is not optional — non-stick can't reach the heat. Give it longer than you think to get screaming hot.</p></div>
+        <div class="know-row"><span class="know-dot"></span><p>Have your mise en place ready before the pan goes on. Once the beef hits, you have about 10 seconds to smash.</p></div>
+        <div class="know-row"><span class="know-dot"></span><p>80/20 mince is the move — the rendered fat builds the crispy, lacy edge.</p></div>
+      </div>
+
+      <!-- SERVINGS / SCALING -->
+      <div class="scale">
+        <div class="scale-top">
+          <div>
+            <div class="scale-label">How many burgers</div>
+            <div class="scale-hint">Ingredients scale automatically</div>
+          </div>
+          <div class="stepper">
+            <button onclick="adj(-1)">−</button>
+            <span class="v" id="count">2</span>
+            <span class="u" id="unit">burgers</span>
+            <button onclick="adj(1)">+</button>
+          </div>
+        </div>
+        <div class="leftover">
+          <div class="chip sel">Eat tonight<span class="s">just enough</span></div>
+          <div class="chip">Make extra<span class="s">+ tomorrow</span></div>
+          <div class="chip">Batch cook<span class="s">×4 portions</span></div>
+        </div>
+      </div>
+
+      <!-- INGREDIENTS -->
+      <div class="section">
+        <div class="sec-head"><span class="sec-title">Ingredients</span><span class="sec-count">9 items</span></div>
+        <div>
+          <div class="ing"><div class="ing-info"><div class="ing-name">Beef mince, 80/20</div><div class="ing-amt">250 g per burger · 500 g total</div></div><button class="swap">Swap</button></div>
+          <div class="ing"><div class="ing-info"><div class="ing-name">American cheese</div><div class="ing-amt">2 slices per burger · 4 total</div></div><button class="swap on">✓ Cheddar</button></div>
+          <div class="ing"><div class="ing-info"><div class="ing-name">Brioche buns, seeded</div><div class="ing-amt">1 per burger · 2 total</div></div><button class="swap">Swap</button></div>
+          <div class="ing"><div class="ing-info"><div class="ing-name">Iceberg lettuce</div><div class="ing-amt">2–3 leaves per burger</div></div><button class="swap">Swap</button></div>
+          <div class="ing"><div class="ing-info"><div class="ing-name">Dill pickles, sliced</div><div class="ing-amt">4–5 slices per burger</div></div><button class="swap">Swap</button></div>
+          <div class="ing"><div class="ing-info"><div class="ing-name">White onion, finely diced</div><div class="ing-amt">¼ onion per burger</div></div><button class="swap">Swap</button></div>
+          <div class="ing"><div class="ing-info"><div class="ing-name">Burger sauce</div><div class="ing-amt">2–3 tbsp · see sauce recipe</div></div></div>
+          <div class="ing"><div class="ing-info"><div class="ing-name">Fine sea salt</div><div class="ing-amt">Season to taste</div></div></div>
+          <div class="ing"><div class="ing-info"><div class="ing-name">Neutral oil</div><div class="ing-amt">1 tsp for the pan</div></div><button class="swap">Swap</button></div>
+        </div>
+      </div>
+
+      <!-- EQUIPMENT -->
+      <div class="section">
+        <div class="sec-head"><span class="sec-title">Equipment</span><span class="sec-count">4 items</span></div>
+        <div>
+          <div class="equip">
+            <div class="equip-ic"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="9" r="4.5"/><path d="M11 7L16 5.5" stroke-linecap="round"/></svg></div>
+            <div class="equip-info"><div class="equip-name">Cast-iron or carbon-steel frypan</div><div class="equip-note">Must hold very high heat. 24–28 cm.</div></div>
+            <span class="tag req">Essential</span>
+          </div>
+          <div class="equip">
+            <div class="equip-ic"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3 12L8 7"/><rect x="7" y="2" width="6" height="6" rx="1" transform="rotate(45 10 5)"/></svg></div>
+            <div class="equip-info"><div class="equip-name">Flat metal spatula</div><div class="equip-note">Thin, rigid edge for the smash + crust scrape.</div></div>
+            <span class="tag req">Essential</span>
+          </div>
+          <div class="equip">
+            <div class="equip-ic"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 9.5C2 9.5 5 6 8.5 6C12 6 15 9.5 15 9.5" stroke-linecap="round"/><line x1="8.5" y1="6" x2="8.5" y2="3" stroke-linecap="round"/></svg></div>
+            <div class="equip-info"><div class="equip-name">Saucepan lid or bacon press</div><div class="equip-note">Press the ball flat the second it hits the pan.</div></div>
+            <span class="tag opt">Optional</span>
+          </div>
+          <div class="equip">
+            <div class="equip-ic"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><line x1="8.5" y1="3" x2="8.5" y2="11"/><circle cx="8.5" cy="13" r="1.4"/></svg></div>
+            <div class="equip-info"><div class="equip-name">Instant-read thermometer</div><div class="equip-note">72°C if unsure — though the crust is the real signal.</div></div>
+            <span class="tag opt">Optional</span>
+          </div>
+        </div>
+        <!-- PREP / mise zone (amber) -->
+        <div class="prep">
+          <div class="prep-h">Prep · have it ready</div>
+          <div class="prep-row"><span class="prep-dot"></span><p>Portion the mince into loose 125 g balls — don't pack them.</p></div>
+          <div class="prep-row"><span class="prep-dot"></span><p>Finely dice the onion, slice the pickles, get the cheese to room temp.</p></div>
+        </div>
+      </div>
+
+      <!-- METHOD -->
+      <div class="section">
+        <div class="sec-head"><span class="sec-title">Method</span><span class="sec-count">6 steps</span></div>
+
+        <div class="step">
+          <div class="step-head"><div class="step-num">1</div><div class="step-title">Heat the pan</div><span class="timer">⏱ 5 min</span></div>
+          <div class="step-body">
+            <p class="step-text">Put the pan over <b>high heat</b> until it's just starting to smoke — 4–5 min on gas, longer on electric. Add a teaspoon of oil; it should shimmer at once.</p>
+            <div class="callout look"><span class="lab">Look for</span><span class="txt">A faint wisp of smoke and oil that shimmers and moves like water.</span></div>
+            <div class="callout why"><span class="lab">Why</span><span class="txt">The crust needs surface temps above 150°C. A lukewarm pan steams the beef grey; a screaming pan sears it brown.</span></div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-head"><div class="step-num">2</div><div class="step-title">Smash &amp; sear</div><span class="timer">⏱ 2 min</span></div>
+          <div class="step-body">
+            <p class="step-text">Drop a ball in and <b>press it down hard straight away</b> — lean your weight in, hold 10 seconds. Season with sea salt. Don't touch it for 90 seconds.</p>
+            <div class="callout look"><span class="lab">Look for</span><span class="txt">Deeply browned, lacy edges before you lift — that's the flavour.</span></div>
+            <div class="callout heads"><span class="lab">Heads-up</span><span class="txt">Coming next: flip once, then cheese goes on immediately while it's hot.</span></div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-head"><div class="step-num">3</div><div class="step-title">Cheese &amp; steam</div><span class="timer">⏱ 45 sec</span></div>
+          <div class="step-body">
+            <p class="step-text">Flip and lay two slices of cheese on top. Add a splash of water and cover for 30–45 seconds.</p>
+            <div class="callout why"><span class="lab">Why</span><span class="txt">The steam pocket finishes the melt without overcooking the beef. Cheddar needs an extra 15 seconds.</span></div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-head"><div class="step-num">4</div><div class="step-title">Toast the bun</div><span class="timer">⏱ 1 min</span></div>
+          <div class="step-body">
+            <p class="step-text">Same pan, medium heat — press the cut sides face-down 45–60 seconds until golden. Watch it; brioche burns fast.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-head"><div class="step-num">5</div><div class="step-title">Build &amp; serve</div></div>
+          <div class="step-body">
+            <p class="step-text">Bottom bun → sauce → onion → lettuce → patty → pickles → sauce → top. <b>Serve straight away.</b></p>
+            <div class="callout why"><span class="lab">Why</span><span class="txt">Onion under the patty softens in the residual heat; pickles on top stay crisp.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FINISHING band -->
+      <div class="finish">
+        <div class="finish-h">Finishing &amp; tasting</div>
+        <p>A smash burger is a 90-second window — plate the second it's built. Taste a pinch of the crust: it should be salty, beefy, and crisp. If the sauce is shy, add a little more on the top bun, not the bottom.</p>
+      </div>
+
+      <!-- cook-mode entry (secondary) -->
+      <button class="btn-cook2">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#D05040" stroke-width="1.3"/><path d="M6.5 5.5L11.5 8L6.5 10.5V5.5Z" fill="#D05040"/></svg>
+        Enter cook mode — one step at a time
+      </button>
+
+    </div>
+  </div>
+</div>
+
+<!-- RATIONALE -->
+<div class="below">
+  <div class="below-eyebrow">What changed — aesthetic only</div>
+  <p>This keeps <b>every piece of content</b> from the working build-#126 screen, in the same order. Nothing was removed and nothing new was added to the data. The change is purely how it looks and how the buttons feel — so it's a safe StyleSheet pass that <b>cannot reproduce the Fabric scroll crash</b> from v5.</p>
+
+  <div class="rrow"><div class="c">Tactile, thumb-sized buttons</div><div class="r">"Start cooking" is now a 54px rounded button with a soft rust glow and a real press state — it reads as the one thing to tap. The servings stepper, leftover chips, and swap pills all have ≥42px targets and clear pressed/selected states. Buttons that toggle (plan, favourite) show their on-state with a rust tint, not a colour you have to guess at.</div></div>
+
+  <div class="rrow"><div class="c">One job per colour</div><div class="r">The build-#126 screen mixed a raw <b>#5B8FD4</b> blue (the "what to know" + stage notice) with the design-system sky token elsewhere — two different blues doing the same job. v6 unifies all information cues on the single <b>sky</b> token, and gives every other colour exactly one role (below). The result is calmer and reads as deliberate.</div></div>
+
+  <div class="rrow"><div class="c">Calmer hierarchy &amp; spacing</div><div class="r">Hero gets rounded corners and breathing room; quick-facts sit in one clean divided row; sections use a Playfair title + a quiet count chip; the method steps get a clear round number badge and consistent callout rails. Same content, less visual noise.</div></div>
+
+  <div class="rrow"><div class="c">Cues kept, just clarified</div><div class="r">"Look for" (doneness) stays sage — a real go-signal. "Why" stays gold italic Playfair. "Heads-up" (what's coming) stays ochre. The amber Prep zone and the warm-brown Finishing band are kept and tidied. Nothing dropped.</div></div>
+
+  <h2>The palette — each colour, one job</h2>
+  <div class="palette">
+    <span class="sw"><span class="dot" style="background:#B84030"></span>rust · Start cooking</span>
+    <span class="sw"><span class="dot" style="background:#F2CC2A"></span>gold · stepper + "Why"</span>
+    <span class="sw"><span class="dot" style="background:#3A7050"></span>sage · done / "Look for"</span>
+    <span class="sw"><span class="dot" style="background:#C07038"></span>ochre · Prep + "Heads-up"</span>
+    <span class="sw"><span class="dot" style="background:#7AAABB"></span>sky · information</span>
+    <span class="sw"><span class="dot" style="background:#C2A15A"></span>bronze · eyebrows</span>
+    <span class="sw"><span class="dot" style="background:#B08060"></span>warm brown · Finishing</span>
+  </div>
+  <p>All seven are existing tokens from <b>tokens.ts</b> — no new colours introduced.</p>
+
+  <h2>For the engineer — why this is safe</h2>
+  <div class="safe"><p><b>This is a styling-only change to the existing browse-mode render in <code>recipe/[id].tsx</code>.</b> No collapsing/animated header, no sticky bottom bar, no scroll listeners, no <code>Animated</code> on the native driver, no new schema fields. The v5 crash was a Fabric native-driver scroll animation on open — none of that exists here. Map these visuals onto the current StyleSheet; the component tree, state, and data stay exactly as build #126.</p></div>
+</div>
+
+<script>
+  function adj(d){var e=document.getElementById('count'),u=document.getElementById('unit');var v=Math.max(1,Math.min(12,parseInt(e.textContent)+d));e.textContent=v;u.textContent=v===1?'burger':'burgers';}
+  document.querySelectorAll('.leftover .chip').forEach(function(ch){ch.addEventListener('click',function(){document.querySelectorAll('.leftover .chip').forEach(function(x){x.classList.remove('sel')});ch.classList.add('sel');});});
+</script>
+</body>
+</html>

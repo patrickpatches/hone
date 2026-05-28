@@ -72,3 +72,13 @@ Patrick flagged that my read of the build state was stale and told me to take ow
 **Two systemic causes, named for the record:** (1) the recurring R-014 truncation gremlin has now eaten content from at least three files (seed-recipes, this session's report, FILE_MAP, and the build-log rows) — the CI guard from build #112 only covers `.ts`/`.tsx`, not markdown; widening it to docs is worth a ticket. (2) The local working tree at `C:\Users\patri\hone` runs behind `main`, so reading local files gives a stale picture — repo/build state must be reconciled against GitHub `main`, which is what surfaced this whole issue.
 
 **Current truth (reconciled):** build #123 on Patrick's phone = the pantry redesign + bronze category headers. Recipe-detail v4/v5 = prototype + APPROVED build spec, **not yet implemented in the app** — that's the engineer's next build.
+
+---
+
+## v5 crashed on-device → aesthetic-only v6 (2026-05-28)
+
+v5 was built by the engineer (#124) and **force-closed on opening any recipe**. Root cause (from git history + the engineer's #126 closeout): a **Fabric native-driver scroll animation** in the collapsing top app bar / sticky CTA bar — the exact scroll-driven chrome I'd specced. The #125 hotfix (native→JS driver) didn't hold; #126 reverted to the pre-v5 screen. **That's on me** — those patterns are crash-prone under Fabric and I should have flagged the risk in the v5 spec.
+
+Patrick asked for an **aesthetic-only** redesign instead. Built `docs/prototypes/recipe-detail-v6.html`: a pure visual restyle of the working build-#126 browse screen using the real `tokens.ts` dark palette — tactile thumb-sized buttons, one-job-per-colour palette (unifying #126's stray `#5B8FD4` blue onto the sky token), calmer hierarchy. **Every content block kept; no new data; no animated/sticky/scroll behaviour** — so it cannot reproduce the crash. Awaiting Patrick's visual review.
+
+Housekeeping: build log already carried #124/#125/#126 (engineer logged them); I flipped the v5 build handoff to 🛑 SUPERSEDED, opened the v6 handoff, and closed Issue #5 as the crashed approach.

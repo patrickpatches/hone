@@ -70,6 +70,30 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
+### HANDOFF → Patrick (visual review) + Senior Engineer (when approved) · 2026-05-28 · OPEN — AESTHETIC RESTYLE (recipe detail v6 — safe rebuild after the v5 crash)
+**From:** Product Designer
+**Subject:** v5 crashed on-device and was reverted (#126). Patrick asked for an **aesthetic-only** redesign of the recipe page — ergonomic, smart buttons, refined colour palette — **with no content removed and nothing that could reproduce the crash.** Prototype: `docs/prototypes/recipe-detail-v6.html`. Awaiting Patrick's visual review before any build.
+
+**What caused the crash (so we don't repeat it):** v5's collapsing top app bar + sticky bottom CTA used `Animated` driven by scroll offset on the **native driver**, which force-closes the screen under React Native's **Fabric** renderer on open. That whole class of behaviour is OUT.
+
+**What v6 is:** a pure visual restyle of the **current working build-#126 browse screen**, built from the REAL `tokens.ts` dark palette (verified against main). Every content block from #126 is kept, in the same order: back bar (back + title + plan + favourite), hero + chef attribution + "Watch the original video", "Start cooking", quick-facts row, stage-photos notice, "What to know before you start", servings/leftover selector, Ingredients (+ swap pills), Equipment + Prep, Method steps ("Look for" doneness cue / "Why" note / "Heads-up" lookahead / timer), and the "Finishing & tasting" band. **Nothing removed; no new data fields.**
+
+**Aesthetic changes (all StyleSheet-level):**
+1. **Tactile, thumb-sized buttons.** "Start cooking" → a 54dp rounded rust button with a soft glow + real press state (the one clear primary). Servings stepper, leftover chips, swap pills all ≥42dp with obvious pressed/selected states. Toggle buttons (plan, favourite) show their on-state as a rust tint.
+2. **One job per colour** (all existing tokens): **rust** = Start cooking · **gold** = stepper + "Why" · **sage** = done / "Look for" · **ochre** = Prep + "Heads-up" · **sky** = information · **bronze** = section eyebrows · **warm brown** = Finishing band. Fixes build-#126's mix of a raw `#5B8FD4` blue *and* the sky token both doing "info" — unified onto `sky`.
+3. **Calmer hierarchy/spacing** — rounded hero, one divided quick-facts row, Playfair section titles + quiet count chips, consistent callout rails, round step-number badge.
+
+**⚠ ENGINEER SAFETY CONSTRAINTS (the whole point):**
+- Styling-only change to the existing browse-mode render in `recipe/[id].tsx`. Map visuals onto the current StyleSheet; **leave the component tree, state, navigation, and data exactly as #126.**
+- **NO** collapsing/animated header, **NO** sticky bottom bar, **NO** scroll listeners, **NO** `Animated` on the native driver, **NO** new schema fields. If a visual seems to need any of those, stop and flag it.
+- Do not touch cook mode.
+
+**Decision needed from Patrick:** visual approval of v6. On approval I'll write a styling-only build ticket (Issue #5 is now closed — it was the crashed approach). Engineer ships to main; **Patrick triggers the build + validates on-device (R-015).**
+
+**Files:** `docs/prototypes/recipe-detail-v6.html` (new).
+
+---
+
 ### CLOSEOUT — Build #126 · Engineer · 2026-05-26
 
 **Scope:** Rollback. Recipe screen reverted to pre-v5 (the #123 state) after #124+#125 both crashed on opening any recipe.
@@ -149,6 +173,10 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 4. **`OriginFlag` is a new component** — Designer may want to review the flag glyphs (render-audit montage was produced during the build).
 
 ---
+
+### HANDOFF → Senior Engineer · 2026-05-25 · 🛑 SUPERSEDED — v5 BUILT, CRASHED & REVERTED (replaced by aesthetic-only v6)
+
+**🛑 HALTED 2026-05-28:** v5 was built (#124) and **force-closed on opening any recipe** — a Fabric native-driver scroll animation in the collapsing top app bar / sticky CTA bar. The #125 hotfix (native→JS driver) didn't hold; #126 reverted to the pre-v5 screen. **Do not rebuild from this spec.** The scroll-driven chrome (collapsing header, sticky bar) is the part that crashed and must NOT be reintroduced — see the aesthetic-only v6 handoff at the top of this file.
 
 ### HANDOFF → Senior Engineer · 2026-05-25 · ✅ APPROVED BY PATRICK · BUILD (recipe detail **v5** "The Pass")
 **From:** Product Designer
