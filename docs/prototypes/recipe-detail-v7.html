@@ -24,19 +24,19 @@
   /* COOK MODE — true OLED black (CLAUDE.md mandate: visually distinct from app bg). */
   --bgC:        #000000;
   --cardC:      #0E0E0E;
+  /* Text */
   --ink:        #F5EFE8;
   --inkSoft:    #C4B8A8;
   --muted:      #8A7E72;
-  --terra:      #D8634F;          /* brightened terracotta — reads on OLED */
+  /* Accents — FIVE tokens, each one job (mirrors the live Pantry tab) */
+  --terra:      #D8634F;
   --terraSoft:  rgba(216,99,79,0.12);
   --terraDeep:  #B84030;
-  --olive:      #5FB07E;          /* brighter sage so 'in pantry' reads on black */
-  --oliveSoft:  rgba(95,176,126,0.12);
   --gold:       #F2CC2A;
   --goldSoft:   rgba(242,204,42,0.10);
-  --ochre:      #D88E50;          /* brightened ochre for honest-swap callout */
-  --ochreSoft:  rgba(216,142,80,0.12);
-  --bronze:     #C2A15A;          /* eyebrow / chef attribution */
+  --bronze:     #C2A15A;
+  --bronzeSoft: rgba(194,161,90,0.10);
+  /* Structural */
   --line:       rgba(255,255,255,0.08);
   --lineSoft:   rgba(255,255,255,0.05);
   --shadow:     0 12px 32px rgba(0,0,0,0.55);
@@ -69,16 +69,16 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
 .status svg{display:block}
 
 /* ─────────────────────────────────────────────────────────────
-   FRAME A — BROWSE / DECIDE  (dark palette, editorial layout)
+   FRAME A — BROWSE / DECIDE (restrained, pantry-tab vocabulary)
+   Five accent tokens: ink / muted / bronze / gold / terra.
    ───────────────────────────────────────────────────────────── */
-.b-bar{display:flex;align-items:center;gap:4px;padding:54px 12px 8px}
+.b-bar{display:flex;align-items:center;gap:4px;padding:54px 12px 4px}
 .b-btn{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;background:transparent;flex-shrink:0;color:var(--ink)}
-.b-btn:hover{background:rgba(255,255,255,.06)}
+.b-btn:hover{background:rgba(255,255,255,.05)}
 .b-btn.on{background:var(--terraSoft);color:var(--terra)}
 .b-spacer{flex:1}
 
-/* Hero — edge-to-edge */
-.b-hero{height:340px;position:relative;overflow:hidden;margin:0}
+.b-hero{height:340px;position:relative;overflow:hidden}
 .b-photo{position:absolute;inset:0;background:
   radial-gradient(ellipse at 32% 28%,rgba(232,148,72,.7) 0%,transparent 48%),
   radial-gradient(ellipse at 70% 64%,rgba(170,62,36,.6) 0%,transparent 52%),
@@ -87,112 +87,87 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
 .b-photo-grain{position:absolute;inset:0;opacity:.4;background:repeating-linear-gradient(112deg,rgba(255,225,180,.04) 0 2px,transparent 2px 4px)}
 .b-hero-fade{position:absolute;left:0;right:0;bottom:0;height:96px;background:linear-gradient(to top,var(--bg),transparent)}
 
-/* Title block */
-.b-title-block{padding:22px 22px 4px}
-.b-chef{font-family:var(--body);font-size:11px;font-weight:600;letter-spacing:.10em;text-transform:uppercase;color:var(--bronze);margin-bottom:9px}
-.b-chef a{color:var(--bronze);text-decoration:underline;text-underline-offset:2px;opacity:.85;font-weight:500}
+.b-title-block{padding:18px 20px 4px}
+.b-eye{font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--bronze);margin-bottom:8px}
+.b-eye a{color:var(--bronze);text-decoration:none;font-weight:500;opacity:.85;text-transform:none;letter-spacing:.04em}
+.b-eye a:hover{opacity:1}
 .b-title{font-family:var(--display);font-variation-settings:"opsz" 144,"wght" 700;font-size:38px;line-height:1.02;letter-spacing:-.6px;color:var(--ink)}
 .b-tag{font-family:var(--display);font-variation-settings:"opsz" 36,"wght" 400;font-style:italic;font-size:16px;line-height:1.4;color:var(--inkSoft);margin-top:7px}
+.b-meta{display:flex;align-items:center;gap:10px;margin-top:11px;font-size:12.5px;color:var(--muted);font-weight:500}
+.b-meta b{color:var(--inkSoft);font-weight:600}
+.b-meta-dot{width:3px;height:3px;border-radius:50%;background:var(--muted);opacity:.6}
 
-.b-body{padding:0 22px 24px}
+.b-body{padding:0 18px 28px}
 
-/* PANTRY SIGNAL — the kill-feature surface */
-.b-pantry{margin-top:20px;background:var(--cardSoft);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadowSm)}
-.b-pan-top{display:flex;align-items:center;gap:12px;margin-bottom:9px}
-.b-pan-ring{width:38px;height:38px;border-radius:50%;background:conic-gradient(var(--olive) 0 280deg,var(--cardLifted) 280deg 360deg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.b-pan-ring-inner{width:30px;height:30px;border-radius:50%;background:var(--cardSoft);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-variation-settings:"opsz" 24,"wght" 700;font-size:12px;color:var(--ink);letter-spacing:-.3px}
-.b-pan-text{flex:1}
-.b-pan-line{font-family:var(--body);font-size:13.5px;font-weight:600;color:var(--ink)}
-.b-pan-line strong{color:var(--olive)}
-.b-pan-sub{font-size:12px;color:var(--muted);margin-top:1px}
-.b-pan-missing{display:flex;flex-wrap:wrap;gap:6px}
-.b-miss{font-size:11.5px;font-weight:500;color:var(--inkSoft);background:var(--cardLifted);border:1px solid var(--line);border-radius:12px;padding:5px 10px}
-.b-pan-action{display:block;width:100%;text-align:center;margin-top:11px;background:transparent;border:1.5px solid var(--olive);color:var(--olive);font-family:var(--body);font-weight:700;font-size:12.5px;letter-spacing:.02em;border-radius:100px;padding:10px;cursor:pointer}
-.b-pan-action:hover{background:var(--oliveSoft)}
+.b-diet{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;padding:12px 4px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.b-diet-k{font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);align-self:center;margin-right:2px}
+.b-tag{font-size:11px;color:var(--inkSoft);background:var(--card);border:1px solid var(--line);border-radius:11px;padding:4px 10px;font-weight:500}
 
-/* Quick facts */
-.b-facts{display:flex;gap:14px;margin-top:18px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.b-fact{display:flex;flex-direction:column;gap:2px;flex:1}
-.b-fact .v{font-family:var(--display);font-variation-settings:"opsz" 24,"wght" 700;font-size:18px;color:var(--ink);line-height:1.1}
-.b-fact .v small{font-family:var(--body);font-weight:600;font-size:11px;color:var(--muted);margin-left:3px}
-.b-fact .l{font-size:10.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:2px}
-
-/* allergens */
-.b-diet{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
-.b-diet-k{font-size:10px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);margin-right:2px;align-self:center}
-.b-tag{font-size:11px;color:var(--inkSoft);background:var(--cardSoft);border:1px solid var(--line);border-radius:12px;padding:4px 10px}
-
-/* PRIMARY CTA */
-.b-cta{margin-top:18px}
-.b-start{width:100%;height:58px;border:none;border-radius:18px;background:var(--terra);color:#fff;
-  font-family:var(--body);font-size:17px;font-weight:700;letter-spacing:.01em;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;
-  box-shadow:0 8px 24px rgba(216,99,79,.32)}
+.b-cta{margin-top:16px}
+.b-start{width:100%;height:56px;border:none;border-radius:16px;background:var(--terra);color:#fff;
+  font-family:var(--body);font-size:16px;font-weight:700;letter-spacing:.01em;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;
+  box-shadow:0 8px 22px rgba(216,99,79,.28)}
 .b-start:hover{background:#E27160}
-.b-2nd{display:flex;justify-content:center;align-items:center;gap:16px;margin-top:11px}
+.b-2nd{display:flex;justify-content:center;align-items:center;gap:18px;margin-top:11px}
 .b-2nd a{font-size:12.5px;font-weight:600;color:var(--inkSoft);text-decoration:none;display:inline-flex;align-items:center;gap:5px}
 .b-2nd a:hover{color:var(--ink)}
 .b-2nd .sep{width:1px;height:14px;background:var(--line)}
 
-/* JOURNEY overview */
-.b-journey{margin-top:22px;background:var(--cardSoft);border:1px solid var(--line);border-radius:18px;padding:14px}
-.b-jh{font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--bronze);margin-bottom:10px}
-.b-j-row{display:flex;align-items:center;gap:10px}
-.b-j-step{flex:1;text-align:center;padding:9px 4px;background:var(--cardLifted);border-radius:12px;border:1px solid var(--line)}
-.b-j-num{font-family:var(--display);font-variation-settings:"opsz" 24,"wght" 700;font-size:13px;color:var(--terra);line-height:1}
-.b-j-lbl{font-size:11px;font-weight:600;color:var(--ink);margin-top:3px;line-height:1.2}
-.b-j-time{font-size:10px;color:var(--muted);margin-top:1px}
-.b-j-arrow{color:var(--muted);font-size:14px}
+.b-sec{margin-top:24px}
+.b-sec-h{display:flex;align-items:center;gap:9px;padding:0 4px 9px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.b-sec-ic{display:flex;align-items:center;color:var(--bronze);flex-shrink:0}
+.b-sec-t{font-family:var(--body);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--bronze);flex:1}
+.b-sec-c{font-size:11.5px;color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
 
-/* Section header */
-.b-sec{margin-top:26px}
-.b-sec-h{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
-.b-sec-t{font-family:var(--display);font-variation-settings:"opsz" 30,"wght" 700;font-size:22px;color:var(--ink);letter-spacing:-.2px}
-.b-sec-c{margin-left:auto;font-size:11px;color:var(--muted);background:var(--cardSoft);padding:3px 9px;border-radius:10px;border:1px solid var(--line)}
+.b-pantry{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.b-pan-top{display:flex;align-items:center;gap:13px;margin-bottom:11px}
+.b-pan-count{font-family:var(--display);font-variation-settings:"opsz" 60,"wght" 700;font-size:30px;color:var(--bronze);letter-spacing:-.5px;line-height:1;flex-shrink:0}
+.b-pan-count small{font-size:15px;color:var(--muted);font-weight:400}
+.b-pan-text{flex:1;min-width:0}
+.b-pan-line{font-size:13.5px;color:var(--ink);font-weight:600;line-height:1.3}
+.b-pan-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.b-pan-missing{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:11px}
+.b-miss{font-size:11px;color:var(--inkSoft);background:var(--cardSoft);border:1px solid var(--line);border-radius:10px;padding:4px 9px;font-weight:500}
+.b-pan-action{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:transparent;border:1.5px solid var(--gold);color:var(--gold);font-family:var(--body);font-weight:700;font-size:12.5px;letter-spacing:.02em;border-radius:100px;padding:9px;cursor:pointer}
+.b-pan-action:hover{background:var(--goldSoft)}
 
-/* Ingredients */
-.b-ing{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--lineSoft)}
-.b-ing:last-child{border-bottom:none}
-.b-ing-info{flex:1;min-width:0}
-.b-ing-n{font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.3}
-.b-ing-n.have{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(95,176,126,.55);text-decoration-thickness:1.5px}
-.b-ing-a{font-size:12.5px;color:var(--muted);margin-top:2px}
-.b-ing-have-dot{width:18px;height:18px;border-radius:50%;background:var(--oliveSoft);border:1.5px solid var(--olive);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.b-swap{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);background:var(--cardLifted);color:var(--bronze);
-  font-size:11.5px;font-weight:600;border-radius:100px;padding:5px 12px;cursor:pointer}
-.b-swap:hover{border-color:var(--bronze)}
-.b-swap.on{border-color:var(--olive);background:var(--oliveSoft);color:var(--olive)}
+.b-journey{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.b-j-row{display:flex;align-items:center;gap:8px}
+.b-j-step{flex:1;text-align:center;padding:9px 4px;background:var(--cardSoft);border-radius:10px;border:1px solid var(--line)}
+.b-j-num{font-family:var(--display);font-variation-settings:"opsz" 24,"wght" 700;font-size:13px;color:var(--bronze);line-height:1;letter-spacing:.04em}
+.b-j-lbl{font-size:12px;font-weight:600;color:var(--ink);margin-top:4px;line-height:1.1}
+.b-j-time{font-size:10.5px;color:var(--muted);margin-top:1px;font-variant-numeric:tabular-nums}
+.b-j-arrow{color:var(--muted);font-size:14px;font-weight:300}
 
-/* HONEST SWAP — golden rule 5 surfaced */
-.b-sub-note{margin-top:5px;padding:8px 11px;background:var(--ochreSoft);border-left:3px solid var(--ochre);border-radius:0 10px 10px 0;font-size:11.5px;font-style:italic;color:var(--inkSoft);font-family:var(--display);font-variation-settings:"opsz" 14,"wght" 400}
-.b-sub-note b{font-style:normal;color:var(--ochre);font-weight:700;font-family:var(--body);font-size:9px;letter-spacing:.10em;text-transform:uppercase;margin-right:6px}
+.b-row{display:flex;align-items:center;gap:11px;padding:12px 14px;background:var(--card);border:1px solid var(--line);border-radius:13px;margin-bottom:6px}
+.b-row.have{background:transparent;border-color:var(--lineSoft)}
+.b-row-ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--bronze)}
+.b-row.have .b-row-ic{color:var(--muted);opacity:.65}
+.b-row-info{flex:1;min-width:0}
+.b-row-n{font-size:14px;font-weight:600;color:var(--ink);line-height:1.3}
+.b-row.have .b-row-n{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(194,161,90,.5);text-decoration-thickness:1.4px}
+.b-row-sub{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.35}
+.b-row-tag{font-size:10px;font-weight:700;letter-spacing:.05em;padding:3px 8px;border-radius:8px;flex-shrink:0;text-transform:uppercase}
+.b-row-tag.req{color:var(--bronze);background:var(--bronzeSoft);border:1px solid rgba(194,161,90,.30)}
+.b-row-tag.opt{color:var(--muted)}
+.b-row-time{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;flex-shrink:0}
+.b-row-chev{color:var(--muted);font-size:18px;line-height:1;flex-shrink:0}
+.b-row-num{font-family:var(--display);font-variation-settings:"opsz" 24,"wght" 700;font-size:14px;color:var(--bronze);letter-spacing:.02em}
 
-/* Equipment + Prep */
-.b-eq{display:flex;align-items:flex-start;gap:11px;padding:11px 0;border-bottom:1px solid var(--lineSoft)}
-.b-eq:last-child{border-bottom:none}
-.b-eq-ic{width:34px;height:34px;border-radius:10px;background:var(--cardLifted);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--bronze)}
-.b-eq-info{flex:1}
-.b-eq-n{font-size:14px;font-weight:600;color:var(--ink)}
-.b-eq-note{font-size:12px;color:var(--muted);margin-top:2px}
-.b-tag2{font-size:10px;font-weight:700;letter-spacing:.04em;padding:3px 8px;border-radius:8px;flex-shrink:0;margin-top:2px}
-.b-tag2.req{background:var(--terraSoft);color:var(--terra)}
-.b-tag2.opt{background:var(--cardLifted);color:var(--muted);border:1px solid var(--line)}
+.b-swap{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--gold);background:transparent;color:var(--gold);
+  font-size:11.5px;font-weight:700;border-radius:100px;padding:5px 12px;cursor:pointer;letter-spacing:.01em;flex-shrink:0}
+.b-swap:hover{background:var(--goldSoft)}
+.b-swap.on{border-color:var(--bronze);background:var(--bronzeSoft);color:var(--bronze)}
 
-/* Prep band */
-.b-prep{background:var(--ochreSoft);border:1px solid rgba(216,142,80,.28);border-radius:14px;padding:14px;margin-top:14px}
-.b-prep-h{font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ochre);margin-bottom:9px}
+.b-sub-note{margin-top:8px;padding:9px 12px;background:var(--bronzeSoft);border-left:2px solid var(--bronze);border-radius:0 10px 10px 0;font-size:12.5px;font-style:italic;color:var(--inkSoft);font-family:var(--display);font-variation-settings:"opsz" 14,"wght" 400;line-height:1.45}
+.b-sub-note b{font-style:normal;color:var(--bronze);font-weight:700;font-family:var(--body);font-size:9px;letter-spacing:.10em;text-transform:uppercase;margin-right:7px}
+
+.b-prep{background:var(--card);border:1px solid var(--line);border-left:2px solid var(--bronze);border-radius:0 13px 13px 0;padding:12px 14px;margin-top:8px}
+.b-prep-h{font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--bronze);margin-bottom:9px}
 .b-prep-r{display:flex;gap:9px;margin-bottom:7px}
 .b-prep-r:last-child{margin-bottom:0}
-.b-prep-r .d{width:5px;height:5px;border-radius:50%;background:var(--ochre);margin-top:7px;flex-shrink:0}
-.b-prep-r p{font-size:13px;line-height:1.5;color:var(--inkSoft)}
-
-/* Method preview */
-.b-meth-r{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--lineSoft);cursor:pointer}
-.b-meth-r:last-child{border-bottom:none}
-.b-meth-num{width:32px;height:32px;border-radius:50%;background:var(--cardLifted);border:1px solid var(--line);color:var(--bronze);
-  font-family:var(--display);font-variation-settings:"opsz" 24,"wght" 700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.b-meth-t{flex:1;font-size:14.5px;font-weight:600;color:var(--ink)}
-.b-meth-time{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
-.b-meth-chev{color:var(--muted)}
+.b-prep-r .d{width:5px;height:5px;border-radius:50%;background:var(--bronze);margin-top:7px;flex-shrink:0;opacity:.8}
+.b-prep-r p{font-size:12.5px;line-height:1.5;color:var(--inkSoft)}
 
 /* ─────────────────────────────────────────────────────────────
    FRAME B — COOK MODE  (same dark palette, single-step layout)
@@ -266,7 +241,7 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
 <div class="page-h">
   <div class="page-eye">Hone · Recipe Detail · vision concept · rev 2</div>
   <h1 class="page-t">v7 — Mise (kitchen-first redesign)</h1>
-  <p class="page-sub">Both surfaces share the same dark visual language so Hone reads as one place — <b style="color:var(--ink)">browse on the established app charcoal</b> (matches every other tab in tokens.ts), <b style="color:var(--ink)">cook on true OLED black</b> per the CLAUDE.md mandate. The distinction between browse and cook lives in <em>layout</em> (long editorial scroll vs single-step instrument), not in colour. Fonts: Fraunces + Inter. Pantry signal at the top of the page. Doneness photo as the hero of every cook step. Built for arm's length.</p>
+  <p class="page-sub">Frame A now mirrors the live Pantry tab's discipline — <b style="color:var(--ink)">five colour tokens, each with one job</b> (ink / muted / bronze / gold / terra), pill-row vocabulary for ingredients + equipment + method, bronze uppercase section eyebrows with an icon and a thin line. Browse on the established app charcoal; cook stays on true OLED black per the CLAUDE.md mandate. Fonts: Fraunces + Inter. Pantry signal up top, doneness photo as the hero of every cook step, built for arm's length.</p>
 </div>
 
 <div class="row">
@@ -283,7 +258,6 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
       </div>
 
       <div class="scroll">
-        <!-- top bar -->
         <div class="b-bar">
           <button class="b-btn" aria-label="Back"><svg width="20" height="20" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 2L4 7L9 12"/></svg></button>
           <div class="b-spacer"></div>
@@ -291,46 +265,25 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
           <button class="b-btn" aria-label="Favourite"><svg width="20" height="20" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 12.2L1.7 7C.7 6 .7 4.2 1.7 3.2C2.7 2.1 4.4 2.1 5.4 3.2L7 4.7L8.6 3.2C9.6 2.1 11.3 2.1 12.3 3.2C13.3 4.2 13.3 6 12.3 7L7 12.2Z"/></svg></button>
         </div>
 
-        <!-- Hero -->
         <div class="b-hero">
           <div class="b-photo"></div>
           <div class="b-photo-grain"></div>
           <div class="b-hero-fade"></div>
         </div>
 
-        <!-- Title block -->
         <div class="b-title-block">
-          <div class="b-chef">Inspired by Andy Cooks · <a href="#">Watch the original ↗</a></div>
+          <div class="b-eye">Inspired by Andy Cooks · <a href="#">Watch the original ↗</a></div>
           <h1 class="b-title">Smash Burger</h1>
           <p class="b-tag">The crispy-edged diner classic — twenty minutes, one screaming pan.</p>
+          <div class="b-meta">
+            <span><b>Beginner</b></span><span class="b-meta-dot"></span>
+            <span>Serves <b>2</b></span><span class="b-meta-dot"></span>
+            <span><b>American</b></span>
+          </div>
         </div>
 
         <div class="b-body">
 
-          <!-- PANTRY SIGNAL -->
-          <div class="b-pantry">
-            <div class="b-pan-top">
-              <div class="b-pan-ring"><div class="b-pan-ring-inner">7/9</div></div>
-              <div class="b-pan-text">
-                <div class="b-pan-line">You have <strong>7 of 9 ingredients</strong></div>
-                <div class="b-pan-sub">Missing 2 — both at a corner shop</div>
-              </div>
-            </div>
-            <div class="b-pan-missing">
-              <span class="b-miss">Brioche buns</span>
-              <span class="b-miss">Dill pickles</span>
-            </div>
-            <button class="b-pan-action">＋ Add missing to shopping list</button>
-          </div>
-
-          <!-- Quick facts -->
-          <div class="b-facts">
-            <div class="b-fact"><div class="v">20<small>min</small></div><div class="l">start to plate</div></div>
-            <div class="b-fact"><div class="v">Easy</div><div class="l">fast &amp; forgiving</div></div>
-            <div class="b-fact"><div class="v">2<small>burgers</small></div><div class="l">serves</div></div>
-          </div>
-
-          <!-- allergens -->
           <div class="b-diet">
             <span class="b-diet-k">Contains</span>
             <span class="b-tag">Gluten</span>
@@ -338,10 +291,9 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
             <span class="b-tag">Egg</span>
           </div>
 
-          <!-- PRIMARY CTA -->
           <div class="b-cta">
             <button class="b-start">
-              <svg width="22" height="22" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="rgba(255,255,255,.6)" stroke-width="1.3"/><path d="M7 6L13 9L7 12V6Z" fill="#fff"/></svg>
+              <svg width="20" height="20" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="rgba(255,255,255,.6)" stroke-width="1.3"/><path d="M7 6L13 9L7 12V6Z" fill="#fff"/></svg>
               Start cooking
             </button>
             <div class="b-2nd">
@@ -351,52 +303,123 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
             </div>
           </div>
 
-          <!-- JOURNEY overview -->
-          <div class="b-journey">
-            <div class="b-jh">Your kitchen journey</div>
-            <div class="b-j-row">
-              <div class="b-j-step"><div class="b-j-num">01</div><div class="b-j-lbl">Mise</div><div class="b-j-time">5 min</div></div>
-              <div class="b-j-arrow">→</div>
-              <div class="b-j-step"><div class="b-j-num">02</div><div class="b-j-lbl">Cook</div><div class="b-j-time">12 min</div></div>
-              <div class="b-j-arrow">→</div>
-              <div class="b-j-step"><div class="b-j-num">03</div><div class="b-j-lbl">Plate</div><div class="b-j-time">3 min</div></div>
+          <div class="b-sec">
+            <div class="b-sec-h">
+              <span class="b-sec-ic"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12 L7 2 L12 12 Z"/><path d="M4 9 H10"/></svg></span>
+              <span class="b-sec-t">In your pantry</span>
+              <span class="b-sec-c">7 of 9</span>
+            </div>
+            <div class="b-pantry">
+              <div class="b-pan-top">
+                <span class="b-pan-count">7<small>/9</small></span>
+                <div class="b-pan-text">
+                  <div class="b-pan-line">You're nearly there</div>
+                  <div class="b-pan-sub">Missing 2 — both at a corner shop</div>
+                </div>
+              </div>
+              <div class="b-pan-missing">
+                <span class="b-miss">Brioche buns</span>
+                <span class="b-miss">Dill pickles</span>
+              </div>
+              <button class="b-pan-action">＋ Add missing to shopping list</button>
             </div>
           </div>
 
-          <!-- Ingredients -->
           <div class="b-sec">
-            <div class="b-sec-h"><span class="b-sec-t">Ingredients</span><span class="b-sec-c">7 of 9 in pantry</span></div>
+            <div class="b-sec-h">
+              <span class="b-sec-ic"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="5.3"/><path d="M7 4V7L9 8.5" stroke-linecap="round"/></svg></span>
+              <span class="b-sec-t">Your kitchen journey</span>
+              <span class="b-sec-c">20 min total</span>
+            </div>
+            <div class="b-journey">
+              <div class="b-j-row">
+                <div class="b-j-step"><div class="b-j-num">01</div><div class="b-j-lbl">Mise</div><div class="b-j-time">5 min</div></div>
+                <div class="b-j-arrow">›</div>
+                <div class="b-j-step"><div class="b-j-num">02</div><div class="b-j-lbl">Cook</div><div class="b-j-time">12 min</div></div>
+                <div class="b-j-arrow">›</div>
+                <div class="b-j-step"><div class="b-j-num">03</div><div class="b-j-lbl">Plate</div><div class="b-j-time">3 min</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="b-sec">
+            <div class="b-sec-h">
+              <span class="b-sec-ic"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 2C5 2 3.5 3.5 3.5 5.5C3.5 7.5 5 9 7 9C9 9 10.5 7.5 10.5 5.5C10.5 3.5 9 2 7 2Z"/><path d="M7 9V13" stroke-linecap="round"/></svg></span>
+              <span class="b-sec-t">Ingredients</span>
+              <span class="b-sec-c">7 of 9 in pantry</span>
+            </div>
             <div>
-              <div class="b-ing"><div class="b-ing-have-dot"><svg width="9" height="9" viewBox="0 0 11 11" fill="none" stroke="#5FB07E" stroke-width="2" stroke-linecap="round"><path d="M2 5.6L4.3 8L9 3"/></svg></div><div class="b-ing-info"><div class="b-ing-n have">Beef mince, 80/20</div><div class="b-ing-a">500 g · in pantry</div></div></div>
-              <div class="b-ing"><div class="b-ing-have-dot"><svg width="9" height="9" viewBox="0 0 11 11" fill="none" stroke="#5FB07E" stroke-width="2" stroke-linecap="round"><path d="M2 5.6L4.3 8L9 3"/></svg></div><div class="b-ing-info"><div class="b-ing-n have">American cheese</div><div class="b-ing-a">4 slices · in pantry</div><div class="b-sub-note"><b>Honest swap</b>Cheddar works but melts firmer — give it an extra 15 sec under the lid.</div></div><button class="b-swap on">✓ Cheddar</button></div>
-              <div class="b-ing"><div class="b-ing-info" style="margin-left:30px"><div class="b-ing-n">Brioche buns, seeded</div><div class="b-ing-a">2 · on shopping list</div></div><button class="b-swap">Swap</button></div>
-              <div class="b-ing"><div class="b-ing-have-dot"><svg width="9" height="9" viewBox="0 0 11 11" fill="none" stroke="#5FB07E" stroke-width="2" stroke-linecap="round"><path d="M2 5.6L4.3 8L9 3"/></svg></div><div class="b-ing-info"><div class="b-ing-n have">Iceberg lettuce</div><div class="b-ing-a">2–3 leaves per burger</div></div></div>
-              <div class="b-ing"><div class="b-ing-info" style="margin-left:30px"><div class="b-ing-n">Dill pickles, sliced</div><div class="b-ing-a">4–5 slices per burger · on shopping list</div></div><button class="b-swap">Swap</button></div>
-              <div class="b-ing"><div class="b-ing-have-dot"><svg width="9" height="9" viewBox="0 0 11 11" fill="none" stroke="#5FB07E" stroke-width="2" stroke-linecap="round"><path d="M2 5.6L4.3 8L9 3"/></svg></div><div class="b-ing-info"><div class="b-ing-n have">White onion</div><div class="b-ing-a">¼ per burger</div></div></div>
+              <div class="b-row have">
+                <span class="b-row-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 8C3 5 6 4 8 5C10 6 13 5 14 8"/><path d="M2 11C3 9 6 8 8 9C10 10 13 9 14 11"/></svg></span>
+                <div class="b-row-info"><div class="b-row-n">Beef mince, 80/20</div><div class="b-row-sub">500 g · in pantry</div></div>
+              </div>
+              <div class="b-row have">
+                <span class="b-row-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="8" rx="1.5"/><circle cx="6" cy="8" r=".7" fill="currentColor"/><circle cx="10" cy="9.5" r=".7" fill="currentColor"/><circle cx="8" cy="6.5" r=".7" fill="currentColor"/></svg></span>
+                <div class="b-row-info">
+                  <div class="b-row-n">American cheese</div>
+                  <div class="b-row-sub">4 slices · in pantry</div>
+                  <div class="b-sub-note"><b>Honest swap</b>Cheddar works but melts firmer — give it an extra 15 seconds under the lid.</div>
+                </div>
+                <button class="b-swap on">✓ Cheddar</button>
+              </div>
+              <div class="b-row">
+                <span class="b-row-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="8" cy="9" rx="6" ry="4"/><path d="M2 9C2 11 5 12 8 12C11 12 14 11 14 9" stroke-linecap="round"/></svg></span>
+                <div class="b-row-info"><div class="b-row-n">Brioche buns, seeded</div><div class="b-row-sub">2 · on shopping list</div></div>
+                <button class="b-swap">Swap</button>
+              </div>
+              <div class="b-row have">
+                <span class="b-row-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 13C5 13 3 11 3 9C3 6 8 2 8 2C8 2 13 6 13 9C13 11 11 13 8 13Z"/></svg></span>
+                <div class="b-row-info"><div class="b-row-n">Iceberg lettuce</div><div class="b-row-sub">2–3 leaves per burger</div></div>
+              </div>
+              <div class="b-row">
+                <span class="b-row-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="2" width="9" height="11" rx="1.5"/><path d="M5 2L5 4L11 4L11 2" stroke-linecap="round"/></svg></span>
+                <div class="b-row-info"><div class="b-row-n">Dill pickles, sliced</div><div class="b-row-sub">4–5 slices · on shopping list</div></div>
+                <button class="b-swap">Swap</button>
+              </div>
+              <div class="b-row have">
+                <span class="b-row-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="8" cy="9" rx="4.5" ry="5"/><path d="M8 4C8 3 7 2 7 2" stroke-linecap="round"/></svg></span>
+                <div class="b-row-info"><div class="b-row-n">White onion</div><div class="b-row-sub">¼ per burger</div></div>
+              </div>
             </div>
           </div>
 
-          <!-- Equipment + Prep -->
           <div class="b-sec">
-            <div class="b-sec-h"><span class="b-sec-t">Get ready</span><span class="b-sec-c">5 min mise</span></div>
-            <div class="b-eq"><div class="b-eq-ic"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="9" r="4.5"/><path d="M11 7L16 5.5" stroke-linecap="round"/></svg></div><div class="b-eq-info"><div class="b-eq-n">Cast-iron pan</div><div class="b-eq-note">24–28 cm. Must hold very high heat.</div></div><span class="b-tag2 req">Essential</span></div>
-            <div class="b-eq"><div class="b-eq-ic"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3 12L8 7"/><rect x="7" y="2" width="6" height="6" rx="1" transform="rotate(45 10 5)"/></svg></div><div class="b-eq-info"><div class="b-eq-n">Flat metal spatula</div><div class="b-eq-note">Thin, rigid edge for the smash + crust scrape.</div></div><span class="b-tag2 req">Essential</span></div>
-            <div class="b-prep">
-              <div class="b-prep-h">Have it ready before the pan goes on</div>
-              <div class="b-prep-r"><span class="d"></span><p>Loose 125 g mince balls — don't pack them.</p></div>
-              <div class="b-prep-r"><span class="d"></span><p>Finely diced onion, sliced pickles, cheese at room temp.</p></div>
+            <div class="b-sec-h">
+              <span class="b-sec-ic"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="7" r="3.5"/><path d="M9 6L13 5" stroke-linecap="round"/></svg></span>
+              <span class="b-sec-t">Get ready</span>
+              <span class="b-sec-c">5 min mise</span>
             </div>
-          </div>
-
-          <!-- Method preview -->
-          <div class="b-sec">
-            <div class="b-sec-h"><span class="b-sec-t">Method</span><span class="b-sec-c">6 steps</span></div>
             <div>
-              <div class="b-meth-r"><div class="b-meth-num">1</div><div class="b-meth-t">Heat the pan</div><div class="b-meth-time">5 min</div><span class="b-meth-chev">›</span></div>
-              <div class="b-meth-r"><div class="b-meth-num">2</div><div class="b-meth-t">Smash &amp; sear</div><div class="b-meth-time">2 min</div><span class="b-meth-chev">›</span></div>
-              <div class="b-meth-r"><div class="b-meth-num">3</div><div class="b-meth-t">Cheese &amp; steam</div><div class="b-meth-time">45 sec</div><span class="b-meth-chev">›</span></div>
-              <div class="b-meth-r"><div class="b-meth-num">4</div><div class="b-meth-t">Toast the bun</div><div class="b-meth-time">1 min</div><span class="b-meth-chev">›</span></div>
-              <div class="b-meth-r"><div class="b-meth-num">5</div><div class="b-meth-t">Build &amp; serve</div><div class="b-meth-time">—</div><span class="b-meth-chev">›</span></div>
+              <div class="b-row">
+                <span class="b-row-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="8.5" r="4"/><path d="M10 7L15 5.5" stroke-linecap="round"/></svg></span>
+                <div class="b-row-info"><div class="b-row-n">Cast-iron pan</div><div class="b-row-sub">24–28 cm · holds very high heat</div></div>
+                <span class="b-row-tag req">Essential</span>
+              </div>
+              <div class="b-row">
+                <span class="b-row-ic"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 12L7 8"/><rect x="6.5" y="2" width="6" height="6" rx="1" transform="rotate(45 9.5 5)"/></svg></span>
+                <div class="b-row-info"><div class="b-row-n">Flat metal spatula</div><div class="b-row-sub">Thin rigid edge for the smash &amp; crust scrape</div></div>
+                <span class="b-row-tag req">Essential</span>
+              </div>
+              <div class="b-prep">
+                <div class="b-prep-h">Have it ready before the pan goes on</div>
+                <div class="b-prep-r"><span class="d"></span><p>Loose 125 g mince balls — don't pack them.</p></div>
+                <div class="b-prep-r"><span class="d"></span><p>Finely diced onion, sliced pickles, cheese at room temp.</p></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="b-sec">
+            <div class="b-sec-h">
+              <span class="b-sec-ic"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 12C4.5 12 3 10 3 8C3 6 4 5 5 4C5 5.5 6 6 6.5 6.5C6.5 5 7 3 8.5 2.5C8.5 4 9 5 10.5 6C11 6.5 11.5 7.5 11.5 8.5C11.5 10.5 9.5 12 7 12Z"/></svg></span>
+              <span class="b-sec-t">Method</span>
+              <span class="b-sec-c">6 steps</span>
+            </div>
+            <div>
+              <div class="b-row"><span class="b-row-ic"><span class="b-row-num">01</span></span><div class="b-row-info"><div class="b-row-n">Heat the pan</div></div><span class="b-row-time">5 min</span><span class="b-row-chev">›</span></div>
+              <div class="b-row"><span class="b-row-ic"><span class="b-row-num">02</span></span><div class="b-row-info"><div class="b-row-n">Smash &amp; sear</div></div><span class="b-row-time">2 min</span><span class="b-row-chev">›</span></div>
+              <div class="b-row"><span class="b-row-ic"><span class="b-row-num">03</span></span><div class="b-row-info"><div class="b-row-n">Cheese &amp; steam</div></div><span class="b-row-time">45 sec</span><span class="b-row-chev">›</span></div>
+              <div class="b-row"><span class="b-row-ic"><span class="b-row-num">04</span></span><div class="b-row-info"><div class="b-row-n">Toast the bun</div></div><span class="b-row-time">1 min</span><span class="b-row-chev">›</span></div>
+              <div class="b-row"><span class="b-row-ic"><span class="b-row-num">05</span></span><div class="b-row-info"><div class="b-row-n">Build &amp; serve</div></div><span class="b-row-time">—</span><span class="b-row-chev">›</span></div>
             </div>
           </div>
 
@@ -404,10 +427,10 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
         </div>
       </div>
     </div>
-    <div class="frame-cap">Frame A · Decide (dark, photo-led)</div>
+    <div class="frame-cap">Frame A · Decide (pantry-tab restraint)</div>
   </div>
 
-  <!-- ──────────────── FRAME B — COOK MODE ──────────────── -->
+    <!-- ──────────────── FRAME B — COOK MODE ──────────────── -->
   <div class="frame-wrap">
     <div class="phone cook">
       <div class="status">
@@ -487,37 +510,41 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
 </div>
 
 <div class="panel">
-  <h2>Colour — unified dark, two surfaces (the system observed)</h2>
-  <p class="lead">Browse on the established app charcoal (matches every other tab); cook on true OLED black per the CLAUDE.md mandate. One visual language, the locked tokens.ts properly applied.</p>
+  <h2>Colour — five tokens, borrowed from the Pantry tab</h2>
+  <p class="lead">Patrick caught Frame A drifting into too many accents. The live Pantry tab on build #126 holds itself to three. v7 now matches that discipline.</p>
 
-  <h3>Why this is right</h3>
-  <p>An earlier v7 rev used pure <code>#000</code> for both surfaces — taking "same as Frame B" literally. But that contradicted the locked <code>tokens.ts</code>: the app's primary background is <code>#141414</code> (a deep warm charcoal), used by Pantry, Shop, Home and every other tab; cook mode is the only place explicitly mandated to OLED <code>#000</code> so it's visually distinguishable. v7 now matches the system as it actually exists — browse sits on the same charcoal as the rest of the app; cook stays its own OLED place. The two still feel like one family (same warm-cream ink, same accents, same fonts), but the system speaks for itself.</p>
+  <h3>Why this is the move</h3>
+  <p>The Pantry tab is the closest thing the app has to a working visual reference: <b>bronze</b> for category eyebrows + ingredient icons + section markers, <b>gold</b> for the stepper (the only interactive accent), <b>rust</b> for the active tab pill. Three accents. Recipe was using six (rust + bronze + sage + ochre + gold + sky variants). Pulling Recipe down to the same vocabulary means the two tabs feel like the same app, and the user only has to learn one colour language.</p>
 
-  <h3>App surfaces (browse + every other tab)</h3>
+  <h3>App surfaces (browse + every other tab — matches tokens.ts)</h3>
   <div class="swatches">
-    <div class="sw"><span class="d" style="background:#141414"></span><b>bg</b> #141414 · warm charcoal</div>
-    <div class="sw"><span class="d" style="background:#1E1E1E"></span><b>card</b> #1E1E1E · elevated surfaces</div>
-    <div class="sw"><span class="d" style="background:#252525"></span><b>cardSoft</b> #252525 · panels</div>
-    <div class="sw"><span class="d" style="background:#2A2A2A"></span><b>cardLifted</b> #2A2A2A · pressables</div>
+    <div class="sw"><span class="d" style="background:#141414"></span><b>bg</b> #141414</div>
+    <div class="sw"><span class="d" style="background:#1E1E1E"></span><b>card</b> #1E1E1E</div>
+    <div class="sw"><span class="d" style="background:#252525"></span><b>cardSoft</b> #252525</div>
+    <div class="sw"><span class="d" style="background:#2A2A2A"></span><b>cardLifted</b> #2A2A2A</div>
   </div>
 
-  <h3>Cook-mode surface (true OLED — CLAUDE.md mandate)</h3>
+  <h3>Cook-mode surface (CLAUDE.md OLED mandate)</h3>
   <div class="swatches">
-    <div class="sw"><span class="d" style="background:#000;border-color:#222"></span><b>bgC</b> #000000 · OLED</div>
+    <div class="sw"><span class="d" style="background:#000;border-color:#222"></span><b>bgC</b> #000000</div>
     <div class="sw"><span class="d" style="background:#0E0E0E"></span><b>cardC</b> #0E0E0E</div>
   </div>
 
-  <h3>Accents — shared across both surfaces (each colour, one job)</h3>
+  <h3>The five accents — one job each</h3>
   <div class="swatches">
-    <div class="sw"><span class="d" style="background:#F5EFE8"></span><b>ink</b> #F5EFE8</div>
-    <div class="sw"><span class="d" style="background:#C4B8A8"></span><b>inkSoft</b> #C4B8A8</div>
-    <div class="sw"><span class="d" style="background:#D8634F"></span><b>terracotta</b> · Start cooking</div>
-    <div class="sw"><span class="d" style="background:#F2CC2A"></span><b>gold</b> · "Look for" rail</div>
-    <div class="sw"><span class="d" style="background:#5FB07E"></span><b>olive</b> · in pantry / done</div>
-    <div class="sw"><span class="d" style="background:#D88E50"></span><b>ochre</b> · honest swap / prep</div>
-    <div class="sw"><span class="d" style="background:#C2A15A"></span><b>bronze</b> · attribution / chef voice</div>
+    <div class="sw"><span class="d" style="background:#F5EFE8"></span><b>ink</b> · all body text</div>
+    <div class="sw"><span class="d" style="background:#C4B8A8"></span><b>inkSoft</b> · soft body</div>
+    <div class="sw"><span class="d" style="background:#8A7E72"></span><b>muted</b> · captions, sub-lines</div>
+    <div class="sw"><span class="d" style="background:#C2A15A"></span><b>bronze</b> · <em>eyebrows, icons, chef voice, in-pantry strikes, Essential tag, step numbers, honest swap, prep</em></div>
+    <div class="sw"><span class="d" style="background:#F2CC2A"></span><b>gold</b> · <em>stepper, "Add to list", cook-mode "Look for" rail</em></div>
+    <div class="sw"><span class="d" style="background:#D8634F"></span><b>terra</b> · <em>Start cooking only · Plan-toggle active state</em></div>
   </div>
-  <p>Notes vs the live build #126: terracotta brightened to <code>#D8634F</code> for readable button text on both charcoal and OLED (the deeper rust <code>#B84030</code> stays as pressed/deep state). Sage brightened to <code>#5FB07E</code> so "in pantry" rows pass AA on both surfaces. Bronze takes the chef-attribution role.</p>
+  <p><b>That's the entire palette.</b> Bronze does the heavy lifting (it's the colour of "Hone speaking"); gold is the single interactive accent; terra is the single primary action. Everything else is ink + muted. Same vocabulary as the Pantry tab.</p>
+
+  <h3>What dropped vs the earlier v7 rev</h3>
+  <p>The in-pantry green is gone — replaced by strikethrough + dim text + a bronze ingredient icon (cleaner signal, one fewer colour to learn). The ochre "honest swap" / prep treatment is gone — bronze italic Fraunces does that voice-work consistently across the app. <b>Seven accent colours collapsed to three.</b></p>
+</div>
+
 </div>
 
 <div class="panel">
