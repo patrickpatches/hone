@@ -12,7 +12,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
-  Dimensions,
   ActivityIndicator,
   Alert,
   Linking,
@@ -35,14 +34,11 @@ import {
   toggleFavorite,
   getPlannedRecipeIds,
   togglePlannedRecipe,
-  upsertShoppingItem,
 } from '../../db/database';
 import { tokens, fonts } from '../../src/theme/tokens';
 import { Icon } from '../../src/components/Icon';
 import { SubstitutionSheet, PILL_CONFIG } from '../../src/components/SubstitutionSheet';
 import { ServingsSelector } from '../../src/components/ServingsSelector';
-import { Flag, GlobeGlyph, originForCuisine } from '../../src/components/OriginFlag';
-import { categorizeIngredient } from '../../src/data/pantry-helpers';
 import {
   formatAmount,
   scaleIngredient,
@@ -123,13 +119,6 @@ export default function RecipeDetailScreen() {
   const [miseChecked, setMiseChecked] = useState<Set<number>>(new Set());
   const [miseExpanded, setMiseExpanded] = useState(false);
   const miseExpandOpacity = useRef(new Animated.Value(0)).current;
-  // v5 — scroll position drives the collapsing top app bar + the sticky
-  // bottom Start-Cooking bar (both browse mode only).
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const [inlineCtaBottom, setInlineCtaBottom] = useState(2000);
-  const [headerShown, setHeaderShown] = useState(false);
-  const [bottomBarShown, setBottomBarShown] = useState(false);
-  const { height: viewportH } = Dimensions.get('window');
   const [activeSwaps, setActiveSwaps]         = useState<Record<string, Substitution | null>>({});
 
   // Wake lock while cooking
@@ -141,22 +130,6 @@ export default function RecipeDetailScreen() {
     }
     return undefined;
   }, [cooking]);
-
-  // v5 — drive header/bottom-bar visibility booleans off scroll position so we
-  // can toggle pointerEvents (opacity alone leaves invisible buttons tappable).
-  useEffect(() => {
-    const id = scrollY.addListener(({ value }) => {
-      setHeaderShown((prev) => {
-        const next = value > 210;
-        return prev === next ? prev : next;
-      });
-      setBottomBarShown((prev) => {
-        const next = value > Math.max(0, inlineCtaBottom - viewportH) + 30;
-        return prev === next ? prev : next;
-      });
-    });
-    return () => scrollY.removeListener(id);
-  }, [scrollY, inlineCtaBottom, viewportH]);
 
   // ── Loading states ──────────────────────────────────────────────────────────
 
@@ -351,36 +324,6 @@ export default function RecipeDetailScreen() {
     Linking.openURL(url).catch(() => { Alert.alert('Could not open link', url); });
   };
 
-  // v5 — add all (scaled) recipe ingredients to the shopping list. Uses the
-  // existing shopping DB layer; no new schema. Brief confirmation via state.
-  const [shoppingAdded, setShoppingAdded] = useState(false);
-  const addAllToShoppingList = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    try {
-      await Promise.all(
-        recipe.ingredients.map((ing) => {
-          const id = 'shop-' + recipe.id + '-' + ing.id;
-          return upsertShoppingItem(db, {
-            id,
-            name: ing.name,
-            category: categorizeIngredient(ing.name),
-            quantity: ing.amount > 0 ? ing.amount : null,
-            unit: ing.unit ?? null,
-            notes: null,
-            manually_added: false,
-            in_cart: false,
-            added_at: Date.now(),
-            sources: [{ kind: 'meal', recipe_id: recipe.id, servings: recipe.base_servings }],
-          });
-        }),
-      );
-      setShoppingAdded(true);
-      setTimeout(() => { setShoppingAdded(false); }, 2200);
-    } catch (e) {
-      console.error('addAllToShoppingList failed', e);
-    }
-  };
-
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
@@ -445,22 +388,6 @@ export default function RecipeDetailScreen() {
                 <Icon name="arrow-left" size={20} color={tokens.ink} />
               </View>
             </Pressable>
-            {/* v5 collapsing app bar — title + plan + heart fade in on scroll;
-                Back (above) stays visible throughout. */}
-            <Animated.View
-              pointerEvents={headerShown ? 'auto' : 'none'}
-              style={{
-                flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 8,
-                opacity: scrollY.interpolate({
-                  inputRange: [150, 240],
-                  outputRange: [0, 1],
-                  extrapolate: 'clamp',
-                }),
-              }}
-            >
             <Text
               style={{
                 flex: 1,
@@ -518,25 +445,15 @@ export default function RecipeDetailScreen() {
                 <Icon name="heart" size={20} color={favorite ? tokens.primary : tokens.ink} fill={favorite ? tokens.primary : 'none'} />
               </View>
             </Pressable>
-            </Animated.View>
           </View>
         )}
       </View>
 
       {/* ── SCROLLABLE CONTENT ── */}
-      <Animated.ScrollView
+      <ScrollView
         contentContainerStyle={{ paddingBottom: 140 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        scrollEventThrottle={16}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          // useNativeDriver MUST be false here: this scroll value is read by a
-          // scrollY.addListener (for pointerEvents toggling). On the New
-          // Architecture (Fabric), attaching a JS listener to a natively-driven
-          // scroll node crashes at mount. JS-driven opacity fades are smooth.
-          { useNativeDriver: false },
-        )}
       >
         {/* Hero — hidden in cook mode */}
         {!cooking && (
@@ -549,39 +466,15 @@ export default function RecipeDetailScreen() {
                 transition={250}
               />
             ) : (
-              /* v5 no-photo fallback — typographic title card over the gradient
-                 bands. Never an empty/emoji block. */
               <View style={{ flex: 1 }}>
                 <View style={{ flex: 1, backgroundColor: gradient[0] }} />
                 <View style={{ flex: 1, backgroundColor: gradient[1] }} />
                 <View style={{ flex: 1, backgroundColor: gradient[2] }} />
-                {/* faint Playfair watermark */}
-                <Text
-                  style={{
-                    position: 'absolute', right: 14, bottom: 6,
-                    fontFamily: fonts.display, fontSize: 88,
-                    color: 'rgba(255,255,255,0.08)',
-                  }}
-                  numberOfLines={1}
-                >
-                  {recipe.title.charAt(0)}
-                </Text>
-                <View style={{ position: 'absolute', left: 20, right: 20, bottom: 40, alignItems: 'flex-start' }}>
-                  <Text style={{ fontFamily: fonts.display, fontSize: 30, lineHeight: 35, color: '#FFFFFF' }} numberOfLines={3}>
-                    {recipe.title}
+                {recipe.emoji ? (
+                  <Text style={{ position: 'absolute', bottom: 20, right: 20, fontSize: 72, opacity: 0.9 }}>
+                    {recipe.emoji}
                   </Text>
-                  {recipe.source?.chef ? (
-                    <Text style={{ fontFamily: fonts.sansBold, fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: 'rgba(255,255,255,0.78)', marginTop: 8 }}>
-                      {`Inspired by ${recipe.source.chef}`}
-                    </Text>
-                  ) : null}
-                  {recipe.tagline ? (
-                    <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic', fontSize: 14, lineHeight: 19, color: 'rgba(255,255,255,0.88)', marginTop: 6 }} numberOfLines={2}>
-                      {recipe.tagline}
-                    </Text>
-                  ) : null}
-                  <View style={{ width: 44, height: 2, borderRadius: 2, backgroundColor: tokens.gold, marginTop: 12 }} />
-                </View>
+                ) : null}
               </View>
             )}
             {/* CC licensing convention — when hero_url is a CC-licensed
@@ -783,106 +676,46 @@ export default function RecipeDetailScreen() {
                 paddingVertical: 14,
               }}
             >
-              {(() => {
-                // v5 trio: time · effort · origin. Value stacked ABOVE label.
-                const active = recipe.active_time_minutes;
-                const total = recipe.total_time_minutes;
-                let timeValue = total ? `${total} min` : (active ? `${active} min` : '—');
-                let timeLabel = 'time';
-                if (active && total && active < total * 0.7) {
-                  timeValue = `${active} active`;
-                  timeLabel = `${total} min total`;
-                }
-                const origin = originForCuisine(recipe.categories?.cuisines?.[0]);
-                const cells: Array<{ key: string; value: string; label: string; render?: 'origin' }> = [
-                  { key: 'time', value: timeValue, label: timeLabel },
-                  { key: 'effort', value: difficultyLabel || '—', label: 'effort' },
-                  { key: 'origin', value: origin.label, label: origin.kind === 'region' && origin.countries.length ? origin.countries.join(' · ') : 'origin', render: 'origin' },
-                ];
-                return cells.map((item, idx, arr) => (
-                  <View
-                    key={item.key}
-                    style={{
-                      flex: 1,
-                      alignItems: 'center',
-                      borderRightWidth: idx < arr.length - 1 ? 1 : 0,
-                      borderRightColor: c.line,
-                      paddingHorizontal: 6,
-                      gap: 4,
-                    }}
+              {([
+                recipe.total_time_minutes
+                  ? { icon: 'clock' as const, value: String(recipe.total_time_minutes), sub: 'total min' }
+                  : null,
+                recipe.active_time_minutes
+                  ? { icon: 'flame' as const, value: String(recipe.active_time_minutes), sub: 'active min' }
+                  : null,
+                difficultyLabel
+                  ? { icon: 'flame' as const, value: difficultyLabel, sub: 'difficulty' }
+                  : null,
+                cuisineLabel
+                  ? { icon: 'chef' as const, value: cuisineLabel, sub: 'cuisine' }
+                  : null,
+                { icon: 'check' as const, value: recipe.leftover_mode ? 'yes' : 'no', sub: 'leftovers' },
+              ] as const).filter(Boolean).map((item, idx, arr) => (
+                <View
+                  key={idx}
+                  style={{
+                    flex: 1,
+                    alignItems: 'center',
+                    borderRightWidth: idx < arr.length - 1 ? 1 : 0,
+                    borderRightColor: c.line,
+                    paddingHorizontal: 4,
+                    gap: 3,
+                  }}
+                >
+                  <Icon name={item!.icon} size={14} color={c.muted} />
+                  <Text
+                    style={{ fontFamily: fonts.sansBold, fontSize: 12, color: c.ink, textAlign: 'center' }}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
                   >
-                    {item.render === 'origin' ? (
-                      origin.kind === 'country' ? (
-                        <Flag code={origin.code} width={24} />
-                      ) : (
-                        <GlobeGlyph size={18} color={c.muted} />
-                      )
-                    ) : null}
-                    <Text
-                      style={{ fontFamily: fonts.sansBold, fontSize: 13, color: c.ink, textAlign: 'center' }}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                    >
-                      {item.value}
-                    </Text>
-                    <Text
-                      style={{ fontFamily: fonts.sans, fontSize: 9.5, color: c.muted, textAlign: 'center' }}
-                      numberOfLines={1}
-                    >
-                      {item.label}
-                    </Text>
-                  </View>
-                ));
-              })()}
+                    {item!.value}
+                  </Text>
+                  <Text style={{ fontFamily: fonts.sans, fontSize: 10, color: c.muted, textAlign: 'center' }}>
+                    {item!.sub}
+                  </Text>
+                </View>
+              ))}
             </View>
-          </View>
-        )}
-
-        {/* v5 — inline CTA cluster: one rust Start Cooking + ghost add-to-list.
-            onLayout captures the cluster's bottom so the sticky bottom bar
-            only fades in once this scrolls out of view. */}
-        {!cooking && (
-          <View
-            style={{ paddingHorizontal: 20, marginTop: 14, gap: 10 }}
-            onLayout={(e) => {
-              const { y, height } = e.nativeEvent.layout;
-              setInlineCtaBottom(y + height);
-            }}
-          >
-            <Pressable
-              onPress={toggleCooking}
-              accessibilityRole="button"
-              accessibilityLabel="Start cooking"
-              android_ripple={{ color: 'rgba(255,255,255,0.22)', borderless: false }}
-              style={{ borderRadius: 14 }}
-            >
-              <View style={{
-                flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9,
-                paddingVertical: 15, borderRadius: 14, backgroundColor: tokens.primary,
-              }}>
-                <Icon name="chef" size={17} color={tokens.ink} />
-                <Text style={{ fontFamily: fonts.sansXBold, fontSize: 15, color: tokens.ink, letterSpacing: 0.3 }}>
-                  Start Cooking
-                </Text>
-              </View>
-            </Pressable>
-            <Pressable
-              onPress={addAllToShoppingList}
-              accessibilityRole="button"
-              accessibilityLabel="Add ingredients to shopping list"
-              android_ripple={{ color: tokens.primaryLight, borderless: false }}
-              style={{ borderRadius: 14 }}
-            >
-              <View style={{
-                flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-                paddingVertical: 13, borderRadius: 14, borderWidth: 1.5, borderColor: c.lineDark,
-              }}>
-                <Icon name={shoppingAdded ? 'check' : 'cart'} size={15} color={c.inkSoft} />
-                <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: c.inkSoft, letterSpacing: 0.2 }}>
-                  {shoppingAdded ? 'Added to shopping list' : 'Add to shopping list'}
-                </Text>
-              </View>
-            </Pressable>
           </View>
         )}
 
@@ -1555,30 +1388,19 @@ export default function RecipeDetailScreen() {
                     </View>
                   ) : null}
 
-                  {/* ── WHY NOTE (v5 — elevated: inkSoft on goldDim, gold marker
-                       + solid gold left rule. WCAG AA: inkSoft #C4B8A8 on the
-                       goldDim tint over the dark card passes for body text.) ── */}
+                  {/* ── WHY NOTE (preserved, restyled to Playfair italic) ── */}
                   {step.why_note ? (
                     <View
                       style={{
-                        flexDirection: 'row',
-                        gap: 10,
-                        backgroundColor: tokens.goldDim,
-                        borderLeftWidth: 3,
-                        borderLeftColor: tokens.gold,
-                        borderRadius: 8,
-                        padding: 12,
+                        paddingTop: 12,
+                        borderTopWidth: 1, borderTopColor: c.line,
                         marginBottom: 14,
                       }}
                     >
-                      <Text style={{ fontFamily: fonts.sansBold, fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: tokens.gold, marginTop: 1 }}>
-                        Why
-                      </Text>
                       <Text
                         style={{
-                          flex: 1,
-                          fontFamily: fonts.sans,
-                          fontSize: 12.5, color: c.inkSoft, lineHeight: 19,
+                          fontFamily: fonts.displayItalic, fontStyle: 'italic',
+                          fontSize: 12, color: c.muted, lineHeight: 19,
                         }}
                       >
                         {step.why_note}
@@ -1944,7 +1766,7 @@ export default function RecipeDetailScreen() {
           </View>
         )}
 
-      </Animated.ScrollView>
+      </ScrollView>
 
       {/* ── FLOATING START-COOKING PILL ──
           Solid paprika-tint pill, centered horizontally near the bottom.
@@ -1958,19 +1780,14 @@ export default function RecipeDetailScreen() {
           the background. Splitting the roles makes the bg reliable
           and lets android_ripple handle press feedback. */}
       {!cooking ? (
-        <Animated.View
-          pointerEvents={bottomBarShown ? 'box-none' : 'none'}
+        <View
           style={{
             position: 'absolute',
             left: 0,
             right: 0,
             bottom: insets.bottom + 18,
             alignItems: 'center',
-            opacity: scrollY.interpolate({
-              inputRange: [Math.max(0, inlineCtaBottom - viewportH), Math.max(0, inlineCtaBottom - viewportH) + 60],
-              outputRange: [0, 1],
-              extrapolate: 'clamp',
-            }),
+            pointerEvents: 'box-none',
           }}
         >
           <Pressable
@@ -2009,7 +1826,7 @@ export default function RecipeDetailScreen() {
               </Text>
             </View>
           </Pressable>
-        </Animated.View>
+        </View>
       ) : progress === 1 ? (
         <View
           style={{
