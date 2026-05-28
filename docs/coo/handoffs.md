@@ -70,7 +70,30 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
-### HANDOFF → Patrick (DIRECTION CALL) · 2026-05-28 · OPEN — VISION CONCEPT (recipe detail v7 "Mise" — kitchen-first redesign)
+### HANDOFF → Senior Engineer · 2026-05-28 · ✅ APPROVED BY PATRICK · BUILD (recipe detail v7 "Mise" — Phase 1)
+**From:** Product Designer
+**Subject:** Patrick: "lets try this v7 design out." Build the v7 browse-mode restyle + the cook-mode "Look for" font fix. Full work order: **`docs/coo/tickets/recipe-detail-v7-build.md`** (on main). Also opened as **GitHub Issue #6** for tracking.
+
+**Design reference:** `docs/prototypes/recipe-detail-v7.html` (rev 3 — Pantry-tab-aligned 5-token palette). **Visual anchor:** the live Pantry tab on build #126 — v7 borrows its vocabulary so Recipe + Pantry feel like one app.
+
+**Scope — Phase 1 (no schema changes):**
+- **Commit A** — tokens + fonts: add `bronzeSoft` token; install `@expo-google-fonts/fraunces`; update `tokens.fonts.display`/`displayItalic` to Fraunces (replaces Playfair).
+- **Commit B** — browse-mode restyle in `recipe/[id].tsx`: pantry-tab pill-row vocabulary, bronze uppercase section eyebrows, pantry signal up top wired to `scoreRecipeAgainstPantry`, kitchen-journey overview, honest-swap inline bronze italic. Component tree + state unchanged from #126.
+- **Commit C** — cook-mode "Look for" font fix only: Fraunces italic 18sp → Inter SemiBold upright 19sp. Establishes type-by-job rule (operational → Inter, chef voice → Fraunces italic, titles → Fraunces upright).
+
+**Phase 2 (deferred — separate ticket later):** allergens/dietary schema + equipment enrichment + cook-mode enhancements (auto-advance, larger photo, tools row).
+
+**⚠ Safety constraints (v5 lesson written in):** NO animated/collapsing header. NO sticky-via-Animated bottom bar. NO scroll listeners. NO `Animated` on the native driver. The cook-mode "Next" is `position:absolute; bottom:0` — static layout, not transformed. Everything achievable with StyleSheet + simple state. If a visual seems to need any of the above — STOP and flag.
+
+**Before code:** pitch your implementation plan to Patrick — exact tokens.ts additions, font load order, component breakdown, commit splits. Wait for go.
+
+**Discipline:** R-014 tail-check on every edit; `npx tsc --noEmit` clean; **build-log row in the SAME commit as the code**; **R-015 — do NOT self-close, ship to main and await Patrick's on-device validation**; **do NOT dispatch an EAS build — Patrick triggers it**.
+
+**Files:** `docs/coo/tickets/recipe-detail-v7-build.md` (full ticket, on main), `docs/prototypes/recipe-detail-v7.html` (design), `docs/coo/handoffs.md` (this).
+
+---
+
+### HANDOFF → Patrick + Senior Engineer · 2026-05-28 · ✅ APPROVED → BUILD (recipe detail v7 "Mise" — vision-concept resolved; build ticket: `docs/coo/tickets/recipe-detail-v7-build.md`)
 
 **🔁 Rev 3 — 2026-05-28 late PM.** Frame A had too many colours; aligned to the live Pantry tab's visual discipline. Palette collapsed from seven accents down to **five** — ink / muted / bronze / gold / terra. Pantry-tab vocabulary brought across: pill-row layout for ingredients + equipment + method, bronze uppercase section eyebrows with icon+count+line-below pattern, gold stepper as the only interactive accent, rust only on Start cooking. Olive (in-pantry green) → strikethrough + bronze tick; ochre (honest-swap) → bronze italic Fraunces. Recipe and Pantry now read as one app.
 

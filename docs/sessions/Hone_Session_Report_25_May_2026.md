@@ -92,3 +92,9 @@ After the v5 crash + v6 safe-restyle, Patrick asked the bigger question: "if you
 **Safe to build, by design:** no animated headers, no native-driver scroll, no sticky-via-Animated bars — the v5 crash class is structurally impossible. StyleSheet + simple state only.
 
 Handoff opened as a DIRECTION CALL (not a build order). Three options offered to Patrick: pursue v7 phased, take parts of it, or stick with v6.
+
+## v7 approved → engineer build ticket (2026-05-28 evening)
+
+Patrick: "lets try this v7 design out." Wrote the canonical work order at `docs/coo/tickets/recipe-detail-v7-build.md`, flipped the v7 vision-concept handoff to ✅ APPROVED BUILD, opened **GitHub Issue #6** for tracking, and registered the ticket in FILE_MAP. Phase 1 = three small commits (tokens+fonts → browse restyle → cook "Look for" font fix). Phase 2 (allergens schema, equipment enrichment, cook-mode enhancements) deferred to a separate ticket later.
+
+**Safety constraints baked in** (v5 lesson written into the ticket): no animated/collapsing header, no native-driver scroll, no sticky bar — the Fabric crash class is structurally impossible. Engineer pitches an implementation plan to Patrick before any code; ships to main; Patrick triggers the EAS build and validates on-device (R-015).
