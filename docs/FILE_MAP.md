@@ -64,6 +64,8 @@
 | `docs/prototypes/recipe-detail-v3.html` | Recipe detail "Kitchen Brief" concept (24 May). Superseded by v5 as the direction. |
 | `docs/prototypes/recipe-detail-v4.html` | Recipe detail "The Pass" — elevated why-note, story glance, allergen strip, leftover nudge. |
 | `docs/prototypes/recipe-detail-v5.html` | Recipe detail "The Pass" (latest) — v4 + origin flag, sticky CTA, collapsing app bar. APPROVED for engineer build. |
+| `docs/prototypes/recipe-detail-v6.html` | Aesthetic-only restyle of the working build-#126 recipe page — safe rebuild after the v5 crash (no scroll-driven chrome). |
+| `docs/prototypes/recipe-detail-v7.html` | **Vision concept** — kitchen-first redesign: warm-paper browse + OLED cook flow, Fraunces+Inter type, pantry signal up top, ergonomic cook step. For Patrick's direction call. |
 | `docs/archive/` | Completed checklists, old backups, superseded documents. Nothing here is current. |
 | `docs/archive/sessions/` | Numbered session backup folders (11–14, README). |
 | `docs/archive/backup-*/` | Point-in-time snapshot backups created during risky refactors. |

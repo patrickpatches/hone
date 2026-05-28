@@ -70,6 +70,31 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
+### HANDOFF → Patrick (DIRECTION CALL) · 2026-05-28 · OPEN — VISION CONCEPT (recipe detail v7 "Mise" — kitchen-first redesign)
+**From:** Product Designer
+**Subject:** This is NOT a build order — it's the answer to "what would you do if you were trying to build the best-designed, most ergonomic recipe app?" Open `docs/prototypes/recipe-detail-v7.html` in a browser; two phone frames + a four-panel rationale. **Patrick decides whether to pursue this direction, refine it, or stick with v6's safer aesthetic restyle.**
+
+**The thesis (one sentence):** the current recipe page is beautifully built as a *document to read*, but a recipe page's real job is to be a *tool you cook with* — v7 redesigns it around that, with browse and cook as two surfaces that serve different physical contexts.
+
+**Four deliberate calls — all defensible, each a direction shift worth flagging:**
+1. **Browse moves to warm paper** (`#F7F1E5`), cook stays true OLED black. Every food publication on Earth lays food on light because warm rendered colour pops on cream and dies on near-black; dark UI also loses legibility fastest under kitchen glare. Cook mode is dim/nighttime/wake-lock territory — true black wins there. So: <b>two surfaces, each chosen for its physical context.</b> This is the biggest direction call.
+2. **Fraunces replaces Playfair Display** for headings. Playfair's hairlines vanish under Android anti-aliasing at small sizes (high stroke contrast + no optical sizing). Fraunces is a variable serif with a real opsz axis — the same glyph adapts its contrast to its size, so 12sp body and 38sp display both stay crisp on a mid-tier Pixel. Inter stays for body/UI.
+3. **The pantry signal is the new top of the recipe page** — "You have 7 of 9 ingredients · 2 missing · [add to shopping list]". This is the kill feature surfaced where it answers the only question that matters at decide-time: <em>can I cook this tonight?</em> Reads existing data; no schema change.
+4. **Cook mode = one full-screen step, doneness photo as the hero, knuckle-sized "Next" tap zone across the bottom.** Built for arm's length, glance-and-act, hands-busy. Auto-advance on timer expiry as an opt-in. Long-press = pause.
+
+**Other concept moves (smaller):** a "your kitchen journey" overview (mise · cook · plate) right under the CTA, equipment + prep merged into a "Get ready" section, honest-swap trade-offs surfaced inline as small ochre italic notes (golden rule 5), method preview as a tap-into-cook-flow list, allergens shown as small honest chips.
+
+**⚠ SAFE TO BUILD (the v5 lesson is learned):** no animated headers, no native-driver scroll, no sticky pinned-via-Animated bars. The cook-mode "Next" is a static full-width button at the bottom of the layout. Browse is a plain vertical scroll. The whole concept is achievable with StyleSheet + simple state — no `Animated`, no `Reanimated` scroll handlers. The v5 Fabric crash class cannot be reintroduced by this design.
+
+**Decision — Patrick to call:**
+- **(A) Pursue v7 as the direction** — phased rollout: Phase 1 tokens + browse layout (behind a flag for A/B), Phase 2 cook-mode redesign, Phase 3 pantry-signal wired live + honest-swap notes. I'll write build tickets for each phase.
+- **(B) Take parts of it** — e.g. keep the dark palette but adopt the cook-mode ergonomics + the pantry signal. Tell me which bits land and I'll redraft.
+- **(C) Stick with v6** — the safe aesthetic restyle of the working screen. v7 stays on disk as a reference; no build.
+
+**Files:** `docs/prototypes/recipe-detail-v7.html` (new). Reference: v6 (safe aesthetic restyle), v5 (crashed approach, superseded), tokens.ts (current dark palette).
+
+---
+
 ### HANDOFF → Patrick (visual review) + Senior Engineer (when approved) · 2026-05-28 · OPEN — AESTHETIC RESTYLE (recipe detail v6 — safe rebuild after the v5 crash)
 **From:** Product Designer
 **Subject:** v5 crashed on-device and was reverted (#126). Patrick asked for an **aesthetic-only** redesign of the recipe page — ergonomic, smart buttons, refined colour palette — **with no content removed and nothing that could reproduce the crash.** Prototype: `docs/prototypes/recipe-detail-v6.html`. Awaiting Patrick's visual review before any build.

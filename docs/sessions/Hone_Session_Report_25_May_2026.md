@@ -82,3 +82,13 @@ v5 was built by the engineer (#124) and **force-closed on opening any recipe**. 
 Patrick asked for an **aesthetic-only** redesign instead. Built `docs/prototypes/recipe-detail-v6.html`: a pure visual restyle of the working build-#126 browse screen using the real `tokens.ts` dark palette — tactile thumb-sized buttons, one-job-per-colour palette (unifying #126's stray `#5B8FD4` blue onto the sky token), calmer hierarchy. **Every content block kept; no new data; no animated/sticky/scroll behaviour** — so it cannot reproduce the crash. Awaiting Patrick's visual review.
 
 Housekeeping: build log already carried #124/#125/#126 (engineer logged them); I flipped the v5 build handoff to 🛑 SUPERSEDED, opened the v6 handoff, and closed Issue #5 as the crashed approach.
+
+## v7 — vision concept (2026-05-28 PM)
+
+After the v5 crash + v6 safe-restyle, Patrick asked the bigger question: "if you were building the best-designed, most ergonomic recipe app, what's your honest critique and what would you do?" Gave him the teardown (the recipe page is built as a document to read, not a tool to cook with) and then drafted a full vision concept at `docs/prototypes/recipe-detail-v7.html`.
+
+**v7 "Mise"** — two paired surfaces: browse moves to a warm-paper editorial page (food photography leads); cook stays true-OLED, single full-screen step with the doneness photo as the hero and a knuckle-sized "Next" tap zone for arm's-length use. **Display font: Fraunces** (variable serif, real opsz axis, ports clean to Android — replacing Playfair Display whose hairlines die on Android anti-aliasing at small sizes). **Inter stays.** Pantry signal ("you have 7 of 9 ingredients · 2 missing") becomes the new top of the recipe page — the kill feature surfaced at decide-time. Honest-swap trade-offs (golden rule 5) surfaced inline. Allergen chips kept honest.
+
+**Safe to build, by design:** no animated headers, no native-driver scroll, no sticky-via-Animated bars — the v5 crash class is structurally impossible. StyleSheet + simple state only.
+
+Handoff opened as a DIRECTION CALL (not a build order). Three options offered to Patrick: pursue v7 phased, take parts of it, or stick with v6.

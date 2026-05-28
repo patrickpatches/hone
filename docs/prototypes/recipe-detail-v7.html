@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hone · Recipe Detail v7 — vision concept (kitchen-first redesign)</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────────────────────
+   v7 — VISION CONCEPT (not for build yet)
+   Two paired surfaces:
+     • Browse/Decide → warm paper (food photography leads)
+     • Cook mode    → true OLED black (arm's-length glanceable)
+   Fonts: Fraunces (variable editorial serif, ports to Android via
+   @expo-google-fonts/fraunces) + Inter (already in use).
+   ───────────────────────────────────────────────────────────── */
+:root{
+  /* BROWSE — warm paper daytime */
+  --paper:      #F7F1E5;
+  --paperSoft:  #F0E9DA;
+  --paperDeep:  #E8DFCA;
+  --ink:        #1A1411;   /* warm near-black */
+  --inkSoft:    #4A3E36;   /* warm brown body */
+  --muted:      #8A7B6E;
+  --terra:      #C25543;   /* terracotta primary (warmer than the dark-theme rust) */
+  --terraSoft:  rgba(194,85,67,0.10);
+  --terraDeep:  #9E3F30;
+  --olive:      #6B7A3F;
+  --oliveSoft:  rgba(107,122,63,0.12);
+  --ochre:      #C28948;
+  --ochreSoft:  rgba(194,137,72,0.12);
+  --mahogany:   #5C2E1E;
+  --line:       rgba(26,20,17,0.10);
+  --lineSoft:   rgba(26,20,17,0.06);
+  --shadow:     0 1px 0 rgba(26,20,17,0.04), 0 12px 28px rgba(26,20,17,0.10);
+  --shadowSm:   0 1px 0 rgba(26,20,17,0.04), 0 4px 12px rgba(26,20,17,0.06);
+
+  /* COOK MODE — OLED black */
+  --bgC:        #000000;
+  --cardC:      #0E0E0E;
+  --inkC:       #F5EFE8;
+  --inkSoftC:   #C4B8A8;
+  --mutedC:     #8A7E72;
+  --goldC:      #F2CC2A;        /* the doneness signal */
+  --terraC:     #D8634F;        /* slightly brightened terra for OLED */
+  --lineC:      rgba(255,255,255,0.10);
+
+  /* Type ladder */
+  --display: 'Fraunces', Georgia, serif;
+  --body:    'Inter', -apple-system, sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#1a1411;color:var(--ink);font-family:var(--body);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:36px 24px 80px}
+.page-h{text-align:center;margin-bottom:24px;max-width:680px;color:#F0E9DA}
+.page-eye{font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--ochre);margin-bottom:8px}
+.page-t{font-family:var(--display);font-variation-settings:"opsz" 90,"wght" 700;font-size:26px;margin-bottom:8px}
+.page-sub{font-size:13px;color:#C4B8A8;line-height:1.6}
+
+.row{display:flex;gap:32px;justify-content:center;flex-wrap:wrap;margin-bottom:36px}
+.frame-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.frame-cap{font-family:var(--body);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#C4B8A8;font-weight:600}
+
+/* ─────────────────────────────────────────────────────────────
+   PHONE FRAME
+   ───────────────────────────────────────────────────────────── */
+.phone{width:393px;height:852px;border-radius:48px;overflow:hidden;position:relative;flex-shrink:0;
+  box-shadow:0 0 0 1px rgba(255,255,255,.10),0 60px 160px rgba(0,0,0,.8)}
+.phone.paper{background:var(--paper)}
+.phone.cook{background:var(--bgC)}
+.scroll{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.status{position:absolute;top:0;left:0;right:0;height:46px;z-index:30;display:flex;justify-content:space-between;align-items:center;padding:0 24px;pointer-events:none}
+.status.dark{color:var(--ink)}
+.status.light{color:var(--inkC)}
+.status .time{font-size:14px;font-weight:600}
+.status svg{display:block}
+
+/* ─────────────────────────────────────────────────────────────
+   BROWSE / DECIDE — warm paper
+   ───────────────────────────────────────────────────────────── */
+.b-bar{display:flex;align-items:center;gap:4px;padding:54px 12px 8px}
+.b-btn{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;background:transparent;flex-shrink:0;color:var(--ink)}
+.b-btn:hover{background:rgba(26,20,17,.05)}
+.b-btn.on{background:var(--terraSoft);color:var(--terra)}
+.b-spacer{flex:1}
+
+/* Hero — edge-to-edge magazine */
+.b-hero{height:340px;position:relative;overflow:hidden;margin:0}
+.b-photo{position:absolute;inset:0;background:
+  radial-gradient(ellipse at 32% 28%,rgba(232,148,72,.7) 0%,transparent 48%),
+  radial-gradient(ellipse at 70% 64%,rgba(170,62,36,.6) 0%,transparent 52%),
+  linear-gradient(160deg,#A65030,#6E2A14 52%,#3A1408)}
+.b-photo::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,transparent 35%,rgba(0,0,0,.18) 100%)}
+.b-photo-grain{position:absolute;inset:0;opacity:.4;background:repeating-linear-gradient(112deg,rgba(255,225,180,.04) 0 2px,transparent 2px 4px)}
+
+/* Title BELOW hero — editorial */
+.b-title-block{padding:22px 22px 4px}
+.b-chef{font-family:var(--body);font-size:11px;font-weight:600;letter-spacing:.10em;text-transform:uppercase;color:var(--mahogany);margin-bottom:9px}
+.b-chef a{color:var(--mahogany);text-decoration:underline;text-underline-offset:2px;opacity:.7;font-weight:500}
+.b-title{font-family:var(--display);font-variation-settings:"opsz" 144,"wght" 700;font-size:38px;line-height:1.02;letter-spacing:-.6px;color:var(--ink)}
+.b-tag{font-family:var(--display);font-variation-settings:"opsz" 36,"wght" 400;font-style:italic;font-size:16px;line-height:1.4;color:var(--inkSoft);margin-top:7px}
+
+.b-body{padding:0 22px 24px}
+
+/* PANTRY SIGNAL — the differentiator */
+.b-pantry{margin-top:20px;background:var(--paperSoft);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadowSm)}
+.b-pan-top{display:flex;align-items:center;gap:12px;margin-bottom:9px}
+.b-pan-ring{width:38px;height:38px;border-radius:50%;background:conic-gradient(var(--olive) 0 280deg,var(--paperDeep) 280deg 360deg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.b-pan-ring-inner{width:30px;height:30px;border-radius:50%;background:var(--paperSoft);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-variation-settings:"opsz" 24,"wght" 700;font-size:12px;color:var(--ink);letter-spacing:-.3px}
+.b-pan-text{flex:1}
+.b-pan-line{font-family:var(--body);font-size:13.5px;font-weight:600;color:var(--ink)}
+.b-pan-line strong{color:var(--olive)}
+.b-pan-sub{font-size:12px;color:var(--muted);margin-top:1px}
+.b-pan-missing{display:flex;flex-wrap:wrap;gap:6px}
+.b-miss{font-size:11.5px;font-weight:500;color:var(--inkSoft);background:#fff;border:1px solid var(--line);border-radius:12px;padding:5px 10px}
+.b-pan-action{display:block;width:100%;text-align:center;margin-top:11px;background:transparent;border:1.5px solid var(--olive);color:var(--olive);font-family:var(--body);font-weight:700;font-size:12.5px;letter-spacing:.02em;border-radius:100px;padding:10px;cursor:pointer}
+.b-pan-action:hover{background:var(--oliveSoft)}
+
+/* Quick facts — clean row */
+.b-facts{display:flex;gap:14px;margin-top:18px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.b-fact{display:flex;flex-direction:column;gap:2px;flex:1}
+.b-fact .v{font-family:var(--display);font-variation-settings:"opsz" 24,"wght" 700;font-size:18px;color:var(--ink);line-height:1.1}
+.b-fact .v small{font-family:var(--body);font-weight:600;font-size:11px;color:var(--muted);margin-left:3px}
+.b-fact .l{font-size:10.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+
+/* allergen row */
+.b-diet{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.b-diet-k{font-size:10px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);margin-right:2px;align-self:center}
+.b-tag{font-size:11px;color:var(--inkSoft);background:#fff;border:1px solid var(--line);border-radius:12px;padding:4px 10px}
+
+/* PRIMARY CTA */
+.b-cta{margin-top:18px}
+.b-start{width:100%;height:58px;border:none;border-radius:18px;background:var(--terra);color:#fff;
+  font-family:var(--body);font-size:17px;font-weight:700;letter-spacing:.01em;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;
+  box-shadow:0 8px 22px rgba(194,85,67,.30)}
+.b-start:hover{background:var(--terraDeep)}
+.b-2nd{display:flex;justify-content:center;align-items:center;gap:16px;margin-top:11px}
+.b-2nd a{font-size:12.5px;font-weight:600;color:var(--inkSoft);text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.b-2nd a:hover{color:var(--ink)}
+.b-2nd .sep{width:1px;height:14px;background:var(--line)}
+
+/* JOURNEY overview — the cooking arc */
+.b-journey{margin-top:22px;background:var(--paperSoft);border:1px solid var(--line);border-radius:18px;padding:14px}
+.b-jh{font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--mahogany);margin-bottom:10px}
+.b-j-row{display:flex;align-items:center;gap:10px}
+.b-j-step{flex:1;text-align:center;padding:9px 4px;background:#fff;border-radius:12px;border:1px solid var(--line)}
+.b-j-num{font-family:var(--display);font-variation-settings:"opsz" 24,"wght" 700;font-size:13px;color:var(--terra);line-height:1}
+.b-j-lbl{font-size:11px;font-weight:600;color:var(--ink);margin-top:3px;line-height:1.2}
+.b-j-time{font-size:10px;color:var(--muted);margin-top:1px}
+.b-j-arrow{color:var(--muted);font-size:14px}
+
+/* Section header */
+.b-sec{margin-top:26px}
+.b-sec-h{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.b-sec-t{font-family:var(--display);font-variation-settings:"opsz" 30,"wght" 700;font-size:22px;color:var(--ink);letter-spacing:-.2px}
+.b-sec-c{margin-left:auto;font-size:11px;color:var(--muted);background:var(--paperSoft);padding:3px 9px;border-radius:10px;border:1px solid var(--line)}
+
+/* Ingredients */
+.b-ing{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--lineSoft)}
+.b-ing:last-child{border-bottom:none}
+.b-ing-info{flex:1;min-width:0}
+.b-ing-n{font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.3}
+.b-ing-n.have{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(107,122,63,.55);text-decoration-thickness:1.5px}
+.b-ing-a{font-size:12.5px;color:var(--muted);margin-top:2px}
+.b-ing-have-dot{width:18px;height:18px;border-radius:50%;background:var(--oliveSoft);border:1.5px solid var(--olive);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.b-swap{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);background:#fff;color:var(--mahogany);
+  font-size:11.5px;font-weight:600;border-radius:100px;padding:5px 12px;cursor:pointer}
+.b-swap:hover{border-color:var(--mahogany)}
+.b-swap.on{border-color:var(--olive);background:var(--oliveSoft);color:var(--olive)}
+
+/* SUBSTITUTION HONESTY — surfaced (golden rule 5) */
+.b-sub-note{margin-top:5px;padding:8px 11px;background:var(--ochreSoft);border-left:3px solid var(--ochre);border-radius:0 10px 10px 0;font-size:11.5px;font-style:italic;color:var(--inkSoft);font-family:var(--display);font-variation-settings:"opsz" 14,"wght" 400}
+.b-sub-note b{font-style:normal;color:var(--mahogany);font-weight:700;font-family:var(--body);font-size:9px;letter-spacing:.10em;text-transform:uppercase;margin-right:6px}
+
+/* Equipment + Prep merged */
+.b-eq{display:flex;align-items:flex-start;gap:11px;padding:11px 0;border-bottom:1px solid var(--lineSoft)}
+.b-eq:last-child{border-bottom:none}
+.b-eq-ic{width:34px;height:34px;border-radius:10px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--mahogany)}
+.b-eq-info{flex:1}
+.b-eq-n{font-size:14px;font-weight:600;color:var(--ink)}
+.b-eq-note{font-size:12px;color:var(--muted);margin-top:2px}
+.b-tag2{font-size:10px;font-weight:700;letter-spacing:.04em;padding:3px 8px;border-radius:8px;flex-shrink:0;margin-top:2px}
+.b-tag2.req{background:var(--terraSoft);color:var(--terraDeep)}
+.b-tag2.opt{background:var(--paperSoft);color:var(--muted);border:1px solid var(--line)}
+
+/* Prep band */
+.b-prep{background:var(--ochreSoft);border:1px solid rgba(194,137,72,.30);border-radius:14px;padding:14px;margin-top:14px}
+.b-prep-h{font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ochre);margin-bottom:9px}
+.b-prep-r{display:flex;gap:9px;margin-bottom:7px}
+.b-prep-r:last-child{margin-bottom:0}
+.b-prep-r .d{width:5px;height:5px;border-radius:50%;background:var(--ochre);margin-top:7px;flex-shrink:0}
+.b-prep-r p{font-size:13px;line-height:1.5;color:var(--inkSoft)}
+
+/* Method preview (titles only — tap to enter cook flow) */
+.b-meth{margin-top:0}
+.b-meth-r{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--lineSoft);cursor:pointer}
+.b-meth-r:last-child{border-bottom:none}
+.b-meth-num{width:32px;height:32px;border-radius:50%;background:var(--paperSoft);border:1px solid var(--line);color:var(--mahogany);
+  font-family:var(--display);font-variation-settings:"opsz" 24,"wght" 700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.b-meth-t{flex:1;font-size:14.5px;font-weight:600;color:var(--ink)}
+.b-meth-time{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.b-meth-chev{color:var(--muted)}
+
+/* ─────────────────────────────────────────────────────────────
+   COOK MODE — OLED, arm's-length ergonomic
+   ───────────────────────────────────────────────────────────── */
+.c-top{position:relative;height:420px;background:
+  radial-gradient(ellipse at 40% 35%,rgba(232,148,72,.65) 0%,transparent 50%),
+  radial-gradient(ellipse at 70% 60%,rgba(170,62,36,.55) 0%,transparent 50%),
+  linear-gradient(160deg,#8C4424,#4E1C0E 60%,#180802)}
+.c-progress{position:absolute;top:54px;left:18px;right:18px;display:flex;gap:5px}
+.c-seg{flex:1;height:3.5px;border-radius:2px;background:rgba(255,255,255,.18)}
+.c-seg.on{background:var(--goldC)}
+.c-step-tag{position:absolute;bottom:18px;left:18px;font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--goldC)}
+.c-ghost-num{position:absolute;right:14px;bottom:-6px;font-family:var(--display);font-variation-settings:"opsz" 144,"wght" 900;font-size:128px;color:rgba(245,239,232,.08);line-height:1;letter-spacing:-3px;user-select:none}
+.c-fade{position:absolute;bottom:0;left:0;right:0;height:120px;background:linear-gradient(to top,var(--bgC),transparent)}
+
+.c-body{padding:22px 22px 0;color:var(--inkC)}
+.c-title{font-family:var(--display);font-variation-settings:"opsz" 96,"wght" 700;font-size:30px;line-height:1.08;color:var(--inkC);letter-spacing:-.3px;margin-bottom:14px}
+.c-instr{font-family:var(--body);font-size:17px;line-height:1.55;color:var(--inkC);margin-bottom:18px}
+.c-instr b{font-weight:700;color:#fff}
+
+/* LOOK FOR — the chef cue, second-loudest element */
+.c-look{background:rgba(242,204,42,.08);border-left:3px solid var(--goldC);padding:14px 16px;border-radius:0 14px 14px 0;margin-bottom:18px}
+.c-look-l{font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--goldC);margin-bottom:5px}
+.c-look-t{font-family:var(--display);font-variation-settings:"opsz" 30,"wght" 500;font-style:italic;font-size:18px;line-height:1.4;color:var(--inkC)}
+
+/* Big timer */
+.c-timer{display:flex;align-items:baseline;gap:10px;padding:14px 0;border-top:1px solid var(--lineC);border-bottom:1px solid var(--lineC);margin-bottom:0}
+.c-timer-v{font-family:var(--body);font-size:56px;font-weight:800;color:var(--goldC);letter-spacing:-1px;font-variant-numeric:tabular-nums;line-height:1}
+.c-timer-l{flex:1;font-size:12px;color:var(--mutedC);letter-spacing:.05em;text-transform:uppercase;font-weight:600}
+.c-timer-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border-radius:100px;padding:7px 13px;font-size:12px;color:var(--inkC);font-weight:600;cursor:pointer}
+
+/* BIG NEXT — bottom-third tap zone, ergonomic */
+.c-next-zone{position:absolute;left:0;right:0;bottom:0;padding:20px 18px 28px;background:linear-gradient(to top,#000 60%,rgba(0,0,0,0));pointer-events:auto}
+.c-next{width:100%;height:74px;border:none;border-radius:22px;background:var(--terraC);color:#fff;font-family:var(--body);font-size:18px;font-weight:700;letter-spacing:.01em;display:flex;align-items:center;justify-content:center;gap:11px;cursor:pointer;
+  box-shadow:0 -2px 0 rgba(255,255,255,.04) inset,0 12px 28px rgba(0,0,0,.45)}
+.c-next:hover{background:#E27160}
+.c-next .sub{font-size:13px;font-weight:500;opacity:.78;margin-left:6px}
+.c-back-row{display:flex;justify-content:space-between;align-items:center;margin-top:11px}
+.c-back{background:none;border:none;color:var(--inkSoftC);font-size:12.5px;font-weight:500;display:flex;align-items:center;gap:5px;cursor:pointer}
+.c-back:hover{color:var(--inkC)}
+.c-tools{display:flex;gap:6px}
+.c-tool{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.06);border:none;color:var(--inkSoftC);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.c-tool:hover{background:rgba(255,255,255,.12);color:var(--inkC)}
+
+/* ─────────────────────────────────────────────────────────────
+   RATIONALE PANELS (below the frames)
+   ───────────────────────────────────────────────────────────── */
+.panel{max-width:760px;width:100%;background:var(--paper);color:var(--ink);border-radius:24px;padding:30px 32px;margin-bottom:18px;box-shadow:var(--shadow)}
+.panel h2{font-family:var(--display);font-variation-settings:"opsz" 36,"wght" 700;font-size:24px;margin-bottom:6px;letter-spacing:-.3px}
+.panel .lead{font-family:var(--display);font-variation-settings:"opsz" 18,"wght" 400;font-style:italic;font-size:15px;color:var(--inkSoft);margin-bottom:18px}
+.panel h3{font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mahogany);margin:18px 0 8px}
+.panel p{font-size:14px;line-height:1.65;color:var(--inkSoft);margin-bottom:10px}
+.panel p b{color:var(--ink);font-weight:700}
+.swatches{display:flex;flex-wrap:wrap;gap:9px;margin:8px 0 4px}
+.sw{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--inkSoft);font-weight:500}
+.sw .d{width:16px;height:16px;border-radius:5px;flex-shrink:0;border:1px solid rgba(0,0,0,.08)}
+.sw b{color:var(--ink);font-weight:700}
+.spec{display:flex;flex-direction:column;gap:8px;background:var(--paperSoft);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:6px}
+.spec .ttl{font-family:var(--display);font-variation-settings:"opsz" 96,"wght" 700;font-size:38px;line-height:1;letter-spacing:-.4px}
+.spec .ttl.it{font-style:italic;font-variation-settings:"opsz" 36,"wght" 400}
+.spec .meta{font-family:var(--body);font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.04em}
+.code{background:#1a1411;color:#F0E9DA;border-radius:10px;padding:11px 14px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:12.5px;line-height:1.6;overflow-x:auto;margin:8px 0}
+.code .k{color:#F2CC2A}
+.note-safe{background:var(--oliveSoft);border-left:3px solid var(--olive);border-radius:0 14px 14px 0;padding:14px 16px;margin-top:8px}
+.note-safe p{margin:0;font-size:13px;color:var(--inkSoft);line-height:1.6}
+.note-safe b{color:var(--olive)}
+</style>
+</head>
+<body>
+
+<div class="page-h">
+  <div class="page-eye">Hone · Recipe Detail · vision concept</div>
+  <h1 class="page-t">v7 — Mise (kitchen-first redesign)</h1>
+  <p class="page-sub">Answers the critique. Browse becomes a photo-led editorial decision page on warm paper; cook becomes an arm's-length, glanceable, knuckle-friendly instrument on true black. Rationale + palette + font + ergonomics specs sit beneath the frames.</p>
+</div>
+
+<div class="row">
+
+  <!-- ──────────────── FRAME A — BROWSE / DECIDE ──────────────── -->
+  <div class="frame-wrap">
+    <div class="phone paper">
+      <div class="status dark">
+        <span class="time">00:43</span>
+        <span style="display:flex;gap:5px">
+          <svg width="16" height="11" viewBox="0 0 16 12"><rect x="0" y="5" width="3" height="7" rx="1" fill="currentColor" opacity=".35"/><rect x="4.5" y="3" width="3" height="9" rx="1" fill="currentColor" opacity=".55"/><rect x="9" y="1" width="3" height="11" rx="1" fill="currentColor" opacity=".75"/><rect x="13.5" width="2.5" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="26" height="11" viewBox="0 0 28 12"><rect x="0.5" y="0.5" width="23" height="11" rx="3.5" stroke="currentColor" opacity=".4" fill="none"/><rect x="2" y="2" width="17" height="8" rx="2" fill="currentColor"/></svg>
+        </span>
+      </div>
+
+      <div class="scroll">
+        <!-- top bar -->
+        <div class="b-bar">
+          <button class="b-btn" aria-label="Back"><svg width="20" height="20" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 2L4 7L9 12"/></svg></button>
+          <div class="b-spacer"></div>
+          <button class="b-btn on" aria-label="Planned"><svg width="20" height="20" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7L6 10L11 4"/></svg></button>
+          <button class="b-btn" aria-label="Favourite"><svg width="20" height="20" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 12.2L1.7 7C.7 6 .7 4.2 1.7 3.2C2.7 2.1 4.4 2.1 5.4 3.2L7 4.7L8.6 3.2C9.6 2.1 11.3 2.1 12.3 3.2C13.3 4.2 13.3 6 12.3 7L7 12.2Z"/></svg></button>
+        </div>
+
+        <!-- Hero (photo led, edge-to-edge magazine) -->
+        <div class="b-hero">
+          <div class="b-photo"></div>
+          <div class="b-photo-grain"></div>
+        </div>
+
+        <!-- Title block (Fraunces editorial) -->
+        <div class="b-title-block">
+          <div class="b-chef">Inspired by Andy Cooks · <a href="#">Watch the original ↗</a></div>
+          <h1 class="b-title">Smash Burger</h1>
+          <p class="b-tag">The crispy-edged diner classic — twenty minutes, one screaming pan.</p>
+        </div>
+
+        <div class="b-body">
+
+          <!-- PANTRY SIGNAL (the differentiator, surfaced) -->
+          <div class="b-pantry">
+            <div class="b-pan-top">
+              <div class="b-pan-ring"><div class="b-pan-ring-inner">7/9</div></div>
+              <div class="b-pan-text">
+                <div class="b-pan-line">You have <strong>7 of 9 ingredients</strong></div>
+                <div class="b-pan-sub">Missing 2 — both at a corner shop</div>
+              </div>
+            </div>
+            <div class="b-pan-missing">
+              <span class="b-miss">Brioche buns</span>
+              <span class="b-miss">Dill pickles</span>
+            </div>
+            <button class="b-pan-action">＋ Add missing to shopping list</button>
+          </div>
+
+          <!-- Quick facts -->
+          <div class="b-facts">
+            <div class="b-fact"><div class="v">20<small>min</small></div><div class="l">start to plate</div></div>
+            <div class="b-fact"><div class="v">Easy</div><div class="l">fast &amp; forgiving</div></div>
+            <div class="b-fact"><div class="v">2<small>burgers</small></div><div class="l">serves</div></div>
+          </div>
+
+          <!-- allergens -->
+          <div class="b-diet">
+            <span class="b-diet-k">Contains</span>
+            <span class="b-tag">Gluten</span>
+            <span class="b-tag">Dairy</span>
+            <span class="b-tag">Egg</span>
+          </div>
+
+          <!-- PRIMARY CTA -->
+          <div class="b-cta">
+            <button class="b-start">
+              <svg width="22" height="22" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="rgba(255,255,255,.6)" stroke-width="1.3"/><path d="M7 6L13 9L7 12V6Z" fill="#fff"/></svg>
+              Start cooking
+            </button>
+            <div class="b-2nd">
+              <a href="#"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="10" height="9" rx="1"/><path d="M5 2v2M9 2v2"/></svg> Plan it</a>
+              <span class="sep"></span>
+              <a href="#"><svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 4.5L9.5 7L5.5 9.5V4.5Z" fill="currentColor"/></svg> Watch the chef</a>
+            </div>
+          </div>
+
+          <!-- JOURNEY overview — the cooking arc made visible -->
+          <div class="b-journey">
+            <div class="b-jh">Your kitchen journey</div>
+            <div class="b-j-row">
+              <div class="b-j-step"><div class="b-j-num">01</div><div class="b-j-lbl">Mise</div><div class="b-j-time">5 min</div></div>
+              <div class="b-j-arrow">→</div>
+              <div class="b-j-step"><div class="b-j-num">02</div><div class="b-j-lbl">Cook</div><div class="b-j-time">12 min</div></div>
+              <div class="b-j-arrow">→</div>
+              <div class="b-j-step"><div class="b-j-num">03</div><div class="b-j-lbl">Plate</div><div class="b-j-time">3 min</div></div>
+            </div>
+          </div>
+
+          <!-- Ingredients -->
+          <div class="b-sec">
+            <div class="b-sec-h"><span class="b-sec-t">Ingredients</span><span class="b-sec-c">9 · 7 in pantry</span></div>
+            <div>
+              <div class="b-ing"><div class="b-ing-have-dot"><svg width="9" height="9" viewBox="0 0 11 11" fill="none" stroke="#6B7A3F" stroke-width="2" stroke-linecap="round"><path d="M2 5.6L4.3 8L9 3"/></svg></div><div class="b-ing-info"><div class="b-ing-n have">Beef mince, 80/20</div><div class="b-ing-a">500 g · in pantry</div></div></div>
+              <div class="b-ing"><div class="b-ing-have-dot"><svg width="9" height="9" viewBox="0 0 11 11" fill="none" stroke="#6B7A3F" stroke-width="2" stroke-linecap="round"><path d="M2 5.6L4.3 8L9 3"/></svg></div><div class="b-ing-info"><div class="b-ing-n have">American cheese</div><div class="b-ing-a">4 slices · in pantry</div><div class="b-sub-note"><b>Honest swap</b>Cheddar works but melts firmer — give it an extra 15 sec under the lid.</div></div><button class="b-swap on">✓ Cheddar</button></div>
+              <div class="b-ing"><div class="b-ing-info" style="margin-left:30px"><div class="b-ing-n">Brioche buns, seeded</div><div class="b-ing-a">2 · on shopping list</div></div><button class="b-swap">Swap</button></div>
+              <div class="b-ing"><div class="b-ing-have-dot"><svg width="9" height="9" viewBox="0 0 11 11" fill="none" stroke="#6B7A3F" stroke-width="2" stroke-linecap="round"><path d="M2 5.6L4.3 8L9 3"/></svg></div><div class="b-ing-info"><div class="b-ing-n have">Iceberg lettuce</div><div class="b-ing-a">2–3 leaves per burger</div></div></div>
+              <div class="b-ing"><div class="b-ing-info" style="margin-left:30px"><div class="b-ing-n">Dill pickles, sliced</div><div class="b-ing-a">4–5 slices per burger · on shopping list</div></div><button class="b-swap">Swap</button></div>
+              <div class="b-ing"><div class="b-ing-have-dot"><svg width="9" height="9" viewBox="0 0 11 11" fill="none" stroke="#6B7A3F" stroke-width="2" stroke-linecap="round"><path d="M2 5.6L4.3 8L9 3"/></svg></div><div class="b-ing-info"><div class="b-ing-n have">White onion</div><div class="b-ing-a">¼ per burger</div></div></div>
+            </div>
+          </div>
+
+          <!-- Equipment + Prep merged -->
+          <div class="b-sec">
+            <div class="b-sec-h"><span class="b-sec-t">Get ready</span><span class="b-sec-c">5 min mise</span></div>
+            <div class="b-eq"><div class="b-eq-ic"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="9" r="4.5"/><path d="M11 7L16 5.5" stroke-linecap="round"/></svg></div><div class="b-eq-info"><div class="b-eq-n">Cast-iron pan</div><div class="b-eq-note">24–28 cm. Must hold very high heat.</div></div><span class="b-tag2 req">Essential</span></div>
+            <div class="b-eq"><div class="b-eq-ic"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3 12L8 7"/><rect x="7" y="2" width="6" height="6" rx="1" transform="rotate(45 10 5)"/></svg></div><div class="b-eq-info"><div class="b-eq-n">Flat metal spatula</div><div class="b-eq-note">Thin, rigid edge for the smash + crust scrape.</div></div><span class="b-tag2 req">Essential</span></div>
+            <div class="b-prep">
+              <div class="b-prep-h">Have it ready before the pan goes on</div>
+              <div class="b-prep-r"><span class="d"></span><p>Loose 125 g mince balls — don't pack them.</p></div>
+              <div class="b-prep-r"><span class="d"></span><p>Finely diced onion, sliced pickles, cheese at room temp.</p></div>
+            </div>
+          </div>
+
+          <!-- Method preview (titles only — tap a row to enter cook flow at that step) -->
+          <div class="b-sec">
+            <div class="b-sec-h"><span class="b-sec-t">Method</span><span class="b-sec-c">6 steps</span></div>
+            <div class="b-meth">
+              <div class="b-meth-r"><div class="b-meth-num">1</div><div class="b-meth-t">Heat the pan</div><div class="b-meth-time">5 min</div><span class="b-meth-chev">›</span></div>
+              <div class="b-meth-r"><div class="b-meth-num">2</div><div class="b-meth-t">Smash &amp; sear</div><div class="b-meth-time">2 min</div><span class="b-meth-chev">›</span></div>
+              <div class="b-meth-r"><div class="b-meth-num">3</div><div class="b-meth-t">Cheese &amp; steam</div><div class="b-meth-time">45 sec</div><span class="b-meth-chev">›</span></div>
+              <div class="b-meth-r"><div class="b-meth-num">4</div><div class="b-meth-t">Toast the bun</div><div class="b-meth-time">1 min</div><span class="b-meth-chev">›</span></div>
+              <div class="b-meth-r"><div class="b-meth-num">5</div><div class="b-meth-t">Build &amp; serve</div><div class="b-meth-time">—</div><span class="b-meth-chev">›</span></div>
+            </div>
+          </div>
+
+          <div style="height:24px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-cap">Frame A · Decide (warm paper, photo-led)</div>
+  </div>
+
+  <!-- ──────────────── FRAME B — COOK MODE STEP ──────────────── -->
+  <div class="frame-wrap">
+    <div class="phone cook">
+      <div class="status light">
+        <span class="time">00:43</span>
+        <span style="display:flex;gap:5px">
+          <svg width="16" height="11" viewBox="0 0 16 12"><rect x="0" y="5" width="3" height="7" rx="1" fill="currentColor" opacity=".4"/><rect x="4.5" y="3" width="3" height="9" rx="1" fill="currentColor" opacity=".6"/><rect x="9" y="1" width="3" height="11" rx="1" fill="currentColor" opacity=".8"/><rect x="13.5" width="2.5" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="26" height="11" viewBox="0 0 28 12"><rect x="0.5" y="0.5" width="23" height="11" rx="3.5" stroke="currentColor" opacity=".4" fill="none"/><rect x="2" y="2" width="17" height="8" rx="2" fill="currentColor"/></svg>
+        </span>
+      </div>
+
+      <!-- top half — doneness photo, the hero of every step -->
+      <div class="c-top">
+        <div class="c-progress">
+          <span class="c-seg on"></span><span class="c-seg on"></span><span class="c-seg on"></span>
+          <span class="c-seg"></span><span class="c-seg"></span><span class="c-seg"></span>
+        </div>
+        <div class="c-step-tag">Step 03 of 06</div>
+        <div class="c-ghost-num">03</div>
+        <div class="c-fade"></div>
+      </div>
+
+      <div class="c-body">
+        <h2 class="c-title">Smash &amp; sear</h2>
+        <p class="c-instr">Drop a ball of mince in. <b>Press it down hard straight away</b> — lean your weight in, hold ten seconds. Season heavily with sea salt. Don't touch it for ninety seconds.</p>
+
+        <div class="c-look">
+          <div class="c-look-l">Look for</div>
+          <div class="c-look-t">Deeply browned, lacy edges before you lift. The lace is the flavour.</div>
+        </div>
+
+        <div class="c-timer">
+          <span class="c-timer-v">1:30</span>
+          <span class="c-timer-l">don't touch it</span>
+          <button class="c-timer-pill">⏸ pause</button>
+        </div>
+      </div>
+
+      <!-- bottom-third tap zone -->
+      <div class="c-next-zone">
+        <button class="c-next">Next<span class="sub">Cheese &amp; steam →</span></button>
+        <div class="c-back-row">
+          <button class="c-back">‹ Heat the pan</button>
+          <div class="c-tools">
+            <button class="c-tool" title="Scaling"><svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M7 1.5v11M1.5 7h11"/></svg></button>
+            <button class="c-tool" title="Ingredients"><svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 3h10M2 7h10M2 11h10"/></svg></button>
+            <button class="c-tool" title="Exit cook mode"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 3l8 8M11 3l-8 8"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="frame-cap">Frame B · Cook (OLED, arm's-length glanceable)</div>
+  </div>
+
+</div>
+
+<!-- ──────────────── RATIONALE PANELS ──────────────── -->
+
+<div class="panel">
+  <h2>What this answers</h2>
+  <p class="lead">Every move below is in direct reply to a weakness named in the critique.</p>
+
+  <h3>1 · It's two products with one architecture</h3>
+  <p>Browse and cook are two different jobs, two different mindsets, two different physical contexts. v7 honours that: <b>browse becomes a photo-led editorial decision page on warm paper</b> (sofa, two-handed, low commitment), and <b>cook becomes a true-OLED instrument designed for arm's length</b> (standing, glanceable, hands busy). The handoff is the "Start cooking" button — not a mode flip inside the same surface.</p>
+
+  <h3>2 · The pantry signal is the new top of the page</h3>
+  <p>The single best "should I cook this tonight?" answer is <b>"you have 7 of 9 — you're missing two."</b> That's your own kill feature, and on v7 it sits directly under the title. The two missing items are named, and one tap drops them on the shopping list. This is the move that visibly beats Supercook and Yummly — they don't surface their own data this confidently.</p>
+
+  <h3>3 · "Look for" becomes the second-loudest element on every cook step</h3>
+  <p>In cook mode, the doneness cue is set in <b>Fraunces italic at 18sp</b> on a gold-rail callout, directly under the instruction. It's deliberately bigger and more present than the body text — because at arm's length, "what should it look like right now" is the most valuable sentence on screen.</p>
+
+  <h3>4 · The doneness photo is the top half of every cook step</h3>
+  <p>Golden rule #4 finally gets the real estate it deserves. Photo on top, copy below, timer below that, and a 74dp tap-anywhere "Next" button across the bottom — built for a knuckle, not a fingertip. The ghost step number watermark gives you orientation without eating space.</p>
+
+  <h3>5 · The no-photo state stops apologising</h3>
+  <p>On a recipe without a photo, the hero becomes a typographic Fraunces card with a thin terracotta rule and a faint glyph watermark — it reads as <b>intentional editorial</b>, not a placeholder note that advertises a gap. The "stage-by-stage photos coming" notice is retired; absence is absorbed by design.</p>
+
+  <h3>6 · Substitution honesty is surfaced, not hidden</h3>
+  <p>The "honest swap" line under a swapped ingredient (golden rule #5) is now visible inline, in a small ochre italic callout — so the trade-off is part of the recipe, not buried behind a tap. That's the only kind of competitive moat that doesn't churn.</p>
+</div>
+
+<div class="panel">
+  <h2>Colour — paper for food, black for cooking</h2>
+  <p class="lead">Two surfaces, each chosen for the physical context it serves. Seven existing token roles are kept (rust → terracotta, sage → olive, gold, etc.); only the surface flips.</p>
+
+  <h3>Browse (warm paper · daytime)</h3>
+  <div class="swatches">
+    <div class="sw"><span class="d" style="background:#F7F1E5"></span><b>paper</b> #F7F1E5</div>
+    <div class="sw"><span class="d" style="background:#F0E9DA"></span><b>paperSoft</b> #F0E9DA</div>
+    <div class="sw"><span class="d" style="background:#1A1411"></span><b>ink</b> #1A1411</div>
+    <div class="sw"><span class="d" style="background:#4A3E36"></span><b>inkSoft</b> #4A3E36</div>
+    <div class="sw"><span class="d" style="background:#C25543"></span><b>terracotta</b> · Start cooking</div>
+    <div class="sw"><span class="d" style="background:#6B7A3F"></span><b>olive</b> · in pantry / done</div>
+    <div class="sw"><span class="d" style="background:#C28948"></span><b>ochre</b> · prep / honest swap</div>
+    <div class="sw"><span class="d" style="background:#5C2E1E"></span><b>mahogany</b> · attribution / chef voice</div>
+  </div>
+  <p><b>Why paper.</b> Every great cooking publication — NYT Cooking, Bon Appétit, every Ottolenghi book — lays food on light. The reason isn't taste, it's optics: warm rendered colour pops on cream and dies on near-black. A dark UI also loses legibility fastest under kitchen glare on a propped-up phone. Paper makes the photo the hero and survives a sunlit counter.</p>
+
+  <h3>Cook (true OLED · stovetop)</h3>
+  <div class="swatches">
+    <div class="sw"><span class="d" style="background:#000;border-color:#222"></span><b>bg</b> #000000 (OLED)</div>
+    <div class="sw"><span class="d" style="background:#F5EFE8"></span><b>ink</b> #F5EFE8</div>
+    <div class="sw"><span class="d" style="background:#F2CC2A"></span><b>gold</b> · doneness / "Look for"</div>
+    <div class="sw"><span class="d" style="background:#D8634F"></span><b>terraC</b> · Next button</div>
+  </div>
+  <p><b>Why black, only here.</b> Cook mode is consulted in dim kitchens and at night; true black saves screen-burn on long wake-lock sessions, and a single high-contrast warm cream reads at arm's length. The gold "Look for" cue gets its real meaning here — it's the chef shouting through the noise.</p>
+</div>
+
+<div class="panel">
+  <h2>Type — Fraunces + Inter, both clean on Android</h2>
+  <p class="lead">A modern variable serif paired with the body workhorse you're already shipping. Both rendered crisply on Android via expo-google-fonts.</p>
+
+  <div class="spec">
+    <span class="ttl">Smash Burger</span>
+    <span class="ttl it">The crispy-edged diner classic.</span>
+    <span class="meta">Fraunces · variable · opsz 9–144 · wght 400–900 (italic incl.)</span>
+  </div>
+
+  <h3>Why replace Playfair Display</h3>
+  <p>Playfair has very high stroke contrast — the hairlines disappear under Android anti-aliasing at small sizes and on lower-density screens. It also has no optical sizing, so the same outline does double duty for 12sp captions and 38sp display, which is a compromise either end. <b>Fraunces</b> is a contemporary editorial serif with the same warm gravitas, but it's <b>variable with proper optical sizing</b> (opsz axis 9 → 144): the glyphs literally adapt their stroke contrast to the size you set them at, so 12sp body and 38sp title both render crisply on a mid-tier Pixel. Italic carries the chef-voice "Look for" cues with personality.</p>
+
+  <h3>Why keep Inter for body and UI</h3>
+  <p>Inter is the right call for everything non-display. It's variable, has true tabular numerals (essential for timers and quantities), ships flawlessly on Android, and you already have it loaded — zero cost to keep.</p>
+
+  <h3>Android porting (engineer notes)</h3>
+  <div class="code"><span class="k">npm</span> i @expo-google-fonts/fraunces
+// in mobile/app/_layout.tsx — add the variable face + the italic
+<span class="k">import</span> { Fraunces_400Regular, Fraunces_700Bold, Fraunces_500Medium_Italic } from '@expo-google-fonts/fraunces';
+useFonts({ ...Inter, Fraunces_400Regular, Fraunces_700Bold, Fraunces_500Medium_Italic });
+// in tokens.ts — update fonts:
+display:        'Fraunces_700Bold',
+displayItalic:  'Fraunces_500Medium_Italic',
+sans:           'Inter_400Regular',
+sansBold:       'Inter_600SemiBold',</div>
+  <p>Total weight added at runtime: ≈ 110 KB on first launch (variable face + italic), cached thereafter. Tabular numerals via <code>fontFeatureSettings: ['tnum','lnum']</code> on any Text rendering a timer or a quantity. Min font-scale set to 100% but support up to 200% (accessibility, per CLAUDE.md).</p>
+</div>
+
+<div class="panel">
+  <h2>Ergonomics — built for the propped-up phone</h2>
+  <p class="lead">Every cook-mode decision below is in service of one fact: you're standing at arm's length with your hands busy, glancing at a screen with glare, and you can't afford to look twice.</p>
+
+  <h3>The cook-step layout, top to bottom</h3>
+  <p><b>Top half (≈ 420dp)</b> · doneness photo — what the dish should look like at this stage. Edge to edge. A ghost step number watermark gives orientation; a 6-segment gold progress bar tells you how far in you are.</p>
+  <p><b>Middle</b> · step title (Fraunces 30sp), one instruction (Inter 17sp, line-height 1.55), the gold "Look for" cue (Fraunces italic 18sp — louder than the body), big tabular timer (56sp, gold, tabular numerals).</p>
+  <p><b>Bottom third</b> · a 74dp full-width terracotta "Next" pill with the upcoming step title quietly inside it, plus a tiny back link below and three icon tools (scaling, ingredients, exit). The whole bottom region is your tap zone — designed for a knuckle, not a fingertip.</p>
+
+  <h3>Hands-busy moves</h3>
+  <p>Wake lock stays on through the whole cook flow (CLAUDE.md mandate). Haptic confirm on every Next tap. <b>Auto-advance on timer expiry</b> as an opt-in toggle in cook-mode tools — for the steps where you're already at the pan and don't want to find the screen. <b>Long-press anywhere</b> = pause (haptic) — a forgiving gesture that works without aim.</p>
+
+  <h3>Failure modes designed for</h3>
+  <p>If you scale mid-cook, the stepper is on the tools row inside cook mode — no need to leave the flow. If you swapped an ingredient, the affected step shows the override automatically with a small sage cue ("adapted for your cheddar swap"). If a step has no photo, the top half becomes a typographic plate that names the dish stage — the photo gap doesn't break the layout.</p>
+</div>
+
+<div class="panel">
+  <h2>Safe to build — what to do (and not do)</h2>
+  <div class="note-safe"><p><b>This is a visual + IA redesign, not a behaviour redesign.</b> No collapsing animated headers, no native-driver scroll animations, no sticky bottom bars on the browse page — the very things that crashed v5 under Fabric. Cook mode's "Next" button is a static, full-width button at the bottom of the layout (not pinned via animated transforms). The browse page is a normal vertical scroll. <b>Every visual you see above is achievable with StyleSheet + simple state — no Animated, no Reanimated scroll handlers required.</b></p></div>
+
+  <h3>What changes vs build #126</h3>
+  <p>Surface (paper light for browse), display font (Playfair → Fraunces), layout architecture (pantry signal up top, journey overview, method preview list, prep merged into Get-ready), cook-mode treatment (single full-screen step with doneness photo + huge tap zone). All content preserved; some content (the pantry signal, journey overview, honest-swap inline note) is <b>surfaced</b> from data you already store.</p>
+
+  <h3>What stays exactly the same</h3>
+  <p>Recipe data model. Substitution engine. Scaling logic. Ingredient/recipe ID space. Routing. Cook-mode wake lock + haptics behaviour. The tabs + pantry + shop screens (out of scope).</p>
+
+  <h3>If approved — phased rollout</h3>
+  <p><b>Phase 1.</b> New tokens (paper palette + Fraunces) + browse-page layout (no cook-mode changes). Ship behind a feature flag so you can A/B legibility against the dark palette on your own phone before committing.</p>
+  <p><b>Phase 2.</b> Cook-mode redesign — single-step layout with doneness photo and big tap zone. Wake lock, haptics, auto-advance toggle.</p>
+  <p><b>Phase 3.</b> Pantry signal wired live + missing-to-list action + honest-swap inline notes pulled from the existing substitution data.</p>
+  <p>Each phase ships independently and is reversible. No EAS build without your trigger.</p>
+</div>
+
+</body>
+</html>
