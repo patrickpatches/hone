@@ -14,11 +14,16 @@
    in colour. Fonts: Fraunces + Inter (both port cleanly to Android).
    ───────────────────────────────────────────────────────────── */
 :root{
-  /* UNIFIED DARK — used by both Frame A (browse) and Frame B (cook) */
-  --bg:         #000000;
-  --card:       #0E0E0E;
-  --cardSoft:   #161616;
-  --cardLifted: #1B1B1B;
+  /* APP SURFACES — match tokens.ts (DECISION-012: bg #141414, cream #1E1E1E)
+     Used by browse + every other tab (pantry, shop, home). */
+  --bg:         #141414;
+  --bgDeep:     #0F0F0F;
+  --card:       #1E1E1E;
+  --cardSoft:   #252525;
+  --cardLifted: #2A2A2A;
+  /* COOK MODE — true OLED black (CLAUDE.md mandate: visually distinct from app bg). */
+  --bgC:        #000000;
+  --cardC:      #0E0E0E;
   --ink:        #F5EFE8;
   --inkSoft:    #C4B8A8;
   --muted:      #8A7E72;
@@ -56,6 +61,7 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
 .phone{width:393px;height:852px;border-radius:48px;overflow:hidden;position:relative;flex-shrink:0;
   background:var(--bg);
   box-shadow:0 0 0 1px rgba(255,255,255,.10),0 60px 160px rgba(0,0,0,.8)}
+.phone.cook{background:var(--bgC)}
 .scroll{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none}
 .scroll::-webkit-scrollbar{display:none}
 .status{position:absolute;top:0;left:0;right:0;height:46px;z-index:30;display:flex;justify-content:space-between;align-items:center;padding:0 24px;pointer-events:none;color:var(--ink)}
@@ -200,7 +206,7 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
 .c-seg.on{background:var(--gold)}
 .c-step-tag{position:absolute;bottom:18px;left:18px;font-family:var(--body);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
 .c-ghost-num{position:absolute;right:14px;bottom:-6px;font-family:var(--display);font-variation-settings:"opsz" 144,"wght" 900;font-size:128px;color:rgba(245,239,232,.08);line-height:1;letter-spacing:-3px;user-select:none}
-.c-fade{position:absolute;bottom:0;left:0;right:0;height:120px;background:linear-gradient(to top,var(--bg),transparent)}
+.c-fade{position:absolute;bottom:0;left:0;right:0;height:120px;background:linear-gradient(to top,var(--bgC),transparent)}
 
 .c-body{padding:22px 22px 0;color:var(--ink)}
 .c-title{font-family:var(--display);font-variation-settings:"opsz" 96,"wght" 700;font-size:30px;line-height:1.08;color:var(--ink);letter-spacing:-.3px;margin-bottom:14px}
@@ -210,7 +216,7 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
 /* LOOK FOR — second-loudest element */
 .c-look{background:var(--goldSoft);border-left:3px solid var(--gold);padding:14px 16px;border-radius:0 14px 14px 0;margin-bottom:18px}
 .c-look-l{font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
-.c-look-t{font-family:var(--display);font-variation-settings:"opsz" 30,"wght" 500;font-style:italic;font-size:18px;line-height:1.4;color:var(--ink)}
+.c-look-t{font-family:var(--body);font-weight:600;font-size:19px;line-height:1.45;color:var(--ink);letter-spacing:.005em}
 
 /* Timer */
 .c-timer{display:flex;align-items:baseline;gap:10px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
@@ -219,7 +225,7 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
 .c-timer-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border-radius:100px;padding:7px 13px;font-size:12px;color:var(--ink);font-weight:600;cursor:pointer}
 
 /* BIG NEXT — bottom-third tap zone */
-.c-next-zone{position:absolute;left:0;right:0;bottom:0;padding:20px 18px 28px;background:linear-gradient(to top,#000 60%,rgba(0,0,0,0));pointer-events:auto}
+.c-next-zone{position:absolute;left:0;right:0;bottom:0;padding:20px 18px 28px;background:linear-gradient(to top,var(--bgC) 60%,rgba(0,0,0,0));pointer-events:auto}
 .c-next{width:100%;height:74px;border:none;border-radius:22px;background:var(--terra);color:#fff;font-family:var(--body);font-size:18px;font-weight:700;letter-spacing:.01em;display:flex;align-items:center;justify-content:center;gap:11px;cursor:pointer;
   box-shadow:0 -2px 0 rgba(255,255,255,.04) inset,0 12px 28px rgba(0,0,0,.45)}
 .c-next:hover{background:#E27160}
@@ -260,7 +266,7 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
 <div class="page-h">
   <div class="page-eye">Hone · Recipe Detail · vision concept · rev 2</div>
   <h1 class="page-t">v7 — Mise (kitchen-first redesign)</h1>
-  <p class="page-sub">Both surfaces now share <b style="color:var(--ink)">one OLED-style dark palette</b> — Hone reads as one place. The distinction between browse and cook lives in <em>layout</em> (long editorial scroll vs single-step instrument), not in colour. Fonts: Fraunces + Inter. Pantry signal at the top of the page. Doneness photo as the hero of every cook step. Built for arm's length.</p>
+  <p class="page-sub">Both surfaces share the same dark visual language so Hone reads as one place — <b style="color:var(--ink)">browse on the established app charcoal</b> (matches every other tab in tokens.ts), <b style="color:var(--ink)">cook on true OLED black</b> per the CLAUDE.md mandate. The distinction between browse and cook lives in <em>layout</em> (long editorial scroll vs single-step instrument), not in colour. Fonts: Fraunces + Inter. Pantry signal at the top of the page. Doneness photo as the hero of every cook step. Built for arm's length.</p>
 </div>
 
 <div class="row">
@@ -403,7 +409,7 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
 
   <!-- ──────────────── FRAME B — COOK MODE ──────────────── -->
   <div class="frame-wrap">
-    <div class="phone">
+    <div class="phone cook">
       <div class="status">
         <span class="time">00:43</span>
         <span style="display:flex;gap:5px">
@@ -481,26 +487,37 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
 </div>
 
 <div class="panel">
-  <h2>Colour — one unified dark palette</h2>
-  <p class="lead">Patrick's call after the first draft: keep browse and cook on the same scheme so Hone reads as one app. Honest reasoning below.</p>
+  <h2>Colour — unified dark, two surfaces (the system observed)</h2>
+  <p class="lead">Browse on the established app charcoal (matches every other tab); cook on true OLED black per the CLAUDE.md mandate. One visual language, the locked tokens.ts properly applied.</p>
 
-  <h3>Why this is the right call</h3>
-  <p>The original v7 split the palette — warm paper for browse, OLED black for cook — to chase food-photography legibility. Patrick overrode it to keep visual continuity across the app, and on reflection that's the smarter move: <b>one less palette change after four prior ones</b>, no jarring context-switch when the user enters cook mode, and the meaningful distinction between "decide" and "cook" lives in the layout (long scroll → single-step instrument) where it's felt more strongly anyway. The photo legibility concern can be addressed inside the dark scheme by giving the hero photo full bleed and a tight vignette gradient, which v7 does.</p>
+  <h3>Why this is right</h3>
+  <p>An earlier v7 rev used pure <code>#000</code> for both surfaces — taking "same as Frame B" literally. But that contradicted the locked <code>tokens.ts</code>: the app's primary background is <code>#141414</code> (a deep warm charcoal), used by Pantry, Shop, Home and every other tab; cook mode is the only place explicitly mandated to OLED <code>#000</code> so it's visually distinguishable. v7 now matches the system as it actually exists — browse sits on the same charcoal as the rest of the app; cook stays its own OLED place. The two still feel like one family (same warm-cream ink, same accents, same fonts), but the system speaks for itself.</p>
 
-  <h3>The palette (every colour, one job)</h3>
+  <h3>App surfaces (browse + every other tab)</h3>
   <div class="swatches">
-    <div class="sw"><span class="d" style="background:#000"></span><b>bg</b> #000000</div>
-    <div class="sw"><span class="d" style="background:#0E0E0E"></span><b>card</b> #0E0E0E</div>
-    <div class="sw"><span class="d" style="background:#1B1B1B"></span><b>cardLifted</b> #1B1B1B</div>
+    <div class="sw"><span class="d" style="background:#141414"></span><b>bg</b> #141414 · warm charcoal</div>
+    <div class="sw"><span class="d" style="background:#1E1E1E"></span><b>card</b> #1E1E1E · elevated surfaces</div>
+    <div class="sw"><span class="d" style="background:#252525"></span><b>cardSoft</b> #252525 · panels</div>
+    <div class="sw"><span class="d" style="background:#2A2A2A"></span><b>cardLifted</b> #2A2A2A · pressables</div>
+  </div>
+
+  <h3>Cook-mode surface (true OLED — CLAUDE.md mandate)</h3>
+  <div class="swatches">
+    <div class="sw"><span class="d" style="background:#000;border-color:#222"></span><b>bgC</b> #000000 · OLED</div>
+    <div class="sw"><span class="d" style="background:#0E0E0E"></span><b>cardC</b> #0E0E0E</div>
+  </div>
+
+  <h3>Accents — shared across both surfaces (each colour, one job)</h3>
+  <div class="swatches">
     <div class="sw"><span class="d" style="background:#F5EFE8"></span><b>ink</b> #F5EFE8</div>
     <div class="sw"><span class="d" style="background:#C4B8A8"></span><b>inkSoft</b> #C4B8A8</div>
     <div class="sw"><span class="d" style="background:#D8634F"></span><b>terracotta</b> · Start cooking</div>
-    <div class="sw"><span class="d" style="background:#F2CC2A"></span><b>gold</b> · "Look for"</div>
+    <div class="sw"><span class="d" style="background:#F2CC2A"></span><b>gold</b> · "Look for" rail</div>
     <div class="sw"><span class="d" style="background:#5FB07E"></span><b>olive</b> · in pantry / done</div>
     <div class="sw"><span class="d" style="background:#D88E50"></span><b>ochre</b> · honest swap / prep</div>
     <div class="sw"><span class="d" style="background:#C2A15A"></span><b>bronze</b> · attribution / chef voice</div>
   </div>
-  <p>Notes on what changed vs the live build #126: terracotta brightened to <code>#D8634F</code> for OLED legibility (the deeper rust <code>#B84030</code> stays as pressed/deep state). Sage brightened to <code>#5FB07E</code> so "in pantry" reads cleanly on black (the original #3A7050 is too dark for body text on OLED). Bronze takes the chef-attribution role that mahogany held in the paper draft. Otherwise the role mapping is identical.</p>
+  <p>Notes vs the live build #126: terracotta brightened to <code>#D8634F</code> for readable button text on both charcoal and OLED (the deeper rust <code>#B84030</code> stays as pressed/deep state). Sage brightened to <code>#5FB07E</code> so "in pantry" rows pass AA on both surfaces. Bronze takes the chef-attribution role.</p>
 </div>
 
 <div class="panel">
@@ -518,6 +535,9 @@ body{background:#070707;color:var(--ink);font-family:var(--body);min-height:100v
 
   <h3>Why keep Inter for body and UI</h3>
   <p>Inter is the right call for everything non-display. It's variable, has true tabular numerals (essential for timers and quantities), ships flawlessly on Android, and you already have it loaded — zero cost to keep.</p>
+
+  <h3>Type by job — voice vs label</h3>
+  <p>Fraunces italic carries <b>voice</b> — chef asides, attribution, the "honest swap" prose in browse mode where you're reading close-up. <b>"Look for" in cook mode is operational text, not voice</b> — it's a label you act on at arm's length — so it sits in Inter SemiBold upright at 19sp. Italic serif on a dark surface loses legibility at distance; upright sans wins by a wide margin. The rule across the app: <b>operational text → Inter; chef voice → Fraunces italic; titles &amp; headings → Fraunces upright</b>.</p>
 
   <h3>Android porting (engineer notes)</h3>
   <div class="code"><span class="k">npm</span> i @expo-google-fonts/fraunces
@@ -538,7 +558,7 @@ sansBold:       'Inter_600SemiBold',</div>
 
   <h3>The cook-step layout, top to bottom</h3>
   <p><b>Top half (≈ 420dp)</b> · doneness photo — what the dish should look like at this stage. Edge to edge. A ghost step number watermark gives orientation; a 6-segment gold progress bar tells you how far in you are.</p>
-  <p><b>Middle</b> · step title (Fraunces 30sp), one instruction (Inter 17sp, line-height 1.55), the gold "Look for" cue (Fraunces italic 18sp — louder than the body), big tabular timer (56sp, gold, tabular numerals).</p>
+  <p><b>Middle</b> · step title (Fraunces 30sp), one instruction (Inter 17sp, line-height 1.55), the gold "Look for" cue (<b>Inter SemiBold 19sp upright</b> — bigger and tighter than body so it reads first at arm's length; italic serif tested poorly here), big tabular timer (56sp, gold, tabular numerals).</p>
   <p><b>Bottom third</b> · a 74dp full-width terracotta "Next" pill with the upcoming step title quietly inside it, plus a tiny back link below and three icon tools (scaling, ingredients, exit). The whole bottom region is your tap zone — designed for a knuckle, not a fingertip.</p>
 
   <h3>Hands-busy moves</h3>
