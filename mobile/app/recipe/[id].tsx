@@ -252,6 +252,67 @@ function RecipeDetailScreenInner() {
     return () => { cancelled = true; };
   }, [db]);
 
+  // ── v7 hooks — Rules of Hooks compliant (build #131 fix) ──────────────────
+  // ALL hooks must run in the same order on every render. These previously
+  // sat AFTER the recipe-loaded guards below, which caused a hook-count drop
+  // on the first render (recipe still undefined) → "Rendered more hooks than
+  // during the previous render" crash the moment getRecipeById resolved.
+  // They're hoisted here and defended against recipe being undefined/null.
+  const match = useMemo(() => {
+    return recipe
+      ? scoreRecipeAgainstPantry(recipe, pantryItems)
+      : null;
+  }, [recipe, pantryItems]);
+  const inPantryNames = useMemo(() => {
+    const s = new Set<string>();
+    for (const it of pantryItems) {
+      if (it.have_it) s.add(normalizeForMatch(it.name));
+    }
+    return s;
+  }, [pantryItems]);
+  const ingredientInPantry = useCallback(
+    (name: string) => inPantryNames.has(normalizeForMatch(cleanIngredientName(name))),
+    [inPantryNames],
+  );
+  const journeyTimes = useMemo(() => {
+    if (!recipe) return { miseMin: 5, cookMin: 1, plateMin: 3 };
+    const cookSec = recipe.steps.reduce((acc, s) => acc + (s.timer_seconds ?? 0), 0);
+    return {
+      miseMin: 5,
+      cookMin: Math.max(1, Math.round(cookSec / 60)),
+      // ticket said '0 if leftover_mode==tonight' but leftover_mode is an object
+      // in the current schema, not a string. 3 min plating is universally honest.
+      plateMin: 3,
+    };
+  }, [recipe]);
+  const addMissingToShoppingList = useCallback(async () => {
+    if (!recipe || !match) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    try {
+      await Promise.all(
+        match.missingIngredients.map((mi) => {
+          const id = 'shop-' + recipe.id + '-' + normalizeForMatch(mi.name);
+          return upsertShoppingItem(db, {
+            id,
+            name: mi.name,
+            category: categorizeIngredient(mi.name),
+            quantity: mi.amount > 0 ? mi.amount : null,
+            unit: mi.unit ?? null,
+            notes: null,
+            manually_added: false,
+            in_cart: false,
+            added_at: Date.now(),
+            sources: [{ kind: 'meal', recipe_id: recipe.id, servings: recipe.base_servings }],
+          });
+        }),
+      );
+      setShoppingAdded(true);
+      setTimeout(() => { setShoppingAdded(false); }, 2500);
+    } catch (e) {
+      console.error('addMissingToShoppingList failed', e);
+    }
+  }, [db, recipe, match]);
+
   // ── Loading states ──────────────────────────────────────────────────────────
 
   if (recipe === undefined) {
@@ -312,38 +373,6 @@ function RecipeDetailScreenInner() {
   // Glance row only renders if at least one timing/difficulty field is populated
   const hasGlanceData = !!(recipe.total_time_minutes || recipe.active_time_minutes || difficultyLabel);
 
-  // ── v7 — pantry match (build #129) ─────────────────────────────────────────
-  // Reuses the existing scoreRecipeAgainstPantry — same engine the Kitchen tab
-  // and pantry carousel use. No new scoring logic.
-  const match = useMemo(
-    () => scoreRecipeAgainstPantry(recipe, pantryItems),
-    [recipe, pantryItems],
-  );
-  const inPantryNames = useMemo(() => {
-    const s = new Set<string>();
-    for (const it of pantryItems) {
-      if (it.have_it) s.add(normalizeForMatch(it.name));
-    }
-    return s;
-  }, [pantryItems]);
-  const ingredientInPantry = useCallback(
-    (name: string) => inPantryNames.has(normalizeForMatch(cleanIngredientName(name))),
-    [inPantryNames],
-  );
-
-  // Kitchen-journey time estimates (read-only): Mise = 5 min default (the
-  // mise_en_place items don't carry per-item durations in the current schema);
-  // Cook = sum of step timer_seconds; Plate = 3 min default (0 if leftover-only).
-  const journeyTimes = useMemo(() => {
-    const cookSec = recipe.steps.reduce((acc, s) => acc + (s.timer_seconds ?? 0), 0);
-    return {
-      miseMin: 5,
-      cookMin: Math.max(1, Math.round(cookSec / 60)),
-      // ticket said '0 if leftover_mode==tonight' but leftover_mode is an object
-      // in the current schema, not a string. 3 min plating is universally honest.
-      plateMin: 3,
-    };
-  }, [recipe.steps]);
 
   // Cook-mode surface palette. CLAUDE.md: dark, OLED-friendly true blacks.
   // The same surface names are used in both modes so JSX can read `c.X`
@@ -477,36 +506,6 @@ function RecipeDetailScreenInner() {
     if (!url) return;
     Linking.openURL(url).catch(() => { Alert.alert('Could not open link', url); });
   };
-
-  // v7 — add every missing ingredient (per scoreRecipeAgainstPantry) to the
-  // shopping list. Uses the existing shopping DB layer; source kind='meal' so
-  // the items are attributed to this recipe in the sources_json column.
-  const addMissingToShoppingList = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    try {
-      await Promise.all(
-        match.missingIngredients.map((mi) => {
-          const id = 'shop-' + recipe.id + '-' + normalizeForMatch(mi.name);
-          return upsertShoppingItem(db, {
-            id,
-            name: mi.name,
-            category: categorizeIngredient(mi.name),
-            quantity: mi.amount > 0 ? mi.amount : null,
-            unit: mi.unit ?? null,
-            notes: null,
-            manually_added: false,
-            in_cart: false,
-            added_at: Date.now(),
-            sources: [{ kind: 'meal', recipe_id: recipe.id, servings: recipe.base_servings }],
-          });
-        }),
-      );
-      setShoppingAdded(true);
-      setTimeout(() => { setShoppingAdded(false); }, 2500);
-    } catch (e) {
-      console.error('addMissingToShoppingList failed', e);
-    }
-  }, [db, recipe, match.missingIngredients]);
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
@@ -873,7 +872,7 @@ function RecipeDetailScreenInner() {
             Pantry-aware match card. N/M from scoreRecipeAgainstPantry; the
             missing list and "Add to shopping list" button reuse the same
             engine the Kitchen tab and pantry carousel use. */}
-        {!cooking && recipe.ingredients.length > 0 ? (
+        {!cooking && match && recipe.ingredients.length > 0 ? (
           <View style={{ paddingHorizontal: 20, marginTop: 14 }}>
             {/* bronze eyebrow */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 10 }}>
