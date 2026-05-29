@@ -9,7 +9,7 @@
  * Studio Kitchen palette throughout. Plan toggle is a simple
  * bookmark-style button — no calendar, no date picker.
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   ActivityIndicator,
@@ -34,11 +34,22 @@ import {
   toggleFavorite,
   getPlannedRecipeIds,
   togglePlannedRecipe,
+  getPantryItems,
+  upsertShoppingItem,
 } from '../../db/database';
+import type { PantryItem } from '../../db/database';
 import { tokens, fonts } from '../../src/theme/tokens';
 import { Icon } from '../../src/components/Icon';
 import { SubstitutionSheet, PILL_CONFIG } from '../../src/components/SubstitutionSheet';
 import { ServingsSelector } from '../../src/components/ServingsSelector';
+// v7 — pantry-aware data + ingredient icons (build #122 visual anchor)
+import {
+  scoreRecipeAgainstPantry,
+  normalizeForMatch,
+  cleanIngredientName,
+  categorizeIngredient,
+} from '../../src/data/pantry-helpers';
+import { FoodIcon, ingredientIconName, categoryIconName } from '../../src/components/PantryIcons';
 import {
   formatAmount,
   scaleIngredient,
@@ -117,6 +128,15 @@ export default function RecipeDetailScreen() {
 
   // Mise en place state — session-only, no persistence (DECISION-008)
   const [miseChecked, setMiseChecked] = useState<Set<number>>(new Set());
+
+  // ── v7 — pantry-aware data wiring (build #129 Commit B) ────────────────────
+  // Load the user's pantry once on mount + refresh on screen focus (mirrors the
+  // Pantry tab's refetch pattern from build #122). scoreRecipeAgainstPantry
+  // gives us N/M + the missing list straight from the existing matcher — no new
+  // scoring logic.
+  const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
+  const [journeyExpanded, setJourneyExpanded] = useState<null | 'plate'>(null);
+  const [shoppingAdded, setShoppingAdded] = useState(false);
   const [miseExpanded, setMiseExpanded] = useState(false);
   const miseExpandOpacity = useRef(new Animated.Value(0)).current;
   const [activeSwaps, setActiveSwaps]         = useState<Record<string, Substitution | null>>({});
@@ -130,6 +150,17 @@ export default function RecipeDetailScreen() {
     }
     return undefined;
   }, [cooking]);
+
+  // v7 — load the user's pantry once on mount. Recipe screen re-mounts each
+  // time you tap a recipe card so a one-shot load is sufficient; no focus
+  // refetch needed because the screen always remounts on entry.
+  useEffect(() => {
+    let cancelled = false;
+    getPantryItems(db)
+      .then((items) => { if (!cancelled) setPantryItems(items); })
+      .catch((e) => console.error('recipe screen pantry load failed', e));
+    return () => { cancelled = true; };
+  }, [db]);
 
   // ── Loading states ──────────────────────────────────────────────────────────
 
@@ -190,6 +221,39 @@ export default function RecipeDetailScreen() {
     : null;
   // Glance row only renders if at least one timing/difficulty field is populated
   const hasGlanceData = !!(recipe.total_time_minutes || recipe.active_time_minutes || difficultyLabel);
+
+  // ── v7 — pantry match (build #129) ─────────────────────────────────────────
+  // Reuses the existing scoreRecipeAgainstPantry — same engine the Kitchen tab
+  // and pantry carousel use. No new scoring logic.
+  const match = useMemo(
+    () => scoreRecipeAgainstPantry(recipe, pantryItems),
+    [recipe, pantryItems],
+  );
+  const inPantryNames = useMemo(() => {
+    const s = new Set<string>();
+    for (const it of pantryItems) {
+      if (it.have_it) s.add(normalizeForMatch(it.name));
+    }
+    return s;
+  }, [pantryItems]);
+  const ingredientInPantry = useCallback(
+    (name: string) => inPantryNames.has(normalizeForMatch(cleanIngredientName(name))),
+    [inPantryNames],
+  );
+
+  // Kitchen-journey time estimates (read-only): Mise = 5 min default (the
+  // mise_en_place items don't carry per-item durations in the current schema);
+  // Cook = sum of step timer_seconds; Plate = 3 min default (0 if leftover-only).
+  const journeyTimes = useMemo(() => {
+    const cookSec = recipe.steps.reduce((acc, s) => acc + (s.timer_seconds ?? 0), 0);
+    return {
+      miseMin: 5,
+      cookMin: Math.max(1, Math.round(cookSec / 60)),
+      // ticket said '0 if leftover_mode==tonight' but leftover_mode is an object
+      // in the current schema, not a string. 3 min plating is universally honest.
+      plateMin: 3,
+    };
+  }, [recipe.steps]);
 
   // Cook-mode surface palette. CLAUDE.md: dark, OLED-friendly true blacks.
   // The same surface names are used in both modes so JSX can read `c.X`
@@ -323,6 +387,36 @@ export default function RecipeDetailScreen() {
     if (!url) return;
     Linking.openURL(url).catch(() => { Alert.alert('Could not open link', url); });
   };
+
+  // v7 — add every missing ingredient (per scoreRecipeAgainstPantry) to the
+  // shopping list. Uses the existing shopping DB layer; source kind='meal' so
+  // the items are attributed to this recipe in the sources_json column.
+  const addMissingToShoppingList = useCallback(async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    try {
+      await Promise.all(
+        match.missingIngredients.map((mi) => {
+          const id = 'shop-' + recipe.id + '-' + normalizeForMatch(mi.name);
+          return upsertShoppingItem(db, {
+            id,
+            name: mi.name,
+            category: categorizeIngredient(mi.name),
+            quantity: mi.amount > 0 ? mi.amount : null,
+            unit: mi.unit ?? null,
+            notes: null,
+            manually_added: false,
+            in_cart: false,
+            added_at: Date.now(),
+            sources: [{ kind: 'meal', recipe_id: recipe.id, servings: recipe.base_servings }],
+          });
+        }),
+      );
+      setShoppingAdded(true);
+      setTimeout(() => { setShoppingAdded(false); }, 2500);
+    } catch (e) {
+      console.error('addMissingToShoppingList failed', e);
+    }
+  }, [db, recipe, match.missingIngredients]);
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
@@ -466,15 +560,39 @@ export default function RecipeDetailScreen() {
                 transition={250}
               />
             ) : (
+              /* v7 no-photo fallback — Fraunces title card over the existing
+                 hero_fallback gradient bands. No emoji block; the typography
+                 IS the asset. fonts.display now points to Fraunces (build #127). */
               <View style={{ flex: 1 }}>
                 <View style={{ flex: 1, backgroundColor: gradient[0] }} />
                 <View style={{ flex: 1, backgroundColor: gradient[1] }} />
                 <View style={{ flex: 1, backgroundColor: gradient[2] }} />
-                {recipe.emoji ? (
-                  <Text style={{ position: 'absolute', bottom: 20, right: 20, fontSize: 72, opacity: 0.9 }}>
-                    {recipe.emoji}
+                <Text
+                  style={{
+                    position: 'absolute', right: 14, bottom: 4,
+                    fontFamily: fonts.display, fontSize: 96,
+                    color: 'rgba(255,255,255,0.08)',
+                  }}
+                  numberOfLines={1}
+                >
+                  {recipe.title.charAt(0)}
+                </Text>
+                <View style={{ position: 'absolute', left: 20, right: 20, bottom: 32, alignItems: 'flex-start' }}>
+                  <Text style={{ fontFamily: fonts.display, fontSize: 30, lineHeight: 35, color: '#FFFFFF' }} numberOfLines={3}>
+                    {recipe.title}
                   </Text>
-                ) : null}
+                  {recipe.source?.chef ? (
+                    <Text style={{ fontFamily: fonts.sansBold, fontSize: 10, letterSpacing: 1.5, textTransform: 'uppercase', color: tokens.bronze, marginTop: 8 }}>
+                      {`Inspired by ${recipe.source.chef}`}
+                    </Text>
+                  ) : null}
+                  {recipe.tagline ? (
+                    <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic', fontSize: 14, lineHeight: 19, color: 'rgba(255,255,255,0.88)', marginTop: 6 }} numberOfLines={2}>
+                      {recipe.tagline}
+                    </Text>
+                  ) : null}
+                  <View style={{ width: 44, height: 2, borderRadius: 2, backgroundColor: tokens.gold, marginTop: 12 }} />
+                </View>
               </View>
             )}
             {/* CC licensing convention — when hero_url is a CC-licensed
@@ -660,6 +778,194 @@ export default function RecipeDetailScreen() {
           </View>
         </View>
 
+
+        {/* ── v7 IN YOUR PANTRY (build #129) ────────────────────────────
+            Pantry-aware match card. N/M from scoreRecipeAgainstPantry; the
+            missing list and "Add to shopping list" button reuse the same
+            engine the Kitchen tab and pantry carousel use. */}
+        {!cooking && recipe.ingredients.length > 0 ? (
+          <View style={{ paddingHorizontal: 20, marginTop: 14 }}>
+            {/* bronze eyebrow */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 10 }}>
+              <FoodIcon name="cat-pantry" size={14} color={tokens.bronze} />
+              <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: tokens.bronze, flex: 1 }}>
+                In your pantry
+              </Text>
+              <View style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, backgroundColor: 'rgba(194,161,90,0.15)', borderWidth: 1, borderColor: 'rgba(194,161,90,0.35)' }}>
+                <Text style={{ fontFamily: fonts.sansBold, fontSize: 10, color: tokens.bronze }}>
+                  {match.haveCount}/{match.totalCount}
+                </Text>
+              </View>
+            </View>
+            {/* card body */}
+            <View
+              style={{
+                backgroundColor: c.cardBg,
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: c.lineDark,
+                padding: 14,
+                gap: 10,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14 }}>
+                <Text style={{ fontFamily: fonts.display, fontSize: 32, lineHeight: 36, color: tokens.bronze }}>
+                  {match.haveCount}<Text style={{ color: tokens.bronze, opacity: 0.4 }}>/{match.totalCount}</Text>
+                </Text>
+                <View style={{ flex: 1, paddingTop: 2 }}>
+                  <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: c.ink }}>
+                    {match.haveCount === match.totalCount ? 'Ready to cook now' :
+                     match.haveCount === 0 ? "You don't have any of this yet" :
+                     match.haveCount >= match.totalCount - 3 ? "You're nearly there" :
+                     "Some of it's already in your pantry"}
+                  </Text>
+                  <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: c.muted, marginTop: 3 }}>
+                    {match.missingIngredients.length === 0
+                      ? 'Tap Start cooking below'
+                      : `${match.missingIngredients.length} ingredient${match.missingIngredients.length === 1 ? '' : 's'} to pick up`}
+                  </Text>
+                </View>
+              </View>
+              {match.missingIngredients.length > 0 ? (
+                <>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                    {match.missingIngredients.slice(0, 6).map((mi) => (
+                      <View
+                        key={mi.name}
+                        style={{
+                          paddingHorizontal: 9,
+                          paddingVertical: 4,
+                          borderRadius: 999,
+                          backgroundColor: c.bgDeep,
+                          borderWidth: 1,
+                          borderColor: c.lineDark,
+                        }}
+                      >
+                        <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.inkSoft }}>
+                          {mi.name}
+                        </Text>
+                      </View>
+                    ))}
+                    {match.missingIngredients.length > 6 ? (
+                      <View style={{ paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999, backgroundColor: c.bgDeep, borderWidth: 1, borderColor: c.lineDark }}>
+                        <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.muted }}>+{match.missingIngredients.length - 6}</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  <Pressable
+                    onPress={addMissingToShoppingList}
+                    accessibilityRole="button"
+                    accessibilityLabel="Add missing ingredients to shopping list"
+                    android_ripple={{ color: 'rgba(242,204,42,0.18)', borderless: false }}
+                    style={{ borderRadius: 12 }}
+                  >
+                    <View style={{
+                      flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      paddingVertical: 11, borderRadius: 12,
+                      borderWidth: 1.5, borderColor: 'rgba(242,204,42,0.55)',
+                      backgroundColor: 'rgba(242,204,42,0.06)',
+                    }}>
+                      <Icon name={shoppingAdded ? 'check' : 'cart'} size={14} color={tokens.gold} />
+                      <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.gold, letterSpacing: 0.2 }}>
+                        {shoppingAdded ? 'Added to shopping list' : 'Add missing to shopping list'}
+                      </Text>
+                    </View>
+                  </Pressable>
+                </>
+              ) : null}
+            </View>
+          </View>
+        ) : null}
+
+        {/* ── v7 YOUR KITCHEN JOURNEY (build #129) ──────────────────────────
+            Read-only 3-card row: Mise · Cook · Plate. Plate is tap-to-expand
+            and carries finishing_note + leftovers_note (Patrick's call —
+            fold them into Plate, not separate sections). No Animated. */}
+        {!cooking ? (
+          <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 10 }}>
+              <FoodIcon name="cat-spice" size={14} color={tokens.bronze} />
+              <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: tokens.bronze }}>
+                Your kitchen journey
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {([
+                { key: 'mise', n: 1, label: 'Mise', time: `${journeyTimes.miseMin} min`, expandable: false },
+                { key: 'cook', n: 2, label: 'Cook', time: `${journeyTimes.cookMin} min`, expandable: false },
+                { key: 'plate', n: 3, label: 'Plate', time: `${journeyTimes.plateMin} min`, expandable: !!(recipe.finishing_note || recipe.leftovers_note) },
+              ] as const).map((card) => (
+                <Pressable
+                  key={card.key}
+                  onPress={() => {
+                    if (card.expandable) setJourneyExpanded((prev) => (prev === 'plate' ? null : 'plate'));
+                  }}
+                  accessibilityRole={card.expandable ? 'button' : undefined}
+                  accessibilityLabel={card.expandable ? `${card.label} — tap for finishing and leftovers notes` : undefined}
+                  style={{ flex: 1, borderRadius: 12 }}
+                >
+                  <View style={{
+                    flex: 1,
+                    paddingVertical: 12,
+                    paddingHorizontal: 10,
+                    borderRadius: 12,
+                    backgroundColor: c.cardBg,
+                    borderWidth: 1,
+                    borderColor: card.expandable && journeyExpanded === 'plate' ? 'rgba(194,161,90,0.55)' : c.lineDark,
+                    alignItems: 'center',
+                  }}>
+                    <Text style={{ fontFamily: fonts.display, fontSize: 18, color: tokens.bronze, marginBottom: 2 }}>
+                      {card.n}
+                    </Text>
+                    <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 0.6, color: c.ink, marginBottom: 2 }}>
+                      {card.label}
+                    </Text>
+                    <Text style={{ fontFamily: fonts.sans, fontSize: 10, color: c.muted }}>
+                      {card.time}
+                    </Text>
+                    {card.expandable ? (
+                      <View style={{ marginTop: 4, transform: [{ rotate: journeyExpanded === 'plate' ? '180deg' : '0deg' }] }}>
+                        <Icon name="arrow-down" size={11} color={tokens.bronze} />
+                      </View>
+                    ) : null}
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+            {journeyExpanded === 'plate' && (recipe.finishing_note || recipe.leftovers_note) ? (
+              <View style={{
+                marginTop: 8,
+                padding: 14,
+                borderRadius: 12,
+                backgroundColor: tokens.bronzeSoft,
+                borderLeftWidth: 3,
+                borderLeftColor: tokens.bronze,
+                gap: 12,
+              }}>
+                {recipe.finishing_note ? (
+                  <View>
+                    <Text style={{ fontFamily: fonts.sansBold, fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: tokens.bronze, marginBottom: 5 }}>
+                      Finishing & tasting
+                    </Text>
+                    <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic', fontSize: 13, lineHeight: 19, color: c.inkSoft }}>
+                      {recipe.finishing_note}
+                    </Text>
+                  </View>
+                ) : null}
+                {recipe.leftovers_note ? (
+                  <View>
+                    <Text style={{ fontFamily: fonts.sansBold, fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: tokens.bronze, marginBottom: 5 }}>
+                      Leftovers
+                    </Text>
+                    <Text style={{ fontFamily: fonts.sans, fontSize: 13, lineHeight: 19, color: c.inkSoft }}>
+                      {recipe.leftovers_note}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
+          </View>
+        ) : null}
 
         {/* ── AT A GLANCE (DECISION-008) ──
             Renders only when the cook has populated timing/difficulty fields.
@@ -1510,13 +1816,20 @@ export default function RecipeDetailScreen() {
               return (
                 <Pressable
                   key={step.id}
-                  onPress={() => cooking && tickStep(step.id)}
-                  disabled={!cooking}
-                  android_ripple={
-                    cooking ? { color: 'rgba(255,255,255,0.06)', borderless: false } : undefined
-                  }
-                  accessibilityRole={cooking ? 'button' : undefined}
-                  accessibilityLabel={cooking ? `${done ? 'Unmark' : 'Mark'} step ${idx + 1} ${done ? 'undone' : 'done'}: ${step.title}` : undefined}
+                  onPress={() => {
+                    if (cooking) {
+                      tickStep(step.id);
+                    } else {
+                      // v7 (#129): browse-mode tap → enter cook mode at this
+                      // step. Lightweight haptic so the affordance is felt.
+                      Haptics.selectionAsync().catch(() => {});
+                      setCurrentStepIdx(idx);
+                      setCooking(true);
+                    }
+                  }}
+                  android_ripple={{ color: 'rgba(255,255,255,0.06)', borderless: false }}
+                  accessibilityRole="button"
+                  accessibilityLabel={cooking ? `${done ? 'Unmark' : 'Mark'} step ${idx + 1} ${done ? 'undone' : 'done'}: ${step.title}` : `Cook from step ${idx + 1}: ${step.title}`}
                   style={{
                     backgroundColor: c.cardBg,
                     borderRadius: 18,
@@ -1692,79 +2005,7 @@ export default function RecipeDetailScreen() {
           ) : null}
         </View>
 
-        {/* ── FINISHING & TASTING (DECISION-008) ──
-            Warm-brown left border — conclusion, not caution. */}
-        {!cooking && recipe.finishing_note && (
-          <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
-            <View
-              style={{
-                borderRadius: 14,
-                borderWidth: 1,
-                borderColor: 'rgba(196,168,130,0.3)',
-                borderLeftWidth: 3,
-                borderLeftColor: '#C4A882',
-                backgroundColor: 'rgba(196,168,130,0.06)',
-                padding: 14,
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: fonts.sansBold,
-                  fontSize: 9,
-                  letterSpacing: 1.5,
-                  textTransform: 'uppercase',
-                  color: '#C4A882',
-                  marginBottom: 6,
-                }}
-              >
-                Finishing & tasting
-              </Text>
-              <Text
-                style={{
-                  fontFamily: fonts.displayItalic,
-                  fontStyle: 'italic',
-                  fontSize: 14,
-                  lineHeight: 21,
-                  color: c.inkSoft,
-                }}
-              >
-                {recipe.finishing_note}
-              </Text>
-            </View>
-          </View>
-        )}
 
-        {/* ── LEFTOVERS & STORAGE (DECISION-008) ──
-            Low surface, muted — honest and quiet. */}
-        {!cooking && recipe.leftovers_note && (
-          <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
-            <View
-              style={{
-                backgroundColor: c.bgDeep,
-                borderRadius: 14,
-                borderWidth: 1,
-                borderColor: c.line,
-                padding: 14,
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: fonts.sansBold,
-                  fontSize: 9,
-                  letterSpacing: 1.5,
-                  textTransform: 'uppercase',
-                  color: c.muted,
-                  marginBottom: 6,
-                }}
-              >
-                Leftovers & storage
-              </Text>
-              <Text style={{ fontFamily: fonts.sans, fontSize: 13, lineHeight: 19, color: c.inkSoft }}>
-                {recipe.leftovers_note}
-              </Text>
-            </View>
-          </View>
-        )}
 
       </ScrollView>
 

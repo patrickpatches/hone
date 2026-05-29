@@ -31,6 +31,7 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 | Build | Commit | Summary |
 |---|---|---|
+| #129 | `pending` | **v7 "Mise" Commit B — browse-mode restyle (partial, high-value subset).** Builds on the Fraunces + bronzeSoft foundation from #127/#128. Single file: `mobile/app/recipe/[id].tsx` — only the `!cooking` branch. Cook mode is untouched (that's Commit C). **What landed:** (1) **In-your-pantry card** — new section above the existing At-a-glance block. Pantry-aware: loads `pantryItems` once via `getPantryItems(db)`; `match = scoreRecipeAgainstPantry(recipe, pantryItems)` drives the N/M ratio, status copy ("Ready to cook now" / "You're nearly there" / "Some of it's already in your pantry" / "You don't have any of this yet"), missing-pill row (cap 6 + "+N"), and a gold-outlined "Add missing to shopping list" button that loops `upsertShoppingItem` over `match.missingIngredients` with source `kind: 'meal'`, then flashes "Added to shopping list" for 2.5s. (2) **Your-Kitchen-Journey 3-card row** — Mise · Cook · Plate, read-only times (Mise 5 min default; Cook = Σ step `timer_seconds`; Plate 3 min — the ticket's `leftover_mode === 'tonight'` check didn't match the schema's object shape, so plate is always 3 min, flagged in closeout). Per Patrick's call, **Plate is tap-to-expand** and carries `finishing_note` + `leftovers_note`; the previous `Finishing & tasting` and `Leftovers & storage` browse sections are removed (their content lives in the Plate expand now). (3) **Hero no-photo typographic fallback** — replaces the 72px emoji over gradient bands with a Fraunces title card: bronze eyebrow "Inspired by {chef}", 30sp Fraunces name, italic tagline, gold rule, faint Fraunces watermark of the title's first character. (4) **Method tap-to-cook** — every step row in the Method section is now a Pressable that, in browse mode, calls `setCurrentStepIdx(idx) + setCooking(true)` to enter cook mode at that step (cook-mode tap-to-tick behaviour unchanged). **Honest scope limit:** the ticket also lists top-bar restyle, title-block bronze eyebrow + meta line, inline rust "Start cooking" pill + ghost row, "Get ready" pill-row restyle, Ingredients row restyle with in-pantry strikethrough + honest-swap callout. I didn't land those in this commit to keep the surface area surgical and the regression window narrow after the v5 incident. Those are the next iteration (Commit B2) — none of them are gated by what's in B and each is a small surgical change against a known surface. **Hard-safety green:** zero `Animated.ScrollView`, zero `Animated.event`, zero `scrollY`, zero `addListener`, zero `onScroll` introduced. Plain `ScrollView` is preserved unchanged. **Pre-flight:** tsc clean on the touched file; R-014 27/27 balanced; brace/paren/bracket diff 0; gated-off dead code that confused tsc was deleted clean. **1 file** touched: `mobile/app/recipe/[id].tsx`. **No EAS dispatch — Patrick triggers.** Per R-015: not self-closing. |
 | #128 | `c5bde6d` | **HOTFIX — regenerate `mobile/package-lock.json` to match Commit A's `package.json` (CI `npm ci` failed).** Build #127 (v7 Commit A) added `@expo-google-fonts/fraunces` and removed `@expo-google-fonts/playfair-display` from `package.json` but I forgot to regenerate the lockfile in the same commit. CI's Deploy-to-Pages workflow runs `npm ci` (strict lockfile check) and failed at the "Install dependencies" step on both `0f423b5` and `24a0144`. EAS Android Build hadn't been dispatched yet — would have failed identically. **Fix:** ran `npm install --package-lock-only --no-audit --no-fund` in the sandbox; lockfile root deps now match `package.json` exactly (29/29, fraunces present at `^0.2.3`, playfair removed). Code is unchanged — same fonts.display/displayItalic → Fraunces, same bronzeSoft. **Lesson logged for myself:** when a commit touches `package.json` deps, the same commit MUST update `package-lock.json`. The R-014 / tsc / balance pre-flight cannot catch a lockfile mismatch — it's a CI-time check. 1 file: `mobile/package-lock.json` (8789 lines). Per R-015: not self-closing — awaiting Patrick's go to retrigger any build. **No EAS dispatch.** |
 | #127 | `0f423b5` | **v7 "Mise" Commit A — tokens + Fraunces fonts (dependency for Commits B/C).** Three small changes, all in dependency files. (1) `mobile/package.json`: added `@expo-google-fonts/fraunces` `^0.2.3`; removed `@expo-google-fonts/playfair-display` (now unused). (2) `mobile/app/_layout.tsx`: dropped the Playfair imports + their `useFonts` entries; added imports for `Fraunces_400Regular`, `Fraunces_500Medium_Italic`, `Fraunces_700Bold` and added all three to `useFonts({...})`. Header comments updated from "Playfair Display" → "Fraunces". (3) `mobile/src/theme/tokens.ts`: `fonts.display` → `'Fraunces_700Bold'`; `fonts.displayItalic` → `'Fraunces_500Medium_Italic'`; added `bronzeSoft: 'rgba(194,161,90,0.10)'` next to the existing `bronze: '#C2A15A'`. Inter and the rest of the palette unchanged. **Why Fraunces.** Playfair has very high stroke contrast — hairlines vanish under Android anti-aliasing at small sizes. Fraunces is a variable serif with a real optical-sizing axis (opsz 9–144), so the same glyph renders crisply at 12sp captions and 38sp titles on Android. Two existing code comments in `recipe/[id].tsx` still mention "Playfair" historically (the timer + why-note in cook-mode v2); they reference `fonts.display`/`fonts.displayItalic` (which now point to Fraunces), not Playfair directly — the comments will get refreshed when those blocks are touched in Commit C. **Pre-flight:** zero stale Playfair references in `mobile/` code/JSON apart from the two historical comments; tsc clean on both touched files; R-014 27/27 balanced; brace/paren/bracket diff 0 on both files; tail bytes verified. **Hard-safety:** no `Animated`, no scroll-driven anything, no schema change. 3 files: `mobile/package.json`, `mobile/app/_layout.tsx`, `mobile/src/theme/tokens.ts`. **No EAS dispatch — Patrick triggers.** Per R-015: not self-closing. |
 | #126 | `ec7db26` | **ROLLBACK — revert recipe screen to pre-v5 (restores #123 behaviour).** Builds #124 (Recipe Detail v5 Phase 1) and #125 (my attempted Fabric native-driver hotfix) BOTH force-closed on opening any recipe. The #125 fix (native→JS scroll driver) changed nothing, which proves my native-driver-listener diagnosis was wrong — the real cause is still unconfirmed, and I can't see a release-build crash from here. Per Patrick's call, reverting `mobile/app/recipe/[id].tsx` to its last-known-good state (commit `c9a0c19`, the recipe screen as it was at build #123) so recipes open again. v5 will be reintroduced **incrementally** from this baseline, each increment validated on-device before the next. `OriginFlag.tsx` is left in the repo (unused now, reused later). The #124/#125 build-log rows stay for audit. 1 file reverted: `mobile/app/recipe/[id].tsx`. Pre-flight: tsc clean, R-014 27/27 balanced. Per R-015: not self-closing — awaiting Patrick's on-device confirmation that recipes open. |
@@ -71,6 +72,55 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 ---
 
 ## Open handoffs
+
+### CLOSEOUT — Build #129 · Engineer · 2026-05-28 — Commit B of v7 Phase 1 (browse-mode restyle, partial)
+
+**Scope shipped (recipe/[id].tsx `!cooking` branch only):**
+
+| Section | Status | Notes |
+|---|---|---|
+| In-your-pantry card | ✅ | Loads `pantryItems` via `getPantryItems`; `match = scoreRecipeAgainstPantry`; N/M, status copy, missing pills, gold "Add missing to shopping list" → `upsertShoppingItem` loop |
+| Your-Kitchen-Journey 3-card row | ✅ | Mise · Cook · Plate; Plate tap-to-expand carries `finishing_note` + `leftovers_note` |
+| Old browse-mode Finishing & Leftovers sections | ✅ removed | Folded into Plate expand (Patrick's call) |
+| Hero no-photo typographic fallback | ✅ | Fraunces title card replaces the emoji block |
+| Method tap-to-cook | ✅ | Browse-mode step tap → `setCurrentStepIdx + setCooking(true)` |
+| Data wiring (match + inPantryNames + addMissing handler + pantry-load effect) | ✅ | Available for future row-level styling |
+
+**Scope NOT in this commit (deferred, will land as Commit B2 if Patrick wants):**
+- Top-bar restyle (3 buttons in v7 vocabulary).
+- Title-block bronze eyebrow + "Inspired by {chef} · Watch ↗" + Fraunces 38sp title + meta line.
+- Inline rust "Start cooking" pill + ghost "Plan it · Watch the chef" row inside the content.
+- Equipment + Prep restyle to v7 pill-row vocabulary.
+- Ingredient row restyle: in-pantry vs need-to-buy styling using `ingredientInPantry()` (already wired) + `ingredientIconName` from PantryIcons + honest-swap callout (`bronzeSoft` bg, bronze left rail, italic Fraunces).
+
+**Honest reasoning for the partial scope:** after the v5 incident I deliberately kept the diff surgical. Each deferred item is a small additive change against a known surface, so B2 can land them one or two at a time, each independently revertable. Nothing in B blocks them.
+
+**Design decisions I made (flag back if intent differs):**
+1. **Plate time is always 3 min.** Ticket said "0 if `leftover_mode === 'tonight'`" but `leftover_mode` is an object `{ extra_servings: number; note: string } | undefined`, not a string. 3 min is a universally honest plating estimate; can be tuned per recipe later.
+2. **Pantry items load once on mount, not on focus.** The recipe screen re-mounts each time you tap a recipe card, so a one-shot load is sufficient. No focus refetch listener.
+3. **In-your-pantry card uses the same `cardBg` + `lineDark` family** as other on-screen cards; the bronze N/M numeral is the visual anchor, status copy is `c.ink`, sub-line is `c.muted`. Matches Pantry-tab vocabulary as the ticket asks.
+4. **Journey cards do NOT animate the expand.** Plain `setJourneyExpanded(prev => prev === 'plate' ? null : 'plate')` + conditional render. Per v7 hard-safety: no `LayoutAnimation`, no `Animated`.
+
+**Hard-safety (the v5 lesson, baked in):**
+- ✅ Plain `ScrollView` preserved unchanged.
+- ✅ Zero `Animated.ScrollView`, `Animated.event`, `scrollY`, `addListener`, `onScroll` introduced.
+- ✅ No new scroll listeners. No sticky-bar gating. No collapsing header.
+
+**Pre-flight:**
+- `tsc --noEmit`: clean on `recipe/[id].tsx`. (Project-wide pre-existing errors unchanged.)
+- R-014 truncation: 27/27 balanced.
+- Brace/paren/bracket: diff 0.
+- Tail bytes verified.
+- Hard-safety grep: 0 occurrences of every forbidden v5-class pattern.
+
+**What the COO should track next:**
+1. **Patrick on-device validates** Build #129 (when triggered): recipe opens (no crash, the v5 acceptance bar); In-your-pantry card renders with the correct N/M for a recipe where you have some ingredients; missing pills appear; "Add missing" lands items in the Shop tab; Journey cards render with Mise/Cook/Plate; tapping Plate expands and reveals finishing + leftovers; hero no-photo recipes show the Fraunces title card (no emoji); tapping a Method step in browse mode drops you into cook mode at that step.
+2. **No EAS dispatch — Patrick triggers it.**
+3. Per R-015: not self-closed. Awaiting Patrick's on-device validation before Commit C.
+4. After B validates, **Commit C** (cook-mode "Look for" font fix) is a single-style change in the `cooking` branch — small and well-scoped.
+5. **Commit B2 (optional)** can land the deferred items above incrementally if Patrick wants the full prototype look. Each is small and additive on top of B.
+
+---
 
 ### CLOSEOUT — Build #127 · Engineer · 2026-05-28 — Commit A of v7 Phase 1
 
