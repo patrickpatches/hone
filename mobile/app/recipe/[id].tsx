@@ -36,11 +36,12 @@ import {
   togglePlannedRecipe,
   getPantryItems,
   upsertShoppingItem,
+  getShoppingItems,
 } from '../../db/database';
-import type { PantryItem } from '../../db/database';
+import type { PantryItem, ShoppingItem } from '../../db/database';
 import { tokens, fonts } from '../../src/theme/tokens';
 import { Icon } from '../../src/components/Icon';
-import { SubstitutionSheet, PILL_CONFIG } from '../../src/components/SubstitutionSheet';
+import { SubstitutionSheet } from '../../src/components/SubstitutionSheet';
 import { ServingsSelector } from '../../src/components/ServingsSelector';
 // v7 — pantry-aware data + ingredient icons (build #122 visual anchor)
 import {
@@ -225,6 +226,10 @@ function RecipeDetailScreenInner() {
   // gives us N/M + the missing list straight from the existing matcher — no new
   // scoring logic.
   const [pantryItems, setPantryItems] = useState<PantryItem[]>([]);
+  // v7 (Commit B2) — shopping-list membership powers the "· on shopping list"
+  // sub-line on ingredient rows. Defensive default [] so it's safe to read
+  // while recipe is still undefined (Rules-of-Hooks hoist requirement).
+  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
   const [journeyExpanded, setJourneyExpanded] = useState<null | 'plate'>(null);
   const [shoppingAdded, setShoppingAdded] = useState(false);
   const [miseExpanded, setMiseExpanded] = useState(false);
@@ -252,6 +257,17 @@ function RecipeDetailScreenInner() {
     return () => { cancelled = true; };
   }, [db]);
 
+  // v7 (Commit B2) — load the shopping list once on mount, mirroring the
+  // pantry one-shot load above (the screen remounts on every entry, so no
+  // focus refetch is needed). Hoisted above the recipe-loaded guards.
+  useEffect(() => {
+    let cancelled = false;
+    getShoppingItems(db)
+      .then((items) => { if (!cancelled) setShoppingItems(items); })
+      .catch((e) => console.error('recipe screen shopping load failed', e));
+    return () => { cancelled = true; };
+  }, [db]);
+
   // ── v7 hooks — Rules of Hooks compliant (build #131 fix) ──────────────────
   // ALL hooks must run in the same order on every render. These previously
   // sat AFTER the recipe-loaded guards below, which caused a hook-count drop
@@ -273,6 +289,20 @@ function RecipeDetailScreenInner() {
   const ingredientInPantry = useCallback(
     (name: string) => inPantryNames.has(normalizeForMatch(cleanIngredientName(name))),
     [inPantryNames],
+  );
+  // v7 (Commit B2) — normalised set of shopping-list names + a membership
+  // helper, hoisted above the guards alongside the pantry set. Derived from
+  // shoppingItems (defaults to [] before the recipe loads, so it's safe).
+  const onShoppingNames = useMemo(() => {
+    const s = new Set<string>();
+    for (const it of shoppingItems) {
+      s.add(normalizeForMatch(cleanIngredientName(it.name)));
+    }
+    return s;
+  }, [shoppingItems]);
+  const ingredientOnShoppingList = useCallback(
+    (name: string) => onShoppingNames.has(normalizeForMatch(cleanIngredientName(name))),
+    [onShoppingNames],
   );
   const journeyTimes = useMemo(() => {
     if (!recipe) return { miseMin: 5, cookMin: 1, plateMin: 3 };
@@ -370,9 +400,6 @@ function RecipeDetailScreenInner() {
   const cuisineLabel = recipe.categories?.cuisines?.[0]
     ? recipe.categories.cuisines[0].charAt(0).toUpperCase() + recipe.categories.cuisines[0].slice(1)
     : null;
-  // Glance row only renders if at least one timing/difficulty field is populated
-  const hasGlanceData = !!(recipe.total_time_minutes || recipe.active_time_minutes || difficultyLabel);
-
 
   // Cook-mode surface palette. CLAUDE.md: dark, OLED-friendly true blacks.
   // The same surface names are used in both modes so JSX can read `c.X`
@@ -558,12 +585,12 @@ function RecipeDetailScreenInner() {
               accessibilityRole="button"
               accessibilityLabel="Back"
               android_ripple={{ color: tokens.primaryLight, borderless: true }}
-              style={{ borderRadius: 19 }}
+              style={{ borderRadius: 21 }}
             >
               <View style={{
-                width: 38,
-                height: 38,
-                borderRadius: 19,
+                width: 42,
+                height: 42,
+                borderRadius: 21,
                 backgroundColor: 'transparent',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -571,17 +598,11 @@ function RecipeDetailScreenInner() {
                 <Icon name="arrow-left" size={20} color={tokens.ink} />
               </View>
             </Pressable>
-            <Text
-              style={{
-                flex: 1,
-                fontFamily: fonts.display,
-                fontSize: 16,
-                color: tokens.ink,
-              }}
-              numberOfLines={1}
-            >
-              {recipe.title}
-            </Text>
+            {/* Spacer — the recipe title now lives in the v7 title block
+                below the hero (38sp Fraunces). A 16sp duplicate in the top
+                bar would compete with it, so the bar carries only controls
+                (matches the prototype Frame A "back · spacer · plan · heart"). */}
+            <View style={{ flex: 1 }} />
             {/* Plan toggle */}
             {/* Plan toggle — Pressable+View split for Android layout reliability */}
             <Pressable
@@ -590,12 +611,12 @@ function RecipeDetailScreenInner() {
               accessibilityRole="button"
               accessibilityLabel={isPlanned ? 'Remove from plan' : 'Add to plan'}
               android_ripple={{ color: tokens.primaryLight, borderless: true }}
-              style={{ borderRadius: 19 }}
+              style={{ borderRadius: 21 }}
             >
               <View style={{
-                width: 38,
-                height: 38,
-                borderRadius: 19,
+                width: 42,
+                height: 42,
+                borderRadius: 21,
                 backgroundColor: isPlanned ? tokens.primaryLight : 'transparent',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -615,12 +636,12 @@ function RecipeDetailScreenInner() {
               accessibilityRole="button"
               accessibilityLabel={favorite ? 'Unfavourite' : 'Favourite'}
               android_ripple={{ color: tokens.primaryLight, borderless: true }}
-              style={{ borderRadius: 19 }}
+              style={{ borderRadius: 21 }}
             >
               <View style={{
-                width: 38,
-                height: 38,
-                borderRadius: 19,
+                width: 42,
+                height: 42,
+                borderRadius: 21,
                 backgroundColor: 'transparent',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -716,8 +737,11 @@ function RecipeDetailScreenInner() {
           </View>
         )}
 
-        {/* Title card */}
-        <View style={{ paddingHorizontal: 20, marginTop: cooking ? 16 : -24 }}>
+        {/* Title block — cook mode keeps the original cream card untouched
+            (§4.3); browse mode renders the v7 title block + inline CTA below
+            (§3.2 / §3.4). */}
+        {cooking ? (
+        <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
           <View
             style={{
               backgroundColor: c.cardBg,
@@ -866,6 +890,111 @@ function RecipeDetailScreenInner() {
             )}
           </View>
         </View>
+        ) : (
+          /* ── v7 BROWSE TITLE BLOCK + INLINE CTA (Commit B2 §3.2/§3.4) ── */
+          <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
+            {/* Bronze eyebrow — Inspired by {chef} · Watch the original ↗ */}
+            {(recipe.source?.chef || attribution) ? (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
+                <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: tokens.bronze }}>
+                  {recipe.source?.chef ? `Inspired by ${recipe.source.chef}` : attribution}
+                </Text>
+                {recipe.source?.video_url ? (
+                  <>
+                    <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, color: tokens.bronze, opacity: 0.45 }}>{'   ·   '}</Text>
+                    <Pressable onPress={openSource} accessibilityRole="link" accessibilityLabel="Watch the original" hitSlop={8}>
+                      <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: tokens.gold }}>
+                        Watch the original ↗
+                      </Text>
+                    </Pressable>
+                  </>
+                ) : null}
+              </View>
+            ) : null}
+
+            {/* Title — Fraunces 38sp */}
+            <Text style={{ fontFamily: fonts.display, fontSize: 38, lineHeight: 40, letterSpacing: -0.6, color: tokens.ink }}>
+              {recipe.title}
+            </Text>
+
+            {/* Tagline — Fraunces italic */}
+            {recipe.tagline ? (
+              <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic', fontSize: 17, lineHeight: 23, color: tokens.inkSoft, marginTop: 8 }}>
+                {recipe.tagline}
+              </Text>
+            ) : null}
+
+            {/* Compact meta line — difficulty · serves · cuisine */}
+            <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: tokens.muted, marginTop: 10 }}>
+              {[
+                recipe.difficulty,
+                `Serves ${recipe.output_default ?? recipe.base_servings}`,
+                cuisineLabel,
+              ].filter(Boolean).join('   ·   ')}
+            </Text>
+
+            {/* Inline Start cooking pill — full width 56dp, rust, white text */}
+            <Pressable
+              onPress={toggleCooking}
+              accessibilityRole="button"
+              accessibilityLabel="Start cooking"
+              android_ripple={{ color: 'rgba(255,255,255,0.18)', borderless: false }}
+              style={{ borderRadius: 16, marginTop: 18 }}
+            >
+              <View
+                style={{
+                  height: 56,
+                  borderRadius: 16,
+                  backgroundColor: tokens.primary,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10,
+                  shadowColor: tokens.primary,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 12,
+                  elevation: 4,
+                }}
+              >
+                <Icon name="play" size={20} color="#FFFFFF" fill="#FFFFFF" />
+                <Text style={{ fontFamily: fonts.sansBold, fontSize: 16, color: '#FFFFFF', letterSpacing: 0.3 }}>
+                  Start cooking
+                </Text>
+              </View>
+            </Pressable>
+
+            {/* Ghost row — Plan it · Watch the chef */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 22, marginTop: 14 }}>
+              <Pressable
+                onPress={handleTogglePlan}
+                accessibilityRole="button"
+                accessibilityLabel={isPlanned ? 'Remove from plan' : 'Plan it'}
+                hitSlop={8}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+              >
+                <Icon name={isPlanned ? 'check' : 'plus'} size={14} color={isPlanned ? tokens.primaryInk : tokens.muted} />
+                <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: isPlanned ? tokens.primaryInk : tokens.muted }}>
+                  {isPlanned ? 'In your plan' : 'Plan it'}
+                </Text>
+              </Pressable>
+              {recipe.source?.video_url ? (
+                <Pressable
+                  onPress={openSource}
+                  accessibilityRole="link"
+                  accessibilityLabel="Watch the chef"
+                  hitSlop={8}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+                >
+                  <Icon name="play" size={13} color={tokens.muted} fill={tokens.muted} />
+                  <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: tokens.muted }}>
+                    Watch the chef
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
+          </View>
+        )}
 
 
         {/* ── v7 IN YOUR PANTRY (build #129) ────────────────────────────
@@ -1056,63 +1185,10 @@ function RecipeDetailScreenInner() {
           </View>
         ) : null}
 
-        {/* ── AT A GLANCE (DECISION-008) ──
-            Renders only when the cook has populated timing/difficulty fields.
-            Backwards-compatible: old recipes without these fields render nothing. */}
-        {!cooking && hasGlanceData && (
-          <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
-            <View
-              style={{
-                backgroundColor: c.cardBg,
-                borderRadius: 16,
-                borderWidth: 1,
-                borderColor: c.lineDark,
-                flexDirection: 'row',
-                paddingVertical: 14,
-              }}
-            >
-              {([
-                recipe.total_time_minutes
-                  ? { icon: 'clock' as const, value: String(recipe.total_time_minutes), sub: 'total min' }
-                  : null,
-                recipe.active_time_minutes
-                  ? { icon: 'flame' as const, value: String(recipe.active_time_minutes), sub: 'active min' }
-                  : null,
-                difficultyLabel
-                  ? { icon: 'flame' as const, value: difficultyLabel, sub: 'difficulty' }
-                  : null,
-                cuisineLabel
-                  ? { icon: 'chef' as const, value: cuisineLabel, sub: 'cuisine' }
-                  : null,
-                { icon: 'check' as const, value: recipe.leftover_mode ? 'yes' : 'no', sub: 'leftovers' },
-              ] as const).filter(Boolean).map((item, idx, arr) => (
-                <View
-                  key={idx}
-                  style={{
-                    flex: 1,
-                    alignItems: 'center',
-                    borderRightWidth: idx < arr.length - 1 ? 1 : 0,
-                    borderRightColor: c.line,
-                    paddingHorizontal: 4,
-                    gap: 3,
-                  }}
-                >
-                  <Icon name={item!.icon} size={14} color={c.muted} />
-                  <Text
-                    style={{ fontFamily: fonts.sansBold, fontSize: 12, color: c.ink, textAlign: 'center' }}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                  >
-                    {item!.value}
-                  </Text>
-                  <Text style={{ fontFamily: fonts.sans, fontSize: 10, color: c.muted, textAlign: 'center' }}>
-                    {item!.sub}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
+        {/* ── AT A GLANCE removed (Commit B2 §3.3) ──
+            Its info is now split between the v7 title meta line (cuisine +
+            difficulty) and the Your-Kitchen-Journey card (time). Keeping both
+            was redundant and visually competing. */}
 
         {/* Stage photos notice — shown once when recipe has no stage photos.
             Hidden in cook mode (no point showing it while actively cooking). */}
@@ -1221,7 +1297,9 @@ function RecipeDetailScreenInner() {
 
         {/* Ingredients */}
         <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
-          <SectionHeader title="Ingredients" hint={cooking ? 'Tap to tick off' : undefined} inkColor={c.ink} mutedColor={c.muted} />
+          {cooking
+            ? <SectionHeader title="Ingredients" hint="Tap to tick off" inkColor={c.ink} mutedColor={c.muted} />
+            : <Eyebrow label="Ingredients" />}
           <View
             style={{
               backgroundColor: c.cardBg,
@@ -1247,33 +1325,24 @@ function RecipeDetailScreenInner() {
               const activeSwap  = activeSwaps[ing.id];
               const isSwapped   = activeSwap !== undefined && activeSwap !== null;
               const displayName = isSwapped ? (activeSwap as Substitution).ingredient : ing.name;
+              const isLastIng   = idx === recipe.ingredients.length - 1;
 
-              // Build #114 — swap trigger is now a dedicated pill on the right
-              // of the row, not the whole row. Stops stray taps after
-              // sheet-dismiss from re-opening the sheet, and gives a
-              // clearly visible swap affordance.
-              const activeSwapQuality = activeSwap && (activeSwap as Substitution).quality;
-              const pillCfg = activeSwapQuality ? PILL_CONFIG[activeSwapQuality as 'green' | 'yellow' | 'red'] : null;
-
-              return (
-                <Pressable
-                  key={ing.id}
-                  // Only the row itself ticks in cook mode. Out of cook mode
-                  // it's inert — the Swap pill on the right is the only
-                  // swap trigger.
-                  onPress={cooking ? () => tickIngredient(ing.id) : undefined}
-                  disabled={!cooking}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'flex-start',
-                    gap: 12,
-                    paddingHorizontal: 14,
-                    paddingVertical: 13,
-                    borderBottomWidth: idx < recipe.ingredients.length - 1 ? 1 : 0,
-                    borderBottomColor: c.line,
-                  }}
-                >
-                  {cooking ? (
+              // ── COOK MODE row — unchanged from #126 (§4.3 cook untouched) ──
+              if (cooking) {
+                return (
+                  <Pressable
+                    key={ing.id}
+                    onPress={() => tickIngredient(ing.id)}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'flex-start',
+                      gap: 12,
+                      paddingHorizontal: 14,
+                      paddingVertical: 13,
+                      borderBottomWidth: isLastIng ? 0 : 1,
+                      borderBottomColor: c.line,
+                    }}
+                  >
                     <View
                       style={{
                         width: 24,
@@ -1289,101 +1358,169 @@ function RecipeDetailScreenInner() {
                     >
                       {checked && <Icon name="check" size={13} color={tokens.ink} />}
                     </View>
-                  ) : null}
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={{
-                        fontFamily: fonts.sans,
-                        fontSize: 14,
-                        lineHeight: 20,
-                        color: checked ? c.muted : c.ink,
-                        textDecorationLine: checked ? 'line-through' : 'none',
-                      }}
-                    >
-                      {!inlineUnit ? (
-                        <>
-                          <Text style={{ fontFamily: fonts.sansBold, fontVariant: ['tabular-nums'], color: checked ? c.muted : c.ink }}>
-                            {formatAmount(amount)}
-                          </Text>
-                          {showUnit ? <Text style={{ fontFamily: fonts.sansBold }}> {ing.unit}</Text> : null}
-                          {/* Show active swap name in gold if swapped, original otherwise */}
-                          <Text style={isSwapped ? { color: c.primary } : undefined}> {displayName}</Text>
-                          {isSwapped && (
-                            <Text style={{ fontFamily: fonts.sans, color: c.muted, textDecorationLine: 'line-through' }}>
-                              {' '}({ing.name})
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontFamily: fonts.sans,
+                          fontSize: 14,
+                          lineHeight: 20,
+                          color: checked ? c.muted : c.ink,
+                          textDecorationLine: checked ? 'line-through' : 'none',
+                        }}
+                      >
+                        {!inlineUnit ? (
+                          <>
+                            <Text style={{ fontFamily: fonts.sansBold, fontVariant: ['tabular-nums'], color: checked ? c.muted : c.ink }}>
+                              {formatAmount(amount)}
                             </Text>
-                          )}
-                        </>
-                      ) : (
-                        <>
-                          <Text style={isSwapped ? { color: c.primary } : undefined}>{displayName}</Text>
-                          {isSwapped && (
-                            <Text style={{ fontFamily: fonts.sans, color: c.muted, textDecorationLine: 'line-through' }}>
-                              {' '}({ing.name})
+                            {showUnit ? <Text style={{ fontFamily: fonts.sansBold }}> {ing.unit}</Text> : null}
+                            <Text style={isSwapped ? { color: c.primary } : undefined}> {displayName}</Text>
+                            {isSwapped && (
+                              <Text style={{ fontFamily: fonts.sans, color: c.muted, textDecorationLine: 'line-through' }}>
+                                {' '}({ing.name})
+                              </Text>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <Text style={isSwapped ? { color: c.primary } : undefined}>{displayName}</Text>
+                            {isSwapped && (
+                              <Text style={{ fontFamily: fonts.sans, color: c.muted, textDecorationLine: 'line-through' }}>
+                                {' '}({ing.name})
+                              </Text>
+                            )}
+                            <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic', color: c.muted }}>
+                              {' — '}{ing.unit}
                             </Text>
-                          )}
-                          <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic', color: c.muted }}>
-                            {' — '}{ing.unit}
-                          </Text>
-                        </>
-                      )}
-                    </Text>
-                    {ing.prep ? (
-                      <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.muted, marginTop: 2 }}>
-                        {ing.prep}
+                          </>
+                        )}
                       </Text>
-                    ) : null}
-                  </View>
+                      {ing.prep ? (
+                        <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.muted, marginTop: 2 }}>
+                          {ing.prep}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </Pressable>
+                );
+              }
 
-                  {/* Build #114 — dedicated Swap pill. Replaces the small
-                      ↻ icon and the whole-row Pressable. Has its own
-                      Pressable so taps to other parts of the row don't
-                      open the sheet, and stray taps after sheet-dismiss
-                      go nowhere. Pill colour = the active swap's pill
-                      colour when one is set; gold-bordered when swap is
-                      available but not yet chosen. */}
-                  {!cooking && hasSwaps ? (
-                    <Pressable
-                      onPress={() => openSwapSheet(ing)}
-                      accessibilityRole="button"
-                      accessibilityLabel={
-                        isSwapped
-                          ? `Change swap on ${ing.name}, currently ${(activeSwap as Substitution).ingredient}`
-                          : `Swap ${ing.name}`
-                      }
-                      hitSlop={6}
-                      android_ripple={{ color: tokens.primaryLight, borderless: false }}
-                      style={{
-                        marginTop: 1,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 4,
-                        paddingHorizontal: 9,
-                        paddingVertical: 5,
-                        borderRadius: 999,
-                        backgroundColor: pillCfg ? pillCfg.bg : 'transparent',
-                        borderWidth: 1,
-                        borderColor: pillCfg ? pillCfg.border : tokens.gold,
-                      }}
-                    >
-                      <Icon
-                        name="swap"
-                        size={11}
-                        color={pillCfg ? pillCfg.fg : tokens.gold}
-                      />
+              // ── v7 BROWSE row (Commit B2 §3.7) — pantry-style pill row ──
+              const inPantry   = ingredientInPantry(ing.name);
+              const onList     = !inPantry && ingredientOnShoppingList(ing.name);
+              const amountText = inlineUnit
+                ? (ing.unit || '')
+                : `${formatAmount(amount)}${showUnit ? ' ' + ing.unit : ''}`;
+              const showHonest = isSwapped && !!(activeSwap as Substitution).changes;
+
+              return (
+                <View
+                  key={ing.id}
+                  style={{ borderBottomWidth: isLastIng ? 0 : 1, borderBottomColor: c.line }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 }}>
+                    {/* Leading 30×30 ingredient icon — same resolver as the Pantry tab */}
+                    <FoodIcon
+                      name={ingredientIconName(ing.name, categorizeIngredient(ing.name))}
+                      size={30}
+                      color={inPantry ? tokens.bronze : tokens.inkSoft}
+                    />
+
+                    {/* Name + sub-line */}
+                    <View style={{ flex: 1 }}>
                       <Text
                         style={{
                           fontFamily: fonts.sansBold,
-                          fontSize: 10,
-                          letterSpacing: 0.3,
-                          color: pillCfg ? pillCfg.fg : tokens.gold,
+                          fontSize: 14,
+                          lineHeight: 19,
+                          color: inPantry ? tokens.muted : (isSwapped ? tokens.primary : tokens.ink),
+                          textDecorationLine: inPantry ? 'line-through' : 'none',
+                          textDecorationColor: tokens.bronze,
                         }}
                       >
-                        {isSwapped ? 'Swapped' : 'Swap'}
+                        {displayName}
                       </Text>
-                    </Pressable>
+                      {isSwapped ? (
+                        <Text style={{ fontFamily: fonts.sans, fontSize: 11, lineHeight: 16, color: tokens.muted, textDecorationLine: 'line-through' }}>
+                          was {ing.name}
+                        </Text>
+                      ) : null}
+                      <Text style={{ fontFamily: fonts.sans, fontSize: 12, lineHeight: 16, color: tokens.muted, marginTop: 2 }} numberOfLines={1}>
+                        <Text style={{ fontVariant: ['tabular-nums'] }}>{amountText}</Text>
+                        {inPantry ? (
+                          <Text style={{ color: tokens.bronze }}>{'   ·   in pantry'}</Text>
+                        ) : onList ? (
+                          <Text style={{ color: tokens.bronze }}>{'   ·   on shopping list'}</Text>
+                        ) : null}
+                      </Text>
+                    </View>
+
+                    {/* Swap pill — gold outline idle, bronze tint when a swap is active */}
+                    {hasSwaps ? (
+                      <Pressable
+                        onPress={() => openSwapSheet(ing)}
+                        accessibilityRole="button"
+                        accessibilityLabel={
+                          isSwapped
+                            ? `Change swap on ${ing.name}, currently ${(activeSwap as Substitution).ingredient}`
+                            : `Swap ${ing.name}`
+                        }
+                        hitSlop={6}
+                        android_ripple={{ color: tokens.primaryLight, borderless: false }}
+                        style={{ borderRadius: 999 }}
+                      >
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 4,
+                            paddingHorizontal: 10,
+                            paddingVertical: 6,
+                            borderRadius: 999,
+                            backgroundColor: isSwapped ? tokens.bronzeSoft : 'transparent',
+                            borderWidth: 1,
+                            borderColor: isSwapped ? tokens.bronze : 'rgba(242,204,42,0.42)',
+                          }}
+                        >
+                          <Icon name="swap" size={11} color={isSwapped ? tokens.bronze : tokens.gold} />
+                          <Text
+                            style={{
+                              fontFamily: fonts.sansBold,
+                              fontSize: 10,
+                              letterSpacing: 0.3,
+                              color: isSwapped ? tokens.bronze : tokens.gold,
+                            }}
+                          >
+                            {isSwapped ? 'Swapped' : 'Swap'}
+                          </Text>
+                        </View>
+                      </Pressable>
+                    ) : null}
+                  </View>
+
+                  {/* Honest-swap callout — golden rule #5. Only when a swap is
+                      active AND it carries a `changes` description. */}
+                  {showHonest ? (
+                    <View
+                      style={{
+                        marginHorizontal: 14,
+                        marginBottom: 12,
+                        padding: 12,
+                        borderRadius: 10,
+                        backgroundColor: tokens.bronzeSoft,
+                        borderLeftWidth: 3,
+                        borderLeftColor: tokens.bronze,
+                      }}
+                    >
+                      <Text style={{ fontFamily: fonts.sansBold, fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: tokens.bronze, marginBottom: 4 }}>
+                        Honest swap
+                      </Text>
+                      <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic', fontSize: 13, lineHeight: 19, color: tokens.inkSoft }}>
+                        {(activeSwap as Substitution).changes}
+                      </Text>
+                    </View>
                   ) : null}
-                </Pressable>
+                </View>
               );
             })}
           </View>
@@ -1429,167 +1566,113 @@ function RecipeDetailScreenInner() {
           </View>
         )}
 
-        {/* ── EQUIPMENT (DECISION-008) ──
-            v2 (2026-05-08, Patrick): vertical flex-wrap pill list, always
-            visible. Replaces the previous horizontal ScrollView which (a) hid
-            items off-screen, (b) was fragile inside the outer page ScrollView
-            on Android (gesture conflict), (c) added a side-scroll affordance
-            users had to discover. Vertical wrap shows everything at a glance
-            in 2-3 short rows. Schema cap (no formal max) means we wrap
-            naturally; recipes with >8 items would still all render — review
-            then if any get genuinely long. */}
-        {!cooking && (recipe.equipment?.length ?? 0) > 0 && (
-          <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
-            <Text
-              style={{
-                fontFamily: fonts.display,
-                fontSize: 20,
-                color: c.ink,
-                marginBottom: 10,
-              }}
-            >
-              Equipment
-            </Text>
-            <View
-              style={{
-                flexDirection: 'row',
-                flexWrap: 'wrap',
-                gap: 8,
-              }}
-            >
-              {recipe.equipment!.map((item, idx) => (
-                <View
-                  key={idx}
-                  style={{
-                    paddingHorizontal: 13,
-                    paddingVertical: 8,
-                    borderRadius: 20,
-                    backgroundColor: 'rgba(232,184,48,0.08)',
-                    borderWidth: 1,
-                    borderColor: 'rgba(232,184,48,0.22)',
-                  }}
-                >
-                  <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: c.inkSoft }}>
-                    {item}
+        {/* ── GET READY (Commit B2 §3.5) — Equipment + Prep merged ──
+            One bronze "Get ready" eyebrow over a single card with two
+            sub-areas (Equipment, Prep) split by a thin rule. Equipment is
+            bronze-dot b-rows (no "Essential" tag — that's Phase 2). Prep
+            keeps the MiseItem checklist + expand behaviour, restyled to v7. */}
+        {!cooking && ((recipe.equipment?.length ?? 0) > 0 || (recipe.mise_en_place?.length ?? 0) > 0) && (
+          <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
+            <Eyebrow label="Get ready" />
+            <View style={{ backgroundColor: c.cardBg, borderRadius: 18, borderWidth: 1, borderColor: c.lineDark, overflow: 'hidden' }}>
+              {/* Equipment sub-area */}
+              {(recipe.equipment?.length ?? 0) > 0 ? (
+                <View style={{ paddingHorizontal: 14, paddingTop: 14, paddingBottom: 12 }}>
+                  <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: c.ink, marginBottom: 10 }}>
+                    Equipment
                   </Text>
+                  <View style={{ gap: 9 }}>
+                    {recipe.equipment!.map((item, i) => (
+                      <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                        <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: tokens.bronze }} />
+                        <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: c.inkSoft, flex: 1 }}>
+                          {item}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
                 </View>
-              ))}
-            </View>
-          </View>
-        )}
+              ) : null}
 
-        {/* ── PREP (DECISION-008) ──
-            UI label is "Prep" (Patrick 7 May 2026) — schema field stays
-            mise_en_place to preserve the data contract.
-            Tappable checklist from mise_en_place[]. Session-only state.
-            Expand pattern: show first 4; chip reveals the rest with 150ms fade.
-            Progress counter counts all items including collapsed ones. */}
-        {!cooking && (recipe.mise_en_place?.length ?? 0) > 0 && (
-          <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
-            <View
-              style={{
-                backgroundColor: c.cardBg,
-                borderRadius: 18,
-                borderWidth: 1,
-                borderColor: c.lineDark,
-                overflow: 'hidden',
-              }}
-            >
-              {/* Header */}
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingHorizontal: 16,
-                  paddingTop: 14,
-                  paddingBottom: 12,
-                  borderBottomWidth: 1,
-                  borderBottomColor: c.line,
-                }}
-              >
+              {/* Divider — only when both sub-areas are present */}
+              {(recipe.equipment?.length ?? 0) > 0 && (recipe.mise_en_place?.length ?? 0) > 0 ? (
+                <View style={{ height: 1, backgroundColor: c.lineDark }} />
+              ) : null}
+
+              {/* Prep sub-area */}
+              {(recipe.mise_en_place?.length ?? 0) > 0 ? (
                 <View>
-                  {/* UI label: "Prep" (per Patrick 7 May 2026 — friendlier than
-                      'Mise en place' for Australian home-cook audience). The
-                      schema field stays mise_en_place to preserve the data
-                      contract; only the displayed header changes. */}
-                  <Text style={{ fontFamily: fonts.sansBold, fontSize: 14, color: c.ink }}>
-                    Prep
-                  </Text>
-                  <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.muted, marginTop: 2 }}>
-                    Do this before you heat anything
-                  </Text>
-                </View>
-                <Text
-                  style={{ fontFamily: fonts.sansBold, fontSize: 11, color: tokens.ochre }}
-                  accessibilityLabel={`${miseChecked.size} of ${recipe.mise_en_place!.length} prep steps done`}
-                >
-                  {miseChecked.size} / {recipe.mise_en_place!.length} done
-                </Text>
-              </View>
-
-              {/* Always-visible items (first 4) */}
-              {recipe.mise_en_place!.slice(0, 4).map((task, idx) => (
-                <MiseItem
-                  key={idx}
-                  text={task}
-                  checked={miseChecked.has(idx)}
-                  onToggle={() => toggleMise(idx)}
-                  isLast={idx === Math.min(3, recipe.mise_en_place!.length - 1) && recipe.mise_en_place!.length <= 4}
-                  lineColor={c.line}
-                  inkColor={c.inkSoft}
-                />
-              ))}
-
-              {/* Expand chip */}
-              {recipe.mise_en_place!.length > 4 && !miseExpanded && (
-                /* Expand chip — Pressable+View split for Android */
-                <Pressable
-                  onPress={expandMise}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Show ${recipe.mise_en_place!.length - 4} more prep tasks`}
-                  android_ripple={{ color: 'rgba(242,216,150,0.25)', borderless: false }}
-                  style={{ margin: 10, borderRadius: 20 }}
-                >
-                  <View style={{
-                    paddingVertical: 10,
-                    borderRadius: 20,
-                    backgroundColor: 'rgba(242,216,150,0.09)',
-                    borderWidth: 1,
-                    borderColor: 'rgba(242,216,150,0.22)',
-                    alignItems: 'center',
-                  }}>
-                    <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.ochre }}>
-                      Show {recipe.mise_en_place!.length - 4} more prep tasks
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingTop: 14, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: c.line }}>
+                    <View>
+                      <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: c.ink }}>
+                        Prep
+                      </Text>
+                      <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.muted, marginTop: 2 }}>
+                        Do this before you heat anything
+                      </Text>
+                    </View>
+                    <Text
+                      style={{ fontFamily: fonts.sansBold, fontSize: 11, color: tokens.bronze }}
+                      accessibilityLabel={`${miseChecked.size} of ${recipe.mise_en_place!.length} prep steps done`}
+                    >
+                      {miseChecked.size} / {recipe.mise_en_place!.length} done
                     </Text>
                   </View>
-                </Pressable>
-              )}
 
-              {/* Expanded items (4+) */}
-              {recipe.mise_en_place!.length > 4 && miseExpanded && (
-                <Animated.View style={{ opacity: miseExpandOpacity }}>
-                  {recipe.mise_en_place!.slice(4).map((task, idx) => (
+                  {recipe.mise_en_place!.slice(0, 4).map((task, i) => (
                     <MiseItem
-                      key={idx + 4}
+                      key={i}
                       text={task}
-                      checked={miseChecked.has(idx + 4)}
-                      onToggle={() => toggleMise(idx + 4)}
-                      isLast={idx + 4 === recipe.mise_en_place!.length - 1}
+                      checked={miseChecked.has(i)}
+                      onToggle={() => toggleMise(i)}
+                      isLast={i === Math.min(3, recipe.mise_en_place!.length - 1) && recipe.mise_en_place!.length <= 4}
                       lineColor={c.line}
                       inkColor={c.inkSoft}
                     />
                   ))}
-                </Animated.View>
-              )}
+
+                  {recipe.mise_en_place!.length > 4 && !miseExpanded ? (
+                    <Pressable
+                      onPress={expandMise}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Show ${recipe.mise_en_place!.length - 4} more prep tasks`}
+                      android_ripple={{ color: tokens.bronzeSoft, borderless: false }}
+                      style={{ margin: 10, borderRadius: 12 }}
+                    >
+                      <View style={{ paddingVertical: 10, borderRadius: 12, backgroundColor: tokens.bronzeSoft, borderWidth: 1, borderColor: 'rgba(194,161,90,0.30)', alignItems: 'center' }}>
+                        <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.bronze }}>
+                          Show {recipe.mise_en_place!.length - 4} more prep tasks
+                        </Text>
+                      </View>
+                    </Pressable>
+                  ) : null}
+
+                  {recipe.mise_en_place!.length > 4 && miseExpanded ? (
+                    <Animated.View style={{ opacity: miseExpandOpacity }}>
+                      {recipe.mise_en_place!.slice(4).map((task, i) => (
+                        <MiseItem
+                          key={i + 4}
+                          text={task}
+                          checked={miseChecked.has(i + 4)}
+                          onToggle={() => toggleMise(i + 4)}
+                          isLast={i + 4 === recipe.mise_en_place!.length - 1}
+                          lineColor={c.line}
+                          inkColor={c.inkSoft}
+                        />
+                      ))}
+                    </Animated.View>
+                  ) : null}
+                </View>
+              ) : null}
             </View>
           </View>
         )}
 
-
         {/* Method */}
         <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
-          <SectionHeader title="Method" hint={cooking ? 'Tap Next to advance' : undefined} inkColor={c.ink} mutedColor={c.muted} />
+          {cooking
+            ? <SectionHeader title="Method" hint="Tap Next to advance" inkColor={c.ink} mutedColor={c.muted} />
+            : <Eyebrow label="Method" />}
           {cooking ? (
             // Build #117 — cook mode v2: single-step navigator.
             // Renders the current step only, full-width photo block at top,
@@ -1864,200 +1947,40 @@ function RecipeDetailScreenInner() {
               );
             })()
           ) : (
-          <View style={{ gap: 12 }}>
+          /* ── v7 BROWSE METHOD (Commit B2 §3.6) — compact tap-to-cook rows ──
+             Bronze Fraunces step number · cream title · tabular muted time ·
+             chevron. Tapping a row enters cook mode at that step (existing
+             setCurrentStepIdx + setCooking). The full step content, doneness
+             cues and photos live in cook mode. */
+          <View style={{ backgroundColor: c.cardBg, borderRadius: 18, borderWidth: 1, borderColor: c.lineDark, overflow: 'hidden' }}>
             {recipe.steps.map((step, idx) => {
-              const done = !!stepsDone[step.id];
-              // Step number badge: when cooking, the unticked badge sits on
-              // the dark card so it needs to invert (cream-on-dark instead
-              // of dark-on-cream). Done badge stays sage with dark ink text
-              // (sage is now light fern in the new pastel palette).
-              const numBadgeBg = done ? c.sage : (cooking ? c.cardBg : tokens.ink);
-              const numBadgeFg = done ? tokens.ink : (cooking ? c.ink : '#FFF');
-              const numBadgeBorder = cooking && !done ? c.lineDark : 'transparent';
-
-              // DECISION-015 — step_overrides resolution.
-              // Walk active swaps; the LAST one with an override for this
-              // step id wins (Object.entries preserves insertion order for
-              // string keys, so the most-recently-activated swap takes the
-              // step). Designer's spec calls for sage border on the step
-              // card + a single "adapted for your X swap" cue below.
-              let adaptedContent: string | undefined;
-              let adaptedSwapName: string | undefined;
-              for (const [ingId, swap] of Object.entries(activeSwaps)) {
-                if (!swap) continue;
-                const override = swap.step_overrides?.[step.id];
-                if (override) {
-                  adaptedContent = override;
-                  adaptedSwapName = swap.ingredient;
-                  // No break — keep walking so a later swap can win.
-                  // Defensive guardrail: if step_overrides references an
-                  // unknown step id, the lookup just misses and falls
-                  // through. The startup validator catches the bad mapping.
-                }
-                void ingId;
-              }
-              const isAdapted = !!adaptedContent;
-              // Cook mode: knuckle-tap-to-advance. The whole card is a
-              // forgiving tap target that toggles step-done. The inner
-              // badge Pressable still works for precise taps. Outside
-              // cook mode the outer Pressable is disabled so non-cook
-              // taps don't accidentally tick.
+              const isLastStep = idx === recipe.steps.length - 1;
               return (
                 <Pressable
                   key={step.id}
                   onPress={() => {
-                    if (cooking) {
-                      tickStep(step.id);
-                    } else {
-                      // v7 (#129): browse-mode tap → enter cook mode at this
-                      // step. Lightweight haptic so the affordance is felt.
-                      Haptics.selectionAsync().catch(() => {});
-                      setCurrentStepIdx(idx);
-                      setCooking(true);
-                    }
+                    Haptics.selectionAsync().catch(() => {});
+                    setCurrentStepIdx(idx);
+                    setCooking(true);
                   }}
-                  android_ripple={{ color: 'rgba(255,255,255,0.06)', borderless: false }}
+                  android_ripple={{ color: tokens.primaryLight, borderless: false }}
                   accessibilityRole="button"
-                  accessibilityLabel={cooking ? `${done ? 'Unmark' : 'Mark'} step ${idx + 1} ${done ? 'undone' : 'done'}: ${step.title}` : `Cook from step ${idx + 1}: ${step.title}`}
-                  style={{
-                    backgroundColor: c.cardBg,
-                    borderRadius: 18,
-                    borderWidth: 1,
-                    // DECISION-015 — adapted step card uses sage border for
-                    // at-a-glance signalling per Designer's v2 spec.
-                    borderColor: isAdapted ? 'rgba(74,124,89,0.4)' : c.lineDark,
-                    padding: 16,
-                    opacity: done ? 0.55 : 1,
-                    shadowColor: tokens.ink,
-                    shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.04,
-                    shadowRadius: 4,
-                    elevation: 1,
-                  }}
+                  accessibilityLabel={`Cook from step ${idx + 1}: ${step.title}`}
+                  style={{ borderBottomWidth: isLastStep ? 0 : 1, borderBottomColor: c.line }}
                 >
-                  <View style={{ flexDirection: 'row', gap: 12 }}>
-                    <Pressable
-                      onPress={() => tickStep(step.id)}
-                      disabled={!cooking}
-                      style={{
-                        width: 34,
-                        height: 34,
-                        borderRadius: 17,
-                        backgroundColor: numBadgeBg,
-                        borderWidth: numBadgeBorder === 'transparent' ? 0 : 1.5,
-                        borderColor: numBadgeBorder,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {done ? (
-                        <Icon name="check" size={15} color={tokens.ink} />
-                      ) : (
-                        <Text style={{ fontFamily: fonts.display, fontSize: 16, color: numBadgeFg }}>
-                          {idx + 1}
-                        </Text>
-                      )}
-                    </Pressable>
-
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        style={{
-                          fontFamily: fonts.sansBold,
-                          fontSize: 15,
-                          color: c.ink,
-                          textDecorationLine: done ? 'line-through' : 'none',
-                          marginBottom: 5,
-                        }}
-                      >
-                        {step.title}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 }}>
+                    <Text style={{ fontFamily: fonts.display, fontSize: 22, lineHeight: 24, color: tokens.bronze, width: 26, textAlign: 'center' }}>
+                      {idx + 1}
+                    </Text>
+                    <Text style={{ flex: 1, fontFamily: fonts.sansBold, fontSize: 16, color: c.ink }} numberOfLines={2}>
+                      {step.title}
+                    </Text>
+                    {step.timer_seconds ? (
+                      <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: c.muted, fontVariant: ['tabular-nums'] }}>
+                        {formatTimer(step.timer_seconds)}
                       </Text>
-                      <Text style={{ fontFamily: fonts.sans, fontSize: 14, lineHeight: 21, color: c.inkSoft }}>
-                        {adaptedContent ?? step.content}
-                      </Text>
-
-                      {/* DECISION-015 — "adapted for your swap" cue with sage
-                          divider. Only renders when a swap has authored an
-                          override for THIS step id. */}
-                      {isAdapted ? (
-                        <View
-                          style={{
-                            marginTop: 8,
-                            paddingTop: 8,
-                            borderTopWidth: 1,
-                            borderTopColor: 'rgba(74,124,89,0.25)',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            gap: 6,
-                          }}
-                        >
-                          <Text style={{ fontSize: 11, color: c.sage }}>≈</Text>
-                          <Text
-                            style={{
-                              fontFamily: fonts.displayItalic,
-                              fontStyle: 'italic',
-                              fontSize: 11,
-                              color: c.sage,
-                            }}
-                          >
-                            adapted for your {adaptedSwapName} swap
-                          </Text>
-                        </View>
-                      ) : null}
-
-                      {step.stage_note ? (
-                        <Callout label="Look for" accent={c.primary} bg={c.bgDeep} bodyColor={c.inkSoft} italic text={step.stage_note} />
-                      ) : null}
-                      {step.why_note ? (
-                        <Callout label="Why" accent={c.sage} bg={c.bgDeep} bodyColor={c.inkSoft} text={step.why_note} />
-                      ) : null}
-                      {step.lookahead ? (
-                        <Callout label="Heads-up" accent={c.ochre} bg={c.bgDeep} bodyColor={c.inkSoft} text={step.lookahead} />
-                      ) : null}
-
-                      {step.timer_seconds && cooking ? (
-                        <View style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                          <Icon name="clock" size={12} color={c.muted} />
-                          <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.muted }}>
-                            Rough timer: {formatTimer(step.timer_seconds)}
-                          </Text>
-                        </View>
-                      ) : null}
-
-                      {/* Step photo — render image if available, placeholder if not.
-                          Shows in both browse and cook mode so users can see how
-                          the dish should look at each stage. */}
-                      {step.photo_url ? (
-                        <View style={{ marginTop: 12, borderRadius: 12, overflow: 'hidden', height: 160 }}>
-                          <Image
-                            source={{ uri: step.photo_url }}
-                            style={{ width: '100%', height: '100%' }}
-                            contentFit="cover"
-                            transition={200}
-                          />
-                        </View>
-                      ) : (
-                        <View
-                          style={{
-                            marginTop: 12,
-                            height: 100,
-                            borderRadius: 12,
-                            borderWidth: 1.5,
-                            borderStyle: 'dashed',
-                            borderColor: c.lineDark,
-                            backgroundColor: c.bgDeep,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 6,
-                          }}
-                        >
-                          <Icon name="camera" size={18} color={c.muted} />
-                          <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.muted }}>
-                            Photo coming soon
-                          </Text>
-                        </View>
-                      )}
-                    </View>
+                    ) : null}
+                    <Icon name="arrow-right" size={16} color={c.muted} />
                   </View>
                 </Pressable>
               );
@@ -2278,56 +2201,29 @@ function SectionHeader({
   );
 }
 
-function Callout({
-  label,
-  text,
-  accent,
-  italic,
-  bg = tokens.bgDeep,
-  bodyColor = tokens.inkSoft,
-}: {
-  label: string;
-  text: string;
-  accent: string;
-  italic?: boolean;
-  bg?: string;
-  bodyColor?: string;
-}) {
+/**
+ * Eyebrow — v7 bronze uppercase section label (Commit B2 §3.8).
+ *
+ * The shared browse-mode section header: small, wide-tracked, uppercase,
+ * bronze. Matches the "In your pantry" / "Your kitchen journey" eyebrows
+ * already in the screen so every browse section reads as one system. Cook
+ * mode keeps the Fraunces SectionHeader (untouched) — the two are selected
+ * at the call site via `cooking ? <SectionHeader/> : <Eyebrow/>`.
+ */
+function Eyebrow({ label }: { label: string }) {
   return (
-    <View
+    <Text
       style={{
-        marginTop: 10,
-        padding: 10,
-        borderRadius: 12,
-        backgroundColor: bg,
-        borderLeftWidth: 3,
-        borderLeftColor: accent,
+        fontFamily: fonts.sansBold,
+        fontSize: 11,
+        letterSpacing: 1.5,
+        textTransform: 'uppercase',
+        color: tokens.bronze,
+        marginBottom: 12,
       }}
     >
-      <Text
-        style={{
-          fontFamily: fonts.sansBold,
-          fontSize: 9,
-          letterSpacing: 1.5,
-          textTransform: 'uppercase',
-          color: accent,
-          marginBottom: 3,
-        }}
-      >
-        {label}
-      </Text>
-      <Text
-        style={{
-          fontFamily: italic ? fonts.displayItalic : fonts.sans,
-          fontStyle: italic ? 'italic' : 'normal',
-          fontSize: 13,
-          lineHeight: 18,
-          color: bodyColor,
-        }}
-      >
-        {text}
-      </Text>
-    </View>
+      {label}
+    </Text>
   );
 }
 
