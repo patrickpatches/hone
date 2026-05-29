@@ -58,7 +58,97 @@ import {
   type LeftoverModeId,
 } from '../../src/data/scale';
 
+// ── v7 diagnostic ErrorBoundary (build #130) ──────────────────────────────
+//
+// Catches any render-time error from the recipe screen so a force-close
+// becomes a visible error message on screen. Patrick screenshots it; the
+// real bug gets fixed in one targeted shot instead of repeated guesses.
+//
+// This is purely defensive — no behavioural change unless a crash actually
+// occurs. Class component because Error Boundaries MUST be class components
+// (React API requirement; functional ones can't catch render errors).
+class RecipeErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  state: { error: Error | null } = { error: null };
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    // Loud console so adb logcat captures it; also reaches the on-screen
+    // fallback below so Patrick can screenshot it.
+    console.error('[RecipeErrorBoundary] caught render error', error, info?.componentStack);
+  }
+  reset = () => this.setState({ error: null });
+  render() {
+    if (this.state.error) {
+      return <RecipeErrorFallback error={this.state.error} onReset={this.reset} />;
+    }
+    return this.props.children;
+  }
+}
+
+function RecipeErrorFallback({ error, onReset }: { error: Error; onReset: () => void }) {
+  const insets = useSafeAreaInsets();
+  return (
+    <ScrollView
+      style={{ flex: 1, backgroundColor: tokens.bg }}
+      contentContainerStyle={{ padding: 20, paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }}
+    >
+      <Text style={{ fontFamily: fonts.sansBold, fontSize: 10, letterSpacing: 1.6, textTransform: 'uppercase', color: tokens.primaryInk, marginBottom: 8 }}>
+        Recipe screen — render error
+      </Text>
+      <Text style={{ fontFamily: fonts.display, fontSize: 22, lineHeight: 27, color: tokens.ink, marginBottom: 14 }}>
+        Something crashed when this recipe tried to render.
+      </Text>
+      <Text style={{ fontFamily: fonts.sans, fontSize: 13, lineHeight: 19, color: tokens.inkSoft, marginBottom: 18 }}>
+        Patrick — please screenshot this whole screen and send it. The exact message + stack below is the bug we need.
+      </Text>
+      <View style={{ padding: 14, borderRadius: 12, backgroundColor: tokens.cream, borderWidth: 1, borderColor: tokens.lineDark, marginBottom: 18 }}>
+        <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, color: tokens.primaryInk, marginBottom: 6 }}>
+          {error.name || 'Error'}
+        </Text>
+        <Text style={{ fontFamily: fonts.sans, fontSize: 13, lineHeight: 19, color: tokens.ink, marginBottom: 10 }}>
+          {error.message || '(no message)'}
+        </Text>
+        {error.stack ? (
+          <Text style={{ fontFamily: fonts.sans, fontSize: 10, lineHeight: 15, color: tokens.muted }} selectable>
+            {error.stack.split('\n').slice(0, 20).join('\n')}
+          </Text>
+        ) : null}
+      </View>
+      <Pressable
+        onPress={() => router.back()}
+        style={{ marginBottom: 10, borderRadius: 12 }}
+        android_ripple={{ color: 'rgba(255,255,255,0.06)', borderless: false }}
+      >
+        <View style={{ paddingVertical: 13, borderRadius: 12, borderWidth: 1.5, borderColor: tokens.lineDark, alignItems: 'center' }}>
+          <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: tokens.ink }}>← Back</Text>
+        </View>
+      </Pressable>
+      <Pressable
+        onPress={onReset}
+        style={{ borderRadius: 12 }}
+        android_ripple={{ color: 'rgba(255,255,255,0.06)', borderless: false }}
+      >
+        <View style={{ paddingVertical: 13, borderRadius: 12, backgroundColor: tokens.primary, alignItems: 'center' }}>
+          <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: tokens.onPrimary }}>Try again</Text>
+        </View>
+      </Pressable>
+    </ScrollView>
+  );
+}
+
 export default function RecipeDetailScreen() {
+  return (
+    <RecipeErrorBoundary>
+      <RecipeDetailScreenInner />
+    </RecipeErrorBoundary>
+  );
+}
+
+function RecipeDetailScreenInner() {
   const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
