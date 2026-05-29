@@ -70,7 +70,8 @@ export const PILL_CONFIG: Record<'green' | 'yellow' | 'red', PillConfig> = {
 };
 
 function qualityConfig(quality: Substitution['quality']): PillConfig {
-  return PILL_CONFIG[quality];
+  // Fallback to yellow if an old quality value slips through (defensive net).
+  return PILL_CONFIG[quality] ?? PILL_CONFIG.yellow;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────

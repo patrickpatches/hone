@@ -52,7 +52,7 @@ import {
 } from '@expo-google-fonts/inter';
 import { tokens } from '../src/theme/tokens';
 import { initDatabase } from '../db/database';
-import { seedDatabase, syncNewSeedRecipes, refreshSeedRecipeFields, pruneOrphanedSeedRecipes, smokeAlarmSeedCount, validateDecision015 } from '../db/seed';
+import { seedDatabase, syncNewSeedRecipes, refreshSeedRecipeFields, updateSubstitutions, pruneOrphanedSeedRecipes, smokeAlarmSeedCount, validateDecision015 } from '../db/seed';
 
 /**
  * Full database bootstrap sequence, called once by SQLiteProvider on open.
@@ -87,6 +87,12 @@ async function setupDatabase(db: SQLiteDatabase): Promise<void> {
   // Steps 3 & 4: idempotent passes on every launch — cheap, safe to repeat.
   await syncNewSeedRecipes(db);
   await refreshSeedRecipeFields(db);
+
+  // Step 4b: refresh substitution quality values. refreshSeedRecipeFields only
+  // updates the recipes table; ingredient substitutions are a separate column.
+  // Without this call, existing installs keep old quality values ('good',
+  // 'compromise') which crash SubstitutionSheet at PILL_CONFIG lookup.
+  await updateSubstitutions(db);
 
   // Step 5 (2026-05-09): prune any seed-origin rows whose ids are no longer
   // in SEED_RECIPES. Cleans up existing installs after Patrick's launch
