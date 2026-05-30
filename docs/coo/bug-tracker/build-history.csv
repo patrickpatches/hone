@@ -18,3 +18,4 @@ build,date,bugs_opened,bugs_re_test_passed,bugs_re_test_failed,p0_open,p1_open,p
 129,2026-05-29,0,0,0,0,0,1,0,Commit B browse restyle (partial); Plate-time bug flagged in closeout
 130,2026-05-29,0,0,0,0,0,1,0,RecipeErrorBoundary added
 131,2026-05-30,0,0,0,0,0,1,0,Rules of Hooks hoist fix — recipes open again
+133,2026-05-30,6,0,0,0,1,3,2,backfill of 6 real bugs from Patrick's #132 on-device validation (HONE-007 through HONE-012)

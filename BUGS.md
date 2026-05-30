@@ -14,11 +14,12 @@
 | REGN-001 | Recipe cards misalign after first scroll | FIX ATTEMPTED | Commit `1fca0aaa3d3d` — awaiting Patrick on-device validation |
 | REGN-006 | Equipment + Prep sections missing on most recipes | FIX ATTEMPTED | UI rendering restored 7 May 2026 — awaiting on-device validation |
 | REGN-007 | Pantry STILL NEED chip state broken (undo, X-removal, ✓-toggle) | FIX ATTEMPTED | Refactored to derive state from shopping list — awaiting on-device validation |
-| B132-01 | Top-of-recipe clutter — duplicate Start-cooking CTA + duplicate 0/9 + WATCH-ORIGINAL repeats in ghost row | OPEN | Surfaced 2026-05-30 on Thai Green Curry on-device validation of #132. 5-fix plan in docs/coo/handoffs.md Part 2. ~30 min single-file scope. |
-| B132-02 | 'Add missing to shopping list' button does NOT deliver missing ingredients to Shop tab | OPEN | **Priority: highest — fraudulent UX.** Surfaced 2026-05-30 #132 on-device. Suspects: (a) handler loops empty/different field than the missing-pills row; (b) Shop tab doesn't refetch on focus (REGN-007 class); (c) error swallowed by try/catch while toast still fires. Diagnose path in docs/coo/handoffs.md Part 2. |
-| B132-03 | `before_you_start` renders as wall of text — violates chef-voice 'anticipation, not reaction' | OPEN | Surfaced 2026-05-30 #132 on-device. Two paths: Phase 1.5 collapse-to-titles (no schema change, ~1 hr) vs Phase 2 distribute via per-note `placement` field (~3 days + Cook re-authors per recipe). Recommend ship Phase 1.5 now, schedule Phase 2 as separate Cook initiative. |
-| B132-04 | Blue left rail on `before_you_start` block — v7 palette violation (5 tokens: ink/muted/bronze/gold/terra) | OPEN | Surfaced 2026-05-30 #132. Orphan styling from pre-v7. Should be bronze rail matching honest-swap callout. ~5 min single token swap. |
-| B132-05 | 'intermediate' lowercase on meta line — should be 'Intermediate' | OPEN | Surfaced 2026-05-30 #132. Render-time titlecase preferred over fixing seed data (other surfaces may want lowercase for filters). 1-line fix. |
+| HONE-007 | Add missing to shopping list fails (or only adds some items) | OPEN | P1 · target #134 · GH #7 · filed 2026-05-30 |
+| HONE-008 | Top of recipe screen is cluttered — duplicate Start cooking, duplicate 0/9, | OPEN | P2 · target #134 · GH #8 · filed 2026-05-30 |
+| HONE-009 | What to know before you start is a wall of text — violates anticipation-not | OPEN | P2 · target #134 · GH #9 · filed 2026-05-30 |
+| HONE-010 | Plate time always shows 3 min on every recipe — each plating is unique | OPEN | P2 · target #134 · GH #10 · filed 2026-05-30 |
+| HONE-011 | What to know callout uses blue left rail — v7 palette violation | OPEN | P3 · target #134 · GH #11 · filed 2026-05-30 |
+| HONE-012 | 'intermediate' should be 'Intermediate' on the meta line | OPEN | P3 · target #134 · GH #12 · filed 2026-05-30 |
 
 **REGN-006 root cause (diagnosed 7 May 2026):**
 - Patrick reported Equipment + Mise en place sections missing across most recipes (not just SMASH_BURGER).
