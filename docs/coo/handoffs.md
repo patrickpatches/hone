@@ -76,6 +76,98 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
+### HANDOFF → COO · 2026-05-30 · OPEN — ADDENDUM: Patrick has expanded scope — world-class Hone-specific ticketing system + dedicated Bug Tester agent role + analytics dashboard
+
+**From:** Senior Engineer
+**Subject:** Patrick's response to my earlier ticketing-pushback handoff. He's chosen a much bigger initiative than option 1/2/1+2/3. Wants three deliverables, not one. Treat this as the actual product brief; my earlier "build a Cowork quick-add artifact" recommendation is now the *floor*, not the ceiling.
+
+**Patrick verbatim (so you have his framing exact):**
+> "I want the COO to be aware of everything and let him know I want to implement a world-class Hone-specific ticketing system for fault rectification or any other issues. I want this with the intent that I want a world-class specialty bug tester to be testing the app for the implementation of features, the functionality of them, cluttered text, poor design etc. This bug tester has a supernatural ability to be the ultimate product tester, and use the ticketing system to record them with extremely effective communication to the engineer to ultimately fix them. It will also be an easy way to track past and present bugs and have beautifully kept records and graphs to track useful metrics."
+
+---
+
+#### Three components Patrick wants
+
+1. **Hone-specific ticketing system** — a real workflow, not just GitHub Issues with a coat of paint. Persistent memory for every UX/functional/design/content observation across the life of the product. Engineer reads tickets to know what to fix; tickets carry enough structure that Engineer is briefed without back-and-forth.
+
+2. **Bug Tester agent role** — a *new role* alongside COO / Cook / Designer / Engineer. Persona: "supernatural ability to be the ultimate product tester." Patrick's intent — the Tester is the dedicated set of eyes that catches clutter, broken functionality, design-brief breaches, chef-voice violations, ergonomics failures, content drift, performance regressions. They communicate with Engineer through the ticketing system; that's the only channel.
+
+3. **Metrics + analytics dashboard** — "beautifully kept records and graphs to track useful metrics." Glanceable. Tells Patrick how the product is trending without him reading 200 tickets.
+
+---
+
+#### My engineering read
+
+This is the right move at this stage of the project. Three reasons:
+
+1. **Patrick's testing leverage is currently capped at his own pixel-time.** A dedicated Tester multiplies it. The Tester catches things Patrick walks past because he's seen the screen 50 times; the Tester sees it with first-time eyes every time, against the brief.
+2. **Tickets become the product's memory.** Right now half of our "what did we ship in #129" knowledge lives in the handoffs.md table. That's fragile. Structured tickets are durable and analyzable.
+3. **The metrics dashboard turns intuition into evidence.** "We feel like we're shipping faster" becomes "mean time-to-fix dropped from 4 days to 1.5 days across the last 6 builds."
+
+---
+
+#### Engineering proposal for COO to design against
+
+**Backend (recommended):**
+- **GitHub Issues stays the source of truth.** PAT is already embedded; Patrick already accepts GitHub as the canonical store; no new SaaS dependency.
+- **Add a structured YAML/JSON frontmatter block** at the top of every Issue body. Engineer + Tester + COO write it; the artifact parses it. Fields: `id`, `severity`, `category`, `area`, `recipe_id`, `build_introduced`, `build_fix_attempted`, `build_validated`, `repro_steps`, `expected`, `actual`, `screenshot_urls`, `root_cause`, `engineer_notes`. Labels mirror category + severity for native GitHub filtering.
+- **Status flow stays:** OPEN → FIX ATTEMPTED → VALIDATED ✅ / REJECTED 🔴 (per existing CLAUDE.md discipline). Tester opens; Engineer fix-attempts; Patrick validates; Tester re-tests; Tester or Patrick can reject.
+
+**Frontend (the artifact):**
+- A Cowork live artifact `hone-ticket-system` that supersedes the existing `hone-bug-tracker`. On load: fetches open + recently-closed Issues via the GitHub MCP, parses the structured block, renders three views (Dashboard / Board / Table). Quick-add button on Patrick's sidebar fills the Engineer (me) with a pre-filled prompt to file the Issue with full structure.
+- Charts via Chart.js inline (per the artifact module's allowed CDN list).
+
+**Suggested dashboard metric set (pick 4–6 that actually matter):**
+- Open count by severity (P0 / P1 / P2 / P3) — single number per band, big.
+- Open count by category (Functional, UX clutter, Design-brief breach, Content, Performance, Accessibility) — small bar.
+- Aging histogram — "X tickets open >7 days, Y >14, Z >30." Surfaces stalls.
+- Bugs-per-build trend — sparkline of new tickets opened against each build number.
+- Mean time-to-fix — running 6-build average; shows whether we're accelerating.
+- Tester validation rate — % of fix-attempts that pass first time. Surfaces "engineer shipping confident-but-wrong fixes" if it dips.
+
+Recommend skipping: cumulative-bug-count vanity, "engineer productivity" framings, anything Patrick can't act on.
+
+**Bug Tester charter (you author):**
+File at `docs/coo/roles/bug-tester.md`. Headers I'd suggest:
+- *Persona:* obsessive product QA with kitchen-context awareness; reads CLAUDE.md golden rules as sacred; reads the v7 prototype + every active design ticket; remembers every previous bug as a pattern primitive.
+- *Inputs:* Patrick's screenshots; the latest build hash; the brief stack (CLAUDE.md + active tickets + Designer's prototypes + Cook's recipe research); prior tickets (so the Tester learns recurring failure modes — substring matches in the same component family are a red flag).
+- *Workflow:* receive screenshot → systematically scan against brief (chef voice, palette, ergonomics, functional, content) → file one ticket per distinct issue (NOT "found 5 things, here they are in a list" → 5 separate tickets, each with its own structured body).
+- *Tone:* blunt, specific, kind. No "looks great!" filler. Every observation grounded in a brief, a heuristic, or a measurement.
+- *Success criteria:* Tester's tickets need no clarification rounds from Engineer; Tester's validations are stable (Engineer doesn't re-open Tester-validated tickets).
+
+---
+
+#### Engineering subnote — B132-02 root cause (diagnosed while Patrick was reading my last handoff)
+
+The "Add missing to shopping list" button does write the items to the database correctly. The Shop tab's `useFocusEffect` runs a `reconcile()` function that walks every shopping row and **strips any item whose source is a meal-recipe that isn't currently in the planned set.** "Add missing" writes items with `sources: [{ kind: 'meal', recipe_id, servings }]`. The recipe was browsed, not planned. Reconcile sees the recipe isn't planned, removes the meal source, and (via `applyMealRemove`) drops the row entirely. The items vanish before Patrick sees them.
+
+**Fix path** (will bake into the v7 Phase 1.5 bundle): change the handler in `mobile/app/recipe/[id].tsx` `addMissingToShoppingList` to write `sources: [{ kind: 'manual' as const }]` and `manually_added: true`. Reconcile already ignores manually-added rows. The recipe link goes into `notes` for context. Single-file edit, no schema change. This is also a hint to the Bug Tester worth recording: **whenever a feature writes data into a tab that has a reconcile/sweep on focus, verify the data survives the next focus cycle.** That's a heuristic to add to the Tester's charter.
+
+---
+
+#### What COO needs to do now
+
+1. **Approve** the world-class ticketing + Bug Tester initiative as a top-priority Q3 (or earlier) workstream. My read: this is high-ROI; I'd run it in parallel with v7 Phase 1.5 / Phase 2 rather than blocking either.
+2. **Author** the Bug Tester role charter at `docs/coo/roles/bug-tester.md`. Persona, inputs, outputs, tone, success criteria, charter examples. This is the heaviest piece — needs your judgment.
+3. **Spec** the structured-issue-body convention. Field list, YAML/JSON, label set, severity scale. Patrick will need to confirm severity definitions (what's P0 vs P1) so they're stable across builds.
+4. **Choose** the dashboard metric set. My recommended 6 above; trim/swap as you see fit.
+5. **Confirm or revise the build sequence:**
+   - COO designs spec → Engineer builds the `hone-ticket-system` Cowork artifact + the GitHub Issue convention → COO publishes the Bug Tester charter → Patrick first session with Bug Tester (Bug Tester onboards by reading every doc + every existing ticket, then runs an immediate pass on #132 and files all the B132-* observations under the new structure as a backfill).
+6. **Decide what happens to the existing `hone-bug-tracker` artifact** — supersede it cleanly, or evolve it in place. My recommendation: supersede, archive the old one.
+
+---
+
+#### Files this addendum touches
+
+- `docs/coo/handoffs.md` — this addendum prepended above my earlier handoff.
+- No code touched. Engineer is continuing v7 Phase 1.5 work in parallel.
+
+#### Status
+
+OPEN. Two open handoffs from Engineer to COO sitting at the top of this file (this addendum, then the earlier handoff). Reply with the spec — or counter-handoff if you disagree with any of the engineering recommendations above.
+
+---
+
 ### HANDOFF → COO · 2026-05-30 · OPEN — context catchup + 5 new on-device bugs from #132 + ticketing-system decision needed
 
 **From:** Senior Engineer
