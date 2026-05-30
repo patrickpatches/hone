@@ -76,6 +76,121 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
+### HANDOFF → COO · 2026-05-30 · OPEN — context catchup + 5 new on-device bugs from #132 + ticketing-system decision needed
+
+**From:** Senior Engineer
+**Subject:** (1) Catchup on the v7 build arc since you last had visibility (you closed out on #129). (2) Five new on-device bugs Patrick surfaced validating #132 against the Thai Green Curry recipe. (3) Patrick is "strongly considering a professional [ticketing system] better than Jira" — engineering pushback inside, decision needed.
+
+**Why this handoff exists:** Patrick is finding it hard to track and write down the bugs he's catching from his phone — the intake friction has become a bottleneck. He asked for an explicit COO brief so we can decide together on the right structural answer rather than continue cobbling on the current rigging (`BUGS.md` cache + GitHub Issues source of truth + Cowork bug-tracker artifact, with Patrick as the human relay between his phone and the repo). This handoff carries the engineering context plus my honest read on the leverage point.
+
+---
+
+#### Part 1 — Build arc since #129 (your last reference point)
+
+| Build | Commit | What landed | Status |
+|---|---|---|---|
+| #127 | `0f423b5` | v7 Commit A — tokens + Fraunces fonts | shipped, validated |
+| #128 | `c5bde6d` | Hotfix — regenerate `package-lock.json` to match Commit A `package.json` (CI `npm ci` strict failed) | shipped, validated |
+| #129 | `ebebc27` | v7 Commit B — pantry card + journey cards + hero typographic fallback + Method tap-to-cook (partial scope of the brief) | shipped; recipe screen crashed on open |
+| (no build) | `625923a` | Patrick's hotfix — `updateSubstitutions(db)` migration at launch + defensive `qualityConfig` fallback in `SubstitutionSheet` | shipped, did NOT fix the crash |
+| #130 | `5dc6da5` | Diagnostic — `RecipeErrorBoundary` class wrapping the recipe screen to surface the actual exception text | shipped; ErrorBoundary stays in tree permanently |
+| #131 | `d7332fc` | REAL FIX — Rules of Hooks violation. My #129 added `useMemo`/`useCallback` below the `if (recipe === undefined) return <Loading/>` early-return guards. On first render guards return early → hooks don't call; on second render guards pass → hooks DO call. Different hook count between renders → React threw at mount. Fix: hoisted all 5 hooks above the guards with defensive defaults | shipped; recipes open cleanly |
+| #132 | `1d79a4e` | v7 Commit B2 — completed §3.1–§3.8 of the brief (top bar restyle, title block + meta, drop At-a-glance, inline CTA + ghost row, Get-ready merge, compact Method, Ingredients pantry-style rows with in-pantry strikethrough + honest-swap callout, bronze eyebrows). Cook-mode shared blocks gated `cooking ? <original> : <v7>` so cook renders byte-identical to #131 | shipped; on-device validation in progress (see Part 2) |
+
+**Three lessons logged to my permanent memory from this arc:**
+1. **Static checks cannot catch React runtime invariants.** tsc, R-014 tail-check, and brace-balance all passed on #129 — they cannot see Rules of Hooks violations or Fabric driver mismatches. Runtime crashes need runtime instrumentation.
+2. **When blind to a release-build crash, ship a diagnostic — don't guess.** I burned a build cycle (#129 → no-build hotfix → #130) before I conceded the static-audit approach was wrong and shipped the ErrorBoundary. The ErrorBoundary immediately surfaced the exact error message and #131 was a mechanical fix from there.
+3. **Animated/scroll-driven chrome is BANNED on the recipe screen** until we have proper Fabric debugging tooling — this is the v5 crash class (build #124) that we've been working around for a month.
+
+**Where v7 stands per the Designer ticket** (`docs/coo/tickets/recipe-detail-v7-build.md`):
+- Phase 1 Commits A + B + B2 shipped.
+- Phase 1 Commit C (cook-mode "Look for" Fraunces italic → Inter SemiBold upright 19sp) **NOT yet started**.
+- Phase 2 (allergens schema, equipment enrichment, cook-mode enhancements) **NOT started**.
+
+---
+
+#### Part 2 — Five new on-device bugs from Patrick's #132 validation (Thai Green Curry browse)
+
+Patrick screenshotted the top of the recipe (clutter) and a second section showing `before_you_start` as a wall of text. The five bugs:
+
+**B132-01 · UX / clutter · top-of-recipe density**
+First viewport stacks: top bar (3 icons) + hero photo + bronze eyebrow ("INSPIRED BY ANDY COOKS · WATCH THE ORIGINAL ↗") + Fraunces 38sp title + italic tagline + meta ("intermediate · Serves 4 · Thai") + full-width rust 56dp "Start cooking" pill + ghost row ("Plan it · Watch the chef") + bronze pantry eyebrow with "0/9" badge on the right + pantry card with huge "0/9" numeral + status copy + 4 missing pills + bottom-floating sticky "Start Cooking" pill. **Two CTAs of identical colour and form compete for attention. The "0/9" appears twice within ~100 px. "WATCH THE ORIGINAL" is duplicated by "Watch the chef" in the ghost row.** Patrick's direction: kill the inline rust pill — the floating sticky covers it. Five-fix recipe in the chat reply. Engineering scope: ~30 min, single file, no schema change. **Priority: high** — visible on every recipe.
+
+**B132-02 · Functional bug · "Add missing to shopping list" button does not deliver missing ingredients to Shop tab**
+Per #129 closeout, the In-your-pantry card's gold-outlined button should loop `upsertShoppingItem` over `match.missingIngredients`. Patrick reports tapping it does NOT put the ingredients in the Shop tab. Suspects in likelihood order: (a) the missing-pills row is rendering from `match.missingCount`/derived list but the button handler loops a differently-named or empty field; (b) `upsertShoppingItem` writes correctly but Shop tab doesn't refetch on tab-return — same regression class as REGN-007 (derived state across surfaces); (c) handler is try/catch-wrapped, swallowing an error while the success toast fires anyway. **Priority: highest** — this is fraudulent UX. The In-your-pantry card tells you to add ingredients, you tap, nothing happens. Worse than not having the card at all. Engineering scope: ~1 hour diagnose, ~30 min fix.
+
+**B132-03 · Content architecture · `before_you_start` is a wall of text against the chef-voice mandate**
+Thai Green Curry's `before_you_start` renders as 3 paragraph bullets (~10 lines of dense body text) BEFORE the user has decided to cook. The three bullets are (a) substitution warning "Full-fat coconut milk only — light breaks", (b) technique cue "Cracking the coconut cream — oil pools visibly", (c) tempo cue "Everything from the wok happens fast — prep before the wok goes on". **All three belong NEXT to the moment they apply** — (a) on the Coconut milk ingredient row (or as `substitutions[].changes` if already authored), (b) as `why_note` on the step where you fry the curry paste, (c) at the top of Mise as a chef-voice callout. CLAUDE.md is explicit: "Anticipation, not reaction. Tell the user what's coming two steps ahead." A textbook of theory upfront violates both.
+
+Two paths forward:
+- **Phase 1.5 (no schema change, ~1 hour engineering):** collapse the wall to one-line previews — *"Use full-fat coconut milk · Crack the cream · Move fast"* — tap any to expand the prose. Doesn't change cook's data.
+- **Phase 2 (the right answer, ~3 days engineering + cook authoring per recipe):** add `placement` to each `before_you_start` entry: `{ note: string; show_at: 'mise' | { ingredient_id: string } | { step_id: string } }`. Schema migration + per-recipe rewrite by Cook. Each note then renders at its rightful moment.
+
+**Recommend:** ship Phase 1.5 in the next build, schedule Phase 2 as a proper data initiative with Cook (separate ticket she authors over time).
+
+**B132-04 · Palette violation · BLUE left rail on the `before_you_start` block**
+v7 palette is 5 tokens (ink / muted / bronze / gold / terra). Blue is orphan styling from pre-v7. Should be bronze rail (matching the honest-swap callout). Engineering scope: ~5 min, single token swap. **Priority: medium** — visible but cosmetic.
+
+**B132-05 · Copy / case · "intermediate" should be "Intermediate" on the meta line**
+The meta line takes `recipe.difficulty` straight from data; data is lowercase. Render-time titlecase is preferred over fixing the seed data (other surfaces may want the lowercase for filters or matching). Engineering scope: 1 line. **Priority: low** — but jarring against the chef-voice tone everywhere else.
+
+**Patrick's prioritised order, my recommendation:**
+B132-02 (functional, kills trust) → B132-01 (visible on every recipe) → B132-04 + B132-05 (trivial bundled-in fixes) → B132-03 Phase 1.5 collapse → B132-03 Phase 2 (separate Cook-led initiative).
+
+**Natural build target:** a "v7 Phase 1.5" bundle landing all of B132-01, B132-02, B132-04, B132-05, and the Phase-1.5 collapse for B132-03 in a single tree. Hard-safety constraints unchanged (zero `Animated.ScrollView` / `Animated.event` / `scrollY` / `addListener` / `onScroll`; all hooks above the early-return guards).
+
+---
+
+#### Part 3 — Patrick's ticketing-system question + my engineering pushback
+
+Patrick verbatim: *"I am finding it hard to track and write down all the bug I am finding. The last he heard was an older build … strongly considering a professional better than Jira or any other world class ticketing system."*
+
+**My read:** the bottleneck is NOT the ticketing system. It is the *intake*. Patrick tests on his phone, finds a bug, then has to either type out a GitHub Issue on his phone (slow, no native screenshot attach without extra steps) or describe it to me in chat (ephemeral — disappears with session context). The current rigging — `BUGS.md` cache + GitHub Issues source of truth + Cowork bug-tracker artifact, status flow OPEN → FIX ATTEMPTED → VALIDATED ✅ / REJECTED 🔴 — is **structurally fine**. What fails is the act of capture.
+
+Switching to Linear or Jira-replacement doesn't fix that. It adds a new login, a new mobile app, another sync surface, and the same typing problem. It also costs $10/seat/month and adds a SaaS dependency to a one-developer project.
+
+**Three options ranked by leverage-to-cost:**
+
+1. **(My pick) Build a Cowork "Hone Bug Intake" live artifact.** One "+ Quick add bug" button on Patrick's Cowork sidebar. He taps it on phone, attaches screenshot, types one sentence of repro, hits submit. The artifact's `submit` handler pre-fills me with a structured prompt template — I then file the proper GitHub Issue (title, body, labels, build-number link, screenshot URL), mirror it in `BUGS.md`, and confirm back to Patrick with the Issue link. End-to-end ~30 seconds. Tool footprint: zero additions. Stays inside the existing GitHub Issues system. Cost: ~4 hours engineering.
+2. **Stand up GitHub Projects board on the existing Issues.** Adds a kanban view of the same status flow (OPEN → FIX ATTEMPTED → VALIDATED / REJECTED). Free, GitHub-native, GitHub mobile app has a board view. Doesn't fix Patrick's capture friction by itself but does make triage clearer for both of us. Pairs naturally with option 1. Cost: ~1 hour COO setup.
+3. **Adopt Linear.** Best-in-class web UI, fast keyboard, popular among lean teams. Real costs: $10/user/month, new login, new mobile app, ANOTHER sync surface against GitHub. Adds friction for Patrick (mobile capture still slower than a quick-add Cowork form). Recommend NOT switching unless the team scales beyond Patrick + Claude.
+
+**Recommend: 1 + 2 layered.** I build the intake artifact; COO sets up the Projects board. Patrick gets fast capture AND a board view that mirrors it.
+
+---
+
+#### What's needed from COO
+
+1. **Decide the ticketing path** — option 1 / 2 / 1+2 / 3. I'll execute whichever you call.
+2. **Confirm priority order** for the five new B132-* bugs. My recommendation in Part 2; flag anything you'd reorder.
+3. **Confirm scope of the next Engineer build** — the "v7 Phase 1.5" bundle described above. If you want it split (e.g., B132-02 alone as a hotfix, then the rest as a bundle), say so.
+4. **Re-sync `BUGS.md` from GitHub Issues at next session start.** The cache has stale REGN-001/006/007 entries from May 7–8 (~3 weeks old) and the new B132-* entries I'm adding in this commit. A proper resync against GitHub Issues is overdue.
+5. **Phase 2 schedule for B132-03** — does the Cook get a separate ticket to author `placement` on `before_you_start` per recipe? My recommendation: yes, but on her own timeline; Phase 1.5 covers the UX problem in the meantime.
+
+---
+
+#### Files in this handoff commit
+
+- `docs/coo/handoffs.md` — this handoff block added at the top of Open handoffs.
+- `BUGS.md` — five new B132-* entries appended to the active tickets table; existing REGN-* entries untouched pending COO's GitHub Issues resync.
+
+#### Files for COO to read
+
+- `docs/coo/tickets/recipe-detail-v7-build.md` — the original v7 ticket. Phase 1 vs Phase 2 line is here.
+- `docs/coo/tickets/commit-b2-prompt.md` — the brief I gave Claude Code for #132. Useful if you want to see the §3.1–§3.8 spec the bugs are measured against.
+- `mobile/app/recipe/[id].tsx` at HEAD `1d79a4e` — the file the bugs are against.
+
+#### Blocks
+
+- "v7 Phase 1.5" build is blocked on your priority confirmation. None of the five bugs is individually blocking — Patrick can keep using the app.
+- The Cowork bug-intake artifact build is blocked on your ticketing-path call (options 1 / 2 / 1+2 / 3).
+
+#### Status
+
+OPEN. Awaiting your reply in this file (a CLOSEOUT block below this one, or a counter-handoff back to Engineer with your decisions).
+
+---
+
 ### CLOSEOUT — Build #132 · Engineer · 2026-05-30 — v7 browse-mode restyle complete
 
 **Scope:** `mobile/app/recipe/[id].tsx`, `!cooking` branch only — the remaining v7 Frame-A work the #129 closeout deferred to "Commit B2" (top bar, title block + meta, inline CTA + ghost row, Get-ready merge, Ingredients row restyle with in-pantry/shopping-list state + honest-swap callout, compact Method, bronze eyebrows). All of §3.1–§3.8 from the brief landed.
