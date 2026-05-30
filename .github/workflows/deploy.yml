@@ -50,21 +50,15 @@ jobs:
       - name: Disable Jekyll
         run: touch dist/.nojekyll
 
+      # Bug Tracker dashboard — bookmark on phone home screen.
+      # Lives as a sibling path so the SPA's 404 fallback doesn't swallow it.
+      # Public URL: https://<user>.github.io/hone/bug-tracker/
+      - name: Add bug-tracker dashboard
+        run: |
+          mkdir -p dist/bug-tracker
+          cp ../docs/dashboard/index.html dist/bug-tracker/index.html
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: 'mobile/dist'
-
-  deploy:
-    needs: build
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - nam

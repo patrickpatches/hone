@@ -1,0 +1,111 @@
+name: Bug Report
+description: Report a bug found on-device. Optimised for filing from a phone in under 60 seconds.
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. Fill in what you know — the more specific, the faster the fix.
+        Per the Hone protocol, this ticket will be picked up by the Bug Tester and mirrored into `docs/coo/bug-tracker/tickets/`.
+
+  - type: input
+    id: build
+    attributes:
+      label: Build number
+      description: From the app's About / Settings page, or "I don't know" if you can't find it.
+      placeholder: e.g. 131
+    validations:
+      required: true
+
+  - type: dropdown
+    id: screen
+    attributes:
+      label: Which screen?
+      options:
+        - Kitchen (the home tab)
+        - Recipe (browse view)
+        - Recipe (cook view)
+        - Pantry
+        - Shop
+        - Settings
+        - Other / I'm not sure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: What kind of bug?
+      description: One label. Helps the dashboard cluster regressions.
+      options:
+        - UI — looks wrong, colour, layout, alignment, text
+        - Crash — app closed itself / white screen / error message
+        - Data — wrong content (wrong photo, wrong number, wrong text)
+        - Perf — slow, laggy, juddery
+        - Content — copy or recipe content reads wrong
+        - A11y — accessibility (contrast, touch size, screen reader)
+        - Flow — button does nothing / can't get past a screen
+    validations:
+      required: true
+
+  - type: input
+    id: recipe
+    attributes:
+      label: Which recipe? (if it's recipe-specific)
+      description: e.g. "Hummus", "Pasta Carbonara", or leave blank if it's not about a specific recipe.
+      placeholder: e.g. Hummus
+    validations:
+      required: false
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: How do I make it happen?
+      description: Numbered steps. Be specific — tab, then row, then button.
+      placeholder: |
+        1. Open Pantry
+        2. Tap "+" on Tomatoes
+        3. Stepper appears with "0" instead of "1"
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+      placeholder: One line.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened?
+      description: One line + screenshot if you can.
+      placeholder: One line. Drag a screenshot in if you have one.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: How bad is it?
+      description: Don't overthink — Tester or COO can adjust.
+      options:
+        - P0 — Can't use the app / I lost data / a launch rule is broken
+        - P1 — A real feature is broken or shows wrong info
+        - P2 — Works most of the time, breaks in this one case
+        - P3 — A small polish thing, not blocking
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducible
+    attributes:
+      label: Can you make it happen again?
+      opt

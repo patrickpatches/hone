@@ -31,6 +31,7 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 | Build | Commit | Summary |
 |---|---|---|
+| #133 (docs) | `pending` | **Hone Tracker rollout — push the COO's bug-tracker + PM dashboard infrastructure to main so the Pages URL loads.** No app code touched; docs-only tree. Files: `.github/ISSUE_TEMPLATE/bug-report.yml`, `.github/workflows/deploy.yml` (one new step "Add bug-tracker dashboard" between Disable-Jekyll and Setup-Pages), `docs/coo/specialists/bug-tester.md` (new role charter), `docs/coo/bug-tracker/PROTOCOL.md` + `_TEMPLATE.md` + `build-history.csv`, `docs/dashboard/index.html` (1063-line static dashboard, six tabs, empty `TICKETS_BASE` by design — backfill lands in #134). Plus the COO's two new HANDOFF blocks merged at top of Open handoffs. Per the protocol: NO EAS dispatch (docs-only). NOT self-closing — Patrick verifies the URL `https://patrickpatches.github.io/hone/bug-tracker/` loads on his phone. |
 | #132 | `1d79a4e` | **v7 "Mise" Commit B2 — browse-mode restyle complete.** Single file: `mobile/app/recipe/[id].tsx`, `!cooking` branch only. Cook mode byte-identical (shared blocks — title card, Ingredients/Method headers, ingredient rows — are gated `cooking ? <original> : <v7>` so cook renders exactly as #131). **Landed §3.1–§3.8:** (1) **Top bar** — 42×42 circular Pressables, `hitSlop:10`, no idle bg, plan tints `primaryLight`/`primaryInk` when planned, heart fills `primary`; the redundant 16sp top-bar title replaced with a flex spacer (the 38sp title now lives in the block below — matches prototype "back · spacer · plan · heart"). (2) **Title block** — bronze eyebrow `Inspired by {chef} · Watch the original ↗` (watch link hidden when `video_url` null), Fraunces 38sp/-0.6 title, italic 17sp tagline, compact muted meta `{difficulty} · Serves {output_default ?? base_servings} · {cuisine}`; plan toggle removed from this block. (3) **At-a-glance dropped** — its info now lives in the meta line + Kitchen-journey card. (4) **Inline CTA** — full-width 56dp rust "Start cooking" pill + centred ghost row "Plan it · Watch the chef" (watch hidden when null). The always-visible bottom sticky pill is untouched (NOT scroll-gated — v5 crash class avoided). (5) **Get ready** — Equipment + Prep merged under one bronze eyebrow in a single card, thin `lineDark` rule between sub-areas; Equipment as bronze-dot b-rows (no "Essential" tag — Phase 2); Prep keeps `MiseItem` + expand. (6) **Method** — browse rows now compact: bronze Fraunces step number · cream title · tabular muted timer · chevron; tap enters cook mode at that step (full content/photos live in cook mode). (7) **Ingredients** — pantry-style pill rows: 30×30 `ingredientIconName` FoodIcon (bronze when in-pantry), name (in-pantry = muted + bronze strikethrough; need-to-buy = ink), sub-line = scaled amount/unit + `· in pantry` / `· on shopping list` (new `getShoppingItems` load + hoisted membership set/callback), gold-outline Swap pill (bronze-tint when active), inline `HONEST SWAP` callout (bronzeSoft, bronze rail, Fraunces italic) under the row when a swap with `changes` is active. (8) **Eyebrows** — Ingredients/Get ready/Method browse headers are bronze uppercase. Removed orphaned `Callout` fn + `PILL_CONFIG` import. **Hard-safety:** 0 `Animated.ScrollView` / `Animated.event` / `scrollY` / `addListener` / `onScroll`. **Pre-flight:** tsc clean on the file (project exit-2 errors are the documented pre-existing @gorhom/@expo-google-fonts + recipes-holding baseline); R-014 26/26 balanced; brace/paren/bracket diff 0 0 0; hook-order 33 decls, 0 after the first guard (all hoisted, defensive vs undefined recipe). 1 file + this build-log row in the same tree. **No EAS dispatch — Patrick triggers.** Per R-015: not self-closing. |
 | #131 | `d7332fc` | **REAL FIX — Rules of Hooks violation (root cause of the v7 recipe crash).** Build #130's ErrorBoundary surfaced the actual exception: **"Rendered more hooks than during the previous render"** at `updateMemo` → `RecipeDetailScreenInner`. My Commit B (#129) added `useMemo` (match, inPantryNames, ingredientInPantry, journeyTimes) and `useCallback` (addMissingToShoppingList) **after** the existing `if (recipe === undefined) return <Loading/>` / `if (!recipe) return <NotFound/>` early-return guards. On first render `recipe` is undefined → guards return early → those hooks never call. On second render (after `getRecipeById` resolves) → guards pass → those hooks DO call. Different hook count between renders → React throws at mount of the loaded state. This was the v7 recipe crash from day one; my static checks (tsc / R-014 / brace balance) can't see hook-order violations; CI compile-builds are fine because it's a runtime React rule. **Fix:** moved all 5 hooks to BEFORE the early-return guards. Each is defensive against `recipe` being undefined: `match` returns `null` when no recipe yet; `journeyTimes` returns sensible defaults `{miseMin:5, cookMin:1, plateMin:3}`; `addMissingToShoppingList` early-returns when `!recipe || !match`. The In-your-pantry card JSX got a `match &&` null-guard so it skips when match is null (though that won't happen in practice — JSX only renders after the guards pass). **No other behaviour changed.** Cook mode untouched. ErrorBoundary from #130 stays in place as a permanent defensive net. **Hard-safety:** 0 `Animated.ScrollView`, 0 `Animated.event`, 0 `scrollY`, 0 `addListener`, 0 `onScroll` introduced. **Pre-flight:** tsc clean on `recipe/[id].tsx`; brace/paren/bracket diff 0; verified all useMemo/useCallback calls precede the first `return` statement in the component body. **Lesson logged for myself:** when adding hooks to a screen with conditional early returns, hoist them ABOVE the returns or React's hook-ordering invariant fails at runtime — the v5 lesson generalised: static checks can't catch React runtime invariants. 1 file: `mobile/app/recipe/[id].tsx`. Per R-015: not self-closing. |
 | #130 | `5dc6da5` | **DIAGNOSTIC — ErrorBoundary wrapping the recipe screen.** Patrick reports recipes still crash after Commit B (#129) + his substitution-quality hotfix (`625923a`). Static audit found no specific crash path — Patrick's `updateSubstitutions` migration runs at startup, `qualityConfig` falls back to `PILL_CONFIG.yellow`, my v7 sub-components use only valid `c.X` palette keys, and EAS Builds #127/#128 both compiled successfully. The crash is runtime-only and not visible from the engineer's side without device access. Following the v5 lesson honestly: **stop guessing, surface the actual error.** Added a `RecipeErrorBoundary` class component (React Error Boundary API requirement) that wraps `RecipeDetailScreenInner` in the default export. On any render-time exception it renders an on-screen fallback with `error.name`, `error.message`, and the first 20 lines of `error.stack`, plus Back and Try-again buttons — the recipe screen never force-closes again. Patrick screenshots that fallback and we fix the real bug in one targeted shot. No other code touched; no schema change; no `Animated` introduced. **Hard-safety:** 0 `Animated.ScrollView`, 0 `Animated.event`, 0 `scrollY`, 0 `addListener`, 0 `onScroll`. **Pre-flight:** tsc clean on `recipe/[id].tsx`; R-014 27/27 balanced; brace/paren/bracket diff 0. 1 file: `mobile/app/recipe/[id].tsx`. **No EAS dispatch — Patrick triggers.** Per R-015: not self-closing. |
@@ -75,6 +76,102 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 ---
 
 ## Open handoffs
+
+### HANDOFF → Senior Engineer · 2026-05-30 · OPEN — URGENT (push tracker to GitHub + backfill real bugs)
+**From:** COO
+**Subject:** Two-part: (1) get the bug tracker dashboard live on GitHub Pages — Patrick can't reach it from his phone until you push my changes — and (2) backfill the **real** bug roster from your recent conversations. I've cleared the seeded samples; the dashboard is empty by design until you populate it with the actual tickets.
+
+**Why Patrick can't load the dashboard at `https://patrickpatches.github.io/hone/bug-tracker/`:** the files exist only on his local checkout. They haven't been committed or pushed. The Pages workflow only fires on push to `main`.
+
+---
+
+**Part 1 — Get the dashboard live.** Pre-flight in this order:
+
+1. **Pull latest main** (you've had stale-local issues before — fetch + reset before editing).
+2. **Confirm these files are present in the working tree** (I put them there but they may not be in git yet):
+   - `docs/dashboard/index.html` — the static dashboard (1068 lines, self-contained, no external assets beyond the Chart.js CDN)
+   - `.github/workflows/deploy.yml` — has a new step "Add bug-tracker dashboard" between "Disable Jekyll" and "Setup Pages" that copies `../docs/dashboard/index.html` to `dist/bug-tracker/index.html`
+   - `.github/ISSUE_TEMPLATE/bug-report.yml`
+   - `docs/coo/specialists/bug-tester.md`
+   - `docs/coo/bug-tracker/PROTOCOL.md`, `_TEMPLATE.md`, `build-history.csv`
+3. **Verify GitHub Pages is enabled and configured for the repo.** Settings → Pages → Source must be **"GitHub Actions"** (not "Deploy from a branch"). If it's not on, turn it on with that source. If you can't change it (Patrick-only setting), flag back and tell Patrick the exact toggle.
+4. **Commit all the files above** in one tree. Suggested message: `feat(tracker): Hone bug tracker + PM dashboard — protocol, charter, template, Pages deploy`. Land it as build #132's tail or whatever build number is open. Build-log row in the SAME tree per discipline.
+5. **Push to main.** Watch CI for ~2 min: both `Deploy to GitHub Pages` and `R-014 truncation check` must succeed. If Deploy fails, fix-forward in a follow-up commit; don't revert.
+6. **Verify the URL loads in a browser** at `https://patrickpatches.github.io/hone/bug-tracker/`. Confirm all six tabs render (Dashboard / Board / Roadmap / Backlog / Epics / Table). Report the verification result back to me.
+
+---
+
+**Part 2 — Backfill the real bug roster.** I cleared the 9 seeded sample tickets from `docs/dashboard/index.html` (the `TICKETS_BASE` constant is now an empty array with an instructional comment). The dashboard will render "no tickets" until you populate it with real ones.
+
+Patrick has told me: "the bugs and issues that he [you, the engineer] recorded on the last few conversations with me." You're the source of truth for that list — I don't have your full session history. Concretely you've mentioned across recent turns:
+
+- The "Add missing" sweep bug (commit `1e225a6`) — confirmed fix attempted
+- "Five B132-* bugs" Patrick has already found (your exact phrasing) — you know what these are
+- Step-number badge invisible (HONE-100 from the open handoff at line ~210)
+- Plate-time hard-coded to 3 min (HONE-101 from #129 closeout — fix queued in commit-b2-prompt §3.9)
+- Anything else you've recorded in addendums, closeouts, or replies to Patrick that hasn't been formally ticketed
+
+**For every one of those:** follow the protocol at `docs/coo/bug-tracker/PROTOCOL.md`:
+
+1. **File a GitHub Issue** using the `bug-report` form (it auto-formats the structured block). One issue per bug.
+2. **Create the mirror file** at `docs/coo/bug-tracker/tickets/HONE-NNN-<kebab-slug>.md` from `_TEMPLATE.md`. Fill in the full block: Type, Severity, Category, Screen, Recipe, Assignee, Epic, Found-in-build, Fix-attempted-build (if applicable), Target-build, Reproducible, Device, Golden Rule, Root Cause (if known). Then repro / expected / actual blocks.
+3. **For bugs you've already fixed**, append the `## FIX ATTEMPTED — Build #N (commit <hash>)` block to the mirror at the same time. Status moves to `FIX ATTEMPTED`. Do NOT mark VALIDATED — Patrick does that on-device per R-015.
+4. **Update `BUGS.md`** with the new active-tickets table.
+5. **Regenerate `TICKETS_BASE` in `docs/dashboard/index.html`** with the real ticket array. Same shape as the comment in the empty array. Push that with the rest.
+6. **Append a row to `docs/coo/bug-tracker/build-history.csv`** for this backfill session.
+
+When you push, the Pages site updates within ~90 seconds and Patrick sees the real bug list on his phone.
+
+---
+
+**Discipline rules — non-negotiable:**
+
+- **Per R-015:** do NOT close any GitHub Issue yourself. Use FIX ATTEMPTED only; Patrick closes on-device.
+- **Per R-014:** tail-check every TS/MD/YML file you write. Use bash heredoc or `--data-binary @file` for any file > 200 lines.
+- **Per build-log rule:** the build-log row, the code, the tickets, and the closeout block all land in the SAME tree.
+- **Do NOT dispatch an EAS build.** Patrick triggers builds. This is a docs-only push; no APK needs cutting for this.
+
+**Cost:** Part 1 ~15 min, Part 2 depends on how many real bugs you have to file — probably 30-60 min for a clean backfill of ~8-12 tickets.
+
+**Blocks:** Patrick's mobile access to the dashboard (Part 1), the Bug Tester's first session (Part 2 — they have nothing to test against until the roster is real).
+
+---
+
+### HANDOFF → All specialists · 2026-05-30 · OPEN (new system — Hone Tracker, bug tracker + project manager)
+**From:** COO
+**Subject:** Per Patrick's instruction, the team now runs on a single, Hone-specific tracker that covers BOTH bug tracking and project management. Effective immediately. Old ad-hoc paths (mentioning bugs only in handoff blocks, three-half-systems drift) are retired.
+
+**The system has six pieces:**
+
+1. **New specialist role — Bug Tester** at `docs/coo/specialists/bug-tester.md`. Adversarial user. Installs every build, stress-tests against design brief, chef voice, ergonomics, functionality, golden rules, and unhappy paths. Writes tickets, never code. **Communicates through tickets only — no chat.** Distinct from QA Test Lead (strategic, owns smoke-test suite + perf budgets) and Beta Tester Coordinator (manages external testers for Closed Testing).
+2. **Communication protocol** at `docs/coo/bug-tracker/PROTOCOL.md`. The only allowed status flow is `OPEN → FIX ATTEMPTED → VALIDATED ✅ (by Patrick only)`. Engineers and Testers are both forbidden from self-closing. Patrick remains the only one who can close a ticket — R-015 reaffirmed.
+3. **Hone-specific ticket template** at `docs/coo/bug-tracker/_TEMPLATE.md`. Structured block at the top with Type (Bug/Task/Feature/Epic), Severity (P0-P3), Category (UI/Crash/Data/Perf/Content/A11y/Flow), Screen, Recipe, Assignee (Engineer/Designer/Cook/Photography/Bug Tester/Patrick/COO), Epic, Found-in-build, Fix-attempted-build, Target-build, plus repro/expected/actual below.
+4. **Phone-friendly GitHub Issue form** at `.github/ISSUE_TEMPLATE/bug-report.yml`. Patrick files from his phone in under 60 seconds; the Bug Tester mirrors the issue into `docs/coo/bug-tracker/tickets/HONE-NNN-<slug>.md` at next sync.
+5. **Desktop dashboard** — Cowork artifact `hone-bug-tracker` (sidebar). **Six tabbed views: Dashboard / Board / Roadmap / Backlog / Epics / Table.** Manual status change on any ticket via dropdown — persists to localStorage. + New ticket quick-add for local drafts.
+6. **Mobile dashboard** — same HTML deployed to GitHub Pages at `https://patrickpatches.github.io/hone/bug-tracker/` via `.github/workflows/deploy.yml` (one step added to the existing Pages workflow). Patrick bookmarks the URL on his phone home screen. Auto-rebuilds on every push to main.
+
+**The six Dashboard metrics — meaningful, not vanity:** Launch countdown KPI (days to 24 July + P0+P1 remaining + on-pace verdict computed from last-10-build velocity), open by severity, open by category, aging histogram, bugs-per-build trend (opened vs cleared = regression rate), first-attempt validation rate, MTTR by severity.
+
+**The four Epics (product threads):** EPIC-v7-mise (recipe screen restyle, in flight), EPIC-pantry-first (kill feature, in flight), EPIC-photography (16 launch heroes, in flight), EPIC-launch-ready (cleanup before 24 July, in flight).
+
+**What every specialist needs to know:**
+
+- **Senior Engineer:** when you ship a fix, add a `## FIX ATTEMPTED — Build #N (commit <hash>)` block to the ticket's mirror file in the SAME tree as the build commit. Comment on the GitHub Issue with the same. Do NOT call the close endpoint. Also note: `commit-b2-prompt.md` §3.9 now contains the Plate-time hard-coded-to-3-min fix from #129's closeout — land it in Commit B2.
+- **Bug Tester:** at every session start, sync from GitHub Issues → mirror files → `BUGS.md`. Run the per-build pass for any `### CLOSEOUT — Build #N` block in handoffs.md since your last session. Re-test every `FIX ATTEMPTED` ticket and add a `## RE-TEST` block.
+- **Patrick:** you do nothing different from your phone. The GitHub Issues form just asks the right questions now. You're still the only one who can mark a ticket VALIDATED.
+- **Other specialists (Designer, Cook, Photography, Beta Coordinator, QA Test Lead):** read PROTOCOL.md once. If you encounter a bug during your work, file via the template — don't bury it in a handoff block.
+
+**Discipline rules retained, reinforced:**
+- Bugs live in GitHub Issues (truth) + mirror files (history) + `BUGS.md` (roster) + dashboard (view). One truth, three views.
+- Mirror files are append-only history. Never delete prior blocks.
+- Severity P0–P3 is mandatory on every ticket.
+- The dashboard is read-only — update the source files, never the HTML directly.
+
+**Files added:** `docs/coo/specialists/bug-tester.md`, `docs/coo/bug-tracker/PROTOCOL.md`, `docs/coo/bug-tracker/_TEMPLATE.md`, `docs/coo/bug-tracker/build-history.csv`, `docs/coo/bug-tracker/tickets/` (empty — populated as tickets arrive), `.github/ISSUE_TEMPLATE/bug-report.yml`, `docs/dashboard/index.html` (the static dashboard auto-deployed to GitHub Pages), plus one step added to `.github/workflows/deploy.yml`. FILE_MAP.md updated.
+
+**Status:** OPEN for first-session adoption by every specialist on their next contact.
+
+---
 
 ### HANDOFF → COO · 2026-05-30 · OPEN — ADDENDUM: Patrick has expanded scope — world-class Hone-specific ticketing system + dedicated Bug Tester agent role + analytics dashboard
 
