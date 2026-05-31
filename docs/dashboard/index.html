@@ -206,7 +206,7 @@
       </div>
     </div>
 
-    <div class="buildbar"><span class="bdot"></span><div><b>Build #136 is building now</b> — it bundles the six recipe-screen fixes + the new test harness, versionCode 51 so it installs over your 132. When it goes green, install it from the GitHub Actions run, then drop your result in the box below.</div></div>
+    <div class="buildbar"><span class="bdot"></span><div><b>Build #133 is building now</b> — it bundles the six recipe-screen fixes + the new test harness, versionCode 51 so it installs over your 132. When it goes green, install it from the GitHub Actions run, then drop your result in the box below.</div></div>
 
     <!-- COMPOSER -->
     <div class="card composer" style="margin-top:14px">
@@ -297,7 +297,7 @@ const TABS=[{id:'today',label:'Today'},{id:'roadmap',label:'Roadmap'},{id:'bugs'
 
 const JOBS=[
   {pri:1,t:"Find out what kind of Play Store account you have",d:"Personal or Organisation — and when did you open it? If it's Personal and opened after Nov 2023, Google forces a 14-day test with 12 people before you can launch. This one fact decides if 24 July is comfortable or tight.",done:"Done when: you tell me 'personal' or 'organisation' + the rough sign-up date."},
-  {pri:2,t:"Install build #136 and test it",d:"#136 is building now — it has the six recipe-screen fixes. When the GitHub Actions run is green, install the APK from it, open a recipe, and post your result in the box below.",done:"Done when: you've opened a recipe on #136 and marked each fix pass/fail."},
+  {pri:2,t:"Install build #133 and test it",d:"#133 is building now — it has the six recipe-screen fixes. When the GitHub Actions run is green, install the APK from it, open a recipe, and post your result in the box below.",done:"Done when: you've opened a recipe on #133 and marked each fix pass/fail."},
   {pri:3,t:"Start a list of 12 testers",d:"Anyone with an Android phone who'll install Hone and keep it 14 straight days. You need at least 12 for the Google gate — the slowest part to organise, so start now.",done:"Done when: you have 12 names + their Google emails."}
 ];
 
@@ -321,12 +321,12 @@ const ROAD=[
 const READY=[{name:"Cooking app polish",pct:75,c:'var(--aqua)'},{name:"16 recipes ready",pct:70,c:'var(--aqua)'},{name:"Testing gate (12 / 14 days)",pct:0,c:'var(--fuch)'},{name:"Store page + data-safety",pct:20,c:'var(--fuch)'}];
 const SEV=[{name:"Show-stopper",n:0,c:'var(--bad)'},{name:"Serious",n:1,c:'var(--warn)'},{name:"Annoying",n:6,c:'var(--aqua)'},{name:"Tidy-up",n:3,c:'var(--mut2)'}];
 const BUGS=[
-  {id:'HONE-007',sev:'Serious',t:"Adding missing items to your shopping list doesn't work right",d:"When you tap 'add missing to shopping list', some items don't actually get added.",who:'Engineer',build:'#136',st:'check'},
-  {id:'HONE-008',sev:'Annoying',t:"The top of the recipe screen is cluttered",d:"Two 'Start cooking' buttons, the count shows twice, two 'watch' links — all duplicates.",who:'Engineer',build:'#136',st:'check'},
+  {id:'HONE-007',sev:'Serious',t:"Adding missing items to your shopping list doesn't work right",d:"When you tap 'add missing to shopping list', some items don't actually get added.",who:'Engineer',build:'#133',st:'check'},
+  {id:'HONE-008',sev:'Annoying',t:"The top of the recipe screen is cluttered",d:"Two 'Start cooking' buttons, the count shows twice, two 'watch' links — all duplicates.",who:'Engineer',build:'#133',st:'check'},
   {id:'HONE-009',sev:'Annoying',t:"The 'before you start' notes are a wall of text",d:"You chose the quick fix — the Designer's turning it into a tap-to-expand box. The proper version is tracked as HONE-015.",who:'Designer → Engineer',build:'soon',st:'fixing'},
-  {id:'HONE-010',sev:'Annoying',t:"Every recipe claims plating takes 3 minutes",d:"It was a placeholder we hard-coded. Now shows each dish's own time.",who:'Engineer',build:'#136',st:'check'},
-  {id:'HONE-011',sev:'Tidy-up',t:"A stray blue line on the recipe screen",d:"Leftover styling from an old version — blue isn't in Hone's look.",who:'Engineer',build:'#136',st:'check'},
-  {id:'HONE-012',sev:'Tidy-up',t:"'intermediate' should be 'Intermediate'",d:"Missing capital on the difficulty label.",who:'Engineer',build:'#136',st:'check'},
+  {id:'HONE-010',sev:'Annoying',t:"Every recipe claims plating takes 3 minutes",d:"It was a placeholder we hard-coded. Now shows each dish's own time.",who:'Engineer',build:'#133',st:'check'},
+  {id:'HONE-011',sev:'Tidy-up',t:"A stray blue line on the recipe screen",d:"Leftover styling from an old version — blue isn't in Hone's look.",who:'Engineer',build:'#133',st:'check'},
+  {id:'HONE-012',sev:'Tidy-up',t:"'intermediate' should be 'Intermediate'",d:"Missing capital on the difficulty label.",who:'Engineer',build:'#133',st:'check'},
   {id:'HONE-013',sev:'Annoying',t:"Our team's notes file got cut off and lost history",d:"A behind-the-scenes file was truncated. No effect on the app; we recover the lost bit from backups.",who:'Engineer',build:'after #134',st:'open'},
   {id:'HONE-014',sev:'Tidy-up',t:"That same notes file is bloated and messy",d:"Old entries never filed away, so it's grown huge. Pure tidy-up. No app effect.",who:'File Organiser',build:'after #134',st:'open'},
   {id:'HONE-015',sev:'Annoying',t:"Make the recipe notes appear where they apply (proper fix)",d:"The quality version of HONE-009: each prep note moves onto the exact step or ingredient it's about. Parked until the 16 recipes are locked.",who:'Cook → Engineer',build:'before launch',st:'later'},
