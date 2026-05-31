@@ -6,7 +6,7 @@ SEVERITY:        P2
 CATEGORY:        Content
 SCREEN:          Recipe-Browse
 RECIPE:          THAI_GREEN_CURRY
-ASSIGNEE:        Engineer
+ASSIGNEE:        Designer → Engineer
 EPIC:            EPIC-v7-mise
 FOUND IN BUILD:  #132
 FIX ATTEMPTED:   (blank)
@@ -38,3 +38,14 @@ Three long paragraphs (~10 lines body text) shown before the user has decided to
 ## Engineer notes
 
 Phase 1.5 fix (~1 hour): collapse the wall to one-line previews ('Use full-fat coconut milk · Crack the cream · Move fast'); tap to expand prose. Phase 2 (separate Cook-led initiative): add `placement` field per before_you_start entry so each note renders inline at the right surface.
+
+---
+
+## COO DECISION — 2026-05-31
+
+_Added by COO. Patrick's call._
+
+Quick holding fix now; proper fix deferred and tracked as **HONE-015**.
+
+- **Now (this ticket):** Designer specs a collapsible tap-to-expand "heads-up" block (one-line preview → full list), v7 palette only. Engineer wires it. Kills the wall of text without pulling the Cook off recipe-locking. Does not gate build #134.
+- **Later ([[HONE-015]]):** Cook authors which note belongs on which step/ingredient; Engineer relocates them so each note appears at the moment it applies — the true chef-voice fix.
