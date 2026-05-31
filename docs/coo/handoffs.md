@@ -78,6 +78,27 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
+### HANDOFF → Senior Engineer · 2026-05-31 · OPEN — HONE-016 screen-testing harness (Maestro + emulator)
+**Lane:** Claude Code (CLI).
+**From:** COO
+**Subject:** Build the phase-two UI-test harness so the automated Bug Tester can drive the running app, not just read code. Patrick approved (2026-05-31).
+
+**Why:** the scheduled Bug Tester (`hone-bug-tester`, 3×/day) is code-level only — it can't see the rendered screens, so the HONE-008 / HONE-011 class of visual/tap bug slips past it. This harness closes that gap and feeds results back into Bug Lord.
+
+**What's needed:**
+1. Add Maestro: `.maestro/` flows + `scripts/run-ui-tests.sh` runner.
+2. Author flows for the launch-critical journeys — Kitchen loads, search, open a recipe, add-missing-to-shopping-list, cook-mode step nav (the v5/v7 crash area, highest value), servings scaling, pantry "cook with what you have".
+3. Add `testID` / `accessibilityLabel` selectors to the components those flows touch — additive only, no schema or behaviour change, R-014 tail-checks.
+4. Stand up the run environment and **recommend where it runs autonomously**: local (Patrick's PC + Android SDK via Claude Code) vs GitHub Actions emulator vs Maestro Cloud. Give the trade-off + your pick + any cost. This is the one decision to bounce back to COO/Patrick before wiring it into the loop.
+5. Emit machine-readable pass/fail per flow the Bug Tester can read → tickets + Bug Lord.
+
+**Constraints:** no EAS dispatch for this (it's tooling, not an app build); R-014; don't disturb the launch build; build-closeout discipline if any app code (selectors) ships in a build.
+**Ticket:** docs/coo/bug-tracker/tickets/HONE-016-maestro-emulator-ui-test-harness.md
+**Blocks:** strengthens the Private-test + closed-testing stages; not gating #134.
+
+---
+
+
 ### HANDOFF → Product Designer · 2026-05-31 · OPEN — HONE-009 quick "heads-up" holding layout
 **Lane:** Cowork.
 **From:** COO
