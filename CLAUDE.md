@@ -201,6 +201,10 @@ This rule applies even when the fix is "obvious" or "the diff proves it works."
 3. **Never self-close a bug ticket.**
 4. Write a session report to `docs/sessions/Hone_Session_Report_DD_Month_YYYY.md` summarising what was built and what Patrick needs to do next.
 
+## Bug Lord — the hub (check it every session)
+
+Bug Lord is the single hub for fixing and progress — every specialist checks it at session start and routes status through it. It is one self-contained page in two synced places: phone/desktop at https://patrickpatches.github.io/hone/pass/ and the Cowork artifact `hone-bug-tracker`. Tickets live in `docs/coo/bug-tracker/tickets/`; the board reflects them. Update the ticket when you act (mark FIX ATTEMPTED / change status) — never self-close (R-015; Patrick validates on-device). Keep it plain English, no jargon: it is what Patrick reads.
+
 ## Bug tracking system
 
 - **Source of truth:** GitHub Issues on `patrickpatches/hone` (Patrick logs from phone, Claude reads via PAT)
