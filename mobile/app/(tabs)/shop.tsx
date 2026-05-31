@@ -56,6 +56,7 @@ import * as Haptics from 'expo-haptics';
 
 import { tokens, fonts, shadows } from '../../src/theme/tokens';
 import { Icon } from '../../src/components/Icon';
+import { FoodIcon, categoryIconName, ingredientIconName } from '../../src/components/PantryIcons';
 import { VersionFooter } from '../../src/components/VersionFooter';
 import {
   getAllRecipes,
@@ -394,10 +395,6 @@ export default function ShopTab() {
 
   const totalCount = items.length;
   const tickedCount = items.filter((it) => it.in_cart).length;
-  const fromMealsCount = items.filter((it) =>
-    it.sources.some((s) => s.kind === 'meal'),
-  ).length;
-  const manualCount = items.filter((it) => it.manually_added).length;
 
   // ── Share handler ──────────────────────────────────────────────────────────
   const handleShare = useCallback(async () => {
@@ -542,8 +539,8 @@ export default function ShopTab() {
               alignItems: 'center',
               backgroundColor: tokens.cream,
               borderRadius: 14,
-              borderWidth: 1,
-              borderColor: searchFocused ? tokens.primary : tokens.lineDark,
+              borderWidth: 1.5,
+              borderColor: tokens.gold,
               paddingHorizontal: 14,
               paddingVertical: 14,
               gap: 10,
@@ -674,11 +671,6 @@ export default function ShopTab() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 160, paddingTop: 4 }}
         >
-          <PlanSummary
-            plannedCount={plannedRecipeIds.length}
-            fromMeals={fromMealsCount}
-            manual={manualCount}
-          />
           <View
             style={{
               marginHorizontal: 20,
@@ -738,14 +730,10 @@ export default function ShopTab() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 160, paddingTop: 4 }}
         >
-          <PlanSummary
-            plannedCount={plannedRecipeIds.length}
-            fromMeals={fromMealsCount}
-            manual={manualCount}
-          />
           {sections.map((item) => (
             <Section
               key={item.cat}
+              cat={item.cat}
               label={item.label}
               emoji={item.emoji}
               items={item.items}
@@ -883,73 +871,6 @@ export default function ShopTab() {
 
 // ── Subcomponents ────────────────────────────────────────────────────────────
 
-function PlanSummary({
-  plannedCount,
-  fromMeals,
-  manual,
-}: {
-  plannedCount: number;
-  fromMeals: number;
-  manual: number;
-}) {
-  if (plannedCount === 0 && fromMeals === 0 && manual === 0) return null;
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        gap: 8,
-        paddingHorizontal: 20,
-        paddingBottom: 14,
-        flexWrap: 'wrap',
-      }}
-    >
-      {plannedCount > 0 && (
-        <Chip
-          label={`${plannedCount} meal${plannedCount === 1 ? '' : 's'} planned`}
-          tint="sage"
-        />
-      )}
-      {fromMeals > 0 && (
-        <Chip label={`${fromMeals} from meals`} tint="sage" />
-      )}
-      {manual > 0 && (
-        <Chip label={`${manual} added`} tint="primary" />
-      )}
-    </View>
-  );
-}
-
-function Chip({
-  label,
-  tint,
-}: {
-  label: string;
-  tint: 'sage' | 'primary';
-}) {
-  const bg = tint === 'sage' ? tokens.sageLight : tokens.primaryLight;
-  const fg = tint === 'sage' ? tokens.sageDeep : tokens.primaryDeep;
-  return (
-    <View
-      style={{
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        backgroundColor: bg,
-        borderRadius: 999,
-      }}
-    >
-      <Text
-        style={{
-          fontFamily: fonts.sansBold,
-          fontSize: 11,
-          color: fg,
-        }}
-      >
-        {label}
-      </Text>
-    </View>
-  );
-}
-
 function DropdownRow({
   iconBg,
   iconColor,
@@ -1046,13 +967,15 @@ function DropdownRow({
 }
 
 function Section({
+  cat,
   label,
-  emoji,
+  emoji: _emoji,
   items,
   onToggle,
   onRemove,
   onLongPress,
 }: {
+  cat: PantryCategory;
   label: string;
   emoji: string;
   items: ShoppingItem[];
@@ -1066,32 +989,24 @@ function Section({
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          gap: 8,
+          gap: 9,
           paddingHorizontal: 20,
-          paddingVertical: 8,
+          paddingTop: 8,
+          paddingBottom: 10,
         }}
       >
-        <Text style={{ fontSize: 14 }}>{emoji}</Text>
+        <FoodIcon name={categoryIconName(cat)} size={14} color={tokens.bronze} />
         <Text
           style={{
             fontFamily: fonts.sansBold,
             fontSize: 11,
-            letterSpacing: 1.5,
-            textTransform: 'uppercase',
-            color: tokens.inkSoft,
+            letterSpacing: 1.8,
+            color: tokens.bronze,
           }}
         >
-          {label}
+          {label.toUpperCase()}
         </Text>
-        <Text
-          style={{
-            fontFamily: fonts.sans,
-            fontSize: 11,
-            color: tokens.muted,
-          }}
-        >
-          ({items.length})
-        </Text>
+        <View style={{ flex: 1, height: 1, backgroundColor: tokens.line }} />
       </View>
       <View
         style={{
@@ -1161,18 +1076,21 @@ function ShopRow({
           height: 24,
           borderRadius: 12,
           borderWidth: 2,
-          borderColor: item.in_cart ? tokens.sage : tokens.lineDark,
-          backgroundColor: item.in_cart ? tokens.sage : 'transparent',
+          borderColor: item.in_cart ? tokens.bronze : tokens.lineDark,
+          backgroundColor: item.in_cart ? tokens.bronze : 'transparent',
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
         {item.in_cart && (
-          <Text style={{ color: tokens.ink, fontSize: 13, fontWeight: '900' }}>
-            ✓
-          </Text>
+          <Icon name="check" size={13} color={tokens.bg} />
         )}
       </Pressable>
+      <FoodIcon
+        name={ingredientIconName(item.name, (item.category as PantryCategory) ?? 'Pantry Staples')}
+        size={28}
+        color={item.in_cart ? tokens.muted : tokens.bronze}
+      />
       <Pressable
         onLongPress={onLongPress}
         delayLongPress={400}
@@ -1190,8 +1108,9 @@ function ShopRow({
             style={{
               fontFamily: fonts.sansBold,
               fontSize: 14,
-              color: tokens.ink,
+              color: item.in_cart ? tokens.muted : tokens.ink,
               textDecorationLine: item.in_cart ? 'line-through' : 'none',
+              textDecorationColor: item.in_cart ? tokens.bronze : undefined,
             }}
             numberOfLines={1}
           >
