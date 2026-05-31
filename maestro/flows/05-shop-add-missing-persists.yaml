@@ -1,0 +1,33 @@
+appId: com.patricknasr.hone
+---
+# Regression: HONE-007 — items added via "Add missing" must survive the Shop
+# tab's reconcile() sweep on focus. Root cause was kind:'meal' items being
+# stripped by reconcile when the recipe wasn't in the active plan.
+# Fix (build #134): items are now written as kind:'manual' + manually_added:true.
+#
+# Requires a fresh app state so all Hummus ingredients are missing from pantry.
+- launchApp:
+    clearState: true
+- assertVisible:
+    text: "Browse by cuisine"
+    timeout: 6000
+- scrollUntilVisible:
+    element:
+      text: "Hummus from Scratch"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Hummus from Scratch"
+- tapOn:
+    label: "Add missing ingredients to shopping list"
+    timeout: 6000
+- assertVisible:
+    text: "Added to shopping list"
+    timeout: 4000
+# Navigate away — this is the step that triggered the original reconcile bug.
+- tapOn: "Kitchen"
+- tapOn: "Shop"
+# Dried chickpeas is ingredient i1 of Hummus and will always be in the list
+# on a fresh install (no pantry items).
+- assertVisible:
+    text: "Dried chickpeas"
+    timeout: 5000

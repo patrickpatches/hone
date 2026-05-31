@@ -1,0 +1,11 @@
+appId: com.patricknasr.hone
+---
+# Smoke: Kitchen tab renders on cold launch.
+# Catches: any startup crash, blank-screen regression, tab-bar missing.
+- launchApp:
+    clearState: false
+- assertVisible:
+    text: "Browse by cuisine"
+    timeout: 6000
+- assertVisible:
+    text: "Kitchen"

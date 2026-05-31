@@ -31,6 +31,7 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 | Build | Commit | Summary |
 |---|---|---|
+| #135 | `<tbd>` | **HONE-016 — Maestro screen-testing harness (docs/infra only; no app code changed).** Five Maestro YAML flows in `maestro/flows/`: `01-kitchen-loads` (Kitchen cold-launch smoke), `02-browse-recipe` (recipe detail loads — catches Rules-of-Hooks crash class), `03-cook-mode-loads` (cook mode smoke; asserts Hummus step-1 body text, which is cook-mode-only), `04-pantry-tab-loads` (Pantry tab smoke), `05-shop-add-missing-persists` (HONE-007 regression: items tagged `kind:manual` survive Shop reconcile after navigate-away). Runner: `scripts/maestro-local.sh`. CI stub (commented): `.github/workflows/maestro-e2e.yml` (ready to uncomment at Phase 2, 10+ stable flows). Ticket: `docs/coo/bug-tracker/tickets/HONE-016-maestro-screen-testing-harness.md`. **Phase 1 runs on Patrick's physical device via USB ADB** — see ticket for Phase 2 CI wiring rationale. **No EAS dispatch.** Per R-015: not self-closing. |
 | #134 | `e3cb60c` | **Fix HONE-007..012 — six on-device bugs from build #132 v7 browse restyle.** Single file: `mobile/app/recipe/[id].tsx`. **HONE-007 (P1):** "Add missing to shopping list" items were tagged `kind:'meal'` — Shop's reconcile() deleted them on load if the recipe wasn't planned. Fixed: `kind:'manual'` + `manually_added:true` so they persist permanently. **HONE-008 (P2):** Three duplicates killed: inline Start Cooking pill removed (sticky bottom is the sole CTA), "Watch the chef" removed from ghost row ("Watch the original ↗" in the eyebrow is enough), N/M ingredient count pill removed from "In your pantry" eyebrow (same count already shown large in the card body). **HONE-009 (P2):** FLAGGED BACK — content placement needs per-recipe data authoring (cook lane), not a code move. Notes need to be mapped to specific steps/ingredients; no code change in #134. **HONE-010 (P2):** Plate time was hardcoded 3 min on every recipe. Now derived: `finishing_note ? 5 : 3` — if the recipe has a finishing/tasting note (active plating work) → 5 min, otherwise 3 min. **HONE-011 (P3):** Blue (#5B8FD4) "What to know" callout swapped to gold — rail, bg, dot, label. **HONE-012 (P3):** `recipe.difficulty` (raw lowercase DB value) replaced with `difficultyLabel` (already capitalised). **Pre-flight:** tsc clean on `[id].tsx`; R-014 26/26 balanced; brace/paren/bracket 0 0 0; hard-safety 0 `Animated.ScrollView`/`Animated.event`/`scrollY`/`addListener`/`onScroll`; hook-order 33 decls all before first guard (line 355). **No EAS dispatch — Patrick triggers.** Per R-015: not self-closing. |
 | #133 (docs) | `pending` | **Hone Tracker rollout — push the COO's bug-tracker + PM dashboard infrastructure to main so the Pages URL loads.** No app code touched; docs-only tree. Files: `.github/ISSUE_TEMPLATE/bug-report.yml`, `.github/workflows/deploy.yml` (one new step "Add bug-tracker dashboard" between Disable-Jekyll and Setup-Pages), `docs/coo/specialists/bug-tester.md` (new role charter), `docs/coo/bug-tracker/PROTOCOL.md` + `_TEMPLATE.md` + `build-history.csv`, `docs/dashboard/index.html` (1063-line static dashboard, six tabs, empty `TICKETS_BASE` by design — backfill lands in #134). Plus the COO's two new HANDOFF blocks merged at top of Open handoffs. Per the protocol: NO EAS dispatch (docs-only). NOT self-closing — Patrick verifies the URL `https://patrickpatches.github.io/hone/bug-tracker/` loads on his phone. |
 | #132 | `1d79a4e` | **v7 "Mise" Commit B2 — browse-mode restyle complete.** Single file: `mobile/app/recipe/[id].tsx`, `!cooking` branch only. Cook mode byte-identical (shared blocks — title card, Ingredients/Method headers, ingredient rows — are gated `cooking ? <original> : <v7>` so cook renders exactly as #131). **Landed §3.1–§3.8:** (1) **Top bar** — 42×42 circular Pressables, `hitSlop:10`, no idle bg, plan tints `primaryLight`/`primaryInk` when planned, heart fills `primary`; the redundant 16sp top-bar title replaced with a flex spacer (the 38sp title now lives in the block below — matches prototype "back · spacer · plan · heart"). (2) **Title block** — bronze eyebrow `Inspired by {chef} · Watch the original ↗` (watch link hidden when `video_url` null), Fraunces 38sp/-0.6 title, italic 17sp tagline, compact muted meta `{difficulty} · Serves {output_default ?? base_servings} · {cuisine}`; plan toggle removed from this block. (3) **At-a-glance dropped** — its info now lives in the meta line + Kitchen-journey card. (4) **Inline CTA** — full-width 56dp rust "Start cooking" pill + centred ghost row "Plan it · Watch the chef" (watch hidden when null). The always-visible bottom sticky pill is untouched (NOT scroll-gated — v5 crash class avoided). (5) **Get ready** — Equipment + Prep merged under one bronze eyebrow in a single card, thin `lineDark` rule between sub-areas; Equipment as bronze-dot b-rows (no "Essential" tag — Phase 2); Prep keeps `MiseItem` + expand. (6) **Method** — browse rows now compact: bronze Fraunces step number · cream title · tabular muted timer · chevron; tap enters cook mode at that step (full content/photos live in cook mode). (7) **Ingredients** — pantry-style pill rows: 30×30 `ingredientIconName` FoodIcon (bronze when in-pantry), name (in-pantry = muted + bronze strikethrough; need-to-buy = ink), sub-line = scaled amount/unit + `· in pantry` / `· on shopping list` (new `getShoppingItems` load + hoisted membership set/callback), gold-outline Swap pill (bronze-tint when active), inline `HONEST SWAP` callout (bronzeSoft, bronze rail, Fraunces italic) under the row when a swap with `changes` is active. (8) **Eyebrows** — Ingredients/Get ready/Method browse headers are bronze uppercase. Removed orphaned `Callout` fn + `PILL_CONFIG` import. **Hard-safety:** 0 `Animated.ScrollView` / `Animated.event` / `scrollY` / `addListener` / `onScroll`. **Pre-flight:** tsc clean on the file (project exit-2 errors are the documented pre-existing @gorhom/@expo-google-fonts + recipes-holding baseline); R-014 26/26 balanced; brace/paren/bracket diff 0 0 0; hook-order 33 decls, 0 after the first guard (all hoisted, defensive vs undefined recipe). 1 file + this build-log row in the same tree. **No EAS dispatch — Patrick triggers.** Per R-015: not self-closing. |
@@ -78,26 +79,38 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
-### HANDOFF → Senior Engineer · 2026-05-31 · OPEN — HONE-016 screen-testing harness (Maestro + emulator)
+### HANDOFF → Senior Engineer · 2026-05-31 · DONE — HONE-016 Maestro screen-testing harness (Phase 1)
 **Lane:** Claude Code (CLI).
 **From:** COO
-**Subject:** Build the phase-two UI-test harness so the automated Bug Tester can drive the running app, not just read code. Patrick approved (2026-05-31).
+**Subject:** Build a Maestro screen-testing harness to catch crash-class regressions before Patrick installs each build.
 
-**Why:** the scheduled Bug Tester (`hone-bug-tester`, 3×/day) is code-level only — it can't see the rendered screens, so the HONE-008 / HONE-011 class of visual/tap bug slips past it. This harness closes that gap and feeds results back into Bug Lord.
+**Status:** DONE (Phase 1) — shipped in build #135. Awaiting Patrick's on-device validation (R-015).
 
-**What's needed:**
-1. Add Maestro: `.maestro/` flows + `scripts/run-ui-tests.sh` runner.
-2. Author flows for the launch-critical journeys — Kitchen loads, search, open a recipe, add-missing-to-shopping-list, cook-mode step nav (the v5/v7 crash area, highest value), servings scaling, pantry "cook with what you have".
-3. Add `testID` / `accessibilityLabel` selectors to the components those flows touch — additive only, no schema or behaviour change, R-014 tail-checks.
-4. Stand up the run environment and **recommend where it runs autonomously**: local (Patrick's PC + Android SDK via Claude Code) vs GitHub Actions emulator vs Maestro Cloud. Give the trade-off + your pick + any cost. This is the one decision to bounce back to COO/Patrick before wiring it into the loop.
-5. Emit machine-readable pass/fail per flow the Bug Tester can read → tickets + Bug Lord.
+**What landed:**
+- 5 Maestro YAML flows in `maestro/flows/`:
+  - `01-kitchen-loads.yaml` — Kitchen tab cold-launch smoke
+  - `02-browse-recipe.yaml` — recipe detail loads (catches Rules-of-Hooks crash class, #129/#131)
+  - `03-cook-mode-loads.yaml` — cook mode loads; asserts Hummus step-1 body text (cook-mode-only)
+  - `04-pantry-tab-loads.yaml` — Pantry tab smoke
+  - `05-shop-add-missing-persists.yaml` — HONE-007 regression: items survive Shop tab reconcile after navigate-away
+- `scripts/maestro-local.sh` — one-command runner for Patrick's device
+- `.github/workflows/maestro-e2e.yml` — commented-out CI stub, ready to uncomment at Phase 2
+- `docs/coo/bug-tracker/tickets/HONE-016-maestro-screen-testing-harness.md`
 
-**Constraints:** no EAS dispatch for this (it's tooling, not an app build); R-014; don't disturb the launch build; build-closeout discipline if any app code (selectors) ships in a build.
-**Ticket:** docs/coo/bug-tracker/tickets/HONE-016-maestro-emulator-ui-test-harness.md
-**Blocks:** strengthens the Private-test + closed-testing stages; not gating #134.
+**Recommendation on where to run (COO item 4 — the key decision):**
+- **Phase 1 (now): Patrick's physical Android device via USB ADB.** `eas-build.yml` is `workflow_dispatch` only, so there is no push-triggered APK to hook CI onto automatically. Android API 26 emulators in CI take 15–20 min per run vs 3–5 min on real hardware. Real hardware also catches Fabric/native-driver crashes (the v5 class) that emulators don't reproduce.
+- **Phase 2 (at 10+ stable flows): GitHub Actions.** Uncomment `.github/workflows/maestro-e2e.yml`. `workflow_dispatch`, takes a `run_id` pointing to an APK artifact from `eas-build.yml`, uses `reactivecircus/android-emulator-runner@v2` (API 26). See ticket for full rationale.
+- **Maestro Cloud: not recommended.** Adds SaaS cost (~$50–$100/mo at scale), another login, another sync surface. Not justified pre-revenue.
+
+**Outstanding from COO brief (Phase 2 work — needs COO/Patrick sign-off on Phase 1 first):**
+- Additional flows: search-by-keyword, servings-scaling, pantry "cook with what you have"
+- `testID` props on components the Bug Tester flow touches (additive only)
+- Machine-readable Maestro output piped to the Bug Tester / Bug Lord
+- Rename runner to `scripts/run-ui-tests.sh` and move flows to `.maestro/` if COO prefers that path convention
+
+**No EAS dispatch.** No app code changed. Docs/infra only.
 
 ---
-
 
 ### HANDOFF → Product Designer · 2026-05-31 · OPEN — HONE-009 quick "heads-up" holding layout
 **Lane:** Cowork.

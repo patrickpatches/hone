@@ -1,0 +1,22 @@
+appId: com.patricknasr.hone
+---
+# Smoke: entering cook mode from a recipe does not crash.
+# Catches: any cook-mode render failure; also validates the sticky CTA tap target.
+# After tapping Start Cooking, step 1 of Hummus is "Soak overnight" — full body
+# text ("Cover dried chickpeas") is only visible in cook mode (browse shows compact rows).
+- launchApp:
+    clearState: false
+- scrollUntilVisible:
+    element:
+      text: "Hummus from Scratch"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Hummus from Scratch"
+- assertVisible:
+    text: "Start Cooking"
+    timeout: 6000
+- tapOn:
+    label: "Start cooking"
+- assertVisible:
+    text: "Cover dried chickpeas"
+    timeout: 6000

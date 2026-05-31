@@ -1,0 +1,10 @@
+appId: com.patricknasr.hone
+---
+# Smoke: Pantry tab loads without crashing.
+# Catches: any DB-read crash or blank Pantry regression.
+- launchApp:
+    clearState: false
+- tapOn: "Pantry"
+- assertVisible:
+    text: "Pantry"
+    timeout: 5000

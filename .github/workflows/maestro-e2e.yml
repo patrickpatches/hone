@@ -1,0 +1,65 @@
+# Maestro E2E — Phase 2 (NOT ACTIVE)
+#
+# Uncomment this workflow once the Maestro suite has 10+ stable flows.
+# Trigger: manually after a successful APK build, or on workflow_dispatch.
+#
+# Prerequisites before enabling:
+#   1. The suite must be stable — no flaky flows.
+#   2. The APK artifact retention window must cover the time between
+#      eas-build.yml completing and this workflow running.
+#   3. Test on API 26 emulator (matches mobile/android/build.gradle minSdkVersion 26).
+#
+# name: Maestro E2E
+#
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       run_id:
+#         description: 'eas-build workflow run ID whose APK to test'
+#         required: true
+#         type: string
+#
+# jobs:
+#   e2e:
+#     name: Maestro smoke suite
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+#
+#       - name: Download APK artifact
+#         uses: dawidd6/action-download-artifact@v6
+#         with:
+#           run_id: ${{ github.event.inputs.run_id }}
+#           name_is_regexp: true
+#           name: hone-v.*
+#           path: apk/
+#
+#       - name: Locate APK
+#         id: apk
+#         run: |
+#           APK=$(find apk/ -name "*.apk" | head -1)
+#           echo "path=$APK" >> "$GITHUB_OUTPUT"
+#
+#       - name: Enable KVM
+#         run: |
+#           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+#             | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+#           sudo udevadm control --reload-rules
+#           sudo udevadm trigger --name-match=kvm
+#
+#       - name: Install Maestro CLI
+#         run: curl -Ls "https://get.maestro.mobile.dev" | bash
+#
+#       - name: Run Maestro suite on emulator
+#         uses: reactivecircus/android-emulator-runner@v2
+#         with:
+#           api-level: 26
+#           arch: x86_64
+#           profile: pixel_6
+#           force-avd-creation: false
+#           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+#           disable-animations: true
+#           script: |
+#             adb install "${{ steps.apk.outputs.path }}"
+#             ~/.maestro/bin/maestro test maestro/flows/
