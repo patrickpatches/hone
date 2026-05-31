@@ -274,7 +274,7 @@
 
 <script>
 const LAUNCH=new Date('2026-07-24T00:00:00+10:00'); const AS_OF='31 May 2026';
-const TABS=[{id:'today',label:'Today'},{id:'roadmap',label:'Roadmap'},{id:'bugs',label:'Bugs',badge:9},{id:'later',label:'After launch'}];
+const TABS=[{id:'today',label:'Today'},{id:'roadmap',label:'Roadmap'},{id:'bugs',label:'Bugs',badge:10},{id:'later',label:'After launch'}];
 
 const JOBS=[
   {pri:1,t:"Find out what kind of Play Store account you have",d:"Personal or Organisation — and when did you open it? If it's Personal and opened after Nov 2023, Google forces a 14-day test with 12 people before you can launch. This one fact decides if 24 July is comfortable or tight.",done:"Done when: you tell me 'personal' or 'organisation' + the rough sign-up date."},
@@ -300,7 +300,7 @@ const ROAD=[
 ];
 
 const READY=[{name:"Cooking app polish",pct:75,c:'var(--aqua)'},{name:"16 recipes ready",pct:70,c:'var(--aqua)'},{name:"Testing gate (12 / 14 days)",pct:0,c:'var(--fuch)'},{name:"Store page + data-safety",pct:20,c:'var(--fuch)'}];
-const SEV=[{name:"Show-stopper",n:0,c:'var(--bad)'},{name:"Serious",n:1,c:'var(--warn)'},{name:"Annoying",n:5,c:'var(--aqua)'},{name:"Tidy-up",n:3,c:'var(--mut2)'}];
+const SEV=[{name:"Show-stopper",n:0,c:'var(--bad)'},{name:"Serious",n:1,c:'var(--warn)'},{name:"Annoying",n:6,c:'var(--aqua)'},{name:"Tidy-up",n:3,c:'var(--mut2)'}];
 const BUGS=[
   {id:'HONE-007',sev:'Serious',t:"Adding missing items to your shopping list doesn't work right",d:"When you tap 'add missing to shopping list', some items don't actually get added.",who:'Engineer',build:'#134',st:'check'},
   {id:'HONE-008',sev:'Annoying',t:"The top of the recipe screen is cluttered",d:"Two 'Start cooking' buttons, the count shows twice, two 'watch' links — all duplicates.",who:'Engineer',build:'#134',st:'check'},
@@ -310,7 +310,8 @@ const BUGS=[
   {id:'HONE-012',sev:'Tidy-up',t:"'intermediate' should be 'Intermediate'",d:"Missing capital on the difficulty label.",who:'Engineer',build:'#134',st:'check'},
   {id:'HONE-013',sev:'Annoying',t:"Our team's notes file got cut off and lost history",d:"A behind-the-scenes file was truncated. No effect on the app; we recover the lost bit from backups.",who:'Engineer',build:'after #134',st:'open'},
   {id:'HONE-014',sev:'Tidy-up',t:"That same notes file is bloated and messy",d:"Old entries never filed away, so it's grown huge. Pure tidy-up. No app effect.",who:'File Organiser',build:'after #134',st:'open'},
-  {id:'HONE-015',sev:'Annoying',t:"Make the recipe notes appear where they apply (proper fix)",d:"The quality version of HONE-009: each prep note moves onto the exact step or ingredient it's about. Parked until the 16 recipes are locked.",who:'Cook → Engineer',build:'before launch',st:'later'}
+  {id:'HONE-015',sev:'Annoying',t:"Make the recipe notes appear where they apply (proper fix)",d:"The quality version of HONE-009: each prep note moves onto the exact step or ingredient it's about. Parked until the 16 recipes are locked.",who:'Cook → Engineer',build:'before launch',st:'later'},
+  {id:'HONE-016',sev:'Annoying',t:"Build automated screen-testing (so the tester can tap through the app)",d:"Phase two of the testing loop: a Maestro + emulator harness so the tester drives real screens, not just reads code — catches the visual/tap bugs. Engineer's building it; lands before closed testing.",who:'Engineer',build:'before testing',st:'later'}
 ];
 const LATER=[
   {lt:"Do people come back the next day?",ld:"Of everyone who opens Hone today, how many open it again tomorrow. The strongest sign the app is actually useful.",ls:"starts at launch"},
