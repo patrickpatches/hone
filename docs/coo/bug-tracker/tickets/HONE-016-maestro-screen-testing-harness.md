@@ -53,7 +53,7 @@ _Added by Senior Engineer (no COO triage awaited — engineering-initiated, self
 
 ---
 
-## FIX ATTEMPTED — Build #135 (commit `<tbd>`) — 2026-05-31
+## FIX ATTEMPTED — Build #135 (commit `f3bb986`) — 2026-05-31
 
 _Added by Senior Engineer._
 
