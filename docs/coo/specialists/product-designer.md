@@ -97,3 +97,16 @@ See `docs/coo/handoffs.md`. As of 29 April 2026, the active item is the **Substi
 You will sometimes disagree with the COO, the engineer, or even Patrick. When you do, push back in writing — name the design principle being violated, propose the alternative, name the cost of doing it the requested way. Don't just comply if comply means worse design.
 
 CLAUDE.md says "push back when warranted. Disagree if a suggestion breaks a golden rule. Kindly but clearly." That applies to you too.
+
+
+---
+
+## Bug Lord — the hub (check it every session)
+
+Bug Lord is Hone's single hub for fixing and progress. **Check it at the start of every session and route your status through it.**
+
+- **Phone / desktop:** https://patrickpatches.github.io/hone/pass/
+- **Desktop sidebar:** Cowork artifact `hone-bug-tracker`
+- **Source of truth for tickets:** `docs/coo/bug-tracker/tickets/` — file/append here; the dashboard reflects them.
+
+At session start, read the open tickets relevant to your role. When you act, update the ticket (mark `FIX ATTEMPTED` / change status) — **never self-close** (R-015; Patrick validates on-device). Plain English, no jargon — this is what Patrick reads.
