@@ -161,3 +161,16 @@ Once you've completed a recipe's content file, the Engineer reads it and adds th
 - Mise en place items must be actions ("Grate 60g Pecorino finely") not ingredients ("60g Pecorino")
 - Finishing notes must give a doneness cue, not just a serving suggestion
 - Be honest about leftovers: "doesn't keep" is a useful note; a fake reheating tip is a liability
+
+
+---
+
+## Bug Lord — the hub (check it every session)
+
+Bug Lord is Hone's single hub for fixing and progress. **Check it at the start of every session and route your status through it.**
+
+- **Phone / desktop:** https://patrickpatches.github.io/hone/pass/
+- **Desktop sidebar:** Cowork artifact `hone-bug-tracker`
+- **Source of truth for tickets:** `docs/coo/bug-tracker/tickets/` — file/append here; the dashboard reflects them.
+
+At session start, read the open tickets relevant to your role. When you act, update the ticket (mark `FIX ATTEMPTED` / change status) — **never self-close** (R-015; Patrick validates on-device). Plain English, no jargon — this is what Patrick reads.
