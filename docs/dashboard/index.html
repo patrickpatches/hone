@@ -385,7 +385,6 @@ function sel(field,id,cur,opts){
 const stMap={open:{t:'Open',bg:'rgba(255,92,122,.14)',c:'#FF8AA0'},check:{t:'Fixed — build & check',bg:'rgba(40,224,176,.14)',c:'#5BE8C4'},fixing:{t:'Being fixed (quick version)',bg:'rgba(255,194,75,.14)',c:'#FFD27A'},later:{t:'Tracked for later',bg:'rgba(134,150,176,.16)',c:'#A7B4C8'},call:{t:'Needs your call',bg:'rgba(255,46,166,.16)',c:'#FF8AD0'}};
 const sevCol={'Show-stopper':'var(--bad)','Serious':'var(--warn)','Annoying':'var(--aqua)','Tidy-up':'var(--mut2)'};
 $('buglist').innerHTML=BUGS.map(b=>`<div class="bug"><div class="sd" style="background:${sevCol[b.sev]}"></div><div style="flex:1"><div class="bt">${b.t}</div><div class="bd">${b.d}</div><div class="meta">${sel('st',b.id,b.st,ST_OPTS)}${sel('sev',b.id,b.sev,SEV_OPTS)}${sel('who',b.id,b.who,WHO_OPTS)}<span class="chip build">${b.build}</span><span class="chip" style="color:var(--mut2)">${b.id}</span></div></div></div>`).join('');
-initBugEditing();
 
 $('later').innerHTML=LATER.map(l=>`<div class="lcard"><div class="lt">${l.lt}</div><div class="ld">${l.ld}</div><div class="ls">${l.ls}</div></div>`).join('');
 
@@ -448,6 +447,7 @@ document.addEventListener('click',(e)=>{
   }
 });
 
+initBugEditing();
 /* ---- COMPOSER ---- */
 const NKEY='buglord_note';
 function fmtNow(){const d=new Date();return d.toLocaleDateString('en-AU',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});}
