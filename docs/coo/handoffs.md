@@ -78,6 +78,20 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
+### HANDOFF → Product Designer · 2026-05-31 · OPEN — HONE-009 quick "heads-up" holding layout
+**Lane:** Cowork.
+**From:** COO
+**Subject:** Spec a collapsible "heads-up" block for the recipe browse screen's "before you start" notes. Patrick chose the quick holding fix (2026-05-31).
+
+**Why:** `before_you_start[]` renders as a wall of text up front, against the chef-voice "anticipation, not reaction" rule (HONE-009). The proper fix — notes relocated to the step/ingredient they apply to — needs cook authoring and is tracked separately as **HONE-015** for later. For now we want a fast, low-risk layout that kills the wall of text.
+
+**What's needed:** Spec (HTML prototype, the usual) a tap-to-expand block. Collapsed = one-line preview (e.g. a "3 things to know first" summary line, or the first note). Tapped = the full list. v7 palette only (ink / muted / bronze / gold / terra — **no blue**, which also ties off HONE-011). One drop-in component the Engineer can wire into the existing render. Hand back to Engineer when speced.
+**Files:** `docs/coo/bug-tracker/tickets/HONE-009-before-you-start-wall-of-text-violates-chef-voice.md`; prototype → `docs/prototypes/`.
+**Blocks:** the clean version of the recipe screen. Cosmetic — does NOT gate build #134.
+
+---
+
+
 ### HANDOFF → Senior Engineer · 2026-05-31 · DONE — fix HONE-007..012, shipped in build #134
 **Lane:** Claude Code (CLI).
 **From:** COO
