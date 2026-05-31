@@ -230,7 +230,7 @@ const AS_OF  = '31 May 2026';
 const TABS = [
   { id:'today',   label:'Today' },
   { id:'roadmap', label:'Roadmap' },
-  { id:'bugs',    label:'Bugs', badge:8 },
+  { id:'bugs',    label:'Bugs', badge:9 },
   { id:'later',   label:'After launch' }
 ];
 
@@ -286,7 +286,7 @@ const READY = [
 const SEV = [
   { name:"Show-stopper", n:0, c:'var(--bad)' },
   { name:"Serious",      n:1, c:'var(--warn)' },
-  { name:"Annoying",     n:4, c:'var(--aqua)' },
+  { name:"Annoying",     n:5, c:'var(--aqua)' },
   { name:"Tidy-up",      n:3, c:'var(--mut2)' }
 ];
 
@@ -296,7 +296,7 @@ const BUGS = [
   { id:'HONE-008', sev:'Annoying', t:"The top of the recipe screen is cluttered",
     d:"Two 'Start cooking' buttons, the count shows twice, two 'watch' links — all duplicates.", who:'Engineer', build:'#134', st:'check' },
   { id:'HONE-009', sev:'Annoying', t:"The 'before you start' notes are a wall of text",
-    d:"Can't be fixed with code alone — it needs a content decision (see your jobs). Two paths offered; waiting on your call.", who:'You to decide', build:'TBD', st:'call' },
+    d:"You chose the quick fix — the Designer's turning it into a tap-to-expand box. The proper version (notes appear where they apply) is tracked as HONE-015.", who:'Designer → Engineer', build:'soon', st:'fixing' },
   { id:'HONE-010', sev:'Annoying', t:"Every recipe claims plating takes 3 minutes",
     d:"It was a placeholder we hard-coded. Now shows each dish's own time.", who:'Engineer', build:'#134', st:'check' },
   { id:'HONE-011', sev:'Tidy-up',  t:"A stray blue line on the recipe screen",
@@ -306,7 +306,9 @@ const BUGS = [
   { id:'HONE-013', sev:'Annoying', t:"Our team's notes file got cut off and lost history",
     d:"A behind-the-scenes file was truncated. No effect on the app; we recover the lost bit from backups.", who:'Engineer', build:'after #134', st:'open' },
   { id:'HONE-014', sev:'Tidy-up',  t:"That same notes file is bloated and messy",
-    d:"Old entries never filed away, so it's grown huge. Pure tidy-up. No app effect.", who:'File Organiser', build:'after #134', st:'open' }
+    d:"Old entries never filed away, so it's grown huge. Pure tidy-up. No app effect.", who:'File Organiser', build:'after #134', st:'open' },
+  { id:'HONE-015', sev:'Annoying', t:"Make the recipe notes appear where they apply (proper fix)",
+    d:"The quality version of HONE-009: each prep note moves onto the exact step or ingredient it's about. Cook maps it, engineer wires it. Parked until the 16 recipes are locked so it doesn't compete.", who:'Cook → Engineer', build:'before launch', st:'later' }
 ];
 
 const LATER = [
@@ -371,6 +373,8 @@ $('sevbars').innerHTML = SEV.map(s=>`
 
 const stMap={ open:{t:'Open',bg:'rgba(255,92,122,.14)',c:'#FF8AA0'},
   check:{t:'Fixed — build & check',bg:'rgba(40,224,176,.14)',c:'#5BE8C4'},
+  fixing:{t:'Being fixed (quick version)',bg:'rgba(255,194,75,.14)',c:'#FFD27A'},
+  later:{t:'Tracked for later',bg:'rgba(134,150,176,.16)',c:'#A7B4C8'},
   call:{t:'Needs your call',bg:'rgba(255,46,166,.16)',c:'#FF8AD0'} };
 const sevCol={'Show-stopper':'var(--bad)','Serious':'var(--warn)','Annoying':'var(--aqua)','Tidy-up':'var(--mut2)'};
 $('buglist').innerHTML = BUGS.map(b=>{const st=stMap[b.st];return `
