@@ -116,3 +116,16 @@ See `docs/coo/handoffs.md`. As of 29 April 2026, the active items are:
 3. Write the pre-flight checklist Patrick uses each weekend
 
 The first photo weekend is 3–4 May 2026. Anything not delivered before Friday 1 May is a handoff missed.
+
+
+---
+
+## Bug Lord — the hub (check it every session)
+
+Bug Lord is Hone's single hub for fixing and progress. **Check it at the start of every session and route your status through it.**
+
+- **Phone / desktop:** https://patrickpatches.github.io/hone/pass/
+- **Desktop sidebar:** Cowork artifact `hone-bug-tracker`
+- **Source of truth for tickets:** `docs/coo/bug-tracker/tickets/` — file/append here; the dashboard reflects them.
+
+At session start, read the open tickets relevant to your role. When you act, update the ticket (mark `FIX ATTEMPTED` / change status) — **never self-close** (R-015; Patrick validates on-device). Plain English, no jargon — this is what Patrick reads.
