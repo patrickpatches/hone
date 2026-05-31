@@ -78,6 +78,33 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
+### HANDOFF → Senior Engineer · 2026-05-31 · OPEN — fix HONE-007..012, roll into ONE build #134
+**Lane:** Claude Code (CLI).
+**From:** COO
+**Subject:** Fix all six on-device bugs from build #132's v7 "Mise" browse-mode restyle, in one tree, targeted at build #134. Patrick approved full scope (2026-05-31).
+
+**Why:** Patrick is on #131. #132 is the only newer app-code build (the completed v7 browse restyle), but his on-device validation of it filed six open bugs — all still `FIX ATTEMPTED: blank`. Rebuilding #132 as-is just puts those six back in front of him. Fix-then-one-clean-build gives him the full v7 restyle bug-free in a single validation cycle.
+
+**What's needed — diagnose to root cause, no patches, priority order:**
+- **HONE-007 (P1, Flow)** — "Add missing to shopping list" fails / only adds some. Ticket root cause: Shop tab `reconcile()` strips meal-sourced items whose recipe isn't planned, plus a likely `normalizeForMatch` id-collision giving INSERT-OR-REPLACE the same key for two ingredients. Core pantry-first flow — fix it properly.
+- **HONE-008 (P2, UI)** — kill duplicates at the top: floating #126 Start-cooking pill vs inline prototype pill (keep one), duplicate `0/9` count, duplicate "Watch" link.
+- **HONE-009 (P2, Content)** — `before_you_start[]` renders as a wall of text. Chef-voice rule is "anticipation, not reaction" — notes belong where they apply (ingredient row / step `why_note` / top of Mise). **Caveat: if relocating this content is more than a code move (i.e. it needs new per-recipe data or a layout the Designer hasn't speced), STOP and flag back here — do not invent content placement.**
+- **HONE-010 (P2, Data)** — Plate time hardcoded 3 min. Fix the `leftover_mode` object-shape check ({extra_servings, note}, not the string 'tonight') and derive a real plate time.
+- **HONE-011 (P3, UI)** — blue left-rail → v7 palette (ink/muted/bronze/gold/terra). No blue in the system.
+- **HONE-012 (P3, Content)** — capitalise `difficulty` on the meta line ('intermediate' → 'Intermediate').
+
+**Constraints:**
+- Build-closeout discipline: code + build-log row (#134) + all six ticket statuses flipped to FIX ATTEMPTED + closeout block — **all in ONE tree**, never a follow-up.
+- R-014: tail-check every file > 200 lines after writing.
+- R-015: do **not** self-close any ticket — FIX ATTEMPTED only. Patrick validates on-device.
+- **Do NOT dispatch EAS.** Patrick triggers build #134.
+
+**Files touched (likely):** `mobile/app/recipe/[id].tsx` (primary); pantry/shopping helpers for HONE-007.
+**Blocks:** Patrick's #134 on-device validation — the next thing on his plate.
+
+---
+
+
 ### HANDOFF → Senior Engineer · 2026-05-30 · OPEN — URGENT (push tracker to GitHub + backfill real bugs)
 **From:** COO
 **Subject:** Two-part: (1) get the bug tracker dashboard live on GitHub Pages — Patrick can't reach it from his phone until you push my changes — and (2) backfill the **real** bug roster from your recent conversations. I've cleared the seeded samples; the dashboard is empty by design until you populate it with the actual tickets.
