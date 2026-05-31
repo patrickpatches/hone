@@ -310,9 +310,12 @@ function RecipeDetailScreenInner() {
     return {
       miseMin: 5,
       cookMin: Math.max(1, Math.round(cookSec / 60)),
-      // ticket said '0 if leftover_mode==tonight' but leftover_mode is an object
-      // in the current schema, not a string. 3 min plating is universally honest.
-      plateMin: 3,
+      // HONE-010 fix: derive plate time from finishing_note. If there's a
+      // finishing/tasting note the recipe has active plating work (seasoning,
+      // sauce, garnish) → 5 min. Recipes without one → 3 min default. Data-
+      // driven even if imperfect; a dedicated plating_time_minutes field is
+      // the complete fix but requires schema + data authoring work.
+      plateMin: recipe.finishing_note ? 5 : 3,
     };
   }, [recipe]);
   const addMissingToShoppingList = useCallback(async () => {
@@ -329,10 +332,14 @@ function RecipeDetailScreenInner() {
             quantity: mi.amount > 0 ? mi.amount : null,
             unit: mi.unit ?? null,
             notes: null,
-            manually_added: false,
+            manually_added: true,   // HONE-007: user explicitly tapped this button
             in_cart: false,
             added_at: Date.now(),
-            sources: [{ kind: 'meal', recipe_id: recipe.id, servings: recipe.base_servings }],
+            // HONE-007 fix: use 'manual' not 'meal'. Shop's reconcile() strips
+            // kind:'meal' items for unplanned recipes, so items added here
+            // disappeared immediately if the recipe wasn't in the plan. 'manual'
+            // makes them persist like anything the user typed themselves.
+            sources: [{ kind: 'manual' as const }],
           });
         }),
       );
@@ -927,45 +934,19 @@ function RecipeDetailScreenInner() {
             {/* Compact meta line — difficulty · serves · cuisine */}
             <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: tokens.muted, marginTop: 10 }}>
               {[
-                recipe.difficulty,
+                difficultyLabel,  // HONE-012: capitalised ('Intermediate' not 'intermediate')
                 `Serves ${recipe.output_default ?? recipe.base_servings}`,
                 cuisineLabel,
               ].filter(Boolean).join('   ·   ')}
             </Text>
 
-            {/* Inline Start cooking pill — full width 56dp, rust, white text */}
-            <Pressable
-              onPress={toggleCooking}
-              accessibilityRole="button"
-              accessibilityLabel="Start cooking"
-              android_ripple={{ color: 'rgba(255,255,255,0.18)', borderless: false }}
-              style={{ borderRadius: 16, marginTop: 18 }}
-            >
-              <View
-                style={{
-                  height: 56,
-                  borderRadius: 16,
-                  backgroundColor: tokens.primary,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 10,
-                  shadowColor: tokens.primary,
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 12,
-                  elevation: 4,
-                }}
-              >
-                <Icon name="play" size={20} color="#FFFFFF" fill="#FFFFFF" />
-                <Text style={{ fontFamily: fonts.sansBold, fontSize: 16, color: '#FFFFFF', letterSpacing: 0.3 }}>
-                  Start cooking
-                </Text>
-              </View>
-            </Pressable>
+            {/* HONE-008 fix: inline Start cooking pill removed — sticky bottom
+                pill (always visible, never scroll-gated) is the single CTA.
+                Two "Start cooking" buttons confused Patrick; one is enough. */}
 
-            {/* Ghost row — Plan it · Watch the chef */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 22, marginTop: 14 }}>
+            {/* Ghost row — Plan it only. "Watch" link already lives in the
+                eyebrow above; two Watch links was HONE-008. */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 14 }}>
               <Pressable
                 onPress={handleTogglePlan}
                 accessibilityRole="button"
@@ -978,20 +959,6 @@ function RecipeDetailScreenInner() {
                   {isPlanned ? 'In your plan' : 'Plan it'}
                 </Text>
               </Pressable>
-              {recipe.source?.video_url ? (
-                <Pressable
-                  onPress={openSource}
-                  accessibilityRole="link"
-                  accessibilityLabel="Watch the chef"
-                  hitSlop={8}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
-                >
-                  <Icon name="play" size={13} color={tokens.muted} fill={tokens.muted} />
-                  <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: tokens.muted }}>
-                    Watch the chef
-                  </Text>
-                </Pressable>
-              ) : null}
             </View>
           </View>
         )}
@@ -1003,17 +970,14 @@ function RecipeDetailScreenInner() {
             engine the Kitchen tab and pantry carousel use. */}
         {!cooking && match && recipe.ingredients.length > 0 ? (
           <View style={{ paddingHorizontal: 20, marginTop: 14 }}>
-            {/* bronze eyebrow */}
+            {/* bronze eyebrow — HONE-008: removed N/M pill badge; the large
+                N/M number in the card body below already shows this count.
+                Showing it twice was the "duplicate 0/9" Patrick flagged. */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 10 }}>
               <FoodIcon name="cat-pantry" size={14} color={tokens.bronze} />
-              <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: tokens.bronze, flex: 1 }}>
+              <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: tokens.bronze }}>
                 In your pantry
               </Text>
-              <View style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, backgroundColor: 'rgba(194,161,90,0.15)', borderWidth: 1, borderColor: 'rgba(194,161,90,0.35)' }}>
-                <Text style={{ fontFamily: fonts.sansBold, fontSize: 10, color: tokens.bronze }}>
-                  {match.haveCount}/{match.totalCount}
-                </Text>
-              </View>
             </View>
             {/* card body */}
             <View
@@ -1228,14 +1192,15 @@ function RecipeDetailScreenInner() {
             Blue left-border: caution/information, not action. */}
         {!cooking && (recipe.before_you_start?.length ?? 0) > 0 && (
           <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
+            {/* HONE-011 fix: was blue (#5B8FD4). No blue in v7 palette — swapped to gold. */}
             <View
               style={{
                 borderRadius: 14,
                 borderWidth: 1,
-                borderColor: 'rgba(91,143,212,0.25)',
+                borderColor: 'rgba(242,204,42,0.25)',
                 borderLeftWidth: 3,
-                borderLeftColor: '#5B8FD4',
-                backgroundColor: 'rgba(91,143,212,0.06)',
+                borderLeftColor: tokens.gold,
+                backgroundColor: 'rgba(242,204,42,0.06)',
                 paddingTop: 12,
                 paddingBottom: 4,
                 paddingRight: 14,
@@ -1248,7 +1213,7 @@ function RecipeDetailScreenInner() {
                   fontSize: 9,
                   letterSpacing: 1.5,
                   textTransform: 'uppercase',
-                  color: '#5B8FD4',
+                  color: tokens.gold,
                   marginBottom: 8,
                 }}
               >
@@ -1264,7 +1229,7 @@ function RecipeDetailScreenInner() {
                       width: 5,
                       height: 5,
                       borderRadius: 3,
-                      backgroundColor: '#5B8FD4',
+                      backgroundColor: tokens.gold,
                       marginTop: 6,
                       flexShrink: 0,
                     }}
