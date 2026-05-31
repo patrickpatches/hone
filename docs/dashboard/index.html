@@ -6,10 +6,11 @@
 <title>Bug Lord — Hone Mission Control</title>
 <style>
   :root{
-    --bg:#070B16; --bg2:#0B1120; --card:#0F1626; --card2:#131C30;
+    color-scheme:dark;
+    --bg:#070B16; --card:#0F1626; --card2:#131C30;
     --line:rgba(255,255,255,.07); --line2:rgba(255,255,255,.12);
     --ink:#EAF1F8; --mut:#8696B0; --mut2:#5C6B85;
-    --aqua:#1FE3EA; --aqua-d:#00B6C6; --fuch:#FF2EA6; --fuch-d:#D11C86;
+    --aqua:#1FE3EA; --fuch:#FF2EA6;
     --good:#28E0B0; --warn:#FFC24B; --bad:#FF5C7A;
     --grad:linear-gradient(100deg,var(--aqua),var(--fuch));
   }
@@ -20,58 +21,86 @@
     background:radial-gradient(1200px 600px at 80% -10%,rgba(255,46,166,.10),transparent 60%),
                radial-gradient(1000px 500px at -10% 0%,rgba(31,227,234,.10),transparent 55%),
                var(--bg);
-    color:var(--ink); line-height:1.5; padding:0 0 64px; -webkit-font-smoothing:antialiased;
+    color:var(--ink); line-height:1.5; -webkit-font-smoothing:antialiased; min-height:100vh;
   }
-  .wrap{max-width:1080px;margin:0 auto;padding:0 18px}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 16px 64px}
   a{color:var(--aqua);text-decoration:none}
 
-  /* header */
-  header{padding:26px 0 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
-  .brand{display:flex;align-items:center;gap:12px}
-  .crown{width:38px;height:38px;border-radius:11px;background:var(--grad);display:grid;place-items:center;
-    font-size:21px;box-shadow:0 6px 22px rgba(255,46,166,.30),0 4px 18px rgba(31,227,234,.22)}
-  .brand h1{font-size:25px;font-weight:800;letter-spacing:-.5px;
+  /* sticky top: brand + tabs */
+  .top{position:sticky;top:0;z-index:20;background:rgba(7,11,22,.86);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);margin:0 -16px;padding:0 16px}
+  header{padding:16px 0 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .crown{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;
+    font-size:18px;box-shadow:0 6px 20px rgba(255,46,166,.30),0 4px 16px rgba(31,227,234,.22)}
+  .brand h1{font-size:22px;font-weight:800;letter-spacing:-.5px;
     background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-  .brand .sub{font-size:12.5px;color:var(--mut);font-weight:500;margin-top:1px}
-  .stamp{font-size:11.5px;color:var(--mut2);text-align:right}
+  .brand .sub{font-size:11.5px;color:var(--mut);font-weight:500;margin-top:1px}
+  .ministat{text-align:right;font-size:12px;line-height:1.35}
+  .ministat b{font-size:20px;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .ministat span{color:var(--mut2);font-size:11px}
 
-  .sectlabel{font-size:11.5px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mut2);font-weight:700;margin:30px 0 12px}
+  .tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab-btn{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--mut);
+    font-size:13.5px;font-weight:650;padding:9px 16px;border-radius:11px;cursor:pointer;white-space:nowrap;
+    display:flex;align-items:center;gap:7px;transition:.15s}
+  .tab-btn:hover{color:var(--ink);border-color:var(--line2)}
+  .tab-btn.on{color:#06121f;background:var(--grad);border-color:transparent;font-weight:750;
+    box-shadow:0 4px 16px rgba(255,46,166,.25)}
+  .tab-btn .badge{font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;
+    background:rgba(255,92,122,.2);color:var(--bad)}
+  .tab-btn.on .badge{background:rgba(6,18,31,.25);color:#06121f}
+
+  .panel{display:none;animation:fade .25s ease}
+  .panel.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .lead{font-size:13px;color:var(--mut);margin:18px 0 4px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
 
-  /* hero */
-  .hero{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}
-  @media(min-width:760px){.hero{grid-template-columns:300px 1fr}}
+  /* TODAY */
+  .hero{display:grid;grid-template-columns:1fr;gap:14px;margin-top:18px}
+  @media(min-width:740px){.hero{grid-template-columns:290px 1fr}}
   .count{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--line2);
     border-radius:18px;padding:22px;position:relative;overflow:hidden}
   .count::after{content:"";position:absolute;inset:0;background:var(--grad);opacity:.06}
-  .count .big{font-size:62px;font-weight:800;line-height:.95;letter-spacing:-2px;
+  .count .big{font-size:60px;font-weight:800;line-height:.95;letter-spacing:-2px;
     background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
   .count .days{font-size:13px;color:var(--mut);font-weight:600;margin-top:2px}
-  .count .date{font-size:13px;color:var(--ink);margin-top:12px;font-weight:600}
+  .count .date{font-size:12.5px;color:var(--ink);margin-top:12px;font-weight:600}
   .count .date span{color:var(--mut);font-weight:500}
-  .verdict{display:inline-flex;align-items:center;gap:7px;margin-top:14px;padding:7px 12px;border-radius:999px;
-    font-size:12.5px;font-weight:700}
+  .verdict{display:inline-flex;align-items:center;gap:7px;margin-top:14px;padding:7px 12px;border-radius:999px;font-size:12.5px;font-weight:700}
   .verdict .dot{width:8px;height:8px;border-radius:50%}
-
   .jobs h2{font-size:15px;font-weight:700;margin-bottom:3px}
-  .jobs .lead{font-size:12.5px;color:var(--mut);margin-bottom:13px}
+  .jobs .sublead{font-size:12.5px;color:var(--mut);margin-bottom:13px}
   .job{display:flex;gap:12px;padding:13px 0;border-top:1px solid var(--line)}
   .job:first-of-type{border-top:0}
   .job .pri{flex:0 0 auto;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:13px;font-weight:800;margin-top:1px}
-  .job .body{flex:1}
   .job .t{font-size:14.5px;font-weight:650}
   .job .d{font-size:13px;color:var(--mut);margin-top:3px}
   .job .done{font-size:12px;color:var(--aqua);margin-top:5px;font-weight:600}
-  .tag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:6px;text-transform:uppercase}
 
-  /* roadmap */
+  .buildbar{display:flex;align-items:center;gap:11px;margin-top:14px;background:rgba(31,227,234,.07);
+    border:1px solid rgba(31,227,234,.22);border-radius:13px;padding:13px 15px;font-size:13px}
+  .buildbar .bdot{width:9px;height:9px;border-radius:50%;background:var(--aqua);flex:0 0 auto}
+  .buildbar b{color:var(--ink)}
+
+  .mini{display:grid;grid-template-columns:120px 1fr;gap:18px;align-items:center;margin-top:16px}
+  .bars .bar{margin:11px 0}
+  .bar .lab{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px}
+  .bar .lab .v{color:var(--mut);font-weight:600}
+  .track{height:8px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
+  .fill{height:100%;border-radius:999px}
+
+  /* ROADMAP */
   .road{position:relative}
   .road .line{position:absolute;left:21px;top:8px;bottom:8px;width:2px;background:linear-gradient(var(--aqua),var(--fuch));opacity:.35}
   .step{display:flex;gap:16px;padding:11px 0;position:relative}
   .step .node{flex:0 0 auto;width:44px;display:flex;justify-content:center}
   .step .ball{width:18px;height:18px;border-radius:50%;border:2px solid var(--mut2);background:var(--bg);margin-top:3px;z-index:1}
   .step.done .ball{background:var(--good);border-color:var(--good)}
-  .step.now .ball{background:var(--grad,#fff);border-color:var(--aqua);box-shadow:0 0 0 5px rgba(31,227,234,.18)}
+  .step.now .ball{background:var(--aqua);border-color:var(--aqua);box-shadow:0 0 0 5px rgba(31,227,234,.18)}
   .step.next .ball{border-color:var(--aqua)}
   .step .sbody{flex:1;padding-bottom:6px}
   .step .stop{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
@@ -81,30 +110,22 @@
   .step .sdesc{font-size:13px;color:var(--mut);margin-top:4px}
   .step .sdone{font-size:12px;color:var(--mut2);margin-top:5px}
   .step .sdone b{color:var(--ink);font-weight:600}
+  .tag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:6px;text-transform:uppercase}
   .gate{margin-top:8px;background:rgba(255,46,166,.08);border:1px solid rgba(255,46,166,.30);border-radius:10px;padding:9px 11px;font-size:12.5px;color:#FFC7E6}
   .gate b{color:#fff}
 
-  /* visuals */
-  .viz{display:grid;grid-template-columns:1fr;gap:14px}
-  @media(min-width:760px){.viz{grid-template-columns:1fr 1fr}}
+  /* BUGS */
   .viz h3{font-size:14.5px;font-weight:700;margin-bottom:3px}
-  .viz .why{font-size:12px;color:var(--mut);margin-bottom:16px}
-  .donut-row{display:flex;align-items:center;gap:20px}
-  .bars{margin-top:4px}
-  .bar{margin:13px 0}
-  .bar .lab{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px}
-  .bar .lab .v{color:var(--mut);font-weight:600}
-  .track{height:8px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden}
-  .fill{height:100%;border-radius:999px}
-  .sev{display:flex;align-items:center;gap:11px;margin:11px 0}
+  .viz .why{font-size:12px;color:var(--mut);margin-bottom:14px}
+  .sev{display:flex;align-items:center;gap:11px;margin:10px 0}
   .sev .name{flex:0 0 96px;font-size:13px;font-weight:600}
-  .sev .strack{flex:1;height:22px;background:rgba(255,255,255,.05);border-radius:7px;overflow:hidden;position:relative}
+  .sev .strack{flex:1;height:22px;background:rgba(255,255,255,.05);border-radius:7px;overflow:hidden}
   .sev .sfill{height:100%;border-radius:7px;display:flex;align-items:center;padding-left:9px;font-size:12px;font-weight:800;color:#06121f;min-width:26px}
-
-  /* bug list */
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--mut);margin-top:12px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
   .bug{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px 15px;margin-bottom:10px;display:flex;gap:13px;align-items:flex-start}
   .bug .sd{flex:0 0 auto;width:10px;height:10px;border-radius:50%;margin-top:6px}
-  .bug .bb{flex:1}
   .bug .bt{font-size:14.5px;font-weight:650}
   .bug .bd{font-size:13px;color:var(--mut);margin-top:3px}
   .bug .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;align-items:center}
@@ -113,96 +134,90 @@
   .chip.build{color:#FFD6F0;border-color:rgba(255,46,166,.25)}
   .stpill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px}
 
-  /* after launch */
-  .later{display:grid;grid-template-columns:1fr;gap:11px}
+  /* AFTER LAUNCH */
+  .later{display:grid;grid-template-columns:1fr;gap:11px;margin-top:18px}
   @media(min-width:620px){.later{grid-template-columns:1fr 1fr}}
-  .lcard{background:var(--card);border:1px dashed var(--line2);border-radius:13px;padding:14px;opacity:.85}
-  .lcard .lt{font-size:13.5px;font-weight:700;color:var(--ink)}
-  .lcard .ld{font-size:12.5px;color:var(--mut);margin-top:4px}
-  .lcard .ls{font-size:11px;color:var(--fuch);font-weight:700;margin-top:8px;text-transform:uppercase;letter-spacing:.5px}
+  .lcard{background:var(--card);border:1px dashed var(--line2);border-radius:13px;padding:15px;opacity:.9}
+  .lcard .lt{font-size:14px;font-weight:700}
+  .lcard .ld{font-size:12.5px;color:var(--mut);margin-top:5px}
+  .lcard .ls{font-size:11px;color:var(--fuch);font-weight:700;margin-top:9px;text-transform:uppercase;letter-spacing:.5px}
 
-  footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--mut2)}
-  footer a{color:var(--aqua)}
-  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--mut);margin-top:10px}
-  .legend span{display:inline-flex;align-items:center;gap:6px}
-  .legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+  footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--mut2)}
+  footer b{color:var(--ink)} footer a{color:var(--aqua)}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <header>
-    <div class="brand">
-      <div class="crown">👑</div>
-      <div>
-        <h1>Bug Lord</h1>
-        <div class="sub">Hone — mission control</div>
+  <div class="top">
+    <header>
+      <div class="brand">
+        <div class="crown">👑</div>
+        <div><h1>Bug Lord</h1><div class="sub">Hone — mission control</div></div>
+      </div>
+      <div class="ministat"><b id="mini">—</b><br><span>days to launch · <span id="stamp"></span></span></div>
+    </header>
+    <div class="tabs" id="tabs"></div>
+  </div>
+
+  <!-- TODAY -->
+  <section class="panel" data-tab="today">
+    <div class="hero">
+      <div class="count">
+        <div class="big" id="dleft">—</div>
+        <div class="days">days until launch</div>
+        <div class="date">Target: <span>Fri 24 July 2026 · Google Play · Australia</span></div>
+        <div class="verdict" id="verdict"></div>
+      </div>
+      <div class="card jobs">
+        <h2>On you right now</h2>
+        <div class="sublead">The things only you can do. Nothing here moves without you.</div>
+        <div id="jobs"></div>
       </div>
     </div>
-    <div class="stamp" id="stamp"></div>
-  </header>
-
-  <!-- HERO: on track + your jobs -->
-  <div class="hero">
-    <div class="count">
-      <div class="big" id="dleft">—</div>
-      <div class="days">days until launch</div>
-      <div class="date">Target: <span>Fri 24 July 2026 · Google Play · Australia</span></div>
-      <div class="verdict" id="verdict"></div>
+    <div class="buildbar"><span class="bdot"></span><div><b>Build #134 is fixed in code</b> (the engineer finished 5 of 6 recipe-screen jobs). It's not on your phone yet — you need to trigger the build and install it. See the <b>Bugs</b> tab for what to check.</div></div>
+    <div class="card" style="margin-top:14px">
+      <h3 style="font-size:14.5px;font-weight:700">How close are we to launch-ready?</h3>
+      <div class="why" style="font-size:12px;color:var(--mut);margin-top:3px">One honest number, split into its parts. The gap shows where the work is — right now it's the testing gate, not the app.</div>
+      <div class="mini">
+        <div id="donut"></div>
+        <div class="bars" id="readybars"></div>
+      </div>
     </div>
-
-    <div class="card jobs">
-      <h2>On you right now</h2>
-      <div class="lead">The things only you can do. Nothing here moves without you.</div>
-      <div id="jobs"></div>
-    </div>
-  </div>
+  </section>
 
   <!-- ROADMAP -->
-  <div class="sectlabel">The road to launch — and beyond</div>
-  <div class="card road">
-    <div class="line"></div>
-    <div id="road"></div>
-  </div>
+  <section class="panel" data-tab="roadmap">
+    <div class="lead">The whole path — from where we are now, through launch day, to a calm maintenance routine. The red stage is Google's hard gate.</div>
+    <div class="card road" style="margin-top:12px"><div class="line"></div><div id="road"></div></div>
+  </section>
 
-  <!-- VISUALS -->
-  <div class="sectlabel">Two things worth watching right now</div>
-  <div class="viz">
-    <div class="card">
-      <h3>How close are we to launch-ready?</h3>
-      <div class="why">One honest number, broken into its parts. The gap tells you where the work is — right now it's the testing gate, not the app.</div>
-      <div class="donut-row">
-        <div id="donut"></div>
-        <div class="bars" id="readybars" style="flex:1"></div>
-      </div>
-    </div>
-    <div class="card">
+  <!-- BUGS -->
+  <section class="panel" data-tab="bugs">
+    <div class="card viz" style="margin-top:18px">
       <h3>How bad are the open jobs?</h3>
       <div class="why">Not a count for its own sake — it answers "is anything actually going to stop us?" Right now: nothing show-stopping.</div>
-      <div id="sevbars" style="margin-top:6px"></div>
+      <div id="sevbars"></div>
       <div class="legend">
-        <span><i style="background:var(--bad)"></i>Show-stopper = app unusable</span>
-        <span><i style="background:var(--warn)"></i>Serious = a real feature broken</span>
+        <span><i style="background:var(--bad)"></i>Show-stopper = unusable</span>
+        <span><i style="background:var(--warn)"></i>Serious = real feature broken</span>
         <span><i style="background:var(--aqua)"></i>Annoying = rough but works</span>
         <span><i style="background:var(--mut2)"></i>Tidy-up = cosmetic</span>
       </div>
     </div>
-  </div>
-
-  <!-- BUG LIST -->
-  <div class="sectlabel">What's broken (plain English)</div>
-  <div id="buglist"></div>
+    <div class="lead">Every open job, plain English. "Fixed — build &amp; check" means the engineer did it; it lands on your phone once you build #134.</div>
+    <div id="buglist" style="margin-top:10px"></div>
+  </section>
 
   <!-- AFTER LAUNCH -->
-  <div class="sectlabel">What we'll watch once you're live (not before)</div>
-  <div class="card" style="margin-bottom:12px;font-size:12.5px;color:var(--mut)">
-    You have no users yet, so download counts and follower numbers would be noise. These four are the ones that actually tell us if Hone is working. They switch on at launch — empty until then, on purpose.
-  </div>
-  <div class="later" id="later"></div>
+  <section class="panel" data-tab="later">
+    <div class="lead">You have no users yet, so download counts and follower numbers would be noise. These four actually tell us if Hone works. They switch on at launch — empty until then, on purpose.</div>
+    <div class="later" id="later"></div>
+  </section>
 
   <footer>
-    <div><b style="color:var(--ink)">How this stays true:</b> Bug Lord is updated by hand each working session — it's not guessing from live data, so it never lies to you with a stale auto-feed. The countdown is live. Everything else is as of the date stamped up top.</div>
-    <div style="margin-top:8px">The 14-day / 12-tester rule is Google's, confirmed against <a href="https://support.google.com/googleplay/android-developer/answer/14151465?hl=en" target="_blank">Play Console Help</a>. Launch-readiness percentages are the COO's best estimate — tell me where I've got them wrong.</div>
+    <div><b>How this stays true:</b> updated by hand each working session — no stale auto-feed pretending to be live. The countdown is live; everything else is as of the date up top.</div>
+    <div style="margin-top:7px">Google's 14-day / 12-tester rule confirmed against <a href="https://support.google.com/googleplay/android-developer/answer/14151465?hl=en" target="_blank">Play Console Help</a>. Readiness % are the COO's estimate — correct me.</div>
   </footer>
 
 </div>
@@ -212,51 +227,57 @@
 const LAUNCH = new Date('2026-07-24T00:00:00+10:00');
 const AS_OF  = '31 May 2026';
 
+const TABS = [
+  { id:'today',   label:'Today' },
+  { id:'roadmap', label:'Roadmap' },
+  { id:'bugs',    label:'Bugs', badge:8 },
+  { id:'later',   label:'After launch' }
+];
+
 const JOBS = [
   { pri:1, t:"Find out what kind of Play Store account you have",
-    d:"Is it a Personal or an Organisation account, and when did you open it? If it's Personal and opened after Nov 2023, Google forces a 14-day test with 12 people before you can launch. This one fact decides if 24 July is comfortable or tight.",
+    d:"Personal or Organisation — and when did you open it? If it's Personal and opened after Nov 2023, Google forces a 14-day test with 12 people before you can launch. This one fact decides if 24 July is comfortable or tight.",
     done:"Done when: you tell me 'personal' or 'organisation' + the rough sign-up date." },
-  { pri:2, t:"Test build #134 on your phone",
-    d:"Once the engineer says #134 is ready, trigger the build, install it, and check the recipe screen. Then tell me which of the 6 fixes actually worked and which didn't.",
+  { pri:2, t:"Build #134 and test it on your phone",
+    d:"The engineer finished the recipe-screen fixes in code. Trigger the build, install it, open a recipe, and tell me which of the fixes actually worked.",
     done:"Done when: you've opened a recipe on #134 and marked each fix pass/fail." },
-  { pri:3, t:"Start a list of 12 testers",
-    d:"Friends, family, anyone with an Android phone who'll install Hone and keep it for 14 straight days. You'll need at least 12 for the Google gate. Start collecting names now — this is the slowest part to organise.",
-    done:"Done when: you have 12 names + their Google emails." },
-  { pri:4, t:"Confirm the 3 old fixes from early May",
-    d:"Three bugs from early May (card alignment, missing recipe sections, pantry chips) are marked 'fixed' but were never confirmed on your phone. Either they work — and we close them — or they don't, and we reopen them. They've been in limbo 3 weeks.",
-    done:"Done when: you've checked all three on your phone." }
+  { pri:3, t:"Decide the 'before you start' fix (HONE-009)",
+    d:"The engineer couldn't fix this one with code alone — it needs a content decision. I've laid out two paths in chat. Pick one and I'll brief the right person.",
+    done:"Done when: you've chosen path A or B." },
+  { pri:4, t:"Start a list of 12 testers",
+    d:"Anyone with an Android phone who'll install Hone and keep it 14 straight days. You need at least 12 for the Google gate — the slowest part to organise, so start now.",
+    done:"Done when: you have 12 names + their Google emails." }
 ];
 
 const ROAD = [
   { name:"Polish the cooking app", when:"now → mid-June", state:"now",
-    desc:"Get the recipe screen right (build #134 fixes the 6 issues below), then the cooking step-by-step screen.",
-    done:"Done when: you can open any recipe, add to your shopping list, and cook it start-to-finish without anything looking broken." },
+    desc:"Get the recipe screen right (build #134 fixes 5 of 6 issues; one needs your call), then the cooking step-by-step screen.",
+    done:"Done when: you can open any recipe, add to your shopping list, and cook it start-to-finish with nothing looking broken." },
   { name:"Lock the 16 launch recipes", when:"through June", state:"now",
-    desc:"Every launch recipe needs a real photo, the chef credited, swaps written, and step notes. 11 of 16 photos are in.",
-    done:"Done when: all 16 are photo-complete, credited, and you've signed off on each." },
+    desc:"Every launch recipe needs a real photo, the chef credited, swaps written, step notes done. 11 of 16 photos are in.",
+    done:"Done when: all 16 are photo-complete, credited, and you've signed off." },
   { name:"Private test (just us)", when:"mid-June", state:"next",
-    desc:"Put the app on Google's internal track — it's live for a handful of chosen people within minutes. You and 1–2 others shake out the obvious crashes.",
+    desc:"Put it on Google's internal track — live for a handful of chosen people within minutes. You + 1–2 others shake out obvious crashes.",
     done:"Done when: the app survives a full cook on 2–3 real phones with no crash." },
   { name:"Closed test — 12 people, 14 days straight", when:"start by early July", state:"later", gate:true,
-    desc:"This is Google's gate. At least 12 people install it and keep it for 14 consecutive days. You can't apply to launch until this is done.",
+    desc:"Google's gate. At least 12 people install it and keep it 14 consecutive days. You can't apply to launch until this is done.",
     done:"Done when: 12 testers have been opted in for 14 unbroken days." },
   { name:"Apply to publish", when:"mid-July", state:"later",
-    desc:"After the 14 days, request production access. Google reviews it (usually a few days). Get your store page ready in parallel: title, screenshots, description, and the data-safety form.",
-    done:"Done when: Google grants production access and the store listing is complete." },
+    desc:"After the 14 days, request production access — Google reviews it (usually a few days). Get the store page ready in parallel: title, screenshots, description, data-safety form.",
+    done:"Done when: Google grants production access and the listing is complete." },
   { name:"Launch day — gentle rollout", when:"24 July", state:"later",
-    desc:"Don't flip it on for everyone at once. Release to a small slice of Australia first (~20%), watch for crashes, then ramp to 100% as it proves stable. You can halt instantly if something's wrong.",
+    desc:"Don't flip it on for everyone at once. Release to a small slice of Australia first (~20%), watch for crashes, ramp to 100% as it proves stable. Halt instantly if something's wrong.",
     done:"Done when: 100% of your chosen Australian audience can download Hone." },
   { name:"Settle & fix", when:"late July → August", state:"later",
-    desc:"The first few weeks live. Watch the crash rate and the first reviews like a hawk. Fix fast — early reviews set your reputation.",
-    done:"Done when: crashes are rare, reviews are stable, and no fire is burning." },
+    desc:"First weeks live. Watch the crash rate and first reviews like a hawk. Fix fast — early reviews set your reputation.",
+    done:"Done when: crashes are rare, reviews stable, no fire burning." },
   { name:"Maintenance", when:"August onward", state:"later",
-    desc:"Steady state. Planned updates on a calm cadence, no launch crunch. New recipes and features become choices, not emergencies.",
+    desc:"Steady state. Planned updates on a calm cadence, no crunch. New recipes and features become choices, not emergencies.",
     done:"This is the goal: a calm kitchen." }
 ];
 
-/* readiness: COO estimate, labelled. weight = how much it matters to shipping */
 const READY = [
-  { name:"Cooking app polish", pct:70, c:'var(--aqua)' },
+  { name:"Cooking app polish", pct:75, c:'var(--aqua)' },
   { name:"16 recipes ready",   pct:70, c:'var(--aqua)' },
   { name:"Testing gate (12 / 14 days)", pct:0, c:'var(--fuch)' },
   { name:"Store page + data-safety", pct:20, c:'var(--fuch)' }
@@ -271,61 +292,52 @@ const SEV = [
 
 const BUGS = [
   { id:'HONE-007', sev:'Serious',  t:"Adding missing items to your shopping list doesn't work right",
-    d:"When you tap 'add missing to shopping list', some items don't actually get added.", who:'Engineer', build:'#134', st:'queued' },
+    d:"When you tap 'add missing to shopping list', some items don't actually get added.", who:'Engineer', build:'#134', st:'check' },
   { id:'HONE-008', sev:'Annoying', t:"The top of the recipe screen is cluttered",
-    d:"Two 'Start cooking' buttons, the in-pantry count shows twice, and two 'watch' links — all duplicates.", who:'Engineer', build:'#134', st:'queued' },
+    d:"Two 'Start cooking' buttons, the count shows twice, two 'watch' links — all duplicates.", who:'Engineer', build:'#134', st:'check' },
   { id:'HONE-009', sev:'Annoying', t:"The 'before you start' notes are a wall of text",
-    d:"Everything's dumped up front. The notes should appear at the moment you need them, not all at once.", who:'Engineer', build:'#134', st:'queued' },
+    d:"Can't be fixed with code alone — it needs a content decision (see your jobs). Two paths offered; waiting on your call.", who:'You to decide', build:'TBD', st:'call' },
   { id:'HONE-010', sev:'Annoying', t:"Every recipe claims plating takes 3 minutes",
-    d:"It's a placeholder we hard-coded, not a real number. Each dish should show its own.", who:'Engineer', build:'#134', st:'queued' },
+    d:"It was a placeholder we hard-coded. Now shows each dish's own time.", who:'Engineer', build:'#134', st:'check' },
   { id:'HONE-011', sev:'Tidy-up',  t:"A stray blue line on the recipe screen",
-    d:"Leftover styling from an old version — blue isn't in Hone's look.", who:'Engineer', build:'#134', st:'queued' },
+    d:"Leftover styling from an old version — blue isn't in Hone's look.", who:'Engineer', build:'#134', st:'check' },
   { id:'HONE-012', sev:'Tidy-up',  t:"'intermediate' should be 'Intermediate'",
-    d:"Missing capital letter on the difficulty label.", who:'Engineer', build:'#134', st:'queued' },
+    d:"Missing capital on the difficulty label.", who:'Engineer', build:'#134', st:'check' },
   { id:'HONE-013', sev:'Annoying', t:"Our team's notes file got cut off and lost history",
-    d:"A behind-the-scenes file was truncated. No effect on the app, but we need to recover the lost bit from backups.", who:'Engineer', build:'after #134', st:'open' },
+    d:"A behind-the-scenes file was truncated. No effect on the app; we recover the lost bit from backups.", who:'Engineer', build:'after #134', st:'open' },
   { id:'HONE-014', sev:'Tidy-up',  t:"That same notes file is bloated and messy",
-    d:"Old entries were never filed away, so it's grown huge. Pure tidy-up. No effect on the app.", who:'File Organiser', build:'after #134', st:'open' }
+    d:"Old entries never filed away, so it's grown huge. Pure tidy-up. No app effect.", who:'File Organiser', build:'after #134', st:'open' }
 ];
 
 const LATER = [
   { lt:"Do people come back the next day?", ld:"Of everyone who opens Hone today, how many open it again tomorrow. The single strongest sign the app is actually useful.", ls:"starts at launch" },
-  { lt:"How fast to their first cooked dish?", ld:"Time from opening the app to tapping 'Start cooking' on something real. If it's slow, the path from fridge to plate has friction.", ls:"starts at launch" },
-  { lt:"Crash-free rate", ld:"The % of sessions with no crash. Below ~99% and early reviews will punish you. This is the launch-week number that matters most.", ls:"starts at launch" },
+  { lt:"How fast to their first cooked dish?", ld:"Time from opening the app to tapping 'Start cooking' on something real. Slow = friction on the path from fridge to plate.", ls:"starts at launch" },
+  { lt:"Crash-free rate", ld:"The % of sessions with no crash. Below ~99% and early reviews punish you. The launch-week number that matters most.", ls:"starts at launch" },
   { lt:"What the bad reviews actually say", ld:"Not the star average — the words in the 1- and 2-star reviews. That's where the real to-do list comes from.", ls:"starts at launch" }
 ];
 
 /* ---------- RENDER ---------- */
 const $=(id)=>document.getElementById(id);
-document.getElementById('stamp').innerHTML = 'As of '+AS_OF+'<br>Countdown is live';
-
+$('stamp').textContent = 'as of '+AS_OF;
 const days = Math.max(0, Math.ceil((LAUNCH - new Date())/86400000));
-$('dleft').textContent = days;
+$('dleft').textContent = days; $('mini').textContent = days;
 
-/* verdict */
 const showstoppers = SEV.find(s=>s.name==='Show-stopper').n;
 const testingStarted = false;
 let vtext, vcol, vbg;
 if(showstoppers>0){ vtext="Behind — a show-stopper is open"; vcol='#FF5C7A'; vbg='rgba(255,92,122,.13)'; }
 else if(!testingStarted){ vtext="On track, but tight — testing gate not started"; vcol='#FFC24B'; vbg='rgba(255,194,75,.13)'; }
 else { vtext="On track"; vcol='#28E0B0'; vbg='rgba(40,224,176,.13)'; }
-$('verdict').style.background = vbg;
-$('verdict').style.color = vcol;
-$('verdict').innerHTML = '<span class="dot" style="background:'+vcol+'"></span>'+vtext;
+$('verdict').style.background=vbg; $('verdict').style.color=vcol;
+$('verdict').innerHTML='<span class="dot" style="background:'+vcol+'"></span>'+vtext;
 
-/* jobs */
 const priCol=['','#FF5C7A','#FFC24B','#1FE3EA','#8696B0'];
 $('jobs').innerHTML = JOBS.map(j=>`
   <div class="job">
     <div class="pri" style="background:${priCol[j.pri]}22;color:${priCol[j.pri]};border:1px solid ${priCol[j.pri]}55">${j.pri}</div>
-    <div class="body">
-      <div class="t">${j.t}</div>
-      <div class="d">${j.d}</div>
-      <div class="done">${j.done}</div>
-    </div>
+    <div><div class="t">${j.t}</div><div class="d">${j.d}</div><div class="done">${j.done}</div></div>
   </div>`).join('');
 
-/* roadmap */
 $('road').innerHTML = ROAD.map(s=>`
   <div class="step ${s.state}">
     <div class="node"><div class="ball"></div></div>
@@ -333,7 +345,6 @@ $('road').innerHTML = ROAD.map(s=>`
       <div class="stop"><span class="sname">${s.name}</span><span class="when">${s.when}</span>
         ${s.state==='now'?'<span class="tag" style="background:rgba(31,227,234,.15);color:var(--aqua)">happening now</span>':''}
         ${s.state==='next'?'<span class="tag" style="background:rgba(255,255,255,.06);color:var(--mut)">up next</span>':''}
-        ${s.state==='done'?'<span class="tag" style="background:rgba(40,224,176,.15);color:var(--good)">done</span>':''}
       </div>
       <div class="sdesc">${s.desc}</div>
       <div class="sdone"><b>${s.done}</b></div>
@@ -341,59 +352,50 @@ $('road').innerHTML = ROAD.map(s=>`
     </div>
   </div>`).join('');
 
-/* readiness donut + bars */
 const overall = Math.round(READY.reduce((a,b)=>a+b.pct,0)/READY.length);
-const R=52, C=2*Math.PI*R, off=C*(1-overall/100);
-$('donut').innerHTML = `
-  <svg width="132" height="132" viewBox="0 0 132 132">
-    <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#1FE3EA"/><stop offset="1" stop-color="#FF2EA6"/></linearGradient></defs>
-    <circle cx="66" cy="66" r="${R}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="13"/>
-    <circle cx="66" cy="66" r="${R}" fill="none" stroke="url(#g1)" stroke-width="13" stroke-linecap="round"
-      stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 66 66)"/>
-    <text x="66" y="62" text-anchor="middle" font-size="30" font-weight="800" fill="#EAF1F8">${overall}%</text>
-    <text x="66" y="82" text-anchor="middle" font-size="11" fill="#8696B0">ready</text>
-  </svg>`;
+const R=46,C=2*Math.PI*R,off=C*(1-overall/100);
+$('donut').innerHTML=`<svg width="118" height="118" viewBox="0 0 118 118">
+  <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1FE3EA"/><stop offset="1" stop-color="#FF2EA6"/></linearGradient></defs>
+  <circle cx="59" cy="59" r="${R}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="12"/>
+  <circle cx="59" cy="59" r="${R}" fill="none" stroke="url(#g1)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 59 59)"/>
+  <text x="59" y="56" text-anchor="middle" font-size="27" font-weight="800" fill="#EAF1F8">${overall}%</text>
+  <text x="59" y="74" text-anchor="middle" font-size="10.5" fill="#8696B0">ready</text></svg>`;
 $('readybars').innerHTML = READY.map(r=>`
-  <div class="bar">
-    <div class="lab"><span>${r.name}</span><span class="v">${r.pct}%</span></div>
-    <div class="track"><div class="fill" style="width:${r.pct}%;background:${r.pct===0?'transparent':r.c}"></div></div>
-  </div>`).join('');
+  <div class="bar"><div class="lab"><span>${r.name}</span><span class="v">${r.pct}%</span></div>
+  <div class="track"><div class="fill" style="width:${r.pct}%;background:${r.pct===0?'transparent':r.c}"></div></div></div>`).join('');
 
-/* severity bars */
 const maxN=Math.max(1,...SEV.map(s=>s.n));
 $('sevbars').innerHTML = SEV.map(s=>`
-  <div class="sev">
-    <div class="name">${s.name}</div>
-    <div class="strack"><div class="sfill" style="width:${s.n===0?2:(s.n/maxN*100)}%;background:${s.c}">${s.n}</div></div>
-  </div>`).join('');
+  <div class="sev"><div class="name">${s.name}</div>
+  <div class="strack"><div class="sfill" style="width:${s.n===0?2:(s.n/maxN*100)}%;background:${s.c}">${s.n}</div></div></div>`).join('');
 
-/* bug list */
 const stMap={ open:{t:'Open',bg:'rgba(255,92,122,.14)',c:'#FF8AA0'},
-              queued:{t:'Queued for build #134',bg:'rgba(31,227,234,.13)',c:'#5BEBF0'},
-              fixing:{t:'Being fixed',bg:'rgba(255,194,75,.14)',c:'#FFD27A'},
-              check:{t:'Fixed — your turn to check',bg:'rgba(255,46,166,.14)',c:'#FF8AD0'},
-              done:{t:'Done',bg:'rgba(40,224,176,.14)',c:'#5BE8C4'} };
+  check:{t:'Fixed — build & check',bg:'rgba(40,224,176,.14)',c:'#5BE8C4'},
+  call:{t:'Needs your call',bg:'rgba(255,46,166,.16)',c:'#FF8AD0'} };
 const sevCol={'Show-stopper':'var(--bad)','Serious':'var(--warn)','Annoying':'var(--aqua)','Tidy-up':'var(--mut2)'};
 $('buglist').innerHTML = BUGS.map(b=>{const st=stMap[b.st];return `
-  <div class="bug">
-    <div class="sd" style="background:${sevCol[b.sev]}"></div>
-    <div class="bb">
-      <div class="bt">${b.t}</div>
-      <div class="bd">${b.d}</div>
-      <div class="meta">
-        <span class="stpill" style="background:${st.bg};color:${st.c}">${st.t}</span>
-        <span class="chip">${b.sev}</span>
-        <span class="chip who">${b.who}</span>
-        <span class="chip build">${b.build}</span>
-        <span class="chip" style="color:var(--mut2)">${b.id}</span>
-      </div>
-    </div>
-  </div>`}).join('');
+  <div class="bug"><div class="sd" style="background:${sevCol[b.sev]}"></div>
+    <div><div class="bt">${b.t}</div><div class="bd">${b.d}</div>
+    <div class="meta">
+      <span class="stpill" style="background:${st.bg};color:${st.c}">${st.t}</span>
+      <span class="chip">${b.sev}</span><span class="chip who">${b.who}</span>
+      <span class="chip build">${b.build}</span><span class="chip" style="color:var(--mut2)">${b.id}</span>
+    </div></div></div>`}).join('');
 
-/* later */
 $('later').innerHTML = LATER.map(l=>`
   <div class="lcard"><div class="lt">${l.lt}</div><div class="ld">${l.ld}</div><div class="ls">${l.ls}</div></div>`).join('');
+
+/* ---------- TABS ---------- */
+const KEY='buglord_tab';
+$('tabs').innerHTML = TABS.map(t=>`<button class="tab-btn" data-go="${t.id}">${t.label}${t.badge?`<span class="badge">${t.badge}</span>`:''}</button>`).join('');
+function show(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.dataset.tab===id));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('on',b.dataset.go===id));
+  try{localStorage.setItem(KEY,id)}catch(e){}
+}
+document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>{show(b.dataset.go);window.scrollTo({top:0,behavior:'smooth'})}));
+let start='today'; try{const s=localStorage.getItem(KEY); if(s&&TABS.some(t=>t.id===s))start=s}catch(e){}
+show(start);
 </script>
 </body>
 </html>
