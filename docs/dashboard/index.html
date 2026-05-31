@@ -153,6 +153,10 @@
   .chip.who{color:var(--aqua);border-color:rgba(31,227,234,.25)}
   .chip.build{color:#FFD6F0;border-color:rgba(255,46,166,.25)}
   .stpill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px}
+  .bugfilter{display:flex;gap:8px;margin-bottom:14px}
+  .ffbtn{border:1px solid var(--line2);background:var(--card);color:var(--mut);font-family:inherit;font-size:12.5px;font-weight:650;padding:6px 13px;border-radius:9px;cursor:pointer}
+  .ffbtn.on{background:var(--grad);color:#06121f;border-color:transparent}
+  .bug.bugdone{opacity:.5}
   .bsel{appearance:none;background:var(--bg);border:1px solid var(--line2);color:var(--ink);font-family:inherit;
     font-size:11.5px;font-weight:600;padding:3px 22px 3px 9px;border-radius:7px;cursor:pointer;
     background-image:linear-gradient(45deg,transparent 50%,var(--aqua) 50%),linear-gradient(135deg,var(--aqua) 50%,transparent 50%);
@@ -268,7 +272,7 @@
         <span><i style="background:var(--mut2)"></i>Tidy-up = cosmetic</span>
       </div>
     </div>
-    <div class="lead">Every open job, plain English. "Fixed — build &amp; check" means the engineer did it; it lands on your phone once you build #134.</div>
+    <div class="lead">Every open job, plain English. "Fixed — build &amp; check" means the engineer did it; it lands on your phone once you build #133.</div>
     <div id="buglist" style="margin-top:10px"></div>
     <div class="changebar" id="changebar">
       <div id="changeText"></div>
@@ -319,19 +323,21 @@ const ROAD=[
 ];
 
 const READY=[{name:"Cooking app polish",pct:75,c:'var(--aqua)'},{name:"16 recipes ready",pct:70,c:'var(--aqua)'},{name:"Testing gate (12 / 14 days)",pct:0,c:'var(--fuch)'},{name:"Store page + data-safety",pct:20,c:'var(--fuch)'}];
-const SEV=[{name:"Show-stopper",n:0,c:'var(--bad)'},{name:"Serious",n:1,c:'var(--warn)'},{name:"Annoying",n:6,c:'var(--aqua)'},{name:"Tidy-up",n:3,c:'var(--mut2)'}];
 const BUGS=[
-  {id:'HONE-007',sev:'Serious',t:"Adding missing items to your shopping list doesn't work right",d:"When you tap 'add missing to shopping list', some items don't actually get added.",who:'Engineer',build:'#133',st:'check'},
-  {id:'HONE-008',sev:'Annoying',t:"The top of the recipe screen is cluttered",d:"Two 'Start cooking' buttons, the count shows twice, two 'watch' links — all duplicates.",who:'Engineer',build:'#133',st:'check'},
-  {id:'HONE-009',sev:'Annoying',t:"The 'before you start' notes are a wall of text",d:"You chose the quick fix — the Designer's turning it into a tap-to-expand box. The proper version is tracked as HONE-015.",who:'Designer → Engineer',build:'soon',st:'fixing'},
-  {id:'HONE-010',sev:'Annoying',t:"Every recipe claims plating takes 3 minutes",d:"It was a placeholder we hard-coded. Now shows each dish's own time.",who:'Engineer',build:'#133',st:'check'},
-  {id:'HONE-011',sev:'Tidy-up',t:"A stray blue line on the recipe screen",d:"Leftover styling from an old version — blue isn't in Hone's look.",who:'Engineer',build:'#133',st:'check'},
-  {id:'HONE-012',sev:'Tidy-up',t:"'intermediate' should be 'Intermediate'",d:"Missing capital on the difficulty label.",who:'Engineer',build:'#133',st:'check'},
-  {id:'HONE-013',sev:'Annoying',t:"Our team's notes file got cut off and lost history",d:"A behind-the-scenes file was truncated. No effect on the app; we recover the lost bit from backups.",who:'Engineer',build:'after #134',st:'open'},
+  {id:'HONE-007',sev:'Tidy-up',t:"Adding missing items to your shopping list doesn't work right",d:"When you tap 'add missing to shopping list', some items don't actually get added.",who:'COO (me)',build:'#133',st:'done'},
+  {id:'HONE-008',sev:'Annoying',t:"The top of the recipe screen is cluttered",d:"Two 'Start cooking' buttons, the count shows twice, two 'watch' links — all duplicates.",who:'Designer',build:'#133',st:'open'},
+  {id:'HONE-009',sev:'Serious',t:"The 'before you start' notes are a wall of text",d:"Reopened as Serious. The proper fix (notes appear where they apply) is tracked as HONE-015.",who:'Designer → Engineer',build:'soon',st:'open'},
+  {id:'HONE-010',sev:'Annoying',t:"Every recipe claims plating takes 3 minutes",d:"It was a placeholder we hard-coded. Now shows each dish's own time.",who:'COO (me)',build:'#133',st:'done'},
+  {id:'HONE-011',sev:'Tidy-up',t:"A stray blue line on the recipe screen",d:"Leftover styling from an old version — blue isn't in Hone's look.",who:'COO (me)',build:'#133',st:'done'},
+  {id:'HONE-012',sev:'Tidy-up',t:"'intermediate' should be 'Intermediate'",d:"Missing capital on the difficulty label.",who:'COO (me)',build:'#133',st:'done'},
+  {id:'HONE-013',sev:'Annoying',t:"Our team's notes file got cut off and lost history",d:"A behind-the-scenes file was truncated. No effect on the app.",who:'Engineer',build:'after #134',st:'done'},
   {id:'HONE-014',sev:'Tidy-up',t:"That same notes file is bloated and messy",d:"Old entries never filed away, so it's grown huge. Pure tidy-up. No app effect.",who:'File Organiser',build:'after #134',st:'open'},
-  {id:'HONE-015',sev:'Annoying',t:"Make the recipe notes appear where they apply (proper fix)",d:"The quality version of HONE-009: each prep note moves onto the exact step or ingredient it's about. Parked until the 16 recipes are locked.",who:'Cook → Engineer',build:'before launch',st:'later'},
-  {id:'HONE-016',sev:'Annoying',t:"Build automated screen-testing (so the tester can tap through the app)",d:"Phase two of the testing loop: a Maestro + emulator harness so the tester drives real screens, not just reads code — catches the visual/tap bugs. Engineer's building it; lands before closed testing.",who:'Engineer',build:'before testing',st:'later'}
+  {id:'HONE-015',sev:'Annoying',t:"Make the recipe notes appear where they apply (proper fix)",d:"The quality version of HONE-009: each prep note moves onto the exact step or ingredient it's about.",who:'Cook → Engineer',build:'before launch',st:'done'},
+  {id:'HONE-016',sev:'Annoying',t:"Build automated screen-testing (so the tester can tap through the app)",d:"Maestro + emulator harness so the tester drives real screens, not just reads code. Engineer's building it.",who:'Engineer',build:'before testing',st:'open'}
 ];
+const SEV_DEF=[['Show-stopper','var(--bad)'],['Serious','var(--warn)'],['Annoying','var(--aqua)'],['Tidy-up','var(--mut2)']];
+const SEV=SEV_DEF.map(d=>({name:d[0],c:d[1],n:BUGS.filter(b=>b.st!=='done'&&b.sev===d[0]).length}));
+TABS.find(t=>t.id==='bugs').badge=BUGS.filter(b=>b.st!=='done').length;
 const LATER=[
   {lt:"Do people come back the next day?",ld:"Of everyone who opens Hone today, how many open it again tomorrow. The strongest sign the app is actually useful.",ls:"starts at launch"},
   {lt:"How fast to their first cooked dish?",ld:"Time from opening the app to tapping 'Start cooking' on something real. Slow = friction from fridge to plate.",ls:"starts at launch"},
@@ -382,9 +388,21 @@ function sel(field,id,cur,opts){
   if(!norm.some(o=>o[0]===cur)) norm.unshift([cur,cur]);
   return '<select class="bsel" data-id="'+id+'" data-field="'+field+'">'+norm.map(o=>'<option value="'+String(o[0]).replace(/"/g,'&quot;')+'"'+(o[0]===cur?' selected':'')+'>'+o[1]+'</option>').join('')+'</select>';
 }
-const stMap={open:{t:'Open',bg:'rgba(255,92,122,.14)',c:'#FF8AA0'},check:{t:'Fixed — build & check',bg:'rgba(40,224,176,.14)',c:'#5BE8C4'},fixing:{t:'Being fixed (quick version)',bg:'rgba(255,194,75,.14)',c:'#FFD27A'},later:{t:'Tracked for later',bg:'rgba(134,150,176,.16)',c:'#A7B4C8'},call:{t:'Needs your call',bg:'rgba(255,46,166,.16)',c:'#FF8AD0'}};
+const stMap={open:{t:'Open',bg:'rgba(255,92,122,.14)',c:'#FF8AA0'},check:{t:'Fixed — build & check',bg:'rgba(40,224,176,.14)',c:'#5BE8C4'},fixing:{t:'Being fixed (quick version)',bg:'rgba(255,194,75,.14)',c:'#FFD27A'},later:{t:'Tracked for later',bg:'rgba(134,150,176,.16)',c:'#A7B4C8'},call:{t:'Needs your call',bg:'rgba(255,46,166,.16)',c:'#FF8AD0'},done:{t:'Done ✓',bg:'rgba(40,224,176,.18)',c:'#5BE8C4'}};
 const sevCol={'Show-stopper':'var(--bad)','Serious':'var(--warn)','Annoying':'var(--aqua)','Tidy-up':'var(--mut2)'};
-$('buglist').innerHTML=BUGS.map(b=>`<div class="bug"><div class="sd" style="background:${sevCol[b.sev]}"></div><div style="flex:1"><div class="bt">${b.t}</div><div class="bd">${b.d}</div><div class="meta">${sel('st',b.id,b.st,ST_OPTS)}${sel('sev',b.id,b.sev,SEV_OPTS)}${sel('who',b.id,b.who,WHO_OPTS)}<span class="chip build">${b.build}</span><span class="chip" style="color:var(--mut2)">${b.id}</span></div></div></div>`).join('');
+let bugFilter='open';
+const sevOrder={'Show-stopper':0,'Serious':1,'Annoying':2,'Tidy-up':3};
+function bugSort(a){return a.slice().sort((x,y)=>{const xd=x.st==='done',yd=y.st==='done';if(xd!==yd)return xd?1:-1;return sevOrder[x.sev]-sevOrder[y.sev];});}
+function renderBugs(){
+  const openN=BUGS.filter(b=>b.st!=='done').length, doneN=BUGS.filter(b=>b.st==='done').length;
+  let list=bugFilter==='done'?BUGS.filter(b=>b.st==='done'):bugFilter==='all'?BUGS.slice():BUGS.filter(b=>b.st!=='done');
+  list=bugSort(list);
+  const fbar=`<div class="bugfilter">${[['open','Open',openN],['done','Done',doneN],['all','All',BUGS.length]].map(o=>`<button class="ffbtn${bugFilter===o[0]?' on':''}" data-f="${o[0]}">${o[1]} ${o[2]}</button>`).join('')}</div>`;
+  const cards=list.map(b=>`<div class="bug${b.st==='done'?' bugdone':''}"><div class="sd" style="background:${sevCol[b.sev]}"></div><div style="flex:1"><div class="bt">${b.t}</div><div class="bd">${b.d}</div><div class="meta">${sel('st',b.id,b.st,ST_OPTS)}${sel('sev',b.id,b.sev,SEV_OPTS)}${sel('who',b.id,b.who,WHO_OPTS)}<span class="chip build">${b.build}</span><span class="chip" style="color:var(--mut2)">${b.id}</span></div></div></div>`).join('');
+  $('buglist').innerHTML=fbar+cards;
+  document.querySelectorAll('.ffbtn').forEach(btn=>btn.addEventListener('click',()=>{bugFilter=btn.dataset.f;renderBugs();}));
+  initBugEditing();
+}
 
 $('later').innerHTML=LATER.map(l=>`<div class="lcard"><div class="lt">${l.lt}</div><div class="ld">${l.ld}</div><div class="ls">${l.ls}</div></div>`).join('');
 
@@ -447,7 +465,7 @@ document.addEventListener('click',(e)=>{
   }
 });
 
-initBugEditing();
+renderBugs();
 /* ---- COMPOSER ---- */
 const NKEY='buglord_note';
 function fmtNow(){const d=new Date();return d.toLocaleDateString('en-AU',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});}
