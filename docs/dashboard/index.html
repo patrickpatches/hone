@@ -153,6 +153,18 @@
   .chip.who{color:var(--aqua);border-color:rgba(31,227,234,.25)}
   .chip.build{color:#FFD6F0;border-color:rgba(255,46,166,.25)}
   .stpill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px}
+  .bsel{appearance:none;background:var(--bg);border:1px solid var(--line2);color:var(--ink);font-family:inherit;
+    font-size:11.5px;font-weight:600;padding:3px 22px 3px 9px;border-radius:7px;cursor:pointer;
+    background-image:linear-gradient(45deg,transparent 50%,var(--aqua) 50%),linear-gradient(135deg,var(--aqua) 50%,transparent 50%);
+    background-position:calc(100% - 11px) 8px,calc(100% - 7px) 8px;background-size:4px 4px,4px 4px;background-repeat:no-repeat}
+  .bsel:focus{outline:none;border-color:var(--aqua)}
+  .bsel.edited{border-color:var(--fuch);box-shadow:0 0 0 2px rgba(255,46,166,.18)}
+  .changebar{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;width:calc(100% - 32px);max-width:680px;z-index:40;
+    background:rgba(15,22,38,.97);backdrop-filter:blur(10px);border:1px solid var(--fuch);border-radius:14px;padding:12px 14px;
+    box-shadow:0 10px 40px rgba(0,0,0,.5);display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .changebar.show{display:flex}
+  .changebar #changeText{font-size:12.5px;color:var(--ink);font-weight:600}
+  .changebar #changeText span{color:var(--mut);font-weight:500}
 
   /* AFTER LAUNCH */
   .later{display:grid;grid-template-columns:1fr;gap:11px;margin-top:18px}
@@ -258,6 +270,13 @@
     </div>
     <div class="lead">Every open job, plain English. "Fixed — build &amp; check" means the engineer did it; it lands on your phone once you build #134.</div>
     <div id="buglist" style="margin-top:10px"></div>
+    <div class="changebar" id="changebar">
+      <div id="changeText"></div>
+      <div class="cbtns" style="margin-top:0">
+        <button class="btn primary" id="cbCopy">Copy &amp; send to Claude</button>
+        <button class="btn ghost" id="cbClear">Discard</button>
+      </div>
+    </div>
   </section>
 
   <!-- AFTER LAUNCH -->
@@ -355,11 +374,79 @@ $('readybars').innerHTML=READY.map(r=>`<div class="bar"><div class="lab"><span>$
 const maxN=Math.max(1,...SEV.map(s=>s.n));
 $('sevbars').innerHTML=SEV.map(s=>`<div class="sev"><div class="name">${s.name}</div><div class="strack"><div class="sfill" style="width:${s.n===0?2:(s.n/maxN*100)}%;background:${s.c}">${s.n}</div></div></div>`).join('');
 
+const ST_OPTS=[['open','Open'],['fixing','Being fixed'],['check','Fixed — build & check'],['call','Needs your call'],['later','Tracked for later'],['done','Done ✓']];
+const SEV_OPTS=['Show-stopper','Serious','Annoying','Tidy-up'];
+const WHO_OPTS=['Engineer','Designer','Cook','Photography','Bug Tester','COO (me)','Designer → Engineer','Cook → Engineer','You to decide','File Organiser'];
+function sel(field,id,cur,opts){
+  const norm=opts.map(o=>Array.isArray(o)?o:[o,o]);
+  if(!norm.some(o=>o[0]===cur)) norm.unshift([cur,cur]);
+  return '<select class="bsel" data-id="'+id+'" data-field="'+field+'">'+norm.map(o=>'<option value="'+String(o[0]).replace(/"/g,'&quot;')+'"'+(o[0]===cur?' selected':'')+'>'+o[1]+'</option>').join('')+'</select>';
+}
 const stMap={open:{t:'Open',bg:'rgba(255,92,122,.14)',c:'#FF8AA0'},check:{t:'Fixed — build & check',bg:'rgba(40,224,176,.14)',c:'#5BE8C4'},fixing:{t:'Being fixed (quick version)',bg:'rgba(255,194,75,.14)',c:'#FFD27A'},later:{t:'Tracked for later',bg:'rgba(134,150,176,.16)',c:'#A7B4C8'},call:{t:'Needs your call',bg:'rgba(255,46,166,.16)',c:'#FF8AD0'}};
 const sevCol={'Show-stopper':'var(--bad)','Serious':'var(--warn)','Annoying':'var(--aqua)','Tidy-up':'var(--mut2)'};
-$('buglist').innerHTML=BUGS.map(b=>{const st=stMap[b.st];return `<div class="bug"><div class="sd" style="background:${sevCol[b.sev]}"></div><div><div class="bt">${b.t}</div><div class="bd">${b.d}</div><div class="meta"><span class="stpill" style="background:${st.bg};color:${st.c}">${st.t}</span><span class="chip">${b.sev}</span><span class="chip who">${b.who}</span><span class="chip build">${b.build}</span><span class="chip" style="color:var(--mut2)">${b.id}</span></div></div></div>`}).join('');
+$('buglist').innerHTML=BUGS.map(b=>`<div class="bug"><div class="sd" style="background:${sevCol[b.sev]}"></div><div style="flex:1"><div class="bt">${b.t}</div><div class="bd">${b.d}</div><div class="meta">${sel('st',b.id,b.st,ST_OPTS)}${sel('sev',b.id,b.sev,SEV_OPTS)}${sel('who',b.id,b.who,WHO_OPTS)}<span class="chip build">${b.build}</span><span class="chip" style="color:var(--mut2)">${b.id}</span></div></div></div>`).join('');
+initBugEditing();
 
 $('later').innerHTML=LATER.map(l=>`<div class="lcard"><div class="lt">${l.lt}</div><div class="ld">${l.ld}</div><div class="ls">${l.ls}</div></div>`).join('');
+
+/* ---- BUG EDITING (dropdowns -> copyable instruction) ---- */
+const PKEY='buglord_pending';
+const ORIG={}; BUGS.forEach(b=>ORIG[b.id]={st:b.st,sev:b.sev,who:b.who});
+let pending={}; try{pending=JSON.parse(localStorage.getItem(PKEY)||'{}')}catch(e){pending={}}
+const stLabel=Object.fromEntries(ST_OPTS.map(o=>[o[0],o[1]]));
+function applyPendingToSelects(){
+  document.querySelectorAll('.bsel').forEach(sl=>{
+    const id=sl.dataset.id,f=sl.dataset.field;
+    if(pending[id]&&pending[id][f]!==undefined){sl.value=pending[id][f];}
+    const changed=pending[id]&&pending[id][f]!==undefined&&pending[id][f]!==ORIG[id][f];
+    sl.classList.toggle('edited',!!changed);
+  });
+}
+function renderChangebar(){
+  const ids=Object.keys(pending).filter(id=>Object.keys(pending[id]||{}).length);
+  const bar=$('changebar');
+  if(!ids.length){bar.classList.remove('show');return;}
+  let n=0; ids.forEach(id=>n+=Object.keys(pending[id]).length);
+  $('changeText').innerHTML='<b>'+n+' change'+(n>1?'s':'')+' ready</b> <span>— copy &amp; paste to Claude to apply</span>';
+  bar.classList.add('show');
+}
+function buildChangeText(){
+  let out='BUG LORD — apply these changes:';
+  Object.keys(pending).forEach(id=>{
+    const ch=pending[id]||{}; const parts=[];
+    if(ch.st!==undefined) parts.push('Status: '+stLabel[ch.st]);
+    if(ch.sev!==undefined) parts.push('Severity: '+ch.sev);
+    if(ch.who!==undefined) parts.push('Who: '+ch.who);
+    if(parts.length) out+='\n• '+id+' → '+parts.join(' · ');
+  });
+  return out;
+}
+function initBugEditing(){
+  applyPendingToSelects(); renderChangebar();
+  document.querySelectorAll('.bsel').forEach(sl=>{
+    sl.addEventListener('change',()=>{
+      const id=sl.dataset.id,f=sl.dataset.field,v=sl.value;
+      if(v===ORIG[id][f]){ if(pending[id]){delete pending[id][f]; if(!Object.keys(pending[id]).length)delete pending[id];} }
+      else { pending[id]=pending[id]||{}; pending[id][f]=v; }
+      try{localStorage.setItem(PKEY,JSON.stringify(pending))}catch(e){}
+      sl.classList.toggle('edited',v!==ORIG[id][f]);
+      renderChangebar();
+    });
+  });
+}
+document.addEventListener('click',(e)=>{
+  if(e.target&&e.target.id==='cbCopy'){
+    const ta=document.createElement('textarea'); ta.value=buildChangeText(); document.body.appendChild(ta); ta.select();
+    let ok=false; try{ok=document.execCommand('copy')}catch(_){}
+    if(navigator.clipboard){navigator.clipboard.writeText(ta.value).catch(()=>{});}
+    ta.remove();
+    $('changeText').innerHTML=ok?'<b>Copied ✓</b> <span>— paste it to Claude (or say "check Bug Lord").</span>':'<b>Select-copy the text</b> <span>— couldn\'t auto-copy here.</span>';
+  }
+  if(e.target&&e.target.id==='cbClear'){
+    pending={}; try{localStorage.removeItem(PKEY)}catch(e2){}
+    applyPendingToSelects(); renderChangebar();
+  }
+});
 
 /* ---- COMPOSER ---- */
 const NKEY='buglord_note';
