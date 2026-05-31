@@ -29,7 +29,7 @@
         "android.permission.VIBRATE",
         "android.permission.WAKE_LOCK"
       ],
-      "versionCode": 50,
+      "versionCode": 51,
       "allowBackup": false
     },
     "web": {
