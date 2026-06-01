@@ -1258,7 +1258,7 @@ function RecipeAddsCard({
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel={`Remove all ${g.title} ingredients from shopping list`}
-            android_ripple={{ color: 'rgba(255,92,122,0.15)', borderless: true }}
+            android_ripple={{ color: tokens.primaryLight, borderless: true }}
             style={{ padding: 8, borderRadius: 8 }}
           >
             <View
@@ -1266,12 +1266,12 @@ function RecipeAddsCard({
                 width: 32,
                 height: 32,
                 borderRadius: 8,
-                backgroundColor: 'rgba(255,92,122,0.10)',
+                backgroundColor: tokens.primaryLight,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Icon name="trash" size={15} color="#FF5C7A" />
+              <Icon name="trash" size={15} color={tokens.primary} />
             </View>
           </Pressable>
         </View>
