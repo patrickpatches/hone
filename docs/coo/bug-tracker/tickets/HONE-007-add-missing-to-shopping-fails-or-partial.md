@@ -9,7 +9,8 @@ RECIPE:
 ASSIGNEE:        Engineer
 EPIC:            EPIC-pantry-first
 FOUND IN BUILD:  #132
-FIX ATTEMPTED:   (blank)
+FIX ATTEMPTED:   #134 (commit e3cb60c — 2026-05-31)
+STATUS:          VALIDATED ✅ — Patrick closed GitHub Issue #7 on-device
 TARGET BUILD:    #134
 REPRODUCIBLE:    Always
 DEVICE:          Patrick's Pixel (Android 14)
@@ -39,4 +40,4 @@ Patrick reports two symptoms across recipes: (a) NONE of the items appear in Sho
 
 ## Engineer notes
 
-Two-part bug. Reconcile() sweep explains (a). Partial-add symptom from Patrick on-device 2026-05-30 confirms a second issue likely in the upsert loop (composite id collision OR Promise.all SQLite race). Fix path: change source kind to 'manual' so reconcile leaves them; also audit the id construction to ensure no two ingredients of a recipe collide on `'shop-'+recipe.id+'-'+normalizeForMatch(name)`.
+Two-part bug. Reconcile() sweep explains (a). Partial-add symptom from Patrick on-device 2026-05-30 confirms a second issue likely in the upsert loop (composite id collision OR Promise.all SQLite race). Fix path: change source kind to 'manual' so reconcile leaves them; also audit the id construct
