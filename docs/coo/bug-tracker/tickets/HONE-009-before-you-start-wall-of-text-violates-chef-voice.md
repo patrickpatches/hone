@@ -9,8 +9,9 @@ RECIPE:          THAI_GREEN_CURRY
 ASSIGNEE:        Designer → Engineer
 EPIC:            EPIC-v7-mise
 FOUND IN BUILD:  #132
-FIX ATTEMPTED:   (blank)
-TARGET BUILD:    #134
+FIX ATTEMPTED:   #135 (commit 7424380 — 2026-06-01, collapsible before_you_start)
+STATUS:          VALIDATED ✅ — Patrick closed GitHub Issue #9 on-device
+TARGET BUILD:    #135
 REPRODUCIBLE:    Always
 DEVICE:          Patrick's Pixel (Android 14)
 GOLDEN RULE:     none
@@ -48,4 +49,4 @@ _Added by COO. Patrick's call._
 Quick holding fix now; proper fix deferred and tracked as **HONE-015**.
 
 - **Now (this ticket):** Designer specs a collapsible tap-to-expand "heads-up" block (one-line preview → full list), v7 palette only. Engineer wires it. Kills the wall of text without pulling the Cook off recipe-locking. Does not gate build #134.
-- **Later ([[HONE-015]]):** Cook authors which note belongs on which step/ingredient; Engineer relocates them so each note appears at the moment it applies — the true chef-voice fix.
+- **Later ([[HONE-015]]):** Cook authors which not
