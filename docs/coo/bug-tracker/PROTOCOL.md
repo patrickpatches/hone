@@ -81,7 +81,7 @@ If the fix is bundled with several other bugs in one build, the engineer adds th
 
 ### Step 4 — Re-test (Bug Tester)
 
-When Patrick triggers the build and the APK is live, the Bug Tester:
+When a build is dispatched (by any specialist) and the APK is live, the Bug Tester:
 
 1. Installs the build.
 2. Runs the exact repro from the original ticket.
