@@ -175,6 +175,7 @@
   .flowstep .fnum{flex:0 0 30px;height:30px;border-radius:9px;background:var(--grad);color:#06121f;font-weight:800;display:grid;place-items:center;font-size:14px}
   .flowstep .fn{font-size:14.5px;font-weight:700}
   .flowstep .fd{font-size:13px;color:var(--mut);margin-top:2px}
+  .flowstep .fhow{font-size:12.5px;color:var(--aqua);margin-top:6px;font-weight:600;background:rgba(31,227,234,.06);border-left:2px solid var(--aqua);padding:6px 10px;border-radius:0 8px 8px 0}
   .flowcard{font-size:13.5px;color:var(--mut);line-height:1.6}
   .flowcard b{color:var(--ink)}
   .bsel{appearance:none;background:var(--bg);border:1px solid var(--line2);color:var(--ink);font-family:inherit;
@@ -388,12 +389,12 @@ const TEAM=[
  ["Accountant","ATO records, dev log, expenses — weekly."]
 ];
 const FLOW=[
- ["A job appears","Anything that needs doing becomes a card on this board — a bug you hit, a design idea, a recipe to add."],
- ["I assign it","The COO sends it to the right person — that's the 'Who' on every card."],
- ["They do it","The worker does the job and marks it 'Fixed — build & check'. Never 'Done' — that's your word only."],
- ["It gets built","When a batch is ready, a new app is built. The build number comes straight from GitHub/EAS — automatic, never typed by hand."],
- ["You test it","You install the newest build and check it on your phone."],
- ["You close it","Only you mark a job Done. That is the final say, every time."]
+ ["A job appears","Anything that needs doing becomes a card on this board — a bug you hit, a design idea, a recipe to add.","YOU: open this board → Today tab → the 'Tell Claude' box → type what's needed, pick who it's for, tap Copy, paste it to me in chat. (Or just tell me in chat.)"],
+ ["I assign it","The COO reads it and sets the 'Who' on the card.","YOU: nothing — this is automatic. I sort it and route it."],
+ ["They do it","The worker or a specialist does the job and marks it 'Fixed — check'. Never 'Done' — that's your word only.","YOU: nothing — watch it move to 'Fixed — check' on the Bugs tab. The automatic worker runs 3× a day."],
+ ["It gets built","When a batch of fixes is ready, a new app is built. The build number comes straight from GitHub — automatic, never typed by hand.","YOU: nothing — watch the Build Status strip; when the newest number ticks up, a fresh app is ready."],
+ ["You test it","You install the newest build and check it on your phone.","YOU: open the GitHub Actions run on your phone → download the APK → install it → use the app and see if the fix worked."],
+ ["You close it","Only you mark a job Done. That is the final say, every time.","YOU: on the Bugs tab, set that job's Status dropdown to 'Done', tap Copy, paste to me. Done."]
 ];
 
 const $=(id)=>document.getElementById(id);
@@ -421,7 +422,7 @@ $('buildstatus').innerHTML=`<div class="bshead">Build status <span>· numbers ve
 `<div class="bsfoot">Build numbers come straight from the GitHub/EAS counter — automatic, impossible to fake or drift.</div>`;
 if(document.getElementById('flowteam')){
   $('flowteam').innerHTML=TEAM.map(t=>`<div class="teamrow"><div class="tn">${t[0]}</div><div class="td">${t[1]}</div></div>`).join('');
-  $('flowsteps').innerHTML=FLOW.map((s2,i)=>`<div class="flowstep"><div class="fnum">${i+1}</div><div class="fb"><div class="fn">${s2[0]}</div><div class="fd">${s2[1]}</div></div></div>`).join('');
+  $('flowsteps').innerHTML=FLOW.map((s2,i)=>`<div class="flowstep"><div class="fnum">${i+1}</div><div class="fb"><div class="fn">${s2[0]}</div><div class="fd">${s2[1]}</div><div class="fhow">${s2[2]}</div></div></div>`).join('');
   $('flowversion').innerHTML=`The build number you see everywhere is the GitHub/EAS counter — it ticks up by itself every time an app is genuinely built, so it can't be faked or drift out of sync. This board always shows the newest build available next to the one on your phone, so you and every worker read the same number. Every build is pinned to an exact snapshot of the code, so we always know precisely what's inside it.`;
   $('flowhouse').innerHTML=`<b>Files:</b> one file per thing, old items archived each week, with a map (FILE_MAP) as the index — no clutter, no duplicates. <b>Accounting:</b> the dev log and expenses are updated weekly for the ATO, so tax time is a non-event.`;
 }
