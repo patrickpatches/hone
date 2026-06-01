@@ -370,19 +370,13 @@ const WORKER_URL='https://hone-buglord.patrick-nasr11.workers.dev';
 // Once all these are filed as GitHub Issues with the `bug` label, this
 // array can be emptied and the Worker becomes the only source.
 const BUGS_STATIC=[
-  {id:'HONE-007',sev:'Tidy-up',t:"Adding missing items to your shopping list doesn't work right",d:"When you tap 'add missing to shopping list', some items don't actually get added.",who:'COO (me)',build:'#133',st:'done'},
-  {id:'HONE-008',sev:'Annoying',t:"The top of the recipe screen is cluttered",d:"Two 'Start cooking' buttons, the count shows twice, two 'watch' links — all duplicates. Fixed: inline pill removed, ghost-row watch link removed, N/M badge removed.",who:'COO (me)',build:'#134',st:'check'},
-  {id:'HONE-009',sev:'Serious',t:"The 'before you start' notes are a wall of text",d:"Fixed — the worker turned it into a tap-to-expand box (build #135). The deeper version (notes where they apply) is HONE-015.",who:'Engineer',build:'#135',st:'check'},
-  {id:'HONE-010',sev:'Annoying',t:"Every recipe claims plating takes 3 minutes",d:"It was a placeholder we hard-coded. Now shows each dish's own time.",who:'COO (me)',build:'#133',st:'done'},
-  {id:'HONE-011',sev:'Tidy-up',t:"A stray blue line on the recipe screen",d:"Leftover styling from an old version — blue isn't in Hone's look.",who:'COO (me)',build:'#133',st:'done'},
-  {id:'HONE-012',sev:'Tidy-up',t:"'intermediate' should be 'Intermediate'",d:"Missing capital on the difficulty label.",who:'COO (me)',build:'#133',st:'done'},
   {id:'HONE-013',sev:'Annoying',t:"Our team's notes file got cut off and lost history",d:"A behind-the-scenes file was truncated. No effect on the app.",who:'Engineer',build:'after #134',st:'done'},
   {id:'HONE-014',sev:'Tidy-up',t:"That same notes file is bloated and messy",d:"Done — old handoffs archived, file trimmed (1 June). Internal only, no app effect.",who:'File Organiser',build:'n/a',st:'done'},
   {id:'HONE-015',sev:'Annoying',t:"Make the recipe notes appear where they apply (proper fix)",d:"The quality version of HONE-009: each prep note moves onto the exact step or ingredient it's about.",who:'Cook → Engineer',build:'before launch',st:'done'},
   {id:'HONE-016',sev:'Annoying',t:"Build automated screen-testing (so the tester can tap through the app)",d:"Built — 5 Maestro flows + a local runner are in (#135). Next: confirm they run on a device.",who:'Engineer',build:'#135',st:'check'},
   {id:'HONE-017',sev:'Annoying',t:"Items added from a recipe were tagged wrong in the shopping list",d:"Fixed (#135) — recipe-added items now carry the right source so they don't get swept away.",who:'Engineer',build:'#135',st:'check'},
-  {id:'HONE-018',sev:'Tidy-up',t:"No quick way to clear one recipe's items from the Shop list",d:"Fixed (#135) — added a remove-by-recipe button in Shop.",who:'Engineer',build:'#135',st:'check'},
-  {id:'HONE-019',sev:'Annoying',t:"Make Bug Lord live — no more copy-paste",d:"Worker built (workers/bug-lord/). Once you run 5 setup commands and fill in your CF subdomain, new GitHub Issues auto-appear on the dashboard. No more manual HTML edits.",who:'Engineer',build:'#138',st:'check'}
+  {id:'HONE-018',sev:'Tidy-up',t:"No quick way to clear one recipe's items from the Shop list",d:"Fixed (#135) — added a remove-by-recipe button in Shop.",who:'You to decide',build:'#135',st:'done'},
+  {id:'HONE-019',sev:'Annoying',t:"Make Bug Lord live — no more copy-paste",d:"Worker built (workers/bug-lord/). Once you run 5 setup commands and fill in your CF subdomain, new GitHub Issues auto-appear on the dashboard. No more manual HTML edits.",who:'You to decide',build:'#138',st:'done'}
 ];
 let BUGS=BUGS_STATIC.slice();
 const SEV_DEF=[['Show-stopper','var(--bad)'],['Serious','var(--warn)'],['Annoying','var(--aqua)'],['Tidy-up','var(--mut2)']];
