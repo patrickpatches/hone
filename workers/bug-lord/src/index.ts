@@ -150,7 +150,10 @@ export default {
         return override ? { ...base, ...override, id: base.id, t: base.t, d: base.d } : base;
       }));
 
-      return json(bugs, 200, { 'Cache-Control': 'public, s-maxage=30, max-age=30' });
+      // no-store: every read is live (GitHub + KV). A bug board must always
+      // show current state; the GitHub fetch (~200-400ms) is fast enough that
+      // edge caching isn't worth the staleness. (HONE-020 item 3.)
+      return json(bugs, 200, { 'Cache-Control': 'no-store' });
     }
 
     // ── POST /update ───────────────────────────────────────────────────────────
@@ -188,6 +191,73 @@ export default {
       return json({ ok: true, id, updated: next });
     }
 
+    // ── POST /issue ────────────────────────────────────────────────────────────
+    // Write-key gated. Creates a real GitHub Issue (label `bug`) so the
+    // composer files live — copy-paste retires. Body the dashboard parser
+    // understands is built from {title, description, severity, screen, build}.
+    // Requires the GITHUB_TOKEN to have Issues: WRITE (read-only returns 403).
+    // After creating, stores a `who` KV override so the chosen role shows.
+    if (request.method === 'POST' && url.pathname === '/issue') {
+      const provided = request.headers.get('X-Write-Key');
+      if (!env.WRITE_KEY || !provided || provided !== env.WRITE_KEY) {
+        return json({ error: 'Unauthorized — set X-Write-Key header' }, 401);
+      }
+
+      let b: { title?: string; description?: string; severity?: string; screen?: string; build?: string; who?: string };
+      try {
+        b = await request.json() as typeof b;
+      } catch {
+        return json({ error: 'Invalid JSON body' }, 400);
+      }
+
+      const title = (b.title ?? '').trim();
+      if (!title) return json({ error: 'title required' }, 400);
+      const desc = (b.description ?? '').trim();
+      const sevP = /^P[0-3]$/.test(b.severity ?? '') ? b.severity! : 'P3';
+      const screen = (b.screen ?? '').trim() || "Other / I'm not sure";
+      const buildNo = (b.build ?? '').trim() || "I don't know";
+
+      // Structured body mirrors the bug-report.yml template so /bugs parses it.
+      const issueBody = [
+        '### Build number', buildNo, '',
+        '### Which screen?', screen, '',
+        '### What actually happened?', desc || title, '',
+        '### How bad is it?', `${sevP} — filed from Bug Lord`,
+      ].join('\n');
+
+      const ghRes = await fetch('https://api.github.com/repos/patrickpatches/hone/issues', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+          Accept: 'application/vnd.github+json',
+          'User-Agent': 'HoneBugLord/1.0',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title, body: issueBody, labels: ['bug', 'needs-triage'] }),
+      }).catch(() => null);
+
+      if (!ghRes) return json({ error: 'Could not reach GitHub' }, 502);
+      if (ghRes.status === 403 || ghRes.status === 404) {
+        return json({
+          error: "The Worker's GitHub token can't create issues. Upgrade the hone-buglord token to Issues: Read AND write, then it works.",
+          status: ghRes.status,
+        }, 403);
+      }
+      if (!ghRes.ok) {
+        const t = await ghRes.text().catch(() => '');
+        return json({ error: 'GitHub rejected the issue', status: ghRes.status, detail: t.slice(0, 200) }, 502);
+      }
+
+      const created = await ghRes.json() as { number: number; html_url: string };
+      const id = (title.match(/HONE-(\d+)/i)?.[0]?.toUpperCase()) ?? `#${created.number}`;
+      const who = (b.who ?? '').trim();
+      if (who && who !== 'Patrick') {
+        await env.HONE_STATE.put(`bug:${id}`, JSON.stringify({ who })).catch(() => {});
+      }
+
+      return json({ ok: true, number: created.number, url: created.html_url, id });
+    }
+
     // ── GET /build ─────────────────────────────────────────────────────────────
     // Returns the latest completed EAS build number from the public GitHub
     // Actions API (no auth needed for public repos).
@@ -212,7 +282,7 @@ export default {
 
     // ── GET / (health) ─────────────────────────────────────────────────────────
     if (request.method === 'GET' && url.pathname === '/') {
-      return json({ ok: true, endpoints: ['GET /bugs', 'POST /update', 'GET /build'] });
+      return json({ ok: true, endpoints: ['GET /bugs', 'POST /update', 'POST /issue', 'GET /build'] });
     }
 
     return new Response('Not found', { status: 404, headers: CORS });

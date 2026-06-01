@@ -186,6 +186,16 @@
     background-position:calc(100% - 11px) 8px,calc(100% - 7px) 8px;background-size:4px 4px,4px 4px;background-repeat:no-repeat}
   .bsel:focus{outline:none;border-color:var(--aqua)}
   .bsel.edited{border-color:var(--fuch);box-shadow:0 0 0 2px rgba(255,46,166,.18)}
+  .bsel.saving{border-color:var(--warn);box-shadow:0 0 0 2px rgba(255,194,75,.18)}
+  .bsel.saved{border-color:var(--good);box-shadow:0 0 0 2px rgba(40,224,176,.22)}
+  .bsel.error{border-color:var(--bad);box-shadow:0 0 0 2px rgba(255,92,122,.22)}
+  .savetoast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:50;
+    background:rgba(15,22,38,.97);backdrop-filter:blur(10px);border:1px solid var(--line2);
+    border-radius:999px;padding:9px 18px;font-size:13px;font-weight:650;color:var(--ink);
+    box-shadow:0 8px 30px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s}
+  .savetoast.show{opacity:1}
+  .savetoast.ok{border-color:var(--good);color:var(--good)}
+  .savetoast.err{border-color:var(--bad);color:var(--bad)}
   .changebar{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;width:calc(100% - 32px);max-width:680px;z-index:40;
     background:rgba(15,22,38,.97);backdrop-filter:blur(10px);border:1px solid var(--fuch);border-radius:14px;padding:12px 14px;
     box-shadow:0 10px 40px rgba(0,0,0,.5);display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -235,38 +245,45 @@
 
     <div class="buildstatus" id="buildstatus"></div>
 
-    <!-- COMPOSER -->
+    <!-- COMPOSER — files a real ticket live -->
     <div class="card composer" style="margin-top:14px">
-      <h2>📨 Tell Claude / hand off a job</h2>
-      <div class="sublead">Write what happened — e.g. "built #134, shopping list works, blue line still there." Pick who it goes to, hit Prepare, then copy it to Claude in chat. (Saved on this device so you never lose it.)</div>
+      <h2>📨 File a bug or hand off a job</h2>
+      <div class="sublead">Type what's wrong or what you need. It files a real ticket on the board live — no copy-paste, no waiting on me.</div>
 
-      <div class="fld">Your update</div>
-      <textarea id="noteInput" placeholder="Type your update here…"></textarea>
+      <div class="fld">What's the issue?</div>
+      <textarea id="noteInput" placeholder="e.g. Search bar crashes the app when I tap it on the Kitchen tab"></textarea>
 
-      <div class="fld">Send this to</div>
-      <select id="assignee">
-        <option value="Senior Engineer">Engineer — code, builds, fixes</option>
-        <option value="Product Designer">Designer — look, layout, screens</option>
-        <option value="Cook">Cook — recipes, swaps, ingredients</option>
-        <option value="Photography Director">Photography — recipe photos</option>
-        <option value="Bug Tester">Bug Tester — install & test builds</option>
-        <option value="COO (Claude)">COO (me) — sort it / decide where it goes</option>
-      </select>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:170px">
+          <div class="fld">How bad is it?</div>
+          <select id="fileSev">
+            <option value="P2">Annoying — works, but rough</option>
+            <option value="P1">Serious — a feature is broken</option>
+            <option value="P0">Show-stopper — can't use it</option>
+            <option value="P3">Tidy-up — small polish</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:170px">
+          <div class="fld">Who's it for?</div>
+          <select id="assignee">
+            <option value="Senior Engineer">Engineer — code, builds, fixes</option>
+            <option value="Product Designer">Designer — look, layout, screens</option>
+            <option value="Cook">Cook — recipes, swaps, ingredients</option>
+            <option value="Photography Director">Photography — recipe photos</option>
+            <option value="Bug Tester">Bug Tester — install & test builds</option>
+            <option value="COO (Claude)">COO — sort it / decide where it goes</option>
+          </select>
+        </div>
+      </div>
 
       <div class="cbtns">
-        <button class="btn primary" id="prepBtn">Prepare update</button>
+        <button class="btn primary" id="fileBtn">File it live</button>
         <button class="btn ghost" id="clearBtn">Clear</button>
       </div>
 
       <div class="out" id="noteOut">
-        <div class="ohead">Ready — copy this to Claude</div>
-        <textarea id="noteFormatted" readonly></textarea>
-        <div class="cbtns"><button class="btn primary" id="copyBtn">Copy</button></div>
-        <div class="hint">Paste it into your chat with Claude — or say <b>"check Bug Lord"</b> and Claude will pull up your latest. Claude then acts on it and updates Bug Lord.</div>
         <div class="saved" id="savedMsg"></div>
       </div>
-
-      <div class="lastnote" id="lastNote"></div>
     </div>
 
     <div class="card" style="margin-top:14px">
@@ -296,10 +313,10 @@
       </div>
     </div>
     <div class="lead">Every open job. Tap a dropdown — it saves instantly. No copy-paste needed.</div>
-    <!-- Write-key first-time setup (hidden once key is stored) -->
+    <!-- Write-key box — appears only on your FIRST edit (hidden once stored). -->
     <div id="wkey-notice" style="display:none;align-items:center;gap:10px;background:rgba(31,227,234,.07);border:1px solid rgba(31,227,234,.3);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:13px">
       <span style="color:var(--aqua);font-weight:700">🔑</span>
-      <span style="color:var(--mut);flex:1">Dropdowns save live once you enter your write key (one-time setup).</span>
+      <span style="color:var(--mut);flex:1">Enter your write key once to save your change — it's remembered after this.</span>
       <input id="wkey-input" placeholder="Paste write key…" style="flex:2;background:var(--bg);border:1px solid var(--line2);border-radius:8px;color:var(--ink);font-family:inherit;font-size:13px;padding:7px 10px;outline:none">
       <button id="wkey-save" class="btn primary" style="padding:8px 14px;font-size:13px">Save</button>
     </div>
@@ -325,10 +342,11 @@
   </section>
 
   <footer>
-    <div><b>How this stays true:</b> updated by hand each working session — no stale auto-feed pretending to be live. The countdown is live; everything else is as of the date up top.</div>
+    <div><b>How this stays true:</b> the bug board, build number and your edits are live — they read and write straight to the cloud. Roadmap and readiness % are the COO's call, updated each session.</div>
     <div style="margin-top:7px">Google's 14-day / 12-tester rule confirmed against <a href="https://support.google.com/googleplay/android-developer/answer/14151465?hl=en" target="_blank">Play Console Help</a>. Readiness % are the COO's estimate — correct me.</div>
   </footer>
 </div>
+<div class="savetoast" id="savetoast"></div>
 
 <script>
 const LAUNCH=new Date('2026-07-24T00:00:00+10:00'); const AS_OF='live';
@@ -487,63 +505,114 @@ function renderBugs(){
 
 $('later').innerHTML=LATER.map(l=>`<div class="lcard"><div class="lt">${l.lt}</div><div class="ld">${l.ld}</div><div class="ls">${l.ls}</div></div>`).join('');
 
-/* ---- BUG EDITING — HONE-020: taps save live to KV via POST /update ---- */
+/* ---- BUG EDITING — HONE-020 item 7: instant optimistic save ----
+   The change shows immediately; the POST runs in the background.
+   We never block on a prompt, and never ask for the key on load —
+   only on the FIRST edit, via an inline box (no browser prompt).      */
 const WKEY='buglord_write_key';
 function getWriteKey(){return localStorage.getItem(WKEY)||'';}
 function setWriteKey(k){if(k)localStorage.setItem(WKEY,k);}
 
-async function postUpdate(id,field,value){
-  const key=getWriteKey();
-  if(!key){promptWriteKey();return false;}
-  try{
-    const r=await fetch(WORKER_URL+'/update',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','X-Write-Key':key},
-      body:JSON.stringify({id,field,value})
-    });
-    if(r.status===401){promptWriteKey('Key rejected — enter the correct one:');return false;}
-    return r.ok;
-  }catch(e){return false;}
+// Toast — small, non-blocking save feedback.
+let toastTimer=null;
+function toast(msg,kind){
+  const t=$('savetoast'); if(!t)return;
+  t.textContent=msg; t.className='savetoast show'+(kind?(' '+kind):'');
+  if(toastTimer)clearTimeout(toastTimer);
+  if(kind){toastTimer=setTimeout(function(){t.classList.remove('show');},2200);}
 }
 
-function promptWriteKey(msg){
-  const k=prompt(msg||'Enter your Bug Lord write key\n(run: wrangler secret put WRITE_KEY — use that same value):');
-  if(k){setWriteKey(k);return k;}
-  return '';
+// Apply a change to the in-memory model WITHOUT re-rendering the list
+// (re-rendering is what made the dropdown flash blank). Selects keep
+// the value the user just picked; only the severity bars refresh.
+function applyLocal(id,field,value){
+  var bug=BUGS.find(function(b){return b.id===id;});
+  if(bug)bug[field]=value;
+  recomputeSev();
+}
+
+async function doSave(id,field,value){
+  try{
+    const r=await fetch(WORKER_URL+'/update',{method:'POST',
+      headers:{'Content-Type':'application/json','X-Write-Key':getWriteKey()},
+      body:JSON.stringify({id,field,value})});
+    return r.status===401?'401':(r.ok?'ok':'err');
+  }catch(e){return 'err';}
+}
+
+// Edits made before a key is set wait here; flushed when the key is entered.
+const pendingEdits=[];
+
+function revealKeyBox(){
+  const n=$('wkey-notice');
+  if(n){n.style.display='flex'; const i=$('wkey-input'); if(i){try{i.focus();}catch(e){}}}
+}
+
+async function handleEdit(sl){
+  const id=sl.dataset.id,field=sl.dataset.field,value=sl.value;
+  // 1. Optimistic — the change is visible instantly.
+  applyLocal(id,field,value);
+  sl.classList.remove('saved','error');
+
+  // 2. No key yet → reveal the inline box, queue the edit. No blocking prompt.
+  if(!getWriteKey()){
+    pendingEdits.push({id,field,value,sl});
+    revealKeyBox();
+    toast('Enter your key once to save changes','');
+    return;
+  }
+
+  // 3. Save in the background.
+  sl.classList.add('saving');
+  toast('Saving…','');
+  const res=await doSave(id,field,value);
+  sl.classList.remove('saving');
+  if(res==='ok'){
+    sl.classList.add('saved'); setTimeout(function(){sl.classList.remove('saved');},1500);
+    toast('Saved ✓','ok');
+  } else if(res==='401'){
+    pendingEdits.push({id,field,value,sl}); revealKeyBox();
+    sl.classList.add('error'); toast('Key rejected — re-enter it','err');
+    localStorage.removeItem(WKEY);
+  } else {
+    sl.classList.add('error'); toast("Couldn't save — try again",'err');
+  }
+}
+
+async function flushPending(){
+  if(!getWriteKey()||!pendingEdits.length)return;
+  const batch=pendingEdits.splice(0,pendingEdits.length);
+  toast('Saving…','');
+  let okAll=true;
+  for(let i=0;i<batch.length;i++){
+    const e=batch[i];
+    if(e.sl)e.sl.classList.add('saving');
+    const res=await doSave(e.id,e.field,e.value);
+    if(e.sl)e.sl.classList.remove('saving');
+    if(res==='ok'){
+      if(e.sl){e.sl.classList.remove('error');e.sl.classList.add('saved');
+        (function(sl){setTimeout(function(){sl.classList.remove('saved');},1500);})(e.sl);}
+    } else { okAll=false; if(e.sl)e.sl.classList.add('error'); pendingEdits.push(e); }
+  }
+  toast(okAll?'Saved ✓':"Some didn't save — check your key", okAll?'ok':'err');
 }
 
 function initBugEditing(){
-  // Show write-key notice if key not set
-  const notice=$('wkey-notice');
-  if(notice) notice.style.display=getWriteKey()?'none':'flex';
-
+  // No key prompt on load (item 7) — only on first edit.
   document.querySelectorAll('.bsel').forEach(function(sl){
-    sl.addEventListener('change',async function(){
-      const id=sl.dataset.id,field=sl.dataset.field,value=sl.value;
-      sl.classList.remove('saved','error');
-      sl.classList.add('saving');
-      const ok=await postUpdate(id,field,value);
-      sl.classList.remove('saving');
-      if(ok){
-        // Update local BUGS array immediately so the UI stays consistent
-        var bug=BUGS.find(function(b){return b.id===id;});
-        if(bug) bug[field]=value;
-        sl.classList.add('saved');
-        setTimeout(function(){sl.classList.remove('saved');},2000);
-        recomputeSev();
-      } else {
-        sl.classList.add('error');
-        setTimeout(function(){sl.classList.remove('error');},3000);
-      }
-    });
+    sl.addEventListener('change',function(){handleEdit(sl);});
   });
 }
 
-// Write-key notice click handler
+// Inline write-key Save button (Bugs tab) — stores the key + flushes queued edits.
 document.addEventListener('click',function(e){
   if(e.target&&e.target.id==='wkey-save'){
     const inp=$('wkey-input');
-    if(inp&&inp.value.trim()){setWriteKey(inp.value.trim());const n=$('wkey-notice');if(n)n.style.display='none';}
+    if(inp&&inp.value.trim()){
+      setWriteKey(inp.value.trim());
+      const n=$('wkey-notice'); if(n)n.style.display='none';
+      flushPending();
+    }
   }
 });
 
@@ -605,37 +674,50 @@ async function initBugLord(){
 }
 initBugLord();
 
-/* ---- COMPOSER ---- */
-const NKEY='buglord_note';
-function fmtNow(){const d=new Date();return d.toLocaleDateString('en-AU',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});}
-function buildText(){
-  const note=$('noteInput').value.trim(); const who=$('assignee').value;
-  return 'BUG LORD UPDATE — '+fmtNow()+'\nFor: '+who+'\n\n'+note;
+/* ---- COMPOSER — HONE-020 item 2: files a REAL GitHub Issue live ---- */
+const WHO_MAP={'Senior Engineer':'Engineer','Product Designer':'Designer','Cook':'Cook','Photography Director':'Photography','Bug Tester':'Bug Tester','COO (Claude)':'COO (me)'};
+function deriveTitle(text){
+  const first=(text.split('\n')[0]||'').trim();
+  return first.length>72?first.slice(0,72).trim()+'…':first;
 }
-$('prepBtn').addEventListener('click',()=>{
-  if(!$('noteInput').value.trim()){$('noteInput').focus();return;}
-  const txt=buildText();
-  $('noteFormatted').value=txt;
-  $('noteOut').classList.add('show');
-  try{localStorage.setItem(NKEY,JSON.stringify({txt:txt,when:fmtNow()}));}catch(e){}
-  $('savedMsg').textContent='✓ Saved on this device.'; $('savedMsg').classList.add('show');
-  $('noteOut').scrollIntoView({behavior:'smooth',block:'nearest'});
-  showLast();
+$('fileBtn').addEventListener('click',async function(){
+  const desc=$('noteInput').value.trim();
+  if(!desc){$('noteInput').focus();return;}
+  // Filing is a deliberate action — a one-time key prompt here is fine.
+  if(!getWriteKey()){
+    const k=prompt('Enter your Bug Lord write key to file live (one-time — it\'s then remembered):');
+    if(!k){return;} setWriteKey(k);
+  }
+  const title=deriveTitle(desc);
+  const sev=$('fileSev')?$('fileSev').value:'P3';
+  const who=WHO_MAP[$('assignee').value]||'Patrick';
+  const btn=$('fileBtn'); btn.disabled=true; btn.textContent='Filing…';
+  toast('Filing…','');
+  try{
+    const r=await fetch(WORKER_URL+'/issue',{method:'POST',
+      headers:{'Content-Type':'application/json','X-Write-Key':getWriteKey()},
+      body:JSON.stringify({title:title,description:desc,severity:sev,who:who})});
+    const out=await r.json().catch(function(){return{};});
+    if(r.ok&&out.ok){
+      $('savedMsg').innerHTML='✓ Filed as <b>#'+out.number+'</b> — it\'s on the board now. <a href="'+out.url+'" target="_blank">view on GitHub</a>';
+      $('savedMsg').classList.add('show'); $('noteOut').classList.add('show');
+      $('noteInput').value='';
+      toast('Bug filed ✓','ok');
+      initBugLord(); // refresh the board so the new ticket appears
+    } else if(r.status===401){
+      localStorage.removeItem(WKEY);
+      toast('Key rejected — try filing again','err');
+    } else if(r.status===403){
+      $('savedMsg').innerHTML='⚠ Couldn\'t file: the board\'s GitHub token needs <b>Issues: write</b> permission. (Engineer: upgrade the token scope — see the handoff.)';
+      $('savedMsg').classList.add('show'); $('noteOut').classList.add('show');
+      toast('Token needs write access','err');
+    } else {
+      toast((out&&out.error)?('Couldn\'t file — '+out.error):'Couldn\'t file — try again','err');
+    }
+  }catch(e){ toast('Network error — try again','err'); }
+  btn.disabled=false; btn.textContent='File it live';
 });
-$('copyBtn').addEventListener('click',async()=>{
-  const ta=$('noteFormatted'); ta.select(); ta.setSelectionRange(0,99999);
-  let ok=false;
-  try{await navigator.clipboard.writeText(ta.value);ok=true;}catch(e){try{ok=document.execCommand('copy');}catch(_){}}
-  $('savedMsg').textContent=ok?'✓ Copied — now paste it to Claude in chat.':'Select the text above and copy it, then paste to Claude.';
-  $('savedMsg').classList.add('show');
-});
-$('clearBtn').addEventListener('click',()=>{$('noteInput').value='';$('noteOut').classList.remove('show');$('savedMsg').classList.remove('show');});
-function showLast(){
-  try{const raw=localStorage.getItem(NKEY); if(!raw)return; const o=JSON.parse(raw);
-    $('lastNote').innerHTML='<b>Last update you saved here ('+o.when+'):</b><br>'+o.txt.replace(/\n/g,'<br>');
-    $('lastNote').classList.add('show');}catch(e){}
-}
-showLast();
+$('clearBtn').addEventListener('click',function(){$('noteInput').value='';$('noteOut').classList.remove('show');$('savedMsg').classList.remove('show');});
 
 /* ---- TABS ---- */
 const KEY='buglord_tab';

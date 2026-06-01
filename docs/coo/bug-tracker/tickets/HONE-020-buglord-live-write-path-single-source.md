@@ -57,3 +57,29 @@ Per R-015: not self-closing.
 - ~5s lag on save and the dropdown goes BLANK during the update — add an optimistic UI (show the new value instantly) + a small saving indicator; don't blank the control.
 - **Retire copy-paste fully:** make the "Tell Claude" composer FILE A NEW BUG LIVE (create a GitHub Issue via the Worker) instead of copy-to-chat. Status changes are already live; new-bug reporting is the last thing still needing copy-paste. Update the composer's helper text to say status changes now save automatically; this box is for NEW bugs / handoffs.
 - Freshness: the `/bugs` edge cache is still stale (see item 6) — new issues (#13) + my closes don't show promptly.
+
+## FIX ATTEMPTED (round 2 — polish, items 6+7) — docs/infra commit `<tbd>` — 2026-06-01
+
+_Patrick's three follow-ups after using the live board._
+
+**Item 7 — edit UX (the lag + blank + load-time prompt):**
+- Root cause of the freeze: the dropdown handler `await`ed the POST before showing anything, and a missing key triggered a *blocking* browser `prompt()`. Root cause of "blank": none in the list render (`recomputeSev` never re-renders the list) — it was the perceived freeze during the await.
+- Fix: **optimistic save.** The change applies to the in-memory model instantly (`applyLocal`, no list re-render so the select keeps its value); the POST runs in the background; a small non-blocking toast shows `Saving… → Saved ✓`. The write-key box no longer appears on tab load — it appears only on the **first edit**, inline (no browser prompt). Edits made before the key is set queue in `pendingEdits` and flush automatically when the key is entered.
+- Select feedback: `.saving` (amber) / `.saved` (green) / `.error` (red) border states.
+
+**Item 2 — composer files a real GitHub Issue live:**
+- New Worker endpoint `POST /issue` (write-key gated). Builds a template-shaped issue body so `/bugs` parses severity/screen, creates the issue with labels `bug`,`needs-triage`, and stores a `who` KV override for the chosen role. Returns `{number, url, id}`.
+- Composer reworked: "File a bug or hand off a job" → title derived from the first line, severity + who pickers, **File it live** button. On success shows "Filed as #N — on the board now" + GitHub link and refreshes the board. Copy-paste composer fully retired.
+- **Requires the `GITHUB_TOKEN` to have Issues: write** (currently read-only). Until upgraded, `/issue` returns 403 and the composer shows a clear "token needs write access" message. Read paths (bugs/build) and the write path (`/update` → KV) are unaffected.
+
+**Item 3 — stale `/bugs` cache:**
+- `GET /bugs` `Cache-Control` changed from `s-maxage=30` to **`no-store`**. Every read is live (GitHub + KV). Verified via response headers.
+
+**Verified live:** `/` lists `/issue`; `/issue` → 401 without key; `/bugs` → `Cache-Control: no-store`. Both secrets (`GITHUB_TOKEN`, `WRITE_KEY`) confirmed present.
+
+**Patrick's one new command (only needed for item 2 — filing bugs from the board):**
+Upgrade the existing fine-grained token `hone-buglord-worker` so Issues = **Read and write** (it's read-only now):
+`github.com → Settings → Developer settings → Fine-grained tokens → hone-buglord-worker → Repository permissions → Issues → Read and write → Update`.
+Editing permissions keeps the same token value, so **no `wrangler` re-run is needed**. (Only if GitHub forces a new token value: `cd workers/bug-lord && npx wrangler secret put GITHUB_TOKEN`.)
+
+No EAS build (dashboard/worker only). Per R-015: not self-closing.
