@@ -1,23 +1,37 @@
-# Maestro E2E — Phase 2 (NOT ACTIVE)
+# Maestro E2E — Phase 2 stub (NOT YET ACTIVE)
 #
-# Uncomment this workflow once the Maestro suite has 10+ stable flows.
-# Trigger: manually after a successful APK build, or on workflow_dispatch.
+# This workflow is a placeholder. Uncomment the real job below once the
+# Maestro suite has 10+ stable flows and you're ready to run it in CI.
 #
-# Prerequisites before enabling:
-#   1. The suite must be stable — no flaky flows.
-#   2. The APK artifact retention window must cover the time between
-#      eas-build.yml completing and this workflow running.
-#   3. Test on API 26 emulator (matches mobile/android/build.gradle minSdkVersion 26).
+# Prerequisites before enabling the real job:
+#   1. Suite must be stable — no flaky flows.
+#   2. APK artifact retention must cover the gap between eas-build and this run.
+#   3. Uses API 26 emulator (matches mobile/android minSdkVersion 26).
 #
-# name: Maestro E2E
-#
-# on:
-#   workflow_dispatch:
-#     inputs:
-#       run_id:
-#         description: 'eas-build workflow run ID whose APK to test'
-#         required: true
-#         type: string
+# To enable: delete the stub job below and uncomment the e2e job block.
+
+name: Maestro E2E (stub — not active)
+
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: 'Note — this workflow is a stub; the real E2E job is commented out below'
+        required: false
+        default: 'stub'
+
+jobs:
+  stub:
+    name: Phase 2 not yet active
+    runs-on: ubuntu-latest
+    steps:
+      - name: Not active yet
+        run: |
+          echo "Maestro E2E suite is Phase 2."
+          echo "Enable when 10+ stable flows exist — see maestro/flows/ and HONE-016."
+          echo "To wire in: uncomment the real job in this file."
+
+# ── Real E2E job (uncomment when ready) ───────────────────────────────────────
 #
 # jobs:
 #   e2e:
