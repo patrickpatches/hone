@@ -49,3 +49,5 @@ npx wrangler secret put WRITE_KEY
 Then paste the same phrase into the write-key box on the Bugs tab once.
 
 Per R-015: not self-closing.
+
+**6. Freshness / caching (found 2026-06-02).** The Worker's `/bugs` feed is edge-cached inconsistently: closed issues sometimes still read `open`, and a newly-filed issue (#13) didn't appear for minutes. The board must ALWAYS reflect current GitHub state — set short/no cache + cache-busting on the feed (and on `/build`), or push-update on change. "Always accurate" depends on this.
