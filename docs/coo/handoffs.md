@@ -80,6 +80,20 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
+### HANDOFF → Senior Engineer · 2026-06-01 · OPEN — HONE-019 make Bug Lord LIVE (Cloudflare Worker)
+**Lane:** Claude Code (CLI). **From:** COO. Patrick approved 2026-06-01.
+
+**Why:** Bug Lord is static, so every edit is copy-paste and the board drifts out of sync. A small Cloudflare Worker holds the credential server-side and becomes the live read/write backend — taps save for real, everyone reads the same state.
+
+**What's needed:** full spec in `docs/coo/bug-tracker/tickets/HONE-019-buglord-live-cloudflare-worker.md`. In short: a Worker (`workers/buglord/`) with `GET /state`, `POST /update` (write-key gated), `GET /build` (live eas-build run_number); state in Cloudflare KV; secrets via `wrangler secret put` (never in code/page); rewrite `docs/dashboard/index.html` to fetch/POST the Worker with the current inline data kept as a fallback; CORS locked to the Pages origin. Recommend KV-only vs KV+git-mirror.
+
+**The one thing to bounce back:** the exact `wrangler` commands + Cloudflare account/secret setup Patrick must run (he holds the credentials).
+**Sequencing:** alongside launch work, not ahead of it. Not on the 24 July critical path.
+**Blocks:** nothing. Unblocks "always in sync."
+
+---
+
+
 ### HANDOFF → Senior Engineer · 2026-05-31 · DONE — HONE-016 Maestro screen-testing harness (Phase 1)
 **Lane:** Claude Code (CLI).
 **From:** COO
