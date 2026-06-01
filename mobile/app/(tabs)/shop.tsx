@@ -396,6 +396,43 @@ export default function ShopTab() {
   const totalCount = items.length;
   const tickedCount = items.filter((it) => it.in_cart).length;
 
+  // ── Recipe groups (items added via "Add missing to shopping list") ─────────
+  // Groups items that carry a 'recipe-add' source by their recipe_id.
+  // Displayed above the aisle sections so Patrick can see which recipes
+  // contributed items and remove a whole recipe's items in one tap.
+  const recipeGroups = useMemo(() => {
+    const groups = new Map<string, number>();
+    for (const item of items) {
+      for (const src of item.sources) {
+        if (src.kind === 'recipe-add') {
+          groups.set(src.recipe_id, (groups.get(src.recipe_id) ?? 0) + 1);
+        }
+      }
+    }
+    return Array.from(groups.entries()).map(([recipeId, count]) => ({
+      recipeId,
+      count,
+      title: recipes.find((r) => r.id === recipeId)?.title ?? recipeId,
+    }));
+  }, [items, recipes]);
+
+  const handleRemoveRecipeItems = useCallback(
+    (recipeId: string) => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+      const next = items.filter((item) => {
+        // Remove only if the sole source is this recipe's recipe-add entry.
+        // Items with multiple sources (e.g. also planned as a meal) are kept.
+        const isOnlyThisRecipe =
+          item.sources.length === 1 &&
+          item.sources[0].kind === 'recipe-add' &&
+          (item.sources[0] as { kind: 'recipe-add'; recipe_id: string }).recipe_id === recipeId;
+        return !isOnlyThisRecipe;
+      });
+      persist(next);
+    },
+    [items, persist],
+  );
+
   // ── Share handler ──────────────────────────────────────────────────────────
   const handleShare = useCallback(async () => {
     const lines: string[] = ['Shopping list (Hone)\n'];
@@ -730,6 +767,12 @@ export default function ShopTab() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 160, paddingTop: 4 }}
         >
+          {recipeGroups.length > 0 && (
+            <RecipeAddsCard
+              groups={recipeGroups}
+              onRemove={handleRemoveRecipeItems}
+            />
+          )}
           {sections.map((item) => (
             <Section
               key={item.cat}
@@ -1141,6 +1184,99 @@ function ShopRow({
         <Icon name="x" size={14} color={tokens.ink} />
       </Pressable>
     </Animated.View>
+  );
+}
+
+// ── RecipeAddsCard ────────────────────────────────────────────────────────────
+// Shows which recipes contributed items to this list via "Add missing", and
+// lets Patrick remove all items from a specific recipe in one tap.
+// Positioned above the aisle sections so it's the first thing you see after
+// the search bar when you've added ingredients from a recipe.
+function RecipeAddsCard({
+  groups,
+  onRemove,
+}: {
+  groups: { recipeId: string; count: number; title: string }[];
+  onRemove: (recipeId: string) => void;
+}) {
+  return (
+    <View style={{ marginHorizontal: 20, marginTop: 14, marginBottom: 4 }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 9,
+          marginBottom: 8,
+        }}
+      >
+        <Icon name="cart" size={13} color={tokens.bronze} />
+        <Text
+          style={{
+            fontFamily: fonts.sansBold,
+            fontSize: 11,
+            letterSpacing: 1.8,
+            color: tokens.bronze,
+          }}
+        >
+          ADDED FROM RECIPES
+        </Text>
+        <View style={{ flex: 1, height: 1, backgroundColor: tokens.line }} />
+      </View>
+      {groups.map((g) => (
+        <View
+          key={g.recipeId}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: tokens.cream,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: tokens.line,
+            paddingVertical: 12,
+            paddingHorizontal: 14,
+            marginBottom: 6,
+            ...shadows.card,
+          }}
+        >
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontFamily: fonts.sansBold,
+                fontSize: 14,
+                color: tokens.ink,
+              }}
+              numberOfLines={1}
+            >
+              {g.title}
+            </Text>
+            <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: tokens.muted, marginTop: 2 }}>
+              {g.count} ingredient{g.count === 1 ? '' : 's'} on your list
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => onRemove(g.recipeId)}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={`Remove all ${g.title} ingredients from shopping list`}
+            android_ripple={{ color: 'rgba(255,92,122,0.15)', borderless: true }}
+            style={{ padding: 8, borderRadius: 8 }}
+          >
+            <View
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                backgroundColor: 'rgba(255,92,122,0.10)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Icon name="trash" size={15} color="#FF5C7A" />
+            </View>
+          </Pressable>
+        </View>
+      ))}
+    </View>
   );
 }
 

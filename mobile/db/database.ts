@@ -656,7 +656,12 @@ export async function deleteMealPlanEntry(
 export type ShoppingSource =
   | { kind: 'meal'; recipe_id: string; servings: number }
   | { kind: 'manual' }
-  | { kind: 'pantry-suggestion'; recipe_id: string };
+  | { kind: 'pantry-suggestion'; recipe_id: string }
+  // Added when the user taps "Add missing to shopping list" on a recipe screen.
+  // Differs from 'meal': manually_added=true so reconcile() never strips it.
+  // Carries recipe_id so Shop tab can group items by recipe and offer
+  // one-tap removal ("remove all Smash Burger items").
+  | { kind: 'recipe-add'; recipe_id: string };
 
 export interface ShoppingItem {
   id: string;

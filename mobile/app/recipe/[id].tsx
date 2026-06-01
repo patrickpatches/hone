@@ -333,14 +333,14 @@ function RecipeDetailScreenInner() {
             quantity: mi.amount > 0 ? mi.amount : null,
             unit: mi.unit ?? null,
             notes: null,
-            manually_added: true,   // HONE-007: user explicitly tapped this button
+            manually_added: true,   // survive reconcile() regardless of plan state
             in_cart: false,
             added_at: Date.now(),
-            // HONE-007 fix: use 'manual' not 'meal'. Shop's reconcile() strips
-            // kind:'meal' items for unplanned recipes, so items added here
-            // disappeared immediately if the recipe wasn't in the plan. 'manual'
-            // makes them persist like anything the user typed themselves.
-            sources: [{ kind: 'manual' as const }],
+            // 'recipe-add' carries the recipe_id so Shop tab can group items by
+            // recipe and offer one-tap removal. manually_added:true is what
+            // actually prevents reconcile() from stripping the item; the kind is
+            // just for attribution. Replaces the old 'manual' kind (HONE-007 fix).
+            sources: [{ kind: 'recipe-add' as const, recipe_id: recipe.id }],
           });
         }),
       );
