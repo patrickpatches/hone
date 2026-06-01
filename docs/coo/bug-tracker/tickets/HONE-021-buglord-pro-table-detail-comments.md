@@ -20,7 +20,7 @@ Make Bug Lord a genuinely best-in-class manager for a solo founder — faster, c
 ## COO TRIAGE — 2026-06-02
 P2, but the freshness fix (item 1) is effectively P1 — without it the live board feels broken. Sequence alongside launch work; this is the management system, not the cooking app.
 
-## FIX ATTEMPTED — docs/infra commit `<tbd>` — 2026-06-02
+## FIX ATTEMPTED — docs/infra commit `2d9bece` — 2026-06-02
 
 _Senior Engineer. All five items shipped. No EAS build (dashboard + Worker only)._
 
