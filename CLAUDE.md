@@ -209,6 +209,8 @@ Bug Lord is the single hub for fixing and progress — every specialist checks i
 
 **"Build #N" = the GitHub Actions `eas-build.yml` run_number.** Nothing else. It auto-increments every time an APK is genuinely built, so it cannot be faked or drift. Never invent a build number, and never assign one to a code-only commit that wasn't built. To find the current build, every specialist queries the latest run: `GET /repos/patrickpatches/hone/actions/workflows/eas-build.yml/runs` — the top entry is the newest build (its `head_sha` tells you exactly what's in it). Bug Lord shows the newest built # next to the # on Patrick's phone so the whole team reads the same number. The hand-typed build-log table in `handoffs.md` is a convenience mirror only — if it disagrees with the Actions runs, the Actions runs win.
 
+**Who may trigger a build (updated 2026-06-01):** any specialist — Senior Engineer, the automated Worker, and the COO — may dispatch a preview build (`eas-build.yml`, profile=preview) with judgement: batch related fixes, hotfix a fresh show-stopper, never burn a build on one trivial change. Production builds are Patrick's call. The old 'only Patrick triggers' rule is retired. **Unchanged:** R-015 — only Patrick closes a ticket, on-device.
+
 ## Bug tracking system
 
 - **Source of truth:** GitHub Issues on `patrickpatches/hone` (Patrick logs from phone, Claude reads via PAT)
