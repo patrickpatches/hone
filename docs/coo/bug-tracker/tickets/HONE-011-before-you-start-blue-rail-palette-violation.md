@@ -9,7 +9,8 @@ RECIPE:
 ASSIGNEE:        Engineer
 EPIC:            EPIC-v7-mise
 FOUND IN BUILD:  #132
-FIX ATTEMPTED:   (blank)
+FIX ATTEMPTED:   #134 (commit e3cb60c — 2026-05-31)
+STATUS:          VALIDATED ✅ — Patrick closed GitHub Issue #11 on-device
 TARGET BUILD:    #134
 REPRODUCIBLE:    Always
 DEVICE:          Patrick's Pixel (Android 14)
@@ -36,4 +37,4 @@ Blue left rail.
 
 ## Engineer notes
 
-5-min single-token swap — applies to whatever styled-block the before-you-start renders into. Bundled with #3 (the wall-of-text fix).
+5-min single-token swap — ap
