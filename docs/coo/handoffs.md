@@ -82,6 +82,14 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
+### HANDOFF → Senior Engineer · 2026-06-02 · OPEN — HONE-021 Bug Lord Pro (table + job detail + live comments)
+**Lane:** Claude Code. **From:** COO. Patrick approved — wants it better than Jira.
+
+Spec: `docs/coo/bug-tracker/tickets/HONE-021-buglord-pro-table-detail-comments.md`. Order: (1) FIX FRESHNESS — new bugs/edits must show in ~1-2s (the `/bugs` cache is stale; Issue #14 filed but never appeared); (2) table view (sortable, filter, search, mobile-first); (3) click a job → detail with live-editable status/who + a dated comment thread from the GitHub Issue's comments + add-comment; (4) Worker `GET /issue/:n` + `POST /issue/:n/comment` (token now has Issues write); (5) polish — optimistic UI, fix the 5s blank-dropdown lag, password only on first write. No EAS build for dashboard-only work.
+
+---
+
+
 ### HANDOFF → Senior Engineer · 2026-06-01 · DONE — HONE-020 Bug Lord live end-to-end (Phase 2)
 **Lane:** Claude Code (CLI).
 **From:** COO (brief) / Senior Engineer (built)
