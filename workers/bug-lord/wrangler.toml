@@ -2,8 +2,15 @@ name = "hone-buglord"
 main = "src/index.ts"
 compatibility_date = "2025-01-01"
 
-# GITHUB_TOKEN is stored as a secret — never in source.
-# Set it with: wrangler secret put GITHUB_TOKEN
+# KV namespace — mutable bug state (st, sev, who, build overrides)
+# Created 2026-06-01 via: wrangler kv:namespace create HONE_STATE
+[[kv_namespaces]]
+binding = "HONE_STATE"
+id = "33fab36582ed42bf93329fa5517bca24"
+
+# Secrets (set via wrangler secret put, never in source):
+#   GITHUB_TOKEN  — fine-grained token, Issues read-only on patrickpatches/hone
+#   WRITE_KEY     — any string Patrick chooses; entered once in the dashboard
 #
 # Deploy: wrangler deploy
-# Dev:    wrangler dev   (uses a local mock; hit http://localhost:8787/bugs)
+# Dev:    wrangler dev  (hit http://localhost:8787)

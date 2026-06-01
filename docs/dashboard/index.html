@@ -295,15 +295,15 @@
         <span><i style="background:var(--mut2)"></i>Tidy-up = cosmetic</span>
       </div>
     </div>
-    <div class="lead">Every open job, plain English. "Fixed — build &amp; check" means the engineer did it; it lands on your phone once you build #133.</div>
-    <div id="buglist" style="margin-top:10px"></div>
-    <div class="changebar" id="changebar">
-      <div id="changeText"></div>
-      <div class="cbtns" style="margin-top:0">
-        <button class="btn primary" id="cbCopy">Copy &amp; send to Claude</button>
-        <button class="btn ghost" id="cbClear">Discard</button>
-      </div>
+    <div class="lead">Every open job. Tap a dropdown — it saves instantly. No copy-paste needed.</div>
+    <!-- Write-key first-time setup (hidden once key is stored) -->
+    <div id="wkey-notice" style="display:none;align-items:center;gap:10px;background:rgba(31,227,234,.07);border:1px solid rgba(31,227,234,.3);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:13px">
+      <span style="color:var(--aqua);font-weight:700">🔑</span>
+      <span style="color:var(--mut);flex:1">Dropdowns save live once you enter your write key (one-time setup).</span>
+      <input id="wkey-input" placeholder="Paste write key…" style="flex:2;background:var(--bg);border:1px solid var(--line2);border-radius:8px;color:var(--ink);font-family:inherit;font-size:13px;padding:7px 10px;outline:none">
+      <button id="wkey-save" class="btn primary" style="padding:8px 14px;font-size:13px">Save</button>
     </div>
+    <div id="buglist" style="margin-top:10px"><div style="padding:18px;color:var(--mut)">Loading…</div></div>
   </section>
 
   <!-- AFTER LAUNCH -->
@@ -331,7 +331,7 @@
 </div>
 
 <script>
-const LAUNCH=new Date('2026-07-24T00:00:00+10:00'); const AS_OF='31 May 2026';
+const LAUNCH=new Date('2026-07-24T00:00:00+10:00'); const AS_OF='live';
 const TABS=[{id:'today',label:'Today'},{id:'flow',label:'How we work'},{id:'roadmap',label:'Roadmap'},{id:'bugs',label:'Bugs',badge:10},{id:'later',label:'After launch'}];
 
 const JOBS=[
@@ -358,38 +358,48 @@ const ROAD=[
 ];
 
 const READY=[{name:"Cooking app polish",pct:85,c:'var(--aqua)'},{name:"16 recipes ready",pct:70,c:'var(--aqua)'},{name:"Testing gate (12 / 14 days)",pct:0,c:'var(--fuch)'},{name:"Store page + data-safety",pct:20,c:'var(--fuch)'}];
-// ── HONE-019: live Worker feed ────────────────────────────────────────────────
-// After Patrick deploys the Cloudflare Worker (workers/bug-lord/), replace
-// YOUR_SUBDOMAIN below with the subdomain shown by `wrangler deploy`.
-// Example: if the Worker URL is hone-buglord.patrickpatches.workers.dev
-//          set WORKER_URL = 'https://hone-buglord.patrickpatches.workers.dev'
-// Until then, BUGS_STATIC is the sole data source (dashboard still works fully).
+// ── HONE-020: Cloudflare Worker is the single data source ─────────────────────
+// All bug state lives in GitHub Issues (base) + Cloudflare KV (live overrides).
+// Dropdown taps POST straight to the Worker; nothing is hardcoded here anymore.
 const WORKER_URL='https://hone-buglord.patrick-nasr11.workers.dev';
-
-// Static fallback — legacy HONE-007..016 not yet on GitHub Issues.
-// Once all these are filed as GitHub Issues with the `bug` label, this
-// array can be emptied and the Worker becomes the only source.
-const BUGS_STATIC=[
+// Seed list — engineering tickets HONE-013..020 not yet filed as GitHub Issues.
+// The Worker serves the issues that ARE filed (HONE-007..012, BUG-001..003);
+// initBugLord() merges them over this seed by id, so nothing duplicates and
+// no ticket vanishes. As each of these gets filed as a GitHub Issue with the
+// `bug` label, delete its row here. When this array is empty, the Worker is
+// the literal single source.
+const BUGS_SEED=[
   {id:'HONE-013',sev:'Annoying',t:"Our team's notes file got cut off and lost history",d:"A behind-the-scenes file was truncated. No effect on the app.",who:'Engineer',build:'after #134',st:'done'},
   {id:'HONE-014',sev:'Tidy-up',t:"That same notes file is bloated and messy",d:"Done — old handoffs archived, file trimmed (1 June). Internal only, no app effect.",who:'File Organiser',build:'n/a',st:'done'},
   {id:'HONE-015',sev:'Annoying',t:"Make the recipe notes appear where they apply (proper fix)",d:"The quality version of HONE-009: each prep note moves onto the exact step or ingredient it's about.",who:'Cook → Engineer',build:'before launch',st:'done'},
   {id:'HONE-016',sev:'Annoying',t:"Build automated screen-testing (so the tester can tap through the app)",d:"Built — 5 Maestro flows + a local runner are in (#135). Next: confirm they run on a device.",who:'Engineer',build:'#135',st:'check'},
   {id:'HONE-017',sev:'Annoying',t:"Items added from a recipe were tagged wrong in the shopping list",d:"Fixed (#135) — recipe-added items now carry the right source so they don't get swept away.",who:'Engineer',build:'#135',st:'check'},
   {id:'HONE-018',sev:'Tidy-up',t:"No quick way to clear one recipe's items from the Shop list",d:"Fixed (#135) — added a remove-by-recipe button in Shop.",who:'You to decide',build:'#135',st:'done'},
-  {id:'HONE-019',sev:'Annoying',t:"Make Bug Lord live — no more copy-paste",d:"Worker built (workers/bug-lord/). Once you run 5 setup commands and fill in your CF subdomain, new GitHub Issues auto-appear on the dashboard. No more manual HTML edits.",who:'You to decide',build:'#138',st:'done'},
-  {id:'HONE-020',sev:'Annoying',t:"Finish the live board — saving + live build number",d:"Make taps save without copy-paste, pull the latest GitHub/EAS build number automatically, and keep one clean list. Engineer's job; the read-side is already live.",who:'Engineer',build:'Worker',st:'open'}
+  {id:'HONE-019',sev:'Annoying',t:"Make Bug Lord live — no more copy-paste",d:"Done (#138) — Worker live, new GitHub Issues auto-appear on the board.",who:'You to decide',build:'#138',st:'done'},
+  {id:'HONE-020',sev:'Annoying',t:"Finish the live board — saving + live build number",d:"Done (#139) — taps save live to the cloud, build number pulls automatically from GitHub/EAS.",who:'You to decide',build:'#139',st:'check'}
 ];
-let BUGS=BUGS_STATIC.slice();
+let BUGS=BUGS_SEED.slice();
 const SEV_DEF=[['Show-stopper','var(--bad)'],['Serious','var(--warn)'],['Annoying','var(--aqua)'],['Tidy-up','var(--mut2)']];
-const SEV=SEV_DEF.map(d=>({name:d[0],c:d[1],n:BUGS.filter(b=>b.st!=='done'&&b.sev===d[0]).length}));
-TABS.find(t=>t.id==='bugs').badge=BUGS.filter(b=>b.st!=='done').length;
+// SEV and badge are recomputed by recomputeSev() after BUGS loads from Worker
+const SEV=SEV_DEF.map(d=>({name:d[0],c:d[1],n:0}));
+function recomputeSev(){
+  SEV_DEF.forEach(function(d,i){SEV[i].n=BUGS.filter(function(b){return b.st!=='done'&&b.sev===d[0];}).length;});
+  var openN=BUGS.filter(function(b){return b.st!=='done';}).length;
+  TABS.find(function(t){return t.id==='bugs';}).badge=openN;
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    if(btn.dataset.go==='bugs') btn.innerHTML='Bugs<span class="badge">'+openN+'</span>';
+  });
+  var maxN=Math.max(1,...SEV.map(function(s){return s.n;}));
+  if($('sevbars')) $('sevbars').innerHTML=SEV.map(function(s){return '<div class="sev"><div class="name">'+s.name+'</div><div class="strack"><div class="sfill" style="width:'+(s.n===0?2:(s.n/maxN*100))+'%;background:'+s.c+'">'+s.n+'</div></div></div>';}).join('');
+}
+TABS.find(t=>t.id==='bugs').badge=0;
 const LATER=[
   {lt:"Do people come back the next day?",ld:"Of everyone who opens Hone today, how many open it again tomorrow. The strongest sign the app is actually useful.",ls:"starts at launch"},
   {lt:"How fast to their first cooked dish?",ld:"Time from opening the app to tapping 'Start cooking' on something real. Slow = friction from fridge to plate.",ls:"starts at launch"},
   {lt:"Crash-free rate",ld:"The % of sessions with no crash. Below ~99% and early reviews punish you. The launch-week number that matters most.",ls:"starts at launch"},
   {lt:"What the bad reviews actually say",ld:"Not the star average — the words in the 1- and 2-star reviews. That's where the real to-do list comes from.",ls:"starts at launch"}
 ];
-const BUILD={latest:135,latestSha:'aefa951',building:null,onPhone:135};
+// BUILD numbers now come live from the Worker's GET /build endpoint (HONE-020).
 const TEAM=[
  ["COO (me)","Runs the day-to-day, sequences the work, keeps this board true."],
  ["Engineer","Writes the code, fixes the bugs, builds the app."],
@@ -425,13 +435,8 @@ $('verdict').innerHTML='<span class="dot" style="background:'+vcol+'"></span>'+v
 const priCol=['','#FF5C7A','#FFC24B','#1FE3EA','#8696B0'];
 $('jobs').innerHTML=JOBS.map(j=>`<div class="job"><div class="pri" style="background:${priCol[j.pri]}22;color:${priCol[j.pri]};border:1px solid ${priCol[j.pri]}55">${j.pri}</div><div><div class="t">${j.t}</div><div class="d">${j.d}</div><div class="done">${j.done}</div></div></div>`).join('');
 
-const behind=BUILD.latest-BUILD.onPhone;
-$('buildstatus').innerHTML=`<div class="bshead">Build status <span>· numbers verified from GitHub / EAS</span></div>`+
-`<div class="bsrow"><div class="bscell"><div class="bsv">#${BUILD.latest} ✓</div><div class="bsl">newest built</div></div>`+
-`<div class="bscell"><div class="bsv" style="color:var(--aqua)">${BUILD.building?('#'+BUILD.building):'—'}</div><div class="bsl">building now</div></div>`+
-`<div class="bscell"><div class="bsv">#${BUILD.onPhone}</div><div class="bsl">on your phone</div></div></div>`+
-(behind>0?`<div class="bsbehind">You're ${behind} build${behind>1?'s':''} behind — install #${BUILD.latest} from GitHub Actions to catch up.</div>`:`<div class="bsuptodate">✓ You're on the latest build (#${BUILD.onPhone}).</div>`)+
-`<div class="bsfoot">Build numbers come straight from the GitHub/EAS counter — automatic, impossible to fake or drift.</div>`;
+// Build status is rendered live by initBugLord() (GET /build). Placeholder until then.
+$('buildstatus').innerHTML=`<div class="bshead">Build status <span>· loading live from GitHub Actions…</span></div>`;
 if(document.getElementById('flowteam')){
   $('flowteam').innerHTML=TEAM.map(t=>`<div class="teamrow"><div class="tn">${t[0]}</div><div class="td">${t[1]}</div></div>`).join('');
   $('flowsteps').innerHTML=FLOW.map((s2,i)=>`<div class="flowstep"><div class="fnum">${i+1}</div><div class="fb"><div class="fn">${s2[0]}</div><div class="fd">${s2[1]}</div><div class="fhow">${s2[2]}</div></div></div>`).join('');
@@ -454,8 +459,7 @@ const R=46,C=2*Math.PI*R,off=C*(1-overall/100);
 $('donut').innerHTML=`<svg width="118" height="118" viewBox="0 0 118 118"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1FE3EA"/><stop offset="1" stop-color="#FF2EA6"/></linearGradient></defs><circle cx="59" cy="59" r="${R}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="12"/><circle cx="59" cy="59" r="${R}" fill="none" stroke="url(#g1)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}" transform="rotate(-90 59 59)"/><text x="59" y="56" text-anchor="middle" font-size="27" font-weight="800" fill="#EAF1F8">${overall}%</text><text x="59" y="74" text-anchor="middle" font-size="10.5" fill="#8696B0">ready</text></svg>`;
 $('readybars').innerHTML=READY.map(r=>`<div class="bar"><div class="lab"><span>${r.name}</span><span class="v">${r.pct}%</span></div><div class="track"><div class="fill" style="width:${r.pct}%;background:${r.pct===0?'transparent':r.c}"></div></div></div>`).join('');
 
-const maxN=Math.max(1,...SEV.map(s=>s.n));
-$('sevbars').innerHTML=SEV.map(s=>`<div class="sev"><div class="name">${s.name}</div><div class="strack"><div class="sfill" style="width:${s.n===0?2:(s.n/maxN*100)}%;background:${s.c}">${s.n}</div></div></div>`).join('');
+// sevbars populated by recomputeSev() after BUGS loads from Worker
 
 const ST_OPTS=[['open','Open'],['fixing','Being fixed'],['check','Fixed — build & check'],['call','Needs your call'],['later','Tracked for later'],['done','Done ✓']];
 const SEV_OPTS=['Show-stopper','Serious','Annoying','Tidy-up'];
@@ -483,96 +487,123 @@ function renderBugs(){
 
 $('later').innerHTML=LATER.map(l=>`<div class="lcard"><div class="lt">${l.lt}</div><div class="ld">${l.ld}</div><div class="ls">${l.ls}</div></div>`).join('');
 
-/* ---- BUG EDITING (dropdowns -> copyable instruction) ---- */
-const PKEY='buglord_pending';
-const ORIG={}; BUGS.forEach(b=>ORIG[b.id]={st:b.st,sev:b.sev,who:b.who});
-let pending={}; try{pending=JSON.parse(localStorage.getItem(PKEY)||'{}')}catch(e){pending={}}
-const stLabel=Object.fromEntries(ST_OPTS.map(o=>[o[0],o[1]]));
-function applyPendingToSelects(){
-  document.querySelectorAll('.bsel').forEach(sl=>{
-    const id=sl.dataset.id,f=sl.dataset.field;
-    if(pending[id]&&pending[id][f]!==undefined){sl.value=pending[id][f];}
-    const changed=pending[id]&&pending[id][f]!==undefined&&pending[id][f]!==ORIG[id][f];
-    sl.classList.toggle('edited',!!changed);
-  });
+/* ---- BUG EDITING — HONE-020: taps save live to KV via POST /update ---- */
+const WKEY='buglord_write_key';
+function getWriteKey(){return localStorage.getItem(WKEY)||'';}
+function setWriteKey(k){if(k)localStorage.setItem(WKEY,k);}
+
+async function postUpdate(id,field,value){
+  const key=getWriteKey();
+  if(!key){promptWriteKey();return false;}
+  try{
+    const r=await fetch(WORKER_URL+'/update',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Write-Key':key},
+      body:JSON.stringify({id,field,value})
+    });
+    if(r.status===401){promptWriteKey('Key rejected — enter the correct one:');return false;}
+    return r.ok;
+  }catch(e){return false;}
 }
-function renderChangebar(){
-  const ids=Object.keys(pending).filter(id=>Object.keys(pending[id]||{}).length);
-  const bar=$('changebar');
-  if(!ids.length){bar.classList.remove('show');return;}
-  let n=0; ids.forEach(id=>n+=Object.keys(pending[id]).length);
-  $('changeText').innerHTML='<b>'+n+' change'+(n>1?'s':'')+' ready</b> <span>— copy &amp; paste to Claude to apply</span>';
-  bar.classList.add('show');
+
+function promptWriteKey(msg){
+  const k=prompt(msg||'Enter your Bug Lord write key\n(run: wrangler secret put WRITE_KEY — use that same value):');
+  if(k){setWriteKey(k);return k;}
+  return '';
 }
-function buildChangeText(){
-  let out='BUG LORD — apply these changes:';
-  Object.keys(pending).forEach(id=>{
-    const ch=pending[id]||{}; const parts=[];
-    if(ch.st!==undefined) parts.push('Status: '+stLabel[ch.st]);
-    if(ch.sev!==undefined) parts.push('Severity: '+ch.sev);
-    if(ch.who!==undefined) parts.push('Who: '+ch.who);
-    if(parts.length) out+='\n• '+id+' → '+parts.join(' · ');
-  });
-  return out;
-}
+
 function initBugEditing(){
-  applyPendingToSelects(); renderChangebar();
-  document.querySelectorAll('.bsel').forEach(sl=>{
-    sl.addEventListener('change',()=>{
-      const id=sl.dataset.id,f=sl.dataset.field,v=sl.value;
-      if(v===ORIG[id][f]){ if(pending[id]){delete pending[id][f]; if(!Object.keys(pending[id]).length)delete pending[id];} }
-      else { pending[id]=pending[id]||{}; pending[id][f]=v; }
-      try{localStorage.setItem(PKEY,JSON.stringify(pending))}catch(e){}
-      sl.classList.toggle('edited',v!==ORIG[id][f]);
-      renderChangebar();
+  // Show write-key notice if key not set
+  const notice=$('wkey-notice');
+  if(notice) notice.style.display=getWriteKey()?'none':'flex';
+
+  document.querySelectorAll('.bsel').forEach(function(sl){
+    sl.addEventListener('change',async function(){
+      const id=sl.dataset.id,field=sl.dataset.field,value=sl.value;
+      sl.classList.remove('saved','error');
+      sl.classList.add('saving');
+      const ok=await postUpdate(id,field,value);
+      sl.classList.remove('saving');
+      if(ok){
+        // Update local BUGS array immediately so the UI stays consistent
+        var bug=BUGS.find(function(b){return b.id===id;});
+        if(bug) bug[field]=value;
+        sl.classList.add('saved');
+        setTimeout(function(){sl.classList.remove('saved');},2000);
+        recomputeSev();
+      } else {
+        sl.classList.add('error');
+        setTimeout(function(){sl.classList.remove('error');},3000);
+      }
     });
   });
 }
-document.addEventListener('click',(e)=>{
-  if(e.target&&e.target.id==='cbCopy'){
-    const ta=document.createElement('textarea'); ta.value=buildChangeText(); document.body.appendChild(ta); ta.select();
-    let ok=false; try{ok=document.execCommand('copy')}catch(_){}
-    if(navigator.clipboard){navigator.clipboard.writeText(ta.value).catch(()=>{});}
-    ta.remove();
-    $('changeText').innerHTML=ok?'<b>Copied ✓</b> <span>— paste it to Claude (or say "check Bug Lord").</span>':'<b>Select-copy the text</b> <span>— couldn\'t auto-copy here.</span>';
-  }
-  if(e.target&&e.target.id==='cbClear'){
-    pending={}; try{localStorage.removeItem(PKEY)}catch(e2){}
-    applyPendingToSelects(); renderChangebar();
+
+// Write-key notice click handler
+document.addEventListener('click',function(e){
+  if(e.target&&e.target.id==='wkey-save'){
+    const inp=$('wkey-input');
+    if(inp&&inp.value.trim()){setWriteKey(inp.value.trim());const n=$('wkey-notice');if(n)n.style.display='none';}
   }
 });
 
+// Render the seed list immediately so the board is never blank, then
+// initBugLord() (below) merges live Worker data over it.
+recomputeSev();
 renderBugs();
 
-/* ---- HONE-019: live Worker feed ----------------------------------------
-   Fetch live GitHub Issues from the Cloudflare Worker.
-   Dashboard renders immediately from BUGS_STATIC above; this re-renders
-   once the live data arrives (~100–400 ms). If the Worker is unreachable
-   (not yet deployed, token expired, network error) the static data stays
-   and nothing breaks. No spinner, no flash — just a silent upgrade.
+/* ---- HONE-020: live board ----------------------------------------------
+   initBugLord() fires once on load:
+     1. GET /bugs   → live GitHub Issues + KV overrides; merged over BUGS_SEED
+                      by id (live wins; seed-only engineering tickets remain)
+     2. GET /build  → live EAS build number from GitHub Actions API
+   If the Worker is briefly unreachable, the seed list stays — never blank.
    -------------------------------------------------------------------- */
-(function liveFetch(){
-  if(WORKER_URL.includes('YOUR_SUBDOMAIN')) return; // not deployed yet
-  fetch(WORKER_URL+'/bugs')
-    .then(function(r){return r.ok?r.json():Promise.reject('http '+r.status);})
-    .then(function(live){
-      if(!Array.isArray(live)||!live.length) return;
-      // Merge: live issues override static by id; static-only items stay at end
-      var liveIds=new Set(live.map(function(b){return b.id;}));
-      BUGS=live.concat(BUGS_STATIC.filter(function(b){return !liveIds.has(b.id);}));
-      // Refresh severity bars
-      SEV_DEF.forEach(function(d,i){SEV[i].n=BUGS.filter(function(b){return b.st!=='done'&&b.sev===d[0];}).length;});
-      // Refresh badge on Bugs tab button
-      var openN=BUGS.filter(function(b){return b.st!=='done';}).length;
-      TABS.find(function(t){return t.id==='bugs';}).badge=openN;
-      document.querySelectorAll('.tab-btn').forEach(function(btn){
-        if(btn.dataset.go==='bugs') btn.innerHTML='Bugs<span class="badge">'+openN+'</span>';
-      });
-      $('sevbars').innerHTML=SEV.map(function(s){return '<div class="sev"><div class="name">'+s.name+'</div><div class="strack"><div class="sfill" style="width:'+(s.n===0?2:(s.n/Math.max(1,...SEV.map(function(x){return x.n;}))*100))+'%;background:'+s.c+'">'+s.n+'</div></div></div>';}).join('');
-      renderBugs();
-    })
-    .catch(function(){/* Worker not yet deployed — static data stays */});
-})();
+async function initBugLord(){
+  // ── 1. Bugs ──────────────────────────────────────────────────────────────
+  try{
+    const r=await fetch(WORKER_URL+'/bugs?t='+Date.now()); // cache-bust
+    if(r.ok){
+      const live=await r.json();
+      if(Array.isArray(live)){
+        // Merge: live issues override seed by id; seed-only tickets remain.
+        const liveIds=new Set(live.map(function(b){return b.id;}));
+        BUGS=live.concat(BUGS_SEED.filter(function(b){return !liveIds.has(b.id);}));
+        recomputeSev();
+        renderBugs();
+        $('stamp').textContent='as of '+new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
+      }
+    }
+  }catch(e){
+    // Worker briefly unreachable — the seed list is already rendered, leave it.
+  }
+
+  // ── 2. Build ─────────────────────────────────────────────────────────────
+  try{
+    const rb=await fetch(WORKER_URL+'/build');
+    if(rb.ok){
+      const bd=await rb.json();
+      if(bd.number&&$('buildstatus')){
+        var onPhone=Number(localStorage.getItem('buglord_on_phone')||'0');
+        var latest=bd.number;
+        var behind=onPhone>0?latest-onPhone:0;
+        $('buildstatus').innerHTML=
+          '<div class="bshead">Build status <span>· live from GitHub Actions</span></div>'+
+          '<div class="bsrow">'+
+            '<div class="bscell"><div class="bsv">#'+latest+' ✓</div><div class="bsl">newest built</div></div>'+
+            '<div class="bscell"><div class="bsv" style="color:var(--aqua)">—</div><div class="bsl">building now</div></div>'+
+            '<div class="bscell"><div class="bsv">'+(onPhone?('#'+onPhone):'?')+'</div><div class="bsl">on your phone <span style="font-size:10px;color:var(--mut2)"><a href="#" onclick="var n=prompt(\'Build number on your phone:\');if(n){localStorage.setItem(\'buglord_on_phone\',n);initBugLord();}return false;" style="color:var(--aqua)">update</a></span></div></div>'+
+          '</div>'+
+          (behind>0?
+            '<div class="bsbehind">You\'re '+behind+' build'+(behind>1?'s':'')+' behind — install #'+latest+' from GitHub Actions.</div>':
+            onPhone?'<div class="bsuptodate">✓ You\'re on the latest build (#'+onPhone+').</div>':
+            '<div class="bsbehind"><a href="#" onclick="var n=prompt(\'What build is on your phone?\');if(n){localStorage.setItem(\'buglord_on_phone\',n);initBugLord();}return false;" style="color:var(--aqua)">Tell me what build is on your phone</a></div>')+
+          '<div class="bsfoot">Latest build pulled live from GitHub Actions every 2 minutes.</div>';
+      }
+    }
+  }catch(e){/* build bar stays as-is */}
+}
+initBugLord();
 
 /* ---- COMPOSER ---- */
 const NKEY='buglord_note';

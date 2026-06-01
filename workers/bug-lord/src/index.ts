@@ -1,37 +1,39 @@
 /**
- * hone-buglord — Cloudflare Worker
+ * hone-buglord — Cloudflare Worker  (HONE-020 — Phase 2)
  *
- * Single endpoint: GET /bugs
+ * Endpoints:
+ *   GET  /bugs    — GitHub Issues + KV overrides → BUGS array JSON
+ *   POST /update  — write-key gated; persists {id,field,value} to KV
+ *   GET  /build   — latest EAS build number from public GitHub Actions API
+ *   GET  /        — health check
  *
- * Fetches all GitHub Issues labelled "bug" from patrickpatches/hone,
- * maps them to the Bug Lord dashboard format, and returns JSON with
- * CORS headers so the static dashboard at patrickpatches.github.io
- * can read them from the browser without exposing the GitHub token.
+ * Status model:
+ *   GitHub issue state/labels drive the base status:
+ *     closed                  → done
+ *     label 'fix-attempted'   → check
+ *     label 'being-fixed'     → fixing
+ *     else                    → open
+ *   KV overrides win for any of: st, sev, who, build.
+ *   This lets the dashboard taps save for real without a git push.
  *
- * Status is driven by:
- *   - issue.state === 'closed'         → st: 'done'
- *   - label 'fix-attempted' on issue   → st: 'check'  (Fixed — build & check)
- *   - label 'being-fixed' on issue     → st: 'fixing'
- *   - else                             → st: 'open'
+ * Secrets (wrangler secret put):
+ *   GITHUB_TOKEN   fine-grained, Issues read-only
+ *   WRITE_KEY      any string Patrick chooses; dashboard sends in X-Write-Key
  *
- * Severity comes from the "### How bad is it?" section of the issue body,
- * which is auto-populated by the bug-report.yml issue template.
- *
- * Deploy: wrangler deploy
- * Secret: wrangler secret put GITHUB_TOKEN
- *         (fine-grained token, Issues read-only on patrickpatches/hone)
+ * KV namespace:
+ *   HONE_STATE  — id 33fab36582ed42bf93329fa5517bca24
+ *   Keys:  bug:{id}   → JSON {st,sev,who,build}
  */
 
 export interface Env {
   GITHUB_TOKEN: string;
+  WRITE_KEY: string;
+  HONE_STATE: KVNamespace;
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface GHLabel {
-  name: string;
-}
-
+interface GHLabel { name: string }
 interface GHIssue {
   number: number;
   title: string;
@@ -40,31 +42,27 @@ interface GHIssue {
   labels: GHLabel[];
   assignees: { login: string }[];
 }
+interface HoneBug { id: string; sev: string; t: string; d: string; who: string; build: string; st: string }
+type KVOverride = Partial<Pick<HoneBug, 'st' | 'sev' | 'who' | 'build'>>;
 
-interface HoneBug {
-  id: string;
-  sev: string;
-  t: string;
-  d: string;
-  who: string;
-  build: string;
-  st: string;
-}
+// ── CORS ──────────────────────────────────────────────────────────────────────
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-const ALLOWED_ORIGIN = 'https://patrickpatches.github.io';
-
-const CORS_HEADERS: Record<string, string> = {
-  'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+const ORIGIN = 'https://patrickpatches.github.io';
+const CORS: Record<string, string> = {
+  'Access-Control-Allow-Origin': ORIGIN,
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Write-Key',
 };
 
-/**
- * Extract the content under a GitHub form section heading.
- * Headings are written by the issue template as "### <label>".
- */
+function json(data: unknown, status = 200, extra: Record<string,string> = {}): Response {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...CORS, 'Content-Type': 'application/json', ...extra },
+  });
+}
+
+// ── Parsers ───────────────────────────────────────────────────────────────────
+
 function section(body: string, heading: string): string {
   const re = new RegExp(
     '###\\s+' + heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*\\n([\\s\\S]*?)(?=\\n###|$)',
@@ -73,162 +71,150 @@ function section(body: string, heading: string): string {
   return body.match(re)?.[1]?.trim() ?? '';
 }
 
-/** P0 → Show-stopper, P1 → Serious, P2 → Annoying, P3 → Tidy-up.
- *  Three sources checked in priority order:
- *  1. GitHub template "### How bad is it?" section
- *  2. Internal structured block "SEVERITY: P2" line
- *  3. [P0]/[P1] tag in the title (oldest issues) */
-function parseSeverity(body: string, title: string = ''): string {
-  const pToSev = (p: string) =>
-    p === '0' ? 'Show-stopper' : p === '1' ? 'Serious' : p === '2' ? 'Annoying' : 'Tidy-up';
-
-  // 1. New GitHub template
+function parseSeverity(body: string, title = ''): string {
+  const p = (n: string) =>
+    n === '0' ? 'Show-stopper' : n === '1' ? 'Serious' : n === '2' ? 'Annoying' : 'Tidy-up';
   const raw = section(body, 'How bad is it?');
   if (raw.startsWith('P0')) return 'Show-stopper';
   if (raw.startsWith('P1')) return 'Serious';
   if (raw.startsWith('P2')) return 'Annoying';
   if (raw.startsWith('P3')) return 'Tidy-up';
-
-  // 2. Internal structured block: "SEVERITY: P2" or "SEVERITY:        P1"
   const sm = body.match(/SEVERITY\s*:\s*P([0-3])/i);
-  if (sm) return pToSev(sm[1]);
-
-  // 3. [P0] / [P1] tag anywhere in title or body
+  if (sm) return p(sm[1]);
   const tm = (title + ' ' + body).match(/\[P([0-3])\]/i);
-  if (tm) return pToSev(tm[1]);
-
+  if (tm) return p(tm[1]);
   return 'Tidy-up';
 }
 
-/** Returns "#N" or "?" */
 function parseBuild(body: string): string {
   const raw = section(body, 'Build number');
   if (!raw || raw === "I don't know" || raw === '_No response_') return '?';
   return raw.startsWith('#') ? raw : `#${raw}`;
 }
 
-/** First non-empty line of the "What actually happened?" section. */
 function parseActual(body: string): string {
-  const raw = section(body, 'What actually happened?');
-  return raw.split('\n').find((l) => l.trim().length > 0) ?? '';
+  return section(body, 'What actually happened?').split('\n').find(l => l.trim()) ?? '';
 }
 
-/** Clean the title for display — strip [BUG] and HONE-NNN prefixes. */
 function cleanTitle(title: string): string {
-  return title
-    .replace(/^\[BUG\]\s*/i, '')
-    .replace(/^HONE-\d+\s*[-–:]\s*/i, '')
-    .trim();
+  return title.replace(/^\[BUG\]\s*/i, '').replace(/^HONE-\d+\s*[-–:]\s*/i, '').trim();
 }
 
-/**
- * Map a single GitHub Issue to the Bug Lord BUGS-array format.
- * The "id" is HONE-NNN if the title contains it; otherwise #<number>.
- */
 function issueToHoneBug(issue: GHIssue): HoneBug {
   const body = issue.body ?? '';
-  const labelNames = issue.labels.map((l) => l.name);
-
-  const st: string =
-    issue.state === 'closed'
-      ? 'done'
-      : labelNames.includes('fix-attempted')
-      ? 'check'
-      : labelNames.includes('being-fixed')
-      ? 'fixing'
-      : 'open';
-
-  const honeIdMatch = issue.title.match(/HONE-(\d+)/i);
-  const id = honeIdMatch ? honeIdMatch[0].toUpperCase() : `#${issue.number}`;
-
-  const who =
-    issue.assignees.length > 0 ? issue.assignees[0].login : 'Patrick';
-
-  // Description priority:
-  //  1. GitHub template "What actually happened?" section
-  //  2. Internal "## Actual" section
-  //  3. First body line that isn't a heading or structured-block key
-  //  4. Cleaned title
-  const actualSection = (body.match(/##\s+Actual\s*\n+([\s\S]*?)(?=\n##|$)/i)?.[1] ?? '').trim().split('\n')[0] ?? '';
-  const firstMeaningfulLine = body.split('\n').find(l => {
+  const labels = issue.labels.map(l => l.name);
+  const st = issue.state === 'closed' ? 'done'
+    : labels.includes('fix-attempted') ? 'check'
+    : labels.includes('being-fixed') ? 'fixing'
+    : 'open';
+  const id = (issue.title.match(/HONE-(\d+)/i)?.[0] ?? `#${issue.number}`).toUpperCase();
+  const who = issue.assignees[0]?.login ?? 'Patrick';
+  const actualSec = (body.match(/##\s+Actual\s*\n+([\s\S]*?)(?=\n##|$)/i)?.[1] ?? '').trim().split('\n')[0] ?? '';
+  const firstLine = body.split('\n').find(l => {
     const t = l.trim();
-    return t.length > 10 && !t.startsWith('#') && !t.match(/^[A-Z_]+\s*:/);
+    return t.length > 10 && !t.startsWith('#') && !/^[A-Z_]+\s*:/.test(t);
   }) ?? '';
-  const d = parseActual(body) || actualSection || firstMeaningfulLine || cleanTitle(issue.title);
-
-  return {
-    id,
-    sev: parseSeverity(body, issue.title),
-    t: cleanTitle(issue.title),
-    d,
-    who,
-    build: parseBuild(body),
-    st,
-  };
+  const d = parseActual(body) || actualSec || firstLine || cleanTitle(issue.title);
+  return { id, sev: parseSeverity(body, issue.title), t: cleanTitle(issue.title), d, who, build: parseBuild(body), st };
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    // CORS preflight
+
     if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: CORS_HEADERS });
+      return new Response(null, { status: 204, headers: CORS });
     }
 
     const url = new URL(request.url);
 
-    // ── GET /bugs ──────────────────────────────────────────────────────────
+    // ── GET /bugs ──────────────────────────────────────────────────────────────
+    // Fetches GitHub Issues + overlays KV overrides → authoritative BUGS array.
     if (request.method === 'GET' && url.pathname === '/bugs') {
-      const apiUrl =
-        'https://api.github.com/repos/patrickpatches/hone/issues' +
-        '?state=all&labels=bug&per_page=100&sort=created&direction=asc';
+      const ghRes = await fetch(
+        'https://api.github.com/repos/patrickpatches/hone/issues?state=all&labels=bug&per_page=100&sort=created&direction=asc',
+        { headers: { Authorization: `Bearer ${env.GITHUB_TOKEN}`, Accept: 'application/vnd.github.v3+json', 'User-Agent': 'HoneBugLord/1.0' } },
+      ).catch(e => { throw new Error('GitHub fetch failed: ' + e) });
 
-      let ghResponse: Response;
+      if (!ghRes.ok) {
+        return json({ error: 'GitHub API error', status: ghRes.status }, 502);
+      }
+
+      const issues: GHIssue[] = await ghRes.json();
+
+      // Overlay KV overrides for each bug
+      const bugs = await Promise.all(issues.map(async issue => {
+        const base = issueToHoneBug(issue);
+        const override = await env.HONE_STATE.get(`bug:${base.id}`, 'json').catch(() => null) as KVOverride | null;
+        return override ? { ...base, ...override, id: base.id, t: base.t, d: base.d } : base;
+      }));
+
+      return json(bugs, 200, { 'Cache-Control': 'public, s-maxage=30, max-age=30' });
+    }
+
+    // ── POST /update ───────────────────────────────────────────────────────────
+    // Write-key gated. Body: { id, field, value }
+    // Persists a single field override to KV. Returns updated state.
+    if (request.method === 'POST' && url.pathname === '/update') {
+      // Reject if the secret isn't configured, or the header doesn't match.
+      // Guarding against an unset/empty WRITE_KEY prevents an empty header
+      // from ever authenticating.
+      const provided = request.headers.get('X-Write-Key');
+      if (!env.WRITE_KEY || !provided || provided !== env.WRITE_KEY) {
+        return json({ error: 'Unauthorized — set X-Write-Key header' }, 401);
+      }
+
+      let body: { id?: string; field?: string; value?: string };
       try {
-        ghResponse = await fetch(apiUrl, {
-          headers: {
-            Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-            Accept: 'application/vnd.github.v3+json',
-            'User-Agent': 'HoneBugLord/1.0',
-          },
-        });
-      } catch (err) {
-        return new Response(
-          JSON.stringify({ error: 'Failed to reach GitHub API', detail: String(err) }),
-          { status: 502, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
-        );
+        body = await request.json() as typeof body;
+      } catch {
+        return json({ error: 'Invalid JSON body' }, 400);
       }
 
-      if (!ghResponse.ok) {
-        const text = await ghResponse.text().catch(() => '');
-        return new Response(
-          JSON.stringify({ error: 'GitHub API error', status: ghResponse.status, detail: text }),
-          { status: 502, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
-        );
+      const { id, field, value } = body;
+      if (!id || !field || value === undefined) {
+        return json({ error: 'Required: id, field, value' }, 400);
+      }
+      const allowed = ['st', 'sev', 'who', 'build'];
+      if (!allowed.includes(field)) {
+        return json({ error: `field must be one of: ${allowed.join(', ')}` }, 400);
       }
 
-      const issues: GHIssue[] = await ghResponse.json();
-      const bugs: HoneBug[] = issues.map(issueToHoneBug);
+      const existing = await env.HONE_STATE.get(`bug:${id}`, 'json').catch(() => null) as Record<string,string> | null ?? {};
+      const next = { ...existing, [field]: value };
+      await env.HONE_STATE.put(`bug:${id}`, JSON.stringify(next));
 
-      return new Response(JSON.stringify(bugs), {
-        headers: {
-          ...CORS_HEADERS,
-          'Content-Type': 'application/json',
-          // 60 s Cloudflare edge cache — fresh enough for a bug dashboard
-          'Cache-Control': 'public, s-maxage=60, max-age=60',
-        },
-      });
+      return json({ ok: true, id, updated: next });
     }
 
-    // ── GET / (health check) ───────────────────────────────────────────────
+    // ── GET /build ─────────────────────────────────────────────────────────────
+    // Returns the latest completed EAS build number from the public GitHub
+    // Actions API (no auth needed for public repos).
+    if (request.method === 'GET' && url.pathname === '/build') {
+      const res = await fetch(
+        'https://api.github.com/repos/patrickpatches/hone/actions/workflows/eas-build.yml/runs?per_page=1&status=completed',
+        { headers: { 'User-Agent': 'HoneBugLord/1.0' } },
+      ).catch(() => null);
+
+      if (!res || !res.ok) {
+        return json({ error: 'Could not reach GitHub Actions API', number: null }, 200);
+      }
+
+      const data = await res.json() as { workflow_runs?: { run_number: number; head_sha: string; created_at: string }[] };
+      const run = data.workflow_runs?.[0] ?? null;
+      return json({
+        number: run?.run_number ?? null,
+        sha: run?.head_sha?.slice(0, 7) ?? null,
+        created_at: run?.created_at ?? null,
+      }, 200, { 'Cache-Control': 'public, s-maxage=120, max-age=120' });
+    }
+
+    // ── GET / (health) ─────────────────────────────────────────────────────────
     if (request.method === 'GET' && url.pathname === '/') {
-      return new Response(
-        JSON.stringify({ ok: true, endpoints: ['/bugs'] }),
-        { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
-      );
+      return json({ ok: true, endpoints: ['GET /bugs', 'POST /update', 'GET /build'] });
     }
 
-    return new Response('Not found', { status: 404, headers: CORS_HEADERS });
+    return new Response('Not found', { status: 404, headers: CORS });
   },
 };
