@@ -901,22 +901,14 @@ function RecipeDetailScreenInner() {
         ) : (
           /* ── v7 BROWSE TITLE BLOCK + INLINE CTA (Commit B2 §3.2/§3.4) ── */
           <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
-            {/* Bronze eyebrow — Inspired by {chef} · Watch the original ↗ */}
+            {/* Bronze eyebrow — Inspired by {chef} only.
+                HONE-008: Watch link moved to ghost row below so the eyebrow
+                carries attribution only and Watch appears once in one place. */}
             {(recipe.source?.chef || attribution) ? (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
                 <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: tokens.bronze }}>
                   {recipe.source?.chef ? `Inspired by ${recipe.source.chef}` : attribution}
                 </Text>
-                {recipe.source?.video_url ? (
-                  <>
-                    <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, color: tokens.bronze, opacity: 0.45 }}>{'   ·   '}</Text>
-                    <Pressable onPress={openSource} accessibilityRole="link" accessibilityLabel="Watch the original" hitSlop={8}>
-                      <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: tokens.gold }}>
-                        Watch the original ↗
-                      </Text>
-                    </Pressable>
-                  </>
-                ) : null}
               </View>
             ) : null}
 
@@ -945,9 +937,10 @@ function RecipeDetailScreenInner() {
                 pill (always visible, never scroll-gated) is the single CTA.
                 Two "Start cooking" buttons confused Patrick; one is enough. */}
 
-            {/* Ghost row — Plan it only. "Watch" link already lives in the
-                eyebrow above; two Watch links was HONE-008. */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 14 }}>
+            {/* Ghost row — Plan it + Watch the chef (HONE-008 complete fix).
+                Watch moved here from eyebrow: one link, right place.
+                6-8px extra breathing room (marginTop 20 vs 14). */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 20, marginTop: 20 }}>
               <Pressable
                 onPress={handleTogglePlan}
                 accessibilityRole="button"
@@ -960,6 +953,20 @@ function RecipeDetailScreenInner() {
                   {isPlanned ? 'In your plan' : 'Plan it'}
                 </Text>
               </Pressable>
+              {recipe.source?.video_url ? (
+                <Pressable
+                  onPress={openSource}
+                  accessibilityRole="link"
+                  accessibilityLabel="Watch the chef"
+                  hitSlop={8}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+                >
+                  <Icon name="play" size={12} color={tokens.primaryInk} fill={tokens.primaryInk} />
+                  <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: tokens.primaryInk }}>
+                    Watch the chef
+                  </Text>
+                </Pressable>
+              ) : null}
             </View>
           </View>
         )}
