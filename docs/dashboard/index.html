@@ -164,6 +164,8 @@
   .bscell{flex:1;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:11px;padding:11px;text-align:center}
   .bsv{font-size:22px;font-weight:800;letter-spacing:-.5px}
   .bsl{font-size:11px;color:var(--mut);margin-top:2px}
+  
+  .bsuptodate{margin-top:11px;background:rgba(40,224,176,.10);border:1px solid rgba(40,224,176,.3);border-radius:10px;padding:9px 12px;font-size:12.5px;color:var(--good);font-weight:600}
   .bsbehind{margin-top:11px;background:rgba(255,194,75,.10);border:1px solid rgba(255,194,75,.3);border-radius:10px;padding:9px 12px;font-size:12.5px;color:var(--warn);font-weight:600}
   .bsfoot{font-size:11.5px;color:var(--mut2);margin-top:10px}
   .sectlabel2{font-size:11.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mut2);font-weight:700;margin:26px 0 11px}
@@ -359,14 +361,16 @@ const READY=[{name:"Cooking app polish",pct:75,c:'var(--aqua)'},{name:"16 recipe
 const BUGS=[
   {id:'HONE-007',sev:'Tidy-up',t:"Adding missing items to your shopping list doesn't work right",d:"When you tap 'add missing to shopping list', some items don't actually get added.",who:'COO (me)',build:'#133',st:'done'},
   {id:'HONE-008',sev:'Annoying',t:"The top of the recipe screen is cluttered",d:"Two 'Start cooking' buttons, the count shows twice, two 'watch' links — all duplicates.",who:'Designer',build:'#133',st:'open'},
-  {id:'HONE-009',sev:'Serious',t:"The 'before you start' notes are a wall of text",d:"Reopened as Serious. The proper fix (notes appear where they apply) is tracked as HONE-015.",who:'Designer → Engineer',build:'soon',st:'open'},
+  {id:'HONE-009',sev:'Serious',t:"The 'before you start' notes are a wall of text",d:"Fixed — the worker turned it into a tap-to-expand box (build #135). The deeper version (notes where they apply) is HONE-015.",who:'Engineer',build:'#135',st:'check'},
   {id:'HONE-010',sev:'Annoying',t:"Every recipe claims plating takes 3 minutes",d:"It was a placeholder we hard-coded. Now shows each dish's own time.",who:'COO (me)',build:'#133',st:'done'},
   {id:'HONE-011',sev:'Tidy-up',t:"A stray blue line on the recipe screen",d:"Leftover styling from an old version — blue isn't in Hone's look.",who:'COO (me)',build:'#133',st:'done'},
   {id:'HONE-012',sev:'Tidy-up',t:"'intermediate' should be 'Intermediate'",d:"Missing capital on the difficulty label.",who:'COO (me)',build:'#133',st:'done'},
   {id:'HONE-013',sev:'Annoying',t:"Our team's notes file got cut off and lost history",d:"A behind-the-scenes file was truncated. No effect on the app.",who:'Engineer',build:'after #134',st:'done'},
-  {id:'HONE-014',sev:'Tidy-up',t:"That same notes file is bloated and messy",d:"Old entries never filed away, so it's grown huge. Pure tidy-up. No app effect.",who:'File Organiser',build:'after #134',st:'open'},
+  {id:'HONE-014',sev:'Tidy-up',t:"That same notes file is bloated and messy",d:"Done — old handoffs archived, file trimmed (1 June). Internal only, no app effect.",who:'File Organiser',build:'n/a',st:'done'},
   {id:'HONE-015',sev:'Annoying',t:"Make the recipe notes appear where they apply (proper fix)",d:"The quality version of HONE-009: each prep note moves onto the exact step or ingredient it's about.",who:'Cook → Engineer',build:'before launch',st:'done'},
-  {id:'HONE-016',sev:'Annoying',t:"Build automated screen-testing (so the tester can tap through the app)",d:"Maestro + emulator harness so the tester drives real screens, not just reads code. Engineer's building it.",who:'Engineer',build:'before testing',st:'open'}
+  {id:'HONE-016',sev:'Annoying',t:"Build automated screen-testing (so the tester can tap through the app)",d:"Built — 5 Maestro flows + a local runner are in (#135). Next: confirm they run on a device.",who:'Engineer',build:'#135',st:'check'},
+  {id:'HONE-017',sev:'Annoying',t:"Items added from a recipe were tagged wrong in the shopping list",d:"Fixed (#135) — recipe-added items now carry the right source so they don't get swept away.",who:'Engineer',build:'#135',st:'check'},
+  {id:'HONE-018',sev:'Tidy-up',t:"No quick way to clear one recipe's items from the Shop list",d:"Fixed (#135) — added a remove-by-recipe button in Shop.",who:'Engineer',build:'#135',st:'check'}
 ];
 const SEV_DEF=[['Show-stopper','var(--bad)'],['Serious','var(--warn)'],['Annoying','var(--aqua)'],['Tidy-up','var(--mut2)']];
 const SEV=SEV_DEF.map(d=>({name:d[0],c:d[1],n:BUGS.filter(b=>b.st!=='done'&&b.sev===d[0]).length}));
@@ -377,7 +381,7 @@ const LATER=[
   {lt:"Crash-free rate",ld:"The % of sessions with no crash. Below ~99% and early reviews punish you. The launch-week number that matters most.",ls:"starts at launch"},
   {lt:"What the bad reviews actually say",ld:"Not the star average — the words in the 1- and 2-star reviews. That's where the real to-do list comes from.",ls:"starts at launch"}
 ];
-const BUILD={latest:134,latestSha:'864299e',building:135,onPhone:132};
+const BUILD={latest:135,latestSha:'aefa951',building:null,onPhone:135};
 const TEAM=[
  ["COO (me)","Runs the day-to-day, sequences the work, keeps this board true."],
  ["Engineer","Writes the code, fixes the bugs, builds the app."],
@@ -416,9 +420,9 @@ $('jobs').innerHTML=JOBS.map(j=>`<div class="job"><div class="pri" style="backgr
 const behind=BUILD.latest-BUILD.onPhone;
 $('buildstatus').innerHTML=`<div class="bshead">Build status <span>· numbers verified from GitHub / EAS</span></div>`+
 `<div class="bsrow"><div class="bscell"><div class="bsv">#${BUILD.latest} ✓</div><div class="bsl">newest built</div></div>`+
-`<div class="bscell"><div class="bsv" style="color:var(--aqua)">#${BUILD.building}</div><div class="bsl">building now</div></div>`+
+`<div class="bscell"><div class="bsv" style="color:var(--aqua)">${BUILD.building?('#'+BUILD.building):'—'}</div><div class="bsl">building now</div></div>`+
 `<div class="bscell"><div class="bsv">#${BUILD.onPhone}</div><div class="bsl">on your phone</div></div></div>`+
-(behind>0?`<div class="bsbehind">You're ${behind} build${behind>1?'s':''} behind — install #${BUILD.latest} from GitHub Actions to catch up.</div>`:'')+
+(behind>0?`<div class="bsbehind">You're ${behind} build${behind>1?'s':''} behind — install #${BUILD.latest} from GitHub Actions to catch up.</div>`:`<div class="bsuptodate">✓ You're on the latest build (#${BUILD.onPhone}).</div>`)+
 `<div class="bsfoot">Build numbers come straight from the GitHub/EAS counter — automatic, impossible to fake or drift.</div>`;
 if(document.getElementById('flowteam')){
   $('flowteam').innerHTML=TEAM.map(t=>`<div class="teamrow"><div class="tn">${t[0]}</div><div class="td">${t[1]}</div></div>`).join('');
