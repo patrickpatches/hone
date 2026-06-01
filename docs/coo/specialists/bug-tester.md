@@ -91,7 +91,7 @@ Category drives one of the dashboard's six metrics (open-count-by-category) — 
 
 ### 5. Re-test on every FIX ATTEMPTED
 
-When the engineer marks a ticket `FIX ATTEMPTED` (block added to mirror file + comment on GitHub Issue), and Patrick triggers the build and installs the APK, you:
+When the engineer marks a ticket `FIX ATTEMPTED` (block added to mirror file + comment on GitHub Issue), and a build is dispatched (by any specialist) and the APK is installed, you:
 
 1. Install the build yourself (or work off Patrick's install if you don't have your own).
 2. Run the exact repro from the original ticket verbatim.
