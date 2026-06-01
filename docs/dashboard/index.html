@@ -295,7 +295,7 @@
         <span><i style="background:var(--mut2)"></i>Tidy-up = cosmetic</span>
       </div>
     </div>
-    <div class="lead">Every open job, plain English. "Fixed — build &amp; check" means the engineer fixed it in code; it lands on your phone once you install the build shown on each card.</div>
+    <div class="lead">Every open job, plain English. "Fixed — build &amp; check" means the engineer did it; it lands on your phone once you build #133.</div>
     <div id="buglist" style="margin-top:10px"></div>
     <div class="changebar" id="changebar">
       <div id="changeText"></div>
@@ -331,12 +331,12 @@
 </div>
 
 <script>
-const LAUNCH=new Date('2026-07-24T00:00:00+10:00'); const AS_OF='1 June 2026';
+const LAUNCH=new Date('2026-07-24T00:00:00+10:00'); const AS_OF='31 May 2026';
 const TABS=[{id:'today',label:'Today'},{id:'flow',label:'How we work'},{id:'roadmap',label:'Roadmap'},{id:'bugs',label:'Bugs',badge:10},{id:'later',label:'After launch'}];
 
 const JOBS=[
   {pri:1,t:"Find out what kind of Play Store account you have",d:"Personal or Organisation — and when did you open it? If it's Personal and opened after Nov 2023, Google forces a 14-day test with 12 people before you can launch. This one fact decides if 24 July is comfortable or tight.",done:"Done when: you tell me 'personal' or 'organisation' + the rough sign-up date."},
-  {pri:2,t:"Trigger build #136 and install it",d:"HONE-008 is fixed on main: Watch link moved to ghost row, one clean CTA. Go to GitHub → patrickpatches/hone → Actions → 'Hone Android Build' → Run workflow → preview. While you're at it, validate build #135 is working: collapsible 'before you start', Maestro test runner, shopping-list source fix.",done:"Done when: recipe screen has one Watch link, one Start cooking CTA — and 'before you start' collapses."},
+  {pri:2,t:"Install build #133 and test it",d:"#133 is building now — it has the six recipe-screen fixes. When the GitHub Actions run is green, install the APK from it, open a recipe, and post your result in the box below.",done:"Done when: you've opened a recipe on #133 and marked each fix pass/fail."},
   {pri:3,t:"Start a list of 12 testers",d:"Anyone with an Android phone who'll install Hone and keep it 14 straight days. You need at least 12 for the Google gate — the slowest part to organise, so start now.",done:"Done when: you have 12 names + their Google emails."}
 ];
 
@@ -360,7 +360,7 @@ const ROAD=[
 const READY=[{name:"Cooking app polish",pct:75,c:'var(--aqua)'},{name:"16 recipes ready",pct:70,c:'var(--aqua)'},{name:"Testing gate (12 / 14 days)",pct:0,c:'var(--fuch)'},{name:"Store page + data-safety",pct:20,c:'var(--fuch)'}];
 const BUGS=[
   {id:'HONE-007',sev:'Tidy-up',t:"Adding missing items to your shopping list doesn't work right",d:"When you tap 'add missing to shopping list', some items don't actually get added.",who:'COO (me)',build:'#133',st:'done'},
-  {id:'HONE-008',sev:'Annoying',t:"The top of the recipe screen is cluttered",d:"Fixed: Watch link moved from eyebrow to ghost row, one clean 'Plan it · Watch the chef' row. Inline Start cooking pill and duplicate 0/9 badge already removed. One Watch link, one Start cooking CTA.",who:'Engineer',build:'#136',st:'check'},
+  {id:'HONE-008',sev:'Annoying',t:"The top of the recipe screen is cluttered",d:"Two 'Start cooking' buttons, the count shows twice, two 'watch' links — all duplicates.",who:'Designer',build:'#133',st:'open'},
   {id:'HONE-009',sev:'Serious',t:"The 'before you start' notes are a wall of text",d:"Fixed — the worker turned it into a tap-to-expand box (build #135). The deeper version (notes where they apply) is HONE-015.",who:'Engineer',build:'#135',st:'check'},
   {id:'HONE-010',sev:'Annoying',t:"Every recipe claims plating takes 3 minutes",d:"It was a placeholder we hard-coded. Now shows each dish's own time.",who:'COO (me)',build:'#133',st:'done'},
   {id:'HONE-011',sev:'Tidy-up',t:"A stray blue line on the recipe screen",d:"Leftover styling from an old version — blue isn't in Hone's look.",who:'COO (me)',build:'#133',st:'done'},
@@ -370,7 +370,8 @@ const BUGS=[
   {id:'HONE-015',sev:'Annoying',t:"Make the recipe notes appear where they apply (proper fix)",d:"The quality version of HONE-009: each prep note moves onto the exact step or ingredient it's about.",who:'Cook → Engineer',build:'before launch',st:'done'},
   {id:'HONE-016',sev:'Annoying',t:"Build automated screen-testing (so the tester can tap through the app)",d:"Built — 5 Maestro flows + a local runner are in (#135). Next: confirm they run on a device.",who:'Engineer',build:'#135',st:'check'},
   {id:'HONE-017',sev:'Annoying',t:"Items added from a recipe were tagged wrong in the shopping list",d:"Fixed (#135) — recipe-added items now carry the right source so they don't get swept away.",who:'Engineer',build:'#135',st:'check'},
-  {id:'HONE-018',sev:'Tidy-up',t:"No quick way to clear one recipe's items from the Shop list",d:"Fixed (#135) — added a remove-by-recipe button in Shop.",who:'Engineer',build:'#135',st:'check'}
+  {id:'HONE-018',sev:'Tidy-up',t:"No quick way to clear one recipe's items from the Shop list",d:"Fixed (#135) — added a remove-by-recipe button in Shop.",who:'Engineer',build:'#135',st:'check'},
+  {id:'HONE-019',sev:'Annoying',t:"Make Bug Lord live — no more copy-paste",d:"A small cloud helper (Cloudflare Worker) so your taps save for real and the board's always in sync. You approved it; engineer's building it.",who:'Engineer',build:'Worker',st:'open'}
 ];
 const SEV_DEF=[['Show-stopper','var(--bad)'],['Serious','var(--warn)'],['Annoying','var(--aqua)'],['Tidy-up','var(--mut2)']];
 const SEV=SEV_DEF.map(d=>({name:d[0],c:d[1],n:BUGS.filter(b=>b.st!=='done'&&b.sev===d[0]).length}));
@@ -381,7 +382,7 @@ const LATER=[
   {lt:"Crash-free rate",ld:"The % of sessions with no crash. Below ~99% and early reviews punish you. The launch-week number that matters most.",ls:"starts at launch"},
   {lt:"What the bad reviews actually say",ld:"Not the star average — the words in the 1- and 2-star reviews. That's where the real to-do list comes from.",ls:"starts at launch"}
 ];
-const BUILD={latest:135,latestSha:'aefa951',building:136,buildingSha:'79455fad62',onPhone:135};
+const BUILD={latest:135,latestSha:'aefa951',building:null,onPhone:135};
 const TEAM=[
  ["COO (me)","Runs the day-to-day, sequences the work, keeps this board true."],
  ["Engineer","Writes the code, fixes the bugs, builds the app."],
