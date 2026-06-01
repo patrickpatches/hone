@@ -376,7 +376,8 @@ const BUGS_STATIC=[
   {id:'HONE-016',sev:'Annoying',t:"Build automated screen-testing (so the tester can tap through the app)",d:"Built — 5 Maestro flows + a local runner are in (#135). Next: confirm they run on a device.",who:'Engineer',build:'#135',st:'check'},
   {id:'HONE-017',sev:'Annoying',t:"Items added from a recipe were tagged wrong in the shopping list",d:"Fixed (#135) — recipe-added items now carry the right source so they don't get swept away.",who:'Engineer',build:'#135',st:'check'},
   {id:'HONE-018',sev:'Tidy-up',t:"No quick way to clear one recipe's items from the Shop list",d:"Fixed (#135) — added a remove-by-recipe button in Shop.",who:'You to decide',build:'#135',st:'done'},
-  {id:'HONE-019',sev:'Annoying',t:"Make Bug Lord live — no more copy-paste",d:"Worker built (workers/bug-lord/). Once you run 5 setup commands and fill in your CF subdomain, new GitHub Issues auto-appear on the dashboard. No more manual HTML edits.",who:'You to decide',build:'#138',st:'done'}
+  {id:'HONE-019',sev:'Annoying',t:"Make Bug Lord live — no more copy-paste",d:"Worker built (workers/bug-lord/). Once you run 5 setup commands and fill in your CF subdomain, new GitHub Issues auto-appear on the dashboard. No more manual HTML edits.",who:'You to decide',build:'#138',st:'done'},
+  {id:'HONE-020',sev:'Annoying',t:"Finish the live board — saving + live build number",d:"Make taps save without copy-paste, pull the latest GitHub/EAS build number automatically, and keep one clean list. Engineer's job; the read-side is already live.",who:'Engineer',build:'Worker',st:'open'}
 ];
 let BUGS=BUGS_STATIC.slice();
 const SEV_DEF=[['Show-stopper','var(--bad)'],['Serious','var(--warn)'],['Annoying','var(--aqua)'],['Tidy-up','var(--mut2)']];
