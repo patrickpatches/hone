@@ -18,7 +18,7 @@ The Worker's READ side is live (board fetches `/bugs` from GitHub Issues). To ma
 ## COO TRIAGE — 2026-06-01
 P2. The read-side win is real; this closes the loop on "live + always in sync + always-accurate build number." Sequence alongside launch work, not ahead of it. Patrick has the Cloudflare account ready; the Worker is deployed (read-only) — this extends it.
 
-## FIX ATTEMPTED — Build #139 (commit `1700312`) — 2026-06-01
+## FIX ATTEMPTED — docs/infra commit `1700312` (no APK; live EAS build stays #137) — 2026-06-01
 
 _Added by Senior Engineer. All five items addressed; one design choice diverges from item 1 — flagged below._
 
