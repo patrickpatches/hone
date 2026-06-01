@@ -58,7 +58,7 @@ Per R-015: not self-closing.
 - **Retire copy-paste fully:** make the "Tell Claude" composer FILE A NEW BUG LIVE (create a GitHub Issue via the Worker) instead of copy-to-chat. Status changes are already live; new-bug reporting is the last thing still needing copy-paste. Update the composer's helper text to say status changes now save automatically; this box is for NEW bugs / handoffs.
 - Freshness: the `/bugs` edge cache is still stale (see item 6) — new issues (#13) + my closes don't show promptly.
 
-## FIX ATTEMPTED (round 2 — polish, items 6+7) — docs/infra commit `<tbd>` — 2026-06-01
+## FIX ATTEMPTED (round 2 — polish, items 6+7) — docs/infra commit `5dd167b` — 2026-06-01
 
 _Patrick's three follow-ups after using the live board._
 
