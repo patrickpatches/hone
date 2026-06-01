@@ -233,6 +233,7 @@ function RecipeDetailScreenInner() {
   const [journeyExpanded, setJourneyExpanded] = useState<null | 'plate'>(null);
   const [shoppingAdded, setShoppingAdded] = useState(false);
   const [miseExpanded, setMiseExpanded] = useState(false);
+  const [knowExpanded, setKnowExpanded] = useState(false);
   const miseExpandOpacity = useRef(new Animated.Value(0)).current;
   const [activeSwaps, setActiveSwaps]         = useState<Record<string, Substitution | null>>({});
 
@@ -1190,56 +1191,90 @@ function RecipeDetailScreenInner() {
         {/* ── WHAT TO KNOW (DECISION-008) ──
             Rendered from before_you_start[]. Max 3 items per schema.
             Blue left-border: caution/information, not action. */}
+        {/* HONE-009 fix: collapsed by default — first note as a one-line tease,
+            tap to expand the full list. Keeps the viewport from dumping a wall
+            of theory on the user before they've decided to cook. */}
         {!cooking && (recipe.before_you_start?.length ?? 0) > 0 && (
           <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
-            {/* HONE-011 fix: was blue (#5B8FD4). No blue in v7 palette — swapped to gold. */}
-            <View
-              style={{
-                borderRadius: 14,
-                borderWidth: 1,
-                borderColor: 'rgba(242,204,42,0.25)',
-                borderLeftWidth: 3,
-                borderLeftColor: tokens.gold,
-                backgroundColor: 'rgba(242,204,42,0.06)',
-                paddingTop: 12,
-                paddingBottom: 4,
-                paddingRight: 14,
-                paddingLeft: 14,
-              }}
+            <Pressable
+              onPress={() => setKnowExpanded(prev => !prev)}
+              accessibilityRole="button"
+              accessibilityLabel={
+                knowExpanded
+                  ? 'Collapse what to know'
+                  : `What to know — ${recipe.before_you_start!.length} tip${recipe.before_you_start!.length === 1 ? '' : 's'}, tap to read`
+              }
+              android_ripple={{ color: 'rgba(242,204,42,0.08)', borderless: false }}
+              style={{ borderRadius: 14 }}
             >
-              <Text
+              <View
                 style={{
-                  fontFamily: fonts.sansBold,
-                  fontSize: 9,
-                  letterSpacing: 1.5,
-                  textTransform: 'uppercase',
-                  color: tokens.gold,
-                  marginBottom: 8,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: 'rgba(242,204,42,0.25)',
+                  borderLeftWidth: 3,
+                  borderLeftColor: tokens.gold,
+                  backgroundColor: 'rgba(242,204,42,0.06)',
+                  paddingTop: 12,
+                  paddingBottom: knowExpanded ? 4 : 12,
+                  paddingRight: 14,
+                  paddingLeft: 14,
                 }}
               >
-                What to know before you start
-              </Text>
-              {recipe.before_you_start!.map((note, idx) => (
-                <View
-                  key={idx}
-                  style={{ flexDirection: 'row', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}
-                >
-                  <View
+                {/* Header — always visible */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <Text
                     style={{
-                      width: 5,
-                      height: 5,
-                      borderRadius: 3,
-                      backgroundColor: tokens.gold,
-                      marginTop: 6,
-                      flexShrink: 0,
+                      fontFamily: fonts.sansBold,
+                      fontSize: 9,
+                      letterSpacing: 1.5,
+                      textTransform: 'uppercase',
+                      color: tokens.gold,
                     }}
-                  />
-                  <Text style={{ fontFamily: fonts.sans, fontSize: 13, lineHeight: 19, color: c.inkSoft, flex: 1 }}>
-                    {note}
+                  >
+                    What to know
                   </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.muted }}>
+                      {recipe.before_you_start!.length} tip{recipe.before_you_start!.length === 1 ? '' : 's'}
+                    </Text>
+                    <View style={{ transform: [{ rotate: knowExpanded ? '180deg' : '0deg' }] }}>
+                      <Icon name="arrow-down" size={11} color={c.muted} />
+                    </View>
+                  </View>
                 </View>
-              ))}
-            </View>
+                {/* Collapsed preview: first note, one line */}
+                {!knowExpanded && (
+                  <Text
+                    style={{ fontFamily: fonts.sans, fontSize: 13, lineHeight: 18, color: c.inkSoft }}
+                    numberOfLines={1}
+                  >
+                    {recipe.before_you_start![0]}
+                  </Text>
+                )}
+                {/* Expanded: full list */}
+                {knowExpanded && recipe.before_you_start!.map((note, idx) => (
+                  <View
+                    key={idx}
+                    style={{ flexDirection: 'row', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}
+                  >
+                    <View
+                      style={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: 3,
+                        backgroundColor: tokens.gold,
+                        marginTop: 6,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <Text style={{ fontFamily: fonts.sans, fontSize: 13, lineHeight: 19, color: c.inkSoft, flex: 1 }}>
+                      {note}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </Pressable>
           </View>
         )}
 

@@ -210,7 +210,7 @@
       </div>
     </div>
 
-    <div class="buildbar"><span class="bdot"></span><div><b>Build #133 is building now</b> — it bundles the six recipe-screen fixes + the new test harness, versionCode 51 so it installs over your 132. When it goes green, install it from the GitHub Actions run, then drop your result in the box below.</div></div>
+    <div class="buildbar"><span class="bdot"></span><div><b>Build #136 is next</b> — Shop tab now matches Pantry visually (icons, bronze headers, gold search border) + "before you start" notes are now collapsible instead of a wall of text. Trigger it from GitHub Actions → "Hone Android Build" → Run workflow → preview.</div></div>
 
     <!-- COMPOSER -->
     <div class="card composer" style="margin-top:14px">
@@ -272,7 +272,7 @@
         <span><i style="background:var(--mut2)"></i>Tidy-up = cosmetic</span>
       </div>
     </div>
-    <div class="lead">Every open job, plain English. "Fixed — build &amp; check" means the engineer did it; it lands on your phone once you build #133.</div>
+    <div class="lead">Every open job, plain English. "Fixed — build &amp; check" means the engineer did it; it lands on your phone once you build #136.</div>
     <div id="buglist" style="margin-top:10px"></div>
     <div class="changebar" id="changebar">
       <div id="changeText"></div>
@@ -296,18 +296,18 @@
 </div>
 
 <script>
-const LAUNCH=new Date('2026-07-24T00:00:00+10:00'); const AS_OF='31 May 2026';
+const LAUNCH=new Date('2026-07-24T00:00:00+10:00'); const AS_OF='1 June 2026';
 const TABS=[{id:'today',label:'Today'},{id:'roadmap',label:'Roadmap'},{id:'bugs',label:'Bugs',badge:10},{id:'later',label:'After launch'}];
 
 const JOBS=[
   {pri:1,t:"Find out what kind of Play Store account you have",d:"Personal or Organisation — and when did you open it? If it's Personal and opened after Nov 2023, Google forces a 14-day test with 12 people before you can launch. This one fact decides if 24 July is comfortable or tight.",done:"Done when: you tell me 'personal' or 'organisation' + the rough sign-up date."},
-  {pri:2,t:"Install build #133 and test it",d:"#133 is building now — it has the six recipe-screen fixes. When the GitHub Actions run is green, install the APK from it, open a recipe, and post your result in the box below.",done:"Done when: you've opened a recipe on #133 and marked each fix pass/fail."},
+  {pri:2,t:"Trigger build #136 and install it",d:"Latest changes are on main: Shop tab matches Pantry, recipe notes are collapsible. Go to GitHub → patrickpatches/hone → Actions → 'Hone Android Build' → Run workflow. Install the APK when the run finishes (~10 min).",done:"Done when: Shop tab looks like Pantry, and the 'What to know' card on a recipe collapses to one line until you tap it."},
   {pri:3,t:"Start a list of 12 testers",d:"Anyone with an Android phone who'll install Hone and keep it 14 straight days. You need at least 12 for the Google gate — the slowest part to organise, so start now.",done:"Done when: you have 12 names + their Google emails."}
 ];
 
 const ROAD=[
   {phase:"June",sub:"Get the app finished and the recipes locked",items:[
-    {name:"Polish the cooking app",when:"Happening now → mid-June",state:"now",desc:"Get the recipe screen right (build #134 fixes 5 of 6 issues; one quick fix in progress), then the cooking step-by-step screen.",done:"Done when: you can open any recipe, add to your shopping list, and cook it start-to-finish with nothing looking broken."},
+    {name:"Polish the cooking app",when:"Happening now → mid-June",state:"now",desc:"All 10 known bugs are fixed or in build #136. Shop tab now matches Pantry. Recipe notes are collapsible. Automated screen tests (Maestro) are in place. Next: cook-mode Commit C and recipe photography.",done:"Done when: you can open any recipe, add to your shopping list, and cook it start-to-finish with nothing looking broken."},
     {name:"Lock the 16 launch recipes",when:"Through June",state:"now",desc:"Every launch recipe needs a real photo, the chef credited, swaps written, step notes done. 11 of 16 photos are in.",done:"Done when: all 16 are photo-complete, credited, and you've signed off."},
     {name:"Private test (just us)",when:"Mid-June",state:"next",desc:"Put it on Google's internal track — live for a handful of chosen people within minutes. You + 1–2 others shake out obvious crashes.",done:"Done when: the app survives a full cook on 2–3 real phones with no crash."}
   ]},
@@ -322,18 +322,18 @@ const ROAD=[
   ]}
 ];
 
-const READY=[{name:"Cooking app polish",pct:75,c:'var(--aqua)'},{name:"16 recipes ready",pct:70,c:'var(--aqua)'},{name:"Testing gate (12 / 14 days)",pct:0,c:'var(--fuch)'},{name:"Store page + data-safety",pct:20,c:'var(--fuch)'}];
+const READY=[{name:"Cooking app polish",pct:85,c:'var(--aqua)'},{name:"16 recipes ready",pct:70,c:'var(--aqua)'},{name:"Testing gate (12 / 14 days)",pct:0,c:'var(--fuch)'},{name:"Store page + data-safety",pct:20,c:'var(--fuch)'}];
 const BUGS=[
   {id:'HONE-007',sev:'Tidy-up',t:"Adding missing items to your shopping list doesn't work right",d:"When you tap 'add missing to shopping list', some items don't actually get added.",who:'COO (me)',build:'#133',st:'done'},
-  {id:'HONE-008',sev:'Annoying',t:"The top of the recipe screen is cluttered",d:"Two 'Start cooking' buttons, the count shows twice, two 'watch' links — all duplicates.",who:'Designer',build:'#133',st:'open'},
-  {id:'HONE-009',sev:'Serious',t:"The 'before you start' notes are a wall of text",d:"Reopened as Serious. The proper fix (notes appear where they apply) is tracked as HONE-015.",who:'Designer → Engineer',build:'soon',st:'open'},
+  {id:'HONE-008',sev:'Annoying',t:"The top of the recipe screen is cluttered",d:"Two 'Start cooking' buttons, the count shows twice, two 'watch' links — all duplicates. Fixed: inline pill removed, ghost-row watch link removed, N/M badge removed.",who:'COO (me)',build:'#134',st:'check'},
+  {id:'HONE-009',sev:'Serious',t:"The 'before you start' notes are a wall of text",d:"Fixed: the 'What to know' block now collapses to a one-line tease of the first note. Tap it to see the full list. Wall of text is gone.",who:'Engineer',build:'#136',st:'check'},
   {id:'HONE-010',sev:'Annoying',t:"Every recipe claims plating takes 3 minutes",d:"It was a placeholder we hard-coded. Now shows each dish's own time.",who:'COO (me)',build:'#133',st:'done'},
   {id:'HONE-011',sev:'Tidy-up',t:"A stray blue line on the recipe screen",d:"Leftover styling from an old version — blue isn't in Hone's look.",who:'COO (me)',build:'#133',st:'done'},
   {id:'HONE-012',sev:'Tidy-up',t:"'intermediate' should be 'Intermediate'",d:"Missing capital on the difficulty label.",who:'COO (me)',build:'#133',st:'done'},
   {id:'HONE-013',sev:'Annoying',t:"Our team's notes file got cut off and lost history",d:"A behind-the-scenes file was truncated. No effect on the app.",who:'Engineer',build:'after #134',st:'done'},
-  {id:'HONE-014',sev:'Tidy-up',t:"That same notes file is bloated and messy",d:"Old entries never filed away, so it's grown huge. Pure tidy-up. No app effect.",who:'File Organiser',build:'after #134',st:'open'},
+  {id:'HONE-014',sev:'Tidy-up',t:"That same notes file is bloated and messy",d:"Archived 1511 lines of May handoffs to docs/archive/handoffs-2026-05.md. File trimmed from 2336 to 825 lines. No app effect.",who:'File Organiser',build:'#135',st:'done'},
   {id:'HONE-015',sev:'Annoying',t:"Make the recipe notes appear where they apply (proper fix)",d:"The quality version of HONE-009: each prep note moves onto the exact step or ingredient it's about.",who:'Cook → Engineer',build:'before launch',st:'done'},
-  {id:'HONE-016',sev:'Annoying',t:"Build automated screen-testing (so the tester can tap through the app)",d:"Maestro + emulator harness so the tester drives real screens, not just reads code. Engineer's building it.",who:'Engineer',build:'before testing',st:'open'}
+  {id:'HONE-016',sev:'Annoying',t:"Build automated screen-testing (so the tester can tap through the app)",d:"Done: 5 Maestro YAML flows in maestro/flows/ + local runner script. Catches crash-class bugs before you install. Run maestro-local.sh after each build install.",who:'Engineer',build:'#135',st:'check'}
 ];
 const SEV_DEF=[['Show-stopper','var(--bad)'],['Serious','var(--warn)'],['Annoying','var(--aqua)'],['Tidy-up','var(--mut2)']];
 const SEV=SEV_DEF.map(d=>({name:d[0],c:d[1],n:BUGS.filter(b=>b.st!=='done'&&b.sev===d[0]).length}));
