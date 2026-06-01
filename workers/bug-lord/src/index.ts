@@ -74,21 +74,29 @@ function section(body: string, heading: string): string {
 }
 
 /** P0 → Show-stopper, P1 → Serious, P2 → Annoying, P3 → Tidy-up.
- *  Checks body first (new template), then falls back to [P0]/[P1] in title. */
+ *  Three sources checked in priority order:
+ *  1. GitHub template "### How bad is it?" section
+ *  2. Internal structured block "SEVERITY: P2" line
+ *  3. [P0]/[P1] tag in the title (oldest issues) */
 function parseSeverity(body: string, title: string = ''): string {
+  const pToSev = (p: string) =>
+    p === '0' ? 'Show-stopper' : p === '1' ? 'Serious' : p === '2' ? 'Annoying' : 'Tidy-up';
+
+  // 1. New GitHub template
   const raw = section(body, 'How bad is it?');
   if (raw.startsWith('P0')) return 'Show-stopper';
   if (raw.startsWith('P1')) return 'Serious';
   if (raw.startsWith('P2')) return 'Annoying';
   if (raw.startsWith('P3')) return 'Tidy-up';
-  // Fallback: [P0] / [P1] / [P2] / [P3] in the title (older issues)
-  const tm = (body + ' ' + title).match(/\[P([0-3])\]/i);
-  if (tm) {
-    const p = tm[1];
-    if (p === '0') return 'Show-stopper';
-    if (p === '1') return 'Serious';
-    if (p === '2') return 'Annoying';
-  }
+
+  // 2. Internal structured block: "SEVERITY: P2" or "SEVERITY:        P1"
+  const sm = body.match(/SEVERITY\s*:\s*P([0-3])/i);
+  if (sm) return pToSev(sm[1]);
+
+  // 3. [P0] / [P1] tag anywhere in title or body
+  const tm = (title + ' ' + body).match(/\[P([0-3])\]/i);
+  if (tm) return pToSev(tm[1]);
+
   return 'Tidy-up';
 }
 
@@ -136,10 +144,17 @@ function issueToHoneBug(issue: GHIssue): HoneBug {
   const who =
     issue.assignees.length > 0 ? issue.assignees[0].login : 'Patrick';
 
-  // Description: try template "What actually happened?", fall back to
-  // first non-empty body line, then cleaned title as last resort.
-  const firstBodyLine = body.split('\n').find(l => l.trim().length > 10 && !l.startsWith('#')) ?? '';
-  const d = parseActual(body) || firstBodyLine.trim() || cleanTitle(issue.title);
+  // Description priority:
+  //  1. GitHub template "What actually happened?" section
+  //  2. Internal "## Actual" section
+  //  3. First body line that isn't a heading or structured-block key
+  //  4. Cleaned title
+  const actualSection = (body.match(/##\s+Actual\s*\n+([\s\S]*?)(?=\n##|$)/i)?.[1] ?? '').trim().split('\n')[0] ?? '';
+  const firstMeaningfulLine = body.split('\n').find(l => {
+    const t = l.trim();
+    return t.length > 10 && !t.startsWith('#') && !t.match(/^[A-Z_]+\s*:/);
+  }) ?? '';
+  const d = parseActual(body) || actualSection || firstMeaningfulLine || cleanTitle(issue.title);
 
   return {
     id,
