@@ -41,9 +41,31 @@ interface GHIssue {
   state: 'open' | 'closed';
   labels: GHLabel[];
   assignees: { login: string }[];
+  updated_at?: string;
+  html_url?: string;
 }
-interface HoneBug { id: string; sev: string; t: string; d: string; who: string; build: string; st: string }
+interface GHComment { user?: { login: string }; created_at: string; body: string | null }
+interface HoneBug { id: string; sev: string; t: string; d: string; who: string; build: string; st: string; num?: number; upd?: string }
 type KVOverride = Partial<Pick<HoneBug, 'st' | 'sev' | 'who' | 'build'>>;
+
+// Cache-busted GitHub fetch. GitHub returns Cache-Control: max-age=60, which
+// Cloudflare honours on subrequests — so a plain re-fetch can be up to 60s
+// stale. A unique `_` param (GitHub ignores it) + cf.cacheTtl:0 forces a live
+// read every time. This is the HONE-021 item-1 freshness fix.
+function ghFetch(rawUrl: string, env: Env, init: RequestInit = {}): Promise<Response> {
+  const sep = rawUrl.includes('?') ? '&' : '?';
+  const url = `${rawUrl}${sep}_=${Date.now()}`;
+  return fetch(url, {
+    ...init,
+    cf: { cacheTtl: 0, cacheEverything: false },
+    headers: {
+      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'User-Agent': 'HoneBugLord/1.0',
+      ...(init.headers ?? {}),
+    },
+  } as RequestInit);
+}
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
 
@@ -115,7 +137,7 @@ function issueToHoneBug(issue: GHIssue): HoneBug {
     return t.length > 10 && !t.startsWith('#') && !/^[A-Z_]+\s*:/.test(t);
   }) ?? '';
   const d = parseActual(body) || actualSec || firstLine || cleanTitle(issue.title);
-  return { id, sev: parseSeverity(body, issue.title), t: cleanTitle(issue.title), d, who, build: parseBuild(body), st };
+  return { id, sev: parseSeverity(body, issue.title), t: cleanTitle(issue.title), d, who, build: parseBuild(body), st, num: issue.number, upd: issue.updated_at };
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
@@ -132,9 +154,9 @@ export default {
     // ── GET /bugs ──────────────────────────────────────────────────────────────
     // Fetches GitHub Issues + overlays KV overrides → authoritative BUGS array.
     if (request.method === 'GET' && url.pathname === '/bugs') {
-      const ghRes = await fetch(
+      const ghRes = await ghFetch(
         'https://api.github.com/repos/patrickpatches/hone/issues?state=all&labels=bug&per_page=100&sort=created&direction=asc',
-        { headers: { Authorization: `Bearer ${env.GITHUB_TOKEN}`, Accept: 'application/vnd.github.v3+json', 'User-Agent': 'HoneBugLord/1.0' } },
+        env,
       ).catch(e => { throw new Error('GitHub fetch failed: ' + e) });
 
       if (!ghRes.ok) {
@@ -258,13 +280,78 @@ export default {
       return json({ ok: true, number: created.number, url: created.html_url, id });
     }
 
+    // ── GET /issue/:n ──────────────────────────────────────────────────────────
+    // Detail view: the issue (merged with KV override) + its comment thread.
+    const detailMatch = url.pathname.match(/^\/issue\/(\d+)$/);
+    if (request.method === 'GET' && detailMatch) {
+      const n = detailMatch[1];
+      const [iRes, cRes] = await Promise.all([
+        ghFetch(`https://api.github.com/repos/patrickpatches/hone/issues/${n}`, env),
+        ghFetch(`https://api.github.com/repos/patrickpatches/hone/issues/${n}/comments?per_page=100`, env),
+      ]).catch(() => [null, null] as [Response | null, Response | null]);
+
+      if (!iRes || !iRes.ok) {
+        return json({ error: 'Issue not found', status: iRes?.status ?? 502 }, iRes?.status === 404 ? 404 : 502);
+      }
+      const issue = await iRes.json() as GHIssue;
+      const comments: GHComment[] = cRes && cRes.ok ? await cRes.json() : [];
+
+      const base = issueToHoneBug(issue);
+      const override = await env.HONE_STATE.get(`bug:${base.id}`, 'json').catch(() => null) as KVOverride | null;
+      const merged = override ? { ...base, ...override, id: base.id, t: base.t, d: base.d } : base;
+
+      return json({
+        ...merged,
+        num: issue.number,
+        url: issue.html_url ?? `https://github.com/patrickpatches/hone/issues/${n}`,
+        body: issue.body ?? '',
+        comments: comments.map(c => ({
+          author: c.user?.login ?? 'unknown',
+          created_at: c.created_at,
+          body: c.body ?? '',
+        })),
+      }, 200, { 'Cache-Control': 'no-store' });
+    }
+
+    // ── POST /issue/:n/comment ───────────────────────────────────────────────────
+    // Write-key gated. Adds a dated comment to the GitHub Issue thread.
+    const commentMatch = url.pathname.match(/^\/issue\/(\d+)\/comment$/);
+    if (request.method === 'POST' && commentMatch) {
+      const provided = request.headers.get('X-Write-Key');
+      if (!env.WRITE_KEY || !provided || provided !== env.WRITE_KEY) {
+        return json({ error: 'Unauthorized — set X-Write-Key header' }, 401);
+      }
+      let b: { body?: string };
+      try { b = await request.json() as typeof b; } catch { return json({ error: 'Invalid JSON body' }, 400); }
+      const text = (b.body ?? '').trim();
+      if (!text) return json({ error: 'body required' }, 400);
+
+      const n = commentMatch[1];
+      const ghRes = await ghFetch(
+        `https://api.github.com/repos/patrickpatches/hone/issues/${n}/comments`,
+        env,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ body: text }) },
+      ).catch(() => null);
+
+      if (!ghRes) return json({ error: 'Could not reach GitHub' }, 502);
+      if (ghRes.status === 403 || ghRes.status === 404) {
+        return json({ error: "The Worker's token can't comment. It needs Issues: write.", status: ghRes.status }, 403);
+      }
+      if (!ghRes.ok) {
+        const t = await ghRes.text().catch(() => '');
+        return json({ error: 'GitHub rejected the comment', status: ghRes.status, detail: t.slice(0, 200) }, 502);
+      }
+      const c = await ghRes.json() as GHComment;
+      return json({ ok: true, comment: { author: c.user?.login ?? 'you', created_at: c.created_at, body: c.body ?? text } });
+    }
+
     // ── GET /build ─────────────────────────────────────────────────────────────
     // Returns the latest completed EAS build number from the public GitHub
     // Actions API (no auth needed for public repos).
     if (request.method === 'GET' && url.pathname === '/build') {
-      const res = await fetch(
+      const res = await ghFetch(
         'https://api.github.com/repos/patrickpatches/hone/actions/workflows/eas-build.yml/runs?per_page=1&status=completed',
-        { headers: { 'User-Agent': 'HoneBugLord/1.0' } },
+        env,
       ).catch(() => null);
 
       if (!res || !res.ok) {
@@ -277,12 +364,12 @@ export default {
         number: run?.run_number ?? null,
         sha: run?.head_sha?.slice(0, 7) ?? null,
         created_at: run?.created_at ?? null,
-      }, 200, { 'Cache-Control': 'public, s-maxage=120, max-age=120' });
+      }, 200, { 'Cache-Control': 'no-store' });
     }
 
     // ── GET / (health) ─────────────────────────────────────────────────────────
     if (request.method === 'GET' && url.pathname === '/') {
-      return json({ ok: true, endpoints: ['GET /bugs', 'POST /update', 'POST /issue', 'GET /build'] });
+      return json({ ok: true, endpoints: ['GET /bugs', 'POST /update', 'POST /issue', 'GET /issue/:n', 'POST /issue/:n/comment', 'GET /build'] });
     }
 
     return new Response('Not found', { status: 404, headers: CORS });

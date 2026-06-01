@@ -153,10 +153,67 @@
   .chip.who{color:var(--aqua);border-color:rgba(31,227,234,.25)}
   .chip.build{color:#FFD6F0;border-color:rgba(255,46,166,.25)}
   .stpill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px}
-  .bugfilter{display:flex;gap:8px;margin-bottom:14px}
+  .bugfilter{display:flex;gap:8px}
   .ffbtn{border:1px solid var(--line2);background:var(--card);color:var(--mut);font-family:inherit;font-size:12.5px;font-weight:650;padding:6px 13px;border-radius:9px;cursor:pointer}
   .ffbtn.on{background:var(--grad);color:#06121f;border-color:transparent}
   .bug.bugdone{opacity:.5}
+
+  /* HONE-021 — Bug Lord Pro: table + detail drawer */
+  .bugtools{display:flex;gap:10px;align-items:center;margin-bottom:13px;flex-wrap:wrap}
+  .bugsearch{flex:1;min-width:150px;background:var(--bg);border:1px solid var(--line2);border-radius:9px;
+    color:var(--ink);font-family:inherit;font-size:13px;padding:8px 12px;outline:none}
+  .bugsearch:focus{border-color:var(--aqua)}
+  .bugtable{width:100%;border-collapse:collapse;font-size:13px}
+  .bugtable thead th{text-align:left;font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--mut2);padding:7px 10px;border-bottom:1px solid var(--line2);cursor:pointer;white-space:nowrap;user-select:none}
+  .bugtable thead th:hover{color:var(--ink)}
+  .bugtable thead th .arr{color:var(--aqua);font-size:10px}
+  .bugtable tbody tr{border-bottom:1px solid var(--line);cursor:pointer;transition:background .12s}
+  .bugtable tbody tr:hover{background:rgba(255,255,255,.03)}
+  .bugtable tbody tr.done td:not(.sevcell){opacity:.5}
+  .bugtable td{padding:11px 10px;vertical-align:middle}
+  .bugtable td.sevcell{width:20px;padding-right:0}
+  .sevdot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .ttl{font-weight:600;color:var(--ink);line-height:1.35}
+  .ttl .tid{font-size:11px;color:var(--mut2);font-weight:600;margin-left:6px}
+  .stchip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px;white-space:nowrap;display:inline-block}
+  .wcell,.bcell,.ucell{color:var(--mut);white-space:nowrap;font-size:12.5px}
+  .bcell{font-variant-numeric:tabular-nums}
+  @media(max-width:680px){
+    .bugtable .col-who,.bugtable .col-build{display:none}
+    .bugtable td.ucell,.bugtable th.col-upd{display:none}
+    .bugtable td,.bugtable thead th{padding:11px 7px}
+  }
+  /* Drawer */
+  .scrim{position:fixed;inset:0;background:rgba(4,7,14,.6);backdrop-filter:blur(2px);z-index:60;opacity:0;
+    pointer-events:none;transition:opacity .2s}
+  .scrim.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:min(560px,100%);background:var(--card);z-index:61;
+    border-left:1px solid var(--line2);box-shadow:-12px 0 50px rgba(0,0,0,.5);transform:translateX(100%);
+    transition:transform .24s ease;overflow-y:auto;display:flex;flex-direction:column}
+  .drawer.show{transform:translateX(0)}
+  .drawer-head{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card);z-index:2}
+  .drawer-back{background:transparent;border:1px solid var(--line2);color:var(--ink);border-radius:9px;
+    width:34px;height:34px;font-size:17px;cursor:pointer;flex:0 0 auto}
+  .drawer-body{padding:16px 18px 28px}
+  .drawer h3{font-size:18px;font-weight:750;line-height:1.3;margin-bottom:8px}
+  .drawer-desc{font-size:13.5px;color:var(--mut);line-height:1.5;background:var(--bg);border:1px solid var(--line);
+    border-radius:11px;padding:13px;margin-bottom:16px;white-space:pre-wrap}
+  .drawer-edit{display:grid;grid-template-columns:auto 1fr;gap:9px 12px;align-items:center;margin-bottom:20px}
+  .drawer-edit label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mut2)}
+  .drawer-edit .bsel{width:100%;font-size:13px;padding:8px 26px 8px 11px}
+  .cmts h4{font-size:13px;font-weight:750;margin:6px 0 12px;display:flex;align-items:center;gap:8px}
+  .cmts h4 .ct{font-size:11px;color:var(--mut2);font-weight:600}
+  .cmt{border-left:2px solid var(--line2);padding:2px 0 2px 12px;margin-bottom:14px}
+  .cmt .cmeta{font-size:11px;color:var(--mut2);margin-bottom:3px}
+  .cmt .cmeta b{color:var(--aqua);font-weight:700}
+  .cmt .cbody{font-size:13px;color:var(--ink);line-height:1.5;white-space:pre-wrap}
+  .cmt.pending{opacity:.55}
+  .cmtbox{margin-top:6px}
+  .cmtbox textarea{width:100%;background:var(--bg);border:1px solid var(--line2);border-radius:10px;color:var(--ink);
+    font-family:inherit;font-size:13px;padding:10px 12px;min-height:64px;resize:vertical;outline:none}
+  .cmtbox textarea:focus{border-color:var(--aqua)}
+  .cmtempty{font-size:12.5px;color:var(--mut2);margin-bottom:12px}
   .buildstatus{margin-top:14px;background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--line2);border-radius:14px;padding:15px 16px}
   .bshead{font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--mut)}
   .bshead span{color:var(--mut2);font-weight:600;text-transform:none;letter-spacing:0}
@@ -312,7 +369,7 @@
         <span><i style="background:var(--mut2)"></i>Tidy-up = cosmetic</span>
       </div>
     </div>
-    <div class="lead">Every open job. Tap a dropdown — it saves instantly. No copy-paste needed.</div>
+    <div class="lead">Every job, sortable. Tap a row to open it — change status, see who's on it, and read or add dated comments. Everything saves live.</div>
     <!-- Write-key box — appears only on your FIRST edit (hidden once stored). -->
     <div id="wkey-notice" style="display:none;align-items:center;gap:10px;background:rgba(31,227,234,.07);border:1px solid rgba(31,227,234,.3);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:13px">
       <span style="color:var(--aqua);font-weight:700">🔑</span>
@@ -347,6 +404,30 @@
   </footer>
 </div>
 <div class="savetoast" id="savetoast"></div>
+
+<!-- HONE-021 — detail drawer -->
+<div class="scrim" id="scrim"></div>
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <button class="drawer-back" id="drawerBack" aria-label="Close">←</button>
+    <span class="chip" id="drawerId" style="color:var(--mut2)"></span>
+    <span style="flex:1"></span>
+    <a id="drawerGh" href="#" target="_blank" style="font-size:12px">GitHub ↗</a>
+  </div>
+  <div class="drawer-body">
+    <h3 id="drawerTitle"></h3>
+    <div class="drawer-desc" id="drawerDesc"></div>
+    <div class="drawer-edit" id="drawerEdit"></div>
+    <div class="cmts">
+      <h4>Comments <span class="ct" id="cmtCount"></span></h4>
+      <div id="cmtList"></div>
+      <div class="cmtbox">
+        <textarea id="cmtInput" placeholder="Add a comment…"></textarea>
+        <div class="cbtns" style="margin-top:9px"><button class="btn primary" id="cmtBtn">Add comment</button></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 const LAUNCH=new Date('2026-07-24T00:00:00+10:00'); const AS_OF='live';
@@ -489,18 +570,87 @@ function sel(field,id,cur,opts){
 }
 const stMap={open:{t:'Open',bg:'rgba(255,92,122,.14)',c:'#FF8AA0'},check:{t:'Fixed — build & check',bg:'rgba(40,224,176,.14)',c:'#5BE8C4'},fixing:{t:'Being fixed (quick version)',bg:'rgba(255,194,75,.14)',c:'#FFD27A'},later:{t:'Tracked for later',bg:'rgba(134,150,176,.16)',c:'#A7B4C8'},call:{t:'Needs your call',bg:'rgba(255,46,166,.16)',c:'#FF8AD0'},done:{t:'Done ✓',bg:'rgba(40,224,176,.18)',c:'#5BE8C4'}};
 const sevCol={'Show-stopper':'var(--bad)','Serious':'var(--warn)','Annoying':'var(--aqua)','Tidy-up':'var(--mut2)'};
-let bugFilter='open';
+let bugFilter='open', bugSearch='', sortKey='sev', sortDir=1;
 const sevOrder={'Show-stopper':0,'Serious':1,'Annoying':2,'Tidy-up':3};
-function bugSort(a){return a.slice().sort((x,y)=>{const xd=x.st==='done',yd=y.st==='done';if(xd!==yd)return xd?1:-1;return sevOrder[x.sev]-sevOrder[y.sev];});}
+const stLabelMap={open:'Open',fixing:'Being fixed',check:'Fixed — check',call:'Needs your call',later:'Tracked later',done:'Done ✓'};
+
+// "2h ago" / "3d ago" from an ISO timestamp.
+function relTime(iso){
+  if(!iso)return '';
+  const then=new Date(iso).getTime(); if(isNaN(then))return '';
+  const s=Math.max(0,Math.floor((Date.now()-then)/1000));
+  if(s<60)return 'just now';
+  const m=Math.floor(s/60); if(m<60)return m+'m ago';
+  const h=Math.floor(m/60); if(h<24)return h+'h ago';
+  const d=Math.floor(h/24); if(d<30)return d+'d ago';
+  const mo=Math.floor(d/30); if(mo<12)return mo+'mo ago';
+  return Math.floor(mo/12)+'y ago';
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+function sortBugs(list){
+  const dir=sortDir;
+  return list.slice().sort((x,y)=>{
+    // Open always groups above done unless explicitly sorting by status.
+    if(sortKey!=='st'){const xd=x.st==='done',yd=y.st==='done';if(xd!==yd)return xd?1:-1;}
+    let a,b;
+    if(sortKey==='sev'){a=sevOrder[x.sev];b=sevOrder[y.sev];}
+    else if(sortKey==='upd'){a=x.upd?new Date(x.upd).getTime():0;b=y.upd?new Date(y.upd).getTime():0;return (b-a)*dir;}
+    else{a=String(x[sortKey]||'').toLowerCase();b=String(y[sortKey]||'').toLowerCase();}
+    if(a<b)return -1*dir; if(a>b)return 1*dir; return 0;
+  });
+}
+
 function renderBugs(){
   const openN=BUGS.filter(b=>b.st!=='done').length, doneN=BUGS.filter(b=>b.st==='done').length;
   let list=bugFilter==='done'?BUGS.filter(b=>b.st==='done'):bugFilter==='all'?BUGS.slice():BUGS.filter(b=>b.st!=='done');
-  list=bugSort(list);
-  const fbar=`<div class="bugfilter">${[['open','Open',openN],['done','Done',doneN],['all','All',BUGS.length]].map(o=>`<button class="ffbtn${bugFilter===o[0]?' on':''}" data-f="${o[0]}">${o[1]} ${o[2]}</button>`).join('')}</div>`;
-  const cards=list.map(b=>`<div class="bug${b.st==='done'?' bugdone':''}"><div class="sd" style="background:${sevCol[b.sev]}"></div><div style="flex:1"><div class="bt">${b.t}</div><div class="bd">${b.d}</div><div class="meta">${sel('st',b.id,b.st,ST_OPTS)}${sel('sev',b.id,b.sev,SEV_OPTS)}${sel('who',b.id,b.who,WHO_OPTS)}<span class="chip build">${b.build}</span><span class="chip" style="color:var(--mut2)">${b.id}</span></div></div></div>`).join('');
-  $('buglist').innerHTML=fbar+cards;
+  if(bugSearch){const q=bugSearch.toLowerCase();list=list.filter(b=>(b.t+' '+b.d+' '+b.id+' '+b.who).toLowerCase().includes(q));}
+  list=sortBugs(list);
+
+  const tools='<div class="bugtools"><div class="bugfilter">'+
+    [['open','Open',openN],['done','Done',doneN],['all','All',BUGS.length]].map(o=>'<button class="ffbtn'+(bugFilter===o[0]?' on':'')+'" data-f="'+o[0]+'">'+o[1]+' '+o[2]+'</button>').join('')+
+    '</div><input class="bugsearch" id="bugsearch" placeholder="Search bugs…" value="'+esc(bugSearch)+'"></div>';
+
+  const arr=k=>sortKey===k?('<span class="arr">'+(sortDir>0?'▲':'▼')+'</span>'):'';
+  const head='<thead><tr>'+
+    '<th class="sevcell" data-sort="sev" title="Severity">●'+arr('sev')+'</th>'+
+    '<th data-sort="t">Title '+arr('t')+'</th>'+
+    '<th data-sort="st">Status '+arr('st')+'</th>'+
+    '<th class="col-who" data-sort="who">Who '+arr('who')+'</th>'+
+    '<th class="col-build" data-sort="build">Build '+arr('build')+'</th>'+
+    '<th class="col-upd" data-sort="upd">Updated '+arr('upd')+'</th>'+
+    '</tr></thead>';
+
+  const rows=list.map(b=>{
+    const st=stMap[b.st]||{t:b.st,bg:'rgba(255,255,255,.06)',c:'var(--mut)'};
+    return '<tr class="'+(b.st==='done'?'done':'')+'" data-id="'+esc(b.id)+'"'+(b.num?(' data-num="'+b.num+'"'):'')+'>'+
+      '<td class="sevcell"><span class="sevdot" style="background:'+(sevCol[b.sev]||'var(--mut)')+'" title="'+esc(b.sev)+'"></span></td>'+
+      '<td><span class="ttl">'+esc(b.t)+'<span class="tid">'+esc(b.id)+'</span></span></td>'+
+      '<td><span class="stchip" style="background:'+st.bg+';color:'+st.c+'">'+esc(stLabelMap[b.st]||st.t)+'</span></td>'+
+      '<td class="wcell col-who">'+esc(b.who)+'</td>'+
+      '<td class="bcell col-build">'+esc(b.build)+'</td>'+
+      '<td class="ucell col-upd">'+esc(relTime(b.upd))+'</td>'+
+    '</tr>';
+  }).join('');
+
+  const empty=list.length?'':'<tr><td colspan="6" style="padding:20px;color:var(--mut2)">No bugs match.</td></tr>';
+  $('buglist').innerHTML=tools+'<table class="bugtable">'+head+'<tbody>'+(rows||empty)+'</tbody></table>';
+
+  // Wire filter buttons
   document.querySelectorAll('.ffbtn').forEach(btn=>btn.addEventListener('click',()=>{bugFilter=btn.dataset.f;renderBugs();}));
-  initBugEditing();
+  // Wire search (preserve focus + caret)
+  const sb=$('bugsearch');
+  if(sb)sb.addEventListener('input',()=>{bugSearch=sb.value;const pos=sb.selectionStart;renderBugs();const nb=$('bugsearch');if(nb){nb.focus();try{nb.setSelectionRange(pos,pos);}catch(e){}}});
+  // Wire sortable headers
+  document.querySelectorAll('.bugtable thead th').forEach(th=>th.addEventListener('click',()=>{
+    const k=th.dataset.sort; if(!k)return;
+    if(sortKey===k)sortDir=-sortDir; else{sortKey=k;sortDir=(k==='upd')?1:1;}
+    renderBugs();
+  }));
+  // Wire row → drawer
+  document.querySelectorAll('.bugtable tbody tr[data-id]').forEach(tr=>tr.addEventListener('click',()=>{
+    const bug=BUGS.find(x=>x.id===tr.dataset.id); if(bug)openDrawer(bug);
+  }));
 }
 
 $('later').innerHTML=LATER.map(l=>`<div class="lcard"><div class="lt">${l.lt}</div><div class="ld">${l.ld}</div><div class="ls">${l.ls}</div></div>`).join('');
@@ -550,14 +700,17 @@ function revealKeyBox(){
 
 async function handleEdit(sl){
   const id=sl.dataset.id,field=sl.dataset.field,value=sl.value;
-  // 1. Optimistic — the change is visible instantly.
+  // 1. Optimistic — the change is visible instantly in the model + table.
+  //    The edited select lives in the drawer, so re-rendering the table
+  //    behind it never blanks the control.
   applyLocal(id,field,value);
+  renderBugs();
   sl.classList.remove('saved','error');
 
   // 2. No key yet → reveal the inline box, queue the edit. No blocking prompt.
   if(!getWriteKey()){
     pendingEdits.push({id,field,value,sl});
-    revealKeyBox();
+    promptDrawerKey();
     toast('Enter your key once to save changes','');
     return;
   }
@@ -597,12 +750,118 @@ async function flushPending(){
   toast(okAll?'Saved ✓':"Some didn't save — check your key", okAll?'ok':'err');
 }
 
-function initBugEditing(){
-  // No key prompt on load (item 7) — only on first edit.
-  document.querySelectorAll('.bsel').forEach(function(sl){
+// Wire change → optimistic save on every .bsel inside `root` (default document).
+// No key prompt on load (item 7) — only on first edit, via the inline key box.
+function wireSelects(root){
+  (root||document).querySelectorAll('.bsel').forEach(function(sl){
+    if(sl._wired)return; sl._wired=true;
     sl.addEventListener('change',function(){handleEdit(sl);});
   });
 }
+
+// When editing inside the drawer with no key set, reveal the key box on the
+// Bugs tab and surface a hint (the drawer covers it, so we use the toast).
+function promptDrawerKey(){
+  revealKeyBox();
+}
+
+/* ---- HONE-021 — DETAIL DRAWER (description, live edit, comment thread) ---- */
+let drawerBug=null;
+function openDrawer(bug){
+  drawerBug=bug;
+  $('drawerId').textContent=bug.id;
+  $('drawerTitle').textContent=bug.t;
+  $('drawerDesc').textContent=bug.d||'(no description)';
+  const gh=$('drawerGh');
+  if(bug.num){gh.style.display='';gh.href='https://github.com/patrickpatches/hone/issues/'+bug.num;}
+  else gh.style.display='none';
+  // Editable Status / Severity / Who — reuse the optimistic save engine.
+  $('drawerEdit').innerHTML=
+    '<label>Status</label>'+sel('st',bug.id,bug.st,ST_OPTS)+
+    '<label>Severity</label>'+sel('sev',bug.id,bug.sev,SEV_OPTS)+
+    '<label>Who</label>'+sel('who',bug.id,bug.who,WHO_OPTS);
+  wireSelects($('drawerEdit'));
+  // Comments
+  const cl=$('cmtList'), ci=$('cmtInput'), cc=$('cmtCount');
+  ci.value='';
+  if(!bug.num){
+    cc.textContent='';
+    cl.innerHTML='<div class="cmtempty">This is an internal ticket — not a GitHub issue, so it has no comment thread.</div>';
+    $('cmtInput').disabled=true; $('cmtBtn').disabled=true;
+  } else {
+    $('cmtInput').disabled=false; $('cmtBtn').disabled=false;
+    cc.textContent=''; cl.innerHTML='<div class="cmtempty">Loading comments…</div>';
+    fetch(WORKER_URL+'/issue/'+bug.num+'?t='+Date.now())
+      .then(r=>r.ok?r.json():Promise.reject())
+      .then(d=>{
+        if(drawerBug!==bug)return; // user moved on
+        if(d.d)$('drawerDesc').textContent=d.d;
+        renderComments(d.comments||[]);
+      })
+      .catch(()=>{if(drawerBug===bug)cl.innerHTML='<div class="cmtempty">Couldn\'t load comments — try reopening.</div>';});
+  }
+  $('scrim').classList.add('show');
+  $('drawer').classList.add('show');
+  $('drawer').setAttribute('aria-hidden','false');
+}
+function renderComments(list){
+  const cl=$('cmtList'), cc=$('cmtCount');
+  cc.textContent=list.length?('· '+list.length):'· none yet';
+  if(!list.length){cl.innerHTML='<div class="cmtempty">No comments yet. Add the first one below.</div>';return;}
+  cl.innerHTML=list.map(c=>'<div class="cmt"><div class="cmeta"><b>'+esc(c.author)+'</b> · '+esc(relTime(c.created_at))+'</div><div class="cbody">'+esc(c.body)+'</div></div>').join('');
+}
+function closeDrawer(){
+  drawerBug=null;
+  $('scrim').classList.remove('show');
+  $('drawer').classList.remove('show');
+  $('drawer').setAttribute('aria-hidden','true');
+}
+$('drawerBack').addEventListener('click',closeDrawer);
+$('scrim').addEventListener('click',closeDrawer);
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&drawerBug)closeDrawer();});
+
+// Add a dated comment to the open issue's thread.
+$('cmtBtn').addEventListener('click',async function(){
+  const bug=drawerBug; if(!bug||!bug.num)return;
+  const ci=$('cmtInput'), text=ci.value.trim();
+  if(!text)return;
+  if(!getWriteKey()){
+    const k=prompt('Enter your Bug Lord write key to comment (one-time — then remembered):');
+    if(!k)return; setWriteKey(k);
+  }
+  const btn=$('cmtBtn'); btn.disabled=true; btn.textContent='Posting…';
+  // Optimistic: append a pending comment immediately.
+  const cl=$('cmtList');
+  if(cl.querySelector('.cmtempty'))cl.innerHTML='';
+  const pend=document.createElement('div');
+  pend.className='cmt pending';
+  pend.innerHTML='<div class="cmeta"><b>you</b> · sending…</div><div class="cbody">'+esc(text)+'</div>';
+  cl.appendChild(pend);
+  try{
+    const r=await fetch(WORKER_URL+'/issue/'+bug.num+'/comment',{method:'POST',
+      headers:{'Content-Type':'application/json','X-Write-Key':getWriteKey()},
+      body:JSON.stringify({body:text})});
+    const out=await r.json().catch(()=>({}));
+    if(r.ok&&out.ok){
+      pend.classList.remove('pending');
+      pend.querySelector('.cmeta').innerHTML='<b>'+esc(out.comment.author)+'</b> · just now';
+      ci.value='';
+      const cc=$('cmtCount');const n=cl.querySelectorAll('.cmt').length;cc.textContent='· '+n;
+      toast('Comment added ✓','ok');
+    } else if(r.status===401){
+      pend.remove(); localStorage.removeItem(WKEY); toast('Key rejected — try again','err');
+    } else if(r.status===403){
+      pend.remove(); toast('Token needs Issues write access','err');
+    } else {
+      pend.querySelector('.cmeta').innerHTML='<b>you</b> · <span style="color:var(--bad)">failed to send</span>';
+      pend.classList.remove('pending'); toast("Couldn't post — try again",'err');
+    }
+  }catch(e){
+    pend.querySelector('.cmeta').innerHTML='<b>you</b> · <span style="color:var(--bad)">network error</span>';
+    pend.classList.remove('pending'); toast('Network error','err');
+  }
+  btn.disabled=false; btn.textContent='Add comment';
+});
 
 // Inline write-key Save button (Bugs tab) — stores the key + flushes queued edits.
 document.addEventListener('click',function(e){
@@ -673,6 +932,32 @@ async function initBugLord(){
   }catch(e){/* build bar stays as-is */}
 }
 initBugLord();
+
+/* ---- HONE-021 item 1 — keep the board fresh ----
+   The Worker now reads GitHub live (cache-buster), so a light poll surfaces
+   changes from anywhere within seconds. Guarded so it never disrupts the
+   user: skipped when the tab is hidden, the search box is focused, the
+   drawer is open, or edits are still queued. */
+async function refreshBugs(){
+  if(document.hidden)return;
+  if(drawerBug)return;
+  if(document.activeElement&&document.activeElement.id==='bugsearch')return;
+  if(pendingEdits.length)return;
+  try{
+    const r=await fetch(WORKER_URL+'/bugs?t='+Date.now());
+    if(!r.ok)return;
+    const live=await r.json();
+    if(!Array.isArray(live))return;
+    const liveIds=new Set(live.map(b=>b.id));
+    const next=live.concat(BUGS_SEED.filter(b=>!liveIds.has(b.id)));
+    // Only re-render if something actually changed (cheap signature compare).
+    if(JSON.stringify(next)!==JSON.stringify(BUGS)){
+      BUGS=next; recomputeSev(); renderBugs();
+    }
+  }catch(e){/* offline tick — ignore */}
+}
+setInterval(refreshBugs,15000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)refreshBugs();});
 
 /* ---- COMPOSER — HONE-020 item 2: files a REAL GitHub Issue live ---- */
 const WHO_MAP={'Senior Engineer':'Engineer','Product Designer':'Designer','Cook':'Cook','Photography Director':'Photography','Bug Tester':'Bug Tester','COO (Claude)':'COO (me)'};

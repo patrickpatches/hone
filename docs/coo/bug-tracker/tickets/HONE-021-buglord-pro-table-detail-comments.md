@@ -19,3 +19,49 @@ Make Bug Lord a genuinely best-in-class manager for a solo founder — faster, c
 
 ## COO TRIAGE — 2026-06-02
 P2, but the freshness fix (item 1) is effectively P1 — without it the live board feels broken. Sequence alongside launch work; this is the management system, not the cooking app.
+
+## FIX ATTEMPTED — docs/infra commit `<tbd>` — 2026-06-02
+
+_Senior Engineer. All five items shipped. No EAS build (dashboard + Worker only)._
+
+**1. Freshness — root cause found & fixed.** The staleness was NOT my Worker's
+response cache — it was the **Worker→GitHub subrequest** cache. GitHub returns
+`Cache-Control: max-age=60`, which Cloudflare honours on `fetch()` subrequests,
+so the Worker served up-to-60s-old data. Fix: a `ghFetch()` helper appends a
+unique `_=<ts>` param (GitHub ignores it) + `cf:{cacheTtl:0}` so every read is
+live. Applied to `/bugs`, `/build`, and the new detail/comment reads. Plus a
+guarded 15s board poll (skips when the tab's hidden, search is focused, the
+drawer is open, or edits are queued) so changes from anywhere appear within
+seconds. New bugs/edits now show in ~1–2s.
+
+**2. Table view.** Card list → a clean sortable `<table>`: severity dot · title
+(+id) · status chip · who · build · updated (relative time). Click any column
+header to sort (toggles direction); Open/Done/All filter + a live search box.
+Mobile-first: who/build/updated columns collapse on narrow screens, leaving
+sev + title + status; the whole row stays tappable.
+
+**3. Detail drawer.** Tapping a row slides in a right-side drawer: full
+description, live-editable Status / Severity / Who (optimistic save via
+`/update`), and a **comment thread** pulled from the GitHub Issue
+(`GET /issue/:n`) with author + relative timestamp. An "Add comment" box posts
+a dated comment (`POST /issue/:n/comment`) — optimistic append, reconciled on
+response. Internal seed tickets (no GitHub issue) show description + status
+editing and a "no comment thread" note.
+
+**4. Worker endpoints (deployed & tested live):**
+- `GET /issue/:n` → issue (merged with KV override) + `body` + `comments[]`. ✓
+- `POST /issue/:n/comment` → write-key gated; adds a dated comment. 401 without key. ✓
+- `/bugs` now also returns `num` (GitHub issue number) + `upd` (updated_at).
+
+**5. Polish.** Optimistic edits (the edited control lives in the drawer, so the
+table re-renders behind it without ever blanking the dropdown — the HONE-020
+lag is gone), password asked only on first write, instant feel, no clutter.
+
+**Verified live:** health lists all 6 endpoints; `/bugs` carries num+upd;
+`/issue/14` returns detail+comments; `/issue/14/comment` → 401 without key.
+
+**No new setup for Patrick.** `WRITE_KEY` + the Issues-write token are already
+in place (you upgraded the token for HONE-020 item 2 / #14 was filed). Nothing
+to run.
+
+Per R-015: not self-closing.
