@@ -51,3 +51,9 @@ Then paste the same phrase into the write-key box on the Bugs tab once.
 Per R-015: not self-closing.
 
 **6. Freshness / caching (found 2026-06-02).** The Worker's `/bugs` feed is edge-cached inconsistently: closed issues sometimes still read `open`, and a newly-filed issue (#13) didn't appear for minutes. The board must ALWAYS reflect current GitHub state — set short/no cache + cache-busting on the feed (and on `/build`), or push-update on change. "Always accurate" depends on this.
+
+**7. Live-board UX polish (Patrick on-device, 2026-06-02 — saving CONFIRMED working).**
+- Password prompt appears on the whole Bugs tab on load; should only ask on the FIRST edit (then remember).
+- ~5s lag on save and the dropdown goes BLANK during the update — add an optimistic UI (show the new value instantly) + a small saving indicator; don't blank the control.
+- **Retire copy-paste fully:** make the "Tell Claude" composer FILE A NEW BUG LIVE (create a GitHub Issue via the Worker) instead of copy-to-chat. Status changes are already live; new-bug reporting is the last thing still needing copy-paste. Update the composer's helper text to say status changes now save automatically; this box is for NEW bugs / handoffs.
+- Freshness: the `/bugs` edge cache is still stale (see item 6) — new issues (#13) + my closes don't show promptly.
