@@ -14,12 +14,7 @@
 | REGN-001 | Recipe cards misalign after first scroll | FIX ATTEMPTED | Commit `1fca0aaa3d3d` — awaiting Patrick on-device validation |
 | REGN-006 | Equipment + Prep sections missing on most recipes | FIX ATTEMPTED | UI rendering restored 7 May 2026 — awaiting on-device validation |
 | REGN-007 | Pantry STILL NEED chip state broken (undo, X-removal, ✓-toggle) | FIX ATTEMPTED | Refactored to derive state from shopping list — awaiting on-device validation |
-| HONE-007 | Add missing to shopping list fails (or only adds some items) | FIX ATTEMPTED | Build #134. Root cause: items were tagged as "from a meal plan" (`kind:'meal'`). The Shop tab auto-deletes meal-tagged items if the recipe isn't in your plan — so they vanished immediately. Fix: tag them as `kind:'manual'` instead. Now they stick like anything you add yourself. |
-| HONE-008 | Top of recipe screen is cluttered — duplicate Start cooking, duplicate 0/9, duplicate Watch | FIX ATTEMPTED | Build #134. Three duplicates removed: (1) inline Start Cooking pill deleted — sticky bottom pill is the only one now; (2) "Watch the chef" removed from ghost row — "Watch the original ↗" in the chef credit line above is enough; (3) N/M ingredient count pill removed from the "In your pantry" eyebrow — the same number was already shown large inside the card body. |
-| HONE-009 | What to know before you start is a wall of text — violates anticipation-not-reaction | OPEN | P2 · FLAGGED BACK — needs per-recipe data work, not a code move. Each note needs to be mapped to the specific step or ingredient it applies to. That's authoring work (cook's lane), not an engineering fix. No code change in #134. See handoff note. |
-| HONE-010 | Plate time always shows 3 min on every recipe — each plating is unique | FIX ATTEMPTED | Build #134. Was hardcoded `3`. Now derived from recipe data: if the recipe has a finishing/tasting note (meaning active plating work — seasoning, sauce, garnish) → 5 min; if not → 3 min. Different recipes will now show different times. A `plating_time_minutes` field per recipe would be the complete fix but needs schema + data authoring work. |
-| HONE-011 | What to know callout uses blue left rail — v7 palette violation | FIX ATTEMPTED | Build #134. Was `#5B8FD4` (blue — not in the v7 palette). Changed rail, background, dot, and label to gold. Simple colour swap, no layout change. |
-| HONE-012 | 'intermediate' should be 'Intermediate' on the meta line | FIX ATTEMPTED | Build #134. The code was passing the raw database value (`recipe.difficulty`) which is stored lowercase. Changed to use `difficultyLabel` which already capitalises the first letter. One-line fix. |
+| HONE-008 | Top of recipe screen is cluttered — duplicate Start cooking, duplicate 0/9, duplicate Watch | FIX ATTEMPTED | Build #136 (commit 328a7f0c97). Watch link moved from eyebrow to ghost row; ghost row gets 6px extra breathing room. GitHub Issue #8 still OPEN — awaiting Patrick on-device validation. |
 
 **REGN-006 root cause (diagnosed 7 May 2026):**
 - Patrick reported Equipment + Mise en place sections missing across most recipes (not just SMASH_BURGER).
@@ -57,6 +52,12 @@ The DECISION-008 fields are: `equipment[]`, `before_you_start[]`, `mise_en_place
 | ID | Title | Status | Closed |
 |---|---|---|---|
 | REGN-004 | Pantry search flashes / requires multiple taps | VALIDATED ✅ | 5 May 2026 — Patrick confirmed on-device |
+| HONE-007 | Add missing to shopping list fails | VALIDATED ✅ | Build #134 (e3cb60c) — Patrick closed GitHub Issue #7 on-device |
+| HONE-009 | Before you start wall of text | VALIDATED ✅ | Build #135 (7424380, collapsible) — Patrick closed GitHub Issue #9 on-device |
+| HONE-010 | Plate time hardcoded 3 min | VALIDATED ✅ | Build #134 (e3cb60c) — Patrick closed GitHub Issue #10 on-device |
+| HONE-011 | Before you start blue rail palette violation | VALIDATED ✅ | Build #134 (e3cb60c) — Patrick closed GitHub Issue #11 on-device |
+| HONE-012 | difficulty lowercase on meta line | VALIDATED ✅ | Build #134 (e3cb60c), cook-mode also fixed 2026-06-02 — Patrick closed GitHub Issue #12 on-device |
+| REGN-004 | Pantry search flashes / requires multiple taps | VALIDATED ✅ | 5 May 2026 — Patrick confirmed on-device |
 | REGN-001 (carousel) | Pantry recipe card carousel partial-snap | VALIDATED ✅ | 5 May 2026 — Patrick confirmed on-device |
 | REGN-002 | OneDrive null-byte corruption | VALIDATED ✅ | 28 Apr 2026 — process fix; write via GitHub API only |
 | REGN-003 | pantry.tsx file-write truncation | VALIDATED ✅ | 3 May 2026 — full-file rebuild + Python assert validation before push |
@@ -89,3 +90,4 @@ The DECISION-008 fields are: `equipment[]`, `before_you_start[]`, `mise_en_place
 - **RecipeCard.tsx** — Difficulty pill text `color: tokens.ink` → `color: '#FFFFFF'` (dark text on dark scrim was unreadable)
 - **seed-recipes.ts** — A previously-required Zod refine had been silently blocking `refreshSeedRecipeFields` for SMASH_BURGER. The originating field was retired entirely on 2026-05-07 — see types.ts header for the retirement rationale.
 - **types.ts** — The Zod `.refine()` that triggered
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
