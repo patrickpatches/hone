@@ -205,6 +205,10 @@ This rule applies even when the fix is "obvious" or "the diff proves it works."
 
 Bug Lord is the single hub for fixing and progress — every specialist checks it at session start and routes status through it. It is one self-contained page in two synced places: phone/desktop at https://patrickpatches.github.io/hone/pass/ and the Cowork artifact `hone-bug-tracker`. Tickets live in `docs/coo/bug-tracker/tickets/`; the board reflects them. Update the ticket when you act (mark FIX ATTEMPTED / change status) — never self-close (R-015; Patrick validates on-device). Keep it plain English, no jargon: it is what Patrick reads.
 
+## Version control — the build number is the truth (added 2026-05-31)
+
+**"Build #N" = the GitHub Actions `eas-build.yml` run_number.** Nothing else. It auto-increments every time an APK is genuinely built, so it cannot be faked or drift. Never invent a build number, and never assign one to a code-only commit that wasn't built. To find the current build, every specialist queries the latest run: `GET /repos/patrickpatches/hone/actions/workflows/eas-build.yml/runs` — the top entry is the newest build (its `head_sha` tells you exactly what's in it). Bug Lord shows the newest built # next to the # on Patrick's phone so the whole team reads the same number. The hand-typed build-log table in `handoffs.md` is a convenience mirror only — if it disagrees with the Actions runs, the Actions runs win.
+
 ## Bug tracking system
 
 - **Source of truth:** GitHub Issues on `patrickpatches/hone` (Patrick logs from phone, Claude reads via PAT)
