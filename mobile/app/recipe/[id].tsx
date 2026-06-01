@@ -798,7 +798,7 @@ function RecipeDetailScreenInner() {
             {/* Meta row */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18, marginTop: 14 }}>
               <MetaPill icon="clock" label={`${recipe.time_min} min`} color={c.inkSoft} />
-              <MetaPill icon="flame" label={recipe.difficulty} color={c.inkSoft} />
+              <MetaPill icon="flame" label={difficultyLabel} color={c.inkSoft} />
             </View>
 
             {/* Description */}
