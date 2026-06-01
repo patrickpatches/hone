@@ -9,7 +9,8 @@ RECIPE:
 ASSIGNEE:        Engineer
 EPIC:            EPIC-v7-mise
 FOUND IN BUILD:  #129
-FIX ATTEMPTED:   (blank)
+FIX ATTEMPTED:   #134 (commit e3cb60c — 2026-05-31)
+STATUS:          VALIDATED ✅ — Patrick closed GitHub Issue #10 on-device
 TARGET BUILD:    #134
 REPRODUCIBLE:    Always
 DEVICE:          Patrick's Pixel (Android 14)
@@ -36,4 +37,4 @@ Always reads 'Plate · 3 min' regardless of recipe.
 
 ## Engineer notes
 
-Patrick's exact phrasing: 'each plating is unique'. Options: derive from leftover_mode + recipe complexity, or add explicit plate_minutes to the Recipe schema and have Cook author per recipe.
+Patrick's exact phrasing: 'each plating is unique'. Options: derive from leftover_mode
