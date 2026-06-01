@@ -81,6 +81,16 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
+### HANDOFF → Senior Engineer · 2026-06-01 · OPEN — HONE-020 finish the live Bug Lord (write-path, live build #, single source)
+**Lane:** Claude Code (CLI). **From:** COO. Patrick wants the board fully live + always-accurate.
+
+Builds on your shipped HONE-019 read-side. Full spec: `docs/coo/bug-tracker/tickets/HONE-020-buglord-live-write-path-single-source.md`. Five items: (1) write path — dropdowns POST `/update` → updates the GitHub Issue (close/reopen/`later` label/assignee); (2) **live build number** — add `GET /build` to the Worker querying `eas-build.yml/runs`, dashboard fills Build Status from the real newest run_number automatically (onPhone stays manual); (3) one id scheme so live + static never duplicate; (4) status model — later/who; (5) write-key auth on `/update`.
+
+Worker is already deployed read-only at `hone-buglord.patrick-nasr11.workers.dev`; Patrick's Cloudflare account is ready. Bounce back any new `wrangler secret`/deploy commands Patrick must run. Sequence alongside launch work.
+
+---
+
+
 ### HANDOFF → Senior Engineer · 2026-06-01 · DONE (Phase 1) — HONE-019 Live Bug Lord Cloudflare Worker
 **Lane:** Claude Code (CLI).
 **From:** COO (brief) / Senior Engineer (built)
