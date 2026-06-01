@@ -266,7 +266,11 @@ export function scoreRecipeAgainstPantry(
     recipeAromatics.length === 0 || recipeAromatics.every((ing) => isMatch(ing.name));
 
   // Sort missing ingredients so those with substitutions come first —
-  // they're the most valuable chips to show since the user has fallback options.
+  // they're the most actionable (the user has fallback options).
+  // NOTE: do NOT cap this list here. missingIngredients is used by
+  // addMissingToShoppingList() to write ALL missing items to the Shop
+  // list. Apply any display cap in the UI (e.g. pantry carousel chips)
+  // not in the data layer — a cap here silently drops ingredients.
   const withSubs = missingRaw.filter((m) => {
     const orig = recipe.ingredients.find(
       (ing) => cleanIngredientName(ing.name) === m.name,
@@ -274,7 +278,7 @@ export function scoreRecipeAgainstPantry(
     return (orig?.substitutions?.length ?? 0) > 0;
   });
   const withoutSubs = missingRaw.filter((m) => !withSubs.includes(m));
-  const sortedMissing = [...withSubs, ...withoutSubs].slice(0, 4);
+  const sortedMissing = [...withSubs, ...withoutSubs]; // full list — no cap
 
   return {
     recipe,

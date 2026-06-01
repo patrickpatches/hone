@@ -398,8 +398,6 @@ export default function ShopTab() {
 
   // ── Recipe groups (items added via "Add missing to shopping list") ─────────
   // Groups items that carry a 'recipe-add' source by their recipe_id.
-  // Displayed above the aisle sections so Patrick can see which recipes
-  // contributed items and remove a whole recipe's items in one tap.
   const recipeGroups = useMemo(() => {
     const groups = new Map<string, number>();
     for (const item of items) {
@@ -415,6 +413,44 @@ export default function ShopTab() {
       title: recipes.find((r) => r.id === recipeId)?.title ?? recipeId,
     }));
   }, [items, recipes]);
+
+  // ── Planned meal groups (auto-added by reconcile from the meal plan) ────────
+  // These are 'kind:meal' items — added automatically when a recipe is planned.
+  // Shown in a separate "In your plan" card so Patrick can see exactly which
+  // planned recipes contributed items, and remove them if they're not wanted.
+  const plannedMealGroups = useMemo(() => {
+    const groups = new Map<string, number>();
+    for (const item of items) {
+      for (const src of item.sources) {
+        if (src.kind === 'meal') {
+          groups.set(src.recipe_id, (groups.get(src.recipe_id) ?? 0) + 1);
+        }
+      }
+    }
+    return Array.from(groups.entries()).map(([recipeId, count]) => ({
+      recipeId,
+      count,
+      title: recipes.find((r) => r.id === recipeId)?.title ?? recipeId,
+    }));
+  }, [items, recipes]);
+
+  const handleRemovePlanItems = useCallback(
+    (recipeId: string) => {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+      // Strip the meal source for this recipe_id, then drop any rows that
+      // have no remaining sources and aren't manually added.
+      const next = items
+        .map((item) => ({
+          ...item,
+          sources: item.sources.filter(
+            (s) => !(s.kind === 'meal' && (s as { kind: 'meal'; recipe_id: string }).recipe_id === recipeId),
+          ),
+        }))
+        .filter((item) => item.manually_added || item.sources.length > 0);
+      persist(next);
+    },
+    [items, persist],
+  );
 
   const handleRemoveRecipeItems = useCallback(
     (recipeId: string) => {
@@ -771,6 +807,12 @@ export default function ShopTab() {
             <RecipeAddsCard
               groups={recipeGroups}
               onRemove={handleRemoveRecipeItems}
+            />
+          )}
+          {plannedMealGroups.length > 0 && (
+            <PlannedMealsCard
+              groups={plannedMealGroups}
+              onRemove={handleRemovePlanItems}
             />
           )}
           {sections.map((item) => (
@@ -1272,6 +1314,94 @@ function RecipeAddsCard({
               }}
             >
               <Icon name="trash" size={15} color={tokens.primary} />
+            </View>
+          </Pressable>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+// ── PlannedMealsCard ──────────────────────────────────────────────────────────
+// Shows which planned recipes auto-added items to the list via reconcile().
+// Lets Patrick see immediately that Butter Chicken (or any other planned recipe)
+// contributed items — and remove them with one tap if he doesn't want them.
+function PlannedMealsCard({
+  groups,
+  onRemove,
+}: {
+  groups: { recipeId: string; count: number; title: string }[];
+  onRemove: (recipeId: string) => void;
+}) {
+  return (
+    <View style={{ marginHorizontal: 20, marginTop: 6, marginBottom: 4 }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 9,
+          marginBottom: 8,
+        }}
+      >
+        <Icon name="calendar" size={13} color={tokens.muted} />
+        <Text
+          style={{
+            fontFamily: fonts.sansBold,
+            fontSize: 11,
+            letterSpacing: 1.8,
+            color: tokens.muted,
+          }}
+        >
+          FROM YOUR MEAL PLAN
+        </Text>
+        <View style={{ flex: 1, height: 1, backgroundColor: tokens.line }} />
+      </View>
+      {groups.map((g) => (
+        <View
+          key={g.recipeId}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: tokens.cream,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: tokens.line,
+            paddingVertical: 12,
+            paddingHorizontal: 14,
+            marginBottom: 6,
+            ...shadows.card,
+          }}
+        >
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{ fontFamily: fonts.sansBold, fontSize: 14, color: tokens.ink }}
+              numberOfLines={1}
+            >
+              {g.title}
+            </Text>
+            <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: tokens.muted, marginTop: 2 }}>
+              {g.count} ingredient{g.count === 1 ? '' : 's'} · added because it&apos;s planned
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => onRemove(g.recipeId)}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={`Remove all ${g.title} planned ingredients from shopping list`}
+            android_ripple={{ color: tokens.primaryLight, borderless: true }}
+            style={{ padding: 8, borderRadius: 8 }}
+          >
+            <View
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                backgroundColor: tokens.primaryLight,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Icon name="x" size={15} color={tokens.primary} />
             </View>
           </Pressable>
         </View>

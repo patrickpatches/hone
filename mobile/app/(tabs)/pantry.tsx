@@ -2045,7 +2045,9 @@ function RecipeMatchCard({
                 gap: 6,
               }}
             >
-              {match.missingIngredients.map((ing) => (
+              {/* Cap chip display at 4 for carousel layout; full list
+                  is available via addMissingToShoppingList */}
+              {match.missingIngredients.slice(0, 4).map((ing) => (
                 <ChipAdd
                   key={ing.name}
                   ing={ing}
