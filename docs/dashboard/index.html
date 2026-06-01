@@ -157,6 +157,26 @@
   .ffbtn{border:1px solid var(--line2);background:var(--card);color:var(--mut);font-family:inherit;font-size:12.5px;font-weight:650;padding:6px 13px;border-radius:9px;cursor:pointer}
   .ffbtn.on{background:var(--grad);color:#06121f;border-color:transparent}
   .bug.bugdone{opacity:.5}
+  .buildstatus{margin-top:14px;background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--line2);border-radius:14px;padding:15px 16px}
+  .bshead{font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--mut)}
+  .bshead span{color:var(--mut2);font-weight:600;text-transform:none;letter-spacing:0}
+  .bsrow{display:flex;gap:10px;margin-top:12px}
+  .bscell{flex:1;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:11px;padding:11px;text-align:center}
+  .bsv{font-size:22px;font-weight:800;letter-spacing:-.5px}
+  .bsl{font-size:11px;color:var(--mut);margin-top:2px}
+  .bsbehind{margin-top:11px;background:rgba(255,194,75,.10);border:1px solid rgba(255,194,75,.3);border-radius:10px;padding:9px 12px;font-size:12.5px;color:var(--warn);font-weight:600}
+  .bsfoot{font-size:11.5px;color:var(--mut2);margin-top:10px}
+  .sectlabel2{font-size:11.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mut2);font-weight:700;margin:26px 0 11px}
+  .teamrow{display:flex;gap:13px;padding:11px 0;border-top:1px solid var(--line)}
+  .teamrow:first-child{border-top:0}
+  .teamrow .tn{flex:0 0 130px;font-size:13.5px;font-weight:700}
+  .teamrow .td{flex:1;font-size:13px;color:var(--mut)}
+  .flowstep{display:flex;gap:14px;padding:9px 0}
+  .flowstep .fnum{flex:0 0 30px;height:30px;border-radius:9px;background:var(--grad);color:#06121f;font-weight:800;display:grid;place-items:center;font-size:14px}
+  .flowstep .fn{font-size:14.5px;font-weight:700}
+  .flowstep .fd{font-size:13px;color:var(--mut);margin-top:2px}
+  .flowcard{font-size:13.5px;color:var(--mut);line-height:1.6}
+  .flowcard b{color:var(--ink)}
   .bsel{appearance:none;background:var(--bg);border:1px solid var(--line2);color:var(--ink);font-family:inherit;
     font-size:11.5px;font-weight:600;padding:3px 22px 3px 9px;border-radius:7px;cursor:pointer;
     background-image:linear-gradient(45deg,transparent 50%,var(--aqua) 50%),linear-gradient(135deg,var(--aqua) 50%,transparent 50%);
@@ -210,7 +230,7 @@
       </div>
     </div>
 
-    <div class="buildbar"><span class="bdot"></span><div><b>Build #136 is next</b> — Shop tab now matches Pantry visually (icons, bronze headers, gold search border) + "before you start" notes are now collapsible instead of a wall of text. Trigger it from GitHub Actions → "Hone Android Build" → Run workflow → preview.</div></div>
+    <div class="buildstatus" id="buildstatus"></div>
 
     <!-- COMPOSER -->
     <div class="card composer" style="margin-top:14px">
@@ -272,7 +292,7 @@
         <span><i style="background:var(--mut2)"></i>Tidy-up = cosmetic</span>
       </div>
     </div>
-    <div class="lead">Every open job, plain English. "Fixed — build &amp; check" means the engineer did it; it lands on your phone once you build #136.</div>
+    <div class="lead">Every open job, plain English. "Fixed — build &amp; check" means the engineer did it; it lands on your phone once you build #133.</div>
     <div id="buglist" style="margin-top:10px"></div>
     <div class="changebar" id="changebar">
       <div id="changeText"></div>
@@ -289,6 +309,18 @@
     <div class="later" id="later"></div>
   </section>
 
+  <section class="panel" data-tab="flow">
+    <div class="lead">How Hone actually gets built — the whole team, the path every job takes, and how we keep the version honest. This is the operating system; every worker runs on it.</div>
+    <div class="sectlabel2">The team</div>
+    <div id="flowteam"></div>
+    <div class="sectlabel2">How every job flows</div>
+    <div id="flowsteps"></div>
+    <div class="sectlabel2">Keeping the version honest</div>
+    <div class="card flowcard" id="flowversion"></div>
+    <div class="sectlabel2">Tidy &amp; accounted</div>
+    <div class="card flowcard" id="flowhouse"></div>
+  </section>
+
   <footer>
     <div><b>How this stays true:</b> updated by hand each working session — no stale auto-feed pretending to be live. The countdown is live; everything else is as of the date up top.</div>
     <div style="margin-top:7px">Google's 14-day / 12-tester rule confirmed against <a href="https://support.google.com/googleplay/android-developer/answer/14151465?hl=en" target="_blank">Play Console Help</a>. Readiness % are the COO's estimate — correct me.</div>
@@ -296,18 +328,18 @@
 </div>
 
 <script>
-const LAUNCH=new Date('2026-07-24T00:00:00+10:00'); const AS_OF='1 June 2026';
-const TABS=[{id:'today',label:'Today'},{id:'roadmap',label:'Roadmap'},{id:'bugs',label:'Bugs',badge:10},{id:'later',label:'After launch'}];
+const LAUNCH=new Date('2026-07-24T00:00:00+10:00'); const AS_OF='31 May 2026';
+const TABS=[{id:'today',label:'Today'},{id:'flow',label:'How we work'},{id:'roadmap',label:'Roadmap'},{id:'bugs',label:'Bugs',badge:10},{id:'later',label:'After launch'}];
 
 const JOBS=[
   {pri:1,t:"Find out what kind of Play Store account you have",d:"Personal or Organisation — and when did you open it? If it's Personal and opened after Nov 2023, Google forces a 14-day test with 12 people before you can launch. This one fact decides if 24 July is comfortable or tight.",done:"Done when: you tell me 'personal' or 'organisation' + the rough sign-up date."},
-  {pri:2,t:"Trigger build #136 and install it",d:"Latest changes are on main: Shop tab matches Pantry, recipe notes are collapsible. Go to GitHub → patrickpatches/hone → Actions → 'Hone Android Build' → Run workflow. Install the APK when the run finishes (~10 min).",done:"Done when: Shop tab looks like Pantry, and the 'What to know' card on a recipe collapses to one line until you tap it."},
+  {pri:2,t:"Install build #133 and test it",d:"#133 is building now — it has the six recipe-screen fixes. When the GitHub Actions run is green, install the APK from it, open a recipe, and post your result in the box below.",done:"Done when: you've opened a recipe on #133 and marked each fix pass/fail."},
   {pri:3,t:"Start a list of 12 testers",d:"Anyone with an Android phone who'll install Hone and keep it 14 straight days. You need at least 12 for the Google gate — the slowest part to organise, so start now.",done:"Done when: you have 12 names + their Google emails."}
 ];
 
 const ROAD=[
   {phase:"June",sub:"Get the app finished and the recipes locked",items:[
-    {name:"Polish the cooking app",when:"Happening now → mid-June",state:"now",desc:"All 10 known bugs are fixed or in build #136. Shop tab now matches Pantry. Recipe notes are collapsible. Automated screen tests (Maestro) are in place. Next: cook-mode Commit C and recipe photography.",done:"Done when: you can open any recipe, add to your shopping list, and cook it start-to-finish with nothing looking broken."},
+    {name:"Polish the cooking app",when:"Happening now → mid-June",state:"now",desc:"Get the recipe screen right (build #134 fixes 5 of 6 issues; one quick fix in progress), then the cooking step-by-step screen.",done:"Done when: you can open any recipe, add to your shopping list, and cook it start-to-finish with nothing looking broken."},
     {name:"Lock the 16 launch recipes",when:"Through June",state:"now",desc:"Every launch recipe needs a real photo, the chef credited, swaps written, step notes done. 11 of 16 photos are in.",done:"Done when: all 16 are photo-complete, credited, and you've signed off."},
     {name:"Private test (just us)",when:"Mid-June",state:"next",desc:"Put it on Google's internal track — live for a handful of chosen people within minutes. You + 1–2 others shake out obvious crashes.",done:"Done when: the app survives a full cook on 2–3 real phones with no crash."}
   ]},
@@ -322,18 +354,18 @@ const ROAD=[
   ]}
 ];
 
-const READY=[{name:"Cooking app polish",pct:85,c:'var(--aqua)'},{name:"16 recipes ready",pct:70,c:'var(--aqua)'},{name:"Testing gate (12 / 14 days)",pct:0,c:'var(--fuch)'},{name:"Store page + data-safety",pct:20,c:'var(--fuch)'}];
+const READY=[{name:"Cooking app polish",pct:75,c:'var(--aqua)'},{name:"16 recipes ready",pct:70,c:'var(--aqua)'},{name:"Testing gate (12 / 14 days)",pct:0,c:'var(--fuch)'},{name:"Store page + data-safety",pct:20,c:'var(--fuch)'}];
 const BUGS=[
   {id:'HONE-007',sev:'Tidy-up',t:"Adding missing items to your shopping list doesn't work right",d:"When you tap 'add missing to shopping list', some items don't actually get added.",who:'COO (me)',build:'#133',st:'done'},
-  {id:'HONE-008',sev:'Annoying',t:"The top of the recipe screen is cluttered",d:"Two 'Start cooking' buttons, the count shows twice, two 'watch' links — all duplicates. Fixed: inline pill removed, ghost-row watch link removed, N/M badge removed.",who:'COO (me)',build:'#134',st:'check'},
-  {id:'HONE-009',sev:'Serious',t:"The 'before you start' notes are a wall of text",d:"Fixed: the 'What to know' block now collapses to a one-line tease of the first note. Tap it to see the full list. Wall of text is gone.",who:'Engineer',build:'#136',st:'check'},
+  {id:'HONE-008',sev:'Annoying',t:"The top of the recipe screen is cluttered",d:"Two 'Start cooking' buttons, the count shows twice, two 'watch' links — all duplicates.",who:'Designer',build:'#133',st:'open'},
+  {id:'HONE-009',sev:'Serious',t:"The 'before you start' notes are a wall of text",d:"Reopened as Serious. The proper fix (notes appear where they apply) is tracked as HONE-015.",who:'Designer → Engineer',build:'soon',st:'open'},
   {id:'HONE-010',sev:'Annoying',t:"Every recipe claims plating takes 3 minutes",d:"It was a placeholder we hard-coded. Now shows each dish's own time.",who:'COO (me)',build:'#133',st:'done'},
   {id:'HONE-011',sev:'Tidy-up',t:"A stray blue line on the recipe screen",d:"Leftover styling from an old version — blue isn't in Hone's look.",who:'COO (me)',build:'#133',st:'done'},
   {id:'HONE-012',sev:'Tidy-up',t:"'intermediate' should be 'Intermediate'",d:"Missing capital on the difficulty label.",who:'COO (me)',build:'#133',st:'done'},
   {id:'HONE-013',sev:'Annoying',t:"Our team's notes file got cut off and lost history",d:"A behind-the-scenes file was truncated. No effect on the app.",who:'Engineer',build:'after #134',st:'done'},
-  {id:'HONE-014',sev:'Tidy-up',t:"That same notes file is bloated and messy",d:"Archived 1511 lines of May handoffs to docs/archive/handoffs-2026-05.md. File trimmed from 2336 to 825 lines. No app effect.",who:'File Organiser',build:'#135',st:'done'},
+  {id:'HONE-014',sev:'Tidy-up',t:"That same notes file is bloated and messy",d:"Old entries never filed away, so it's grown huge. Pure tidy-up. No app effect.",who:'File Organiser',build:'after #134',st:'open'},
   {id:'HONE-015',sev:'Annoying',t:"Make the recipe notes appear where they apply (proper fix)",d:"The quality version of HONE-009: each prep note moves onto the exact step or ingredient it's about.",who:'Cook → Engineer',build:'before launch',st:'done'},
-  {id:'HONE-016',sev:'Annoying',t:"Build automated screen-testing (so the tester can tap through the app)",d:"Done: 5 Maestro YAML flows in maestro/flows/ + local runner script. Catches crash-class bugs before you install. Run maestro-local.sh after each build install.",who:'Engineer',build:'#135',st:'check'}
+  {id:'HONE-016',sev:'Annoying',t:"Build automated screen-testing (so the tester can tap through the app)",d:"Maestro + emulator harness so the tester drives real screens, not just reads code. Engineer's building it.",who:'Engineer',build:'before testing',st:'open'}
 ];
 const SEV_DEF=[['Show-stopper','var(--bad)'],['Serious','var(--warn)'],['Annoying','var(--aqua)'],['Tidy-up','var(--mut2)']];
 const SEV=SEV_DEF.map(d=>({name:d[0],c:d[1],n:BUGS.filter(b=>b.st!=='done'&&b.sev===d[0]).length}));
@@ -343,6 +375,25 @@ const LATER=[
   {lt:"How fast to their first cooked dish?",ld:"Time from opening the app to tapping 'Start cooking' on something real. Slow = friction from fridge to plate.",ls:"starts at launch"},
   {lt:"Crash-free rate",ld:"The % of sessions with no crash. Below ~99% and early reviews punish you. The launch-week number that matters most.",ls:"starts at launch"},
   {lt:"What the bad reviews actually say",ld:"Not the star average — the words in the 1- and 2-star reviews. That's where the real to-do list comes from.",ls:"starts at launch"}
+];
+const BUILD={latest:134,latestSha:'864299e',building:135,onPhone:132};
+const TEAM=[
+ ["COO (me)","Runs the day-to-day, sequences the work, keeps this board true."],
+ ["Engineer","Writes the code, fixes the bugs, builds the app."],
+ ["Designer","The look — screens, colours, layout."],
+ ["Cook","Recipes, ingredients, honest swaps."],
+ ["Photography","The food photos at each step."],
+ ["Worker (automatic)","Runs 3× a day — works this board's easy engineer jobs and tests the code."],
+ ["File Organiser","Keeps the project tidy, archives old stuff."],
+ ["Accountant","ATO records, dev log, expenses — weekly."]
+];
+const FLOW=[
+ ["A job appears","Anything that needs doing becomes a card on this board — a bug you hit, a design idea, a recipe to add."],
+ ["I assign it","The COO sends it to the right person — that's the 'Who' on every card."],
+ ["They do it","The worker does the job and marks it 'Fixed — build & check'. Never 'Done' — that's your word only."],
+ ["It gets built","When a batch is ready, a new app is built. The build number comes straight from GitHub/EAS — automatic, never typed by hand."],
+ ["You test it","You install the newest build and check it on your phone."],
+ ["You close it","Only you mark a job Done. That is the final say, every time."]
 ];
 
 const $=(id)=>document.getElementById(id);
@@ -361,6 +412,19 @@ $('verdict').innerHTML='<span class="dot" style="background:'+vcol+'"></span>'+v
 const priCol=['','#FF5C7A','#FFC24B','#1FE3EA','#8696B0'];
 $('jobs').innerHTML=JOBS.map(j=>`<div class="job"><div class="pri" style="background:${priCol[j.pri]}22;color:${priCol[j.pri]};border:1px solid ${priCol[j.pri]}55">${j.pri}</div><div><div class="t">${j.t}</div><div class="d">${j.d}</div><div class="done">${j.done}</div></div></div>`).join('');
 
+const behind=BUILD.latest-BUILD.onPhone;
+$('buildstatus').innerHTML=`<div class="bshead">Build status <span>· numbers verified from GitHub / EAS</span></div>`+
+`<div class="bsrow"><div class="bscell"><div class="bsv">#${BUILD.latest} ✓</div><div class="bsl">newest built</div></div>`+
+`<div class="bscell"><div class="bsv" style="color:var(--aqua)">#${BUILD.building}</div><div class="bsl">building now</div></div>`+
+`<div class="bscell"><div class="bsv">#${BUILD.onPhone}</div><div class="bsl">on your phone</div></div></div>`+
+(behind>0?`<div class="bsbehind">You're ${behind} build${behind>1?'s':''} behind — install #${BUILD.latest} from GitHub Actions to catch up.</div>`:'')+
+`<div class="bsfoot">Build numbers come straight from the GitHub/EAS counter — automatic, impossible to fake or drift.</div>`;
+if(document.getElementById('flowteam')){
+  $('flowteam').innerHTML=TEAM.map(t=>`<div class="teamrow"><div class="tn">${t[0]}</div><div class="td">${t[1]}</div></div>`).join('');
+  $('flowsteps').innerHTML=FLOW.map((s2,i)=>`<div class="flowstep"><div class="fnum">${i+1}</div><div class="fb"><div class="fn">${s2[0]}</div><div class="fd">${s2[1]}</div></div></div>`).join('');
+  $('flowversion').innerHTML=`The build number you see everywhere is the GitHub/EAS counter — it ticks up by itself every time an app is genuinely built, so it can't be faked or drift out of sync. This board always shows the newest build available next to the one on your phone, so you and every worker read the same number. Every build is pinned to an exact snapshot of the code, so we always know precisely what's inside it.`;
+  $('flowhouse').innerHTML=`<b>Files:</b> one file per thing, old items archived each week, with a map (FILE_MAP) as the index — no clutter, no duplicates. <b>Accounting:</b> the dev log and expenses are updated weekly for the ATO, so tax time is a non-event.`;
+}
 $('road').innerHTML=ROAD.map(p=>`
   <div class="phase"><div class="mo">${p.phase}</div><div class="ph">${p.sub}</div></div>
   ${p.items.map(s=>`
