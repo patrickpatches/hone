@@ -357,10 +357,21 @@ const ROAD=[
   ]}
 ];
 
-const READY=[{name:"Cooking app polish",pct:75,c:'var(--aqua)'},{name:"16 recipes ready",pct:70,c:'var(--aqua)'},{name:"Testing gate (12 / 14 days)",pct:0,c:'var(--fuch)'},{name:"Store page + data-safety",pct:20,c:'var(--fuch)'}];
-const BUGS=[
+const READY=[{name:"Cooking app polish",pct:85,c:'var(--aqua)'},{name:"16 recipes ready",pct:70,c:'var(--aqua)'},{name:"Testing gate (12 / 14 days)",pct:0,c:'var(--fuch)'},{name:"Store page + data-safety",pct:20,c:'var(--fuch)'}];
+// ── HONE-019: live Worker feed ────────────────────────────────────────────────
+// After Patrick deploys the Cloudflare Worker (workers/bug-lord/), replace
+// YOUR_SUBDOMAIN below with the subdomain shown by `wrangler deploy`.
+// Example: if the Worker URL is hone-buglord.patrickpatches.workers.dev
+//          set WORKER_URL = 'https://hone-buglord.patrickpatches.workers.dev'
+// Until then, BUGS_STATIC is the sole data source (dashboard still works fully).
+const WORKER_URL='https://hone-buglord.YOUR_SUBDOMAIN.workers.dev';
+
+// Static fallback — legacy HONE-007..016 not yet on GitHub Issues.
+// Once all these are filed as GitHub Issues with the `bug` label, this
+// array can be emptied and the Worker becomes the only source.
+const BUGS_STATIC=[
   {id:'HONE-007',sev:'Tidy-up',t:"Adding missing items to your shopping list doesn't work right",d:"When you tap 'add missing to shopping list', some items don't actually get added.",who:'COO (me)',build:'#133',st:'done'},
-  {id:'HONE-008',sev:'Annoying',t:"The top of the recipe screen is cluttered",d:"Two 'Start cooking' buttons, the count shows twice, two 'watch' links — all duplicates.",who:'Designer',build:'#133',st:'open'},
+  {id:'HONE-008',sev:'Annoying',t:"The top of the recipe screen is cluttered",d:"Two 'Start cooking' buttons, the count shows twice, two 'watch' links — all duplicates. Fixed: inline pill removed, ghost-row watch link removed, N/M badge removed.",who:'COO (me)',build:'#134',st:'check'},
   {id:'HONE-009',sev:'Serious',t:"The 'before you start' notes are a wall of text",d:"Fixed — the worker turned it into a tap-to-expand box (build #135). The deeper version (notes where they apply) is HONE-015.",who:'Engineer',build:'#135',st:'check'},
   {id:'HONE-010',sev:'Annoying',t:"Every recipe claims plating takes 3 minutes",d:"It was a placeholder we hard-coded. Now shows each dish's own time.",who:'COO (me)',build:'#133',st:'done'},
   {id:'HONE-011',sev:'Tidy-up',t:"A stray blue line on the recipe screen",d:"Leftover styling from an old version — blue isn't in Hone's look.",who:'COO (me)',build:'#133',st:'done'},
@@ -371,8 +382,9 @@ const BUGS=[
   {id:'HONE-016',sev:'Annoying',t:"Build automated screen-testing (so the tester can tap through the app)",d:"Built — 5 Maestro flows + a local runner are in (#135). Next: confirm they run on a device.",who:'Engineer',build:'#135',st:'check'},
   {id:'HONE-017',sev:'Annoying',t:"Items added from a recipe were tagged wrong in the shopping list",d:"Fixed (#135) — recipe-added items now carry the right source so they don't get swept away.",who:'Engineer',build:'#135',st:'check'},
   {id:'HONE-018',sev:'Tidy-up',t:"No quick way to clear one recipe's items from the Shop list",d:"Fixed (#135) — added a remove-by-recipe button in Shop.",who:'Engineer',build:'#135',st:'check'},
-  {id:'HONE-019',sev:'Annoying',t:"Make Bug Lord live — no more copy-paste",d:"A small cloud helper (Cloudflare Worker) so your taps save for real and the board's always in sync. You approved it; engineer's building it.",who:'Engineer',build:'Worker',st:'open'}
+  {id:'HONE-019',sev:'Annoying',t:"Make Bug Lord live — no more copy-paste",d:"Worker built (workers/bug-lord/). Once you run 5 setup commands and fill in your CF subdomain, new GitHub Issues auto-appear on the dashboard. No more manual HTML edits.",who:'Engineer',build:'#138',st:'check'}
 ];
+let BUGS=BUGS_STATIC.slice();
 const SEV_DEF=[['Show-stopper','var(--bad)'],['Serious','var(--warn)'],['Annoying','var(--aqua)'],['Tidy-up','var(--mut2)']];
 const SEV=SEV_DEF.map(d=>({name:d[0],c:d[1],n:BUGS.filter(b=>b.st!=='done'&&b.sev===d[0]).length}));
 TABS.find(t=>t.id==='bugs').badge=BUGS.filter(b=>b.st!=='done').length;
@@ -536,6 +548,37 @@ document.addEventListener('click',(e)=>{
 });
 
 renderBugs();
+
+/* ---- HONE-019: live Worker feed ----------------------------------------
+   Fetch live GitHub Issues from the Cloudflare Worker.
+   Dashboard renders immediately from BUGS_STATIC above; this re-renders
+   once the live data arrives (~100–400 ms). If the Worker is unreachable
+   (not yet deployed, token expired, network error) the static data stays
+   and nothing breaks. No spinner, no flash — just a silent upgrade.
+   -------------------------------------------------------------------- */
+(function liveFetch(){
+  if(WORKER_URL.includes('YOUR_SUBDOMAIN')) return; // not deployed yet
+  fetch(WORKER_URL+'/bugs')
+    .then(function(r){return r.ok?r.json():Promise.reject('http '+r.status);})
+    .then(function(live){
+      if(!Array.isArray(live)||!live.length) return;
+      // Merge: live issues override static by id; static-only items stay at end
+      var liveIds=new Set(live.map(function(b){return b.id;}));
+      BUGS=live.concat(BUGS_STATIC.filter(function(b){return !liveIds.has(b.id);}));
+      // Refresh severity bars
+      SEV_DEF.forEach(function(d,i){SEV[i].n=BUGS.filter(function(b){return b.st!=='done'&&b.sev===d[0];}).length;});
+      // Refresh badge on Bugs tab button
+      var openN=BUGS.filter(function(b){return b.st!=='done';}).length;
+      TABS.find(function(t){return t.id==='bugs';}).badge=openN;
+      document.querySelectorAll('.tab-btn').forEach(function(btn){
+        if(btn.dataset.go==='bugs') btn.innerHTML='Bugs<span class="badge">'+openN+'</span>';
+      });
+      $('sevbars').innerHTML=SEV.map(function(s){return '<div class="sev"><div class="name">'+s.name+'</div><div class="strack"><div class="sfill" style="width:'+(s.n===0?2:(s.n/Math.max(1,...SEV.map(function(x){return x.n;}))*100))+'%;background:'+s.c+'">'+s.n+'</div></div></div>';}).join('');
+      renderBugs();
+    })
+    .catch(function(){/* Worker not yet deployed — static data stays */});
+})();
+
 /* ---- COMPOSER ---- */
 const NKEY='buglord_note';
 function fmtNow(){const d=new Date();return d.toLocaleDateString('en-AU',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'});}

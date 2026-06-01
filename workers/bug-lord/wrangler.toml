@@ -1,0 +1,9 @@
+name = "hone-buglord"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+# GITHUB_TOKEN is stored as a secret — never in source.
+# Set it with: wrangler secret put GITHUB_TOKEN
+#
+# Deploy: wrangler deploy
+# Dev:    wrangler dev   (uses a local mock; hit http://localhost:8787/bugs)

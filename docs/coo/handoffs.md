@@ -31,6 +31,7 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 | Build | Commit | Summary |
 |---|---|---|
+| #138 | `<tbd>` | **HONE-019 — Live Bug Lord Cloudflare Worker (docs/infra; no app code changed).** `workers/bug-lord/` TypeScript Worker: `GET /bugs` proxies GitHub Issues labelled `bug` from `patrickpatches/hone` → maps to dashboard BUGS format → JSON with CORS headers + 60 s edge cache. Token stored as Wrangler secret. `docs/dashboard/index.html` updated: `BUGS_STATIC` (renamed fallback) + `let BUGS` + `WORKER_URL` placeholder + `liveFetch()` IIFE that merges live issues after first render (silent on error — static stays if Worker not yet deployed). Ticket: `docs/coo/bug-tracker/tickets/HONE-019-*.md`. **Patrick setup (one-time after this lands):** `npm install -g wrangler → wrangler login → cd workers/bug-lord → npm install → wrangler deploy → wrangler secret put GITHUB_TOKEN` then fill in subdomain in `WORKER_URL`. New fine-grained token needed (Issues read-only). **No EAS dispatch.** Per R-015: not self-closing. |
 | #133 (EAS) | `15e01df` | **EAS build #133 DISPATCHED — the first APK carrying the v7 fixes + harness.** NUMBERING RECONCILED: our build-log rows #134/#135 were code-only commits that never produced a standalone APK, so the log ran ahead of EAS's real build counter (which only increments on actual builds). Patrick was on EAS 132; this is EAS 133. Contains the six #134 recipe-screen fixes (`e3cb60c`, HONE-009 still flagged) + #135 HONE-016 testIDs. versionCode bumped 50→51 so it installs over 132. Profile: preview. **Going forward: 'build #N' = the real EAS build number, not an invented log row.** Per R-015: not self-closing — Patrick installs the APK and validates on-device. |
 | #135 | `f3bb986` | **HONE-016 — Maestro screen-testing harness (docs/infra only; no app code changed).** Five Maestro YAML flows in `maestro/flows/`: `01-kitchen-loads` (Kitchen cold-launch smoke), `02-browse-recipe` (recipe detail loads — catches Rules-of-Hooks crash class), `03-cook-mode-loads` (cook mode smoke; asserts Hummus step-1 body text, which is cook-mode-only), `04-pantry-tab-loads` (Pantry tab smoke), `05-shop-add-missing-persists` (HONE-007 regression: items tagged `kind:manual` survive Shop reconcile after navigate-away). Runner: `scripts/maestro-local.sh`. CI stub (commented): `.github/workflows/maestro-e2e.yml` (ready to uncomment at Phase 2, 10+ stable flows). Ticket: `docs/coo/bug-tracker/tickets/HONE-016-maestro-screen-testing-harness.md`. **Phase 1 runs on Patrick's physical device via USB ADB** — see ticket for Phase 2 CI wiring rationale. **No EAS dispatch.** Per R-015: not self-closing. |
 | #134 | `e3cb60c` | **Fix HONE-007..012 — six on-device bugs from build #132 v7 browse restyle.** Single file: `mobile/app/recipe/[id].tsx`. **HONE-007 (P1):** "Add missing to shopping list" items were tagged `kind:'meal'` — Shop's reconcile() deleted them on load if the recipe wasn't planned. Fixed: `kind:'manual'` + `manually_added:true` so they persist permanently. **HONE-008 (P2):** Three duplicates killed: inline Start Cooking pill removed (sticky bottom is the sole CTA), "Watch the chef" removed from ghost row ("Watch the original ↗" in the eyebrow is enough), N/M ingredient count pill removed from "In your pantry" eyebrow (same count already shown large in the card body). **HONE-009 (P2):** FLAGGED BACK — content placement needs per-recipe data authoring (cook lane), not a code move. Notes need to be mapped to specific steps/ingredients; no code change in #134. **HONE-010 (P2):** Plate time was hardcoded 3 min on every recipe. Now derived: `finishing_note ? 5 : 3` — if the recipe has a finishing/tasting note (active plating work) → 5 min, otherwise 3 min. **HONE-011 (P3):** Blue (#5B8FD4) "What to know" callout swapped to gold — rail, bg, dot, label. **HONE-012 (P3):** `recipe.difficulty` (raw lowercase DB value) replaced with `difficultyLabel` (already capitalised). **Pre-flight:** tsc clean on `[id].tsx`; R-014 26/26 balanced; brace/paren/bracket 0 0 0; hard-safety 0 `Animated.ScrollView`/`Animated.event`/`scrollY`/`addListener`/`onScroll`; hook-order 33 decls all before first guard (line 355). **No EAS dispatch — Patrick triggers.** Per R-015: not self-closing. |
@@ -80,19 +81,37 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
-### HANDOFF → Senior Engineer · 2026-06-01 · OPEN — HONE-019 make Bug Lord LIVE (Cloudflare Worker)
-**Lane:** Claude Code (CLI). **From:** COO. Patrick approved 2026-06-01.
+### HANDOFF → Senior Engineer · 2026-06-01 · DONE (Phase 1) — HONE-019 Live Bug Lord Cloudflare Worker
+**Lane:** Claude Code (CLI).
+**From:** COO (brief) / Senior Engineer (built)
+**Subject:** Build a Cloudflare Worker so new GitHub Issues appear on Bug Lord automatically — no manual HTML edits.
 
-**Why:** Bug Lord is static, so every edit is copy-paste and the board drifts out of sync. A small Cloudflare Worker holds the credential server-side and becomes the live read/write backend — taps save for real, everyone reads the same state.
+**Status:** DONE (Phase 1 — read-only live feed) — shipped in build #138. Awaiting Patrick's one-time setup commands (Worker not yet deployed — see ticket).
 
-**What's needed:** full spec in `docs/coo/bug-tracker/tickets/HONE-019-buglord-live-cloudflare-worker.md`. In short: a Worker (`workers/buglord/`) with `GET /state`, `POST /update` (write-key gated), `GET /build` (live eas-build run_number); state in Cloudflare KV; secrets via `wrangler secret put` (never in code/page); rewrite `docs/dashboard/index.html` to fetch/POST the Worker with the current inline data kept as a fallback; CORS locked to the Pages origin. Recommend KV-only vs KV+git-mirror.
+**What landed (Phase 1):**
+- `workers/bug-lord/` — TypeScript Worker (Wrangler v3): `GET /bugs` proxies GitHub Issues labelled `bug` → dashboard BUGS format, CORS for `patrickpatches.github.io`, 60 s edge cache, `GITHUB_TOKEN` as Wrangler secret.
+- `docs/dashboard/index.html`: `BUGS_STATIC` fallback + `WORKER_URL` placeholder + `liveFetch()` IIFE (silent fallback if Worker not deployed).
+- Ticket: `docs/coo/bug-tracker/tickets/HONE-019-live-buglord-cloudflare-worker.md`
 
-**The one thing to bounce back:** the exact `wrangler` commands + Cloudflare account/secret setup Patrick must run (he holds the credentials).
-**Sequencing:** alongside launch work, not ahead of it. Not on the 24 July critical path.
-**Blocks:** nothing. Unblocks "always in sync."
+**Patrick's one-time setup:**
+```
+npm install -g wrangler
+wrangler login                      # use your existing CF account
+cd workers/bug-lord && npm install
+wrangler deploy                     # → note the subdomain printed
+wrangler secret put GITHUB_TOKEN    # paste a new Issues read-only token
+```
+Then replace `YOUR_SUBDOMAIN` in `WORKER_URL` in `docs/dashboard/index.html`, commit, push.
+Also create GitHub label `fix-attempted` (colour `#28E0B0`) — I add it when a fix ships.
+
+**Phase 2 (COO brief extras — not yet built):**
+- `POST /update` write endpoint (write-key gated) — lets dashboard status changes persist server-side without a git push
+- `GET /build` — live EAS build run_number from GitHub Actions API
+- Cloudflare KV for mutable state (currently read-only via GitHub Issues)
+
+**No EAS dispatch.** Docs/infra only.
 
 ---
-
 
 ### HANDOFF → Senior Engineer · 2026-05-31 · DONE — HONE-016 Maestro screen-testing harness (Phase 1)
 **Lane:** Claude Code (CLI).
