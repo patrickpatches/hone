@@ -9,7 +9,8 @@ RECIPE:
 ASSIGNEE:        Engineer
 EPIC:            EPIC-v7-mise
 FOUND IN BUILD:  #132
-FIX ATTEMPTED:   (blank)
+FIX ATTEMPTED:   #134 (commit e3cb60c — 2026-05-31) — browse meta line. Cook-mode MetaPill also fixed (2026-06-02).
+STATUS:          VALIDATED ✅ — Patrick closed GitHub Issue #12 on-device
 TARGET BUILD:    #134
 REPRODUCIBLE:    Always
 DEVICE:          Patrick's Pixel (Android 14)
@@ -32,8 +33,4 @@ ROOT CAUSE:      recipe.difficulty is rendered straight from seed data which use
 
 ## Actual
 
-'intermediate · Serves 4 · Thai'.
-
-## Engineer notes
-
-Render-time titlecase preferred over seed-data rewrite (other surfaces may want lowercase for filters/matching). One-liner.
+'intermediat
