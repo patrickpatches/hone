@@ -323,15 +323,31 @@ function RecipeDetailScreenInner() {
   const addMissingToShoppingList = useCallback(async () => {
     if (!recipe || !match) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    // Same scaling target the ingredient list uses, computed locally (the outer
+    // `totalPortions` const is declared below this callback, so we recompute from
+    // people + leftoverKey to keep the dep array TDZ-safe).
+    const portions = totalPortionsFor(leftoverById(leftoverKey), people, recipe.base_servings);
     try {
       await Promise.all(
         match.missingIngredients.map((mi) => {
+          // Scale to the servings the user picked, respecting each ingredient's
+          // scale mode (linear / fixed-with-cap / custom curve) — the SAME
+          // scaleIngredient(...) the ingredient list shows. So the servings
+          // stepper, the ingredients display and what lands in the Shop tab all
+          // move in unison (Golden Rule #2 — smart scaling).
+          const orig = recipe.ingredients.find(
+            (ing) => normalizeForMatch(cleanIngredientName(ing.name)) === normalizeForMatch(mi.name),
+          );
+          const scaled = orig
+            ? scaleIngredient(orig, portions, recipe.base_servings)
+            : mi.amount;
+          const qty = scaled > 0 ? Math.round(scaled * 10) / 10 : null;
           const id = 'shop-' + recipe.id + '-' + normalizeForMatch(mi.name);
           return upsertShoppingItem(db, {
             id,
             name: mi.name,
             category: categorizeIngredient(mi.name),
-            quantity: mi.amount > 0 ? mi.amount : null,
+            quantity: qty,
             unit: mi.unit ?? null,
             notes: null,
             manually_added: true,   // survive reconcile() regardless of plan state
@@ -350,7 +366,7 @@ function RecipeDetailScreenInner() {
     } catch (e) {
       console.error('addMissingToShoppingList failed', e);
     }
-  }, [db, recipe, match]);
+  }, [db, recipe, match, people, leftoverKey]);
 
   // ── Loading states ──────────────────────────────────────────────────────────
 
