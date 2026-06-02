@@ -95,6 +95,7 @@ import type {
   CatalogEntry,
   RecipeMatchResult,
 } from '../../src/data/pantry-helpers';
+import { inferMeasure, isWeighed, stepFor, formatQty } from '../../src/data/measure';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -471,6 +472,30 @@ export default function PantryTab() {
       else setItemQuantity(item, qty - 1);
     },
     [removeItemWithUndo, setItemQuantity],
+  );
+
+  // ── HONE-023 (#13): weighed +/- ─────────────────────────────────────────────
+  // Weight/volume items keep their amount + unit and step by a sensible
+  // increment (never flatten to a bare count, never clamp to 99). Stepping below
+  // one step removes the row (with undo), mirroring the count stepper at 1.
+  const stepWeight = useCallback(
+    (item: PantryItem, dir: 1 | -1) => {
+      const cur = item.quantity ?? 0;
+      const inc = stepFor(inferMeasure(item.unit), cur);
+      const next = Math.round((cur + dir * inc) * 10) / 10;
+      if (next <= 0) {
+        removeItemWithUndo(item);
+        return;
+      }
+      Haptics.selectionAsync().catch(() => {});
+      setPantryItems((prev) =>
+        prev.map((p) => (p.id === item.id ? { ...p, quantity: next } : p)),
+      );
+      upsertPantryItem(db, { ...item, quantity: next }).catch((e) =>
+        console.error('stepWeight upsert failed', e),
+      );
+    },
+    [db, removeItemWithUndo],
   );
 
   // ── Derived chip state (REGN-007) ─────────────────────────────────────────
@@ -1275,6 +1300,8 @@ export default function PantryTab() {
                           else if (titles.length > 2) subline = `${titles[0]}, ${titles[1]} +${titles.length - 2}`;
                           const countable = isCountableItem(it);
                           const qty = it.quantity ?? 1;
+                          // HONE-023 (#13): weight/volume items keep amount+unit.
+                          const weighed = isWeighed(it.quantity, it.unit);
                           return (
                             <View
                               key={it.id}
@@ -1304,7 +1331,45 @@ export default function PantryTab() {
                                 ) : null}
                               </View>
 
-                              {countable ? (
+                              {weighed ? (
+                                /* HONE-023 (#13): weighed control — keeps "160 g",
+                                   steps by a sensible increment, never a bare count. */
+                                <View
+                                  style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    backgroundColor: tokens.goldDim,
+                                    borderWidth: 1,
+                                    borderColor: 'rgba(242,204,42,0.42)',
+                                    borderRadius: 999,
+                                  }}
+                                >
+                                  <Pressable
+                                    onPress={() => stepWeight(it, -1)}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`Less ${it.name}`}
+                                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 4 }}
+                                    style={{ width: 27, height: 27, alignItems: 'center', justifyContent: 'center' }}
+                                  >
+                                    <Icon name="minus" size={14} color={tokens.gold} />
+                                  </Pressable>
+                                  <Text
+                                    style={{ minWidth: 46, textAlign: 'center', fontFamily: fonts.sansBold, fontSize: 12.5, color: tokens.ink }}
+                                    accessibilityLabel={`${formatQty(it.quantity, it.unit)} of ${it.name}`}
+                                  >
+                                    {formatQty(it.quantity, it.unit)}
+                                  </Text>
+                                  <Pressable
+                                    onPress={() => stepWeight(it, 1)}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`More ${it.name}`}
+                                    hitSlop={{ top: 10, bottom: 10, left: 4, right: 10 }}
+                                    style={{ width: 27, height: 27, alignItems: 'center', justifyContent: 'center' }}
+                                  >
+                                    <Icon name="plus" size={14} color={tokens.gold} />
+                                  </Pressable>
+                                </View>
+                              ) : countable ? (
                                 <View
                                   style={{
                                     flexDirection: 'row',
