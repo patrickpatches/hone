@@ -82,6 +82,14 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
+### HANDOFF → Senior Engineer · 2026-06-02 · OPEN — HONE-022 polish the Today tab
+**Lane:** Claude Code. **From:** COO. Patrick approved.
+
+Bring the **Today** tab up to the new Bugs-page polish — best-in-class main dashboard, aqua+fuchsia, mobile-first, snappy. **No functionality lost.** Keep ALL of: days-to-launch + verdict, the jobs list, the live Build Status strip (`/build`, on-phone update link), readiness donut + bars, and the composer (write update + file-bug-live). Spec: `docs/coo/bug-tracker/tickets/HONE-022-polish-today-tab.md`. Dashboard-only — no EAS build. Verify every function still works after.
+
+---
+
+
 ### HANDOFF → Senior Engineer · 2026-06-02 · OPEN — HONE-021 Bug Lord Pro (table + job detail + live comments)
 **Lane:** Claude Code. **From:** COO. Patrick approved — wants it better than Jira.
 
