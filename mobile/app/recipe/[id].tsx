@@ -1029,12 +1029,51 @@ function RecipeDetailScreenInner() {
         )}
 
 
+        {/* ── SERVINGS (Recipe Page Design) ───────────────────────────────
+            Its own container, styled IDENTICALLY to the "In your pantry" card
+            below (same cardBg / radius / border / padding) and sitting directly
+            above it, so portion + pantry read as a matched pair. The selector
+            renders in `embedded` mode (no card chrome of its own — this card is
+            the chrome). Browse mode only. */}
+        {!cooking ? (
+          <View style={{ paddingHorizontal: 20, marginTop: 14 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 10 }}>
+              <Icon name="users" size={14} color={tokens.bronze} />
+              <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: tokens.bronze }}>
+                Servings
+              </Text>
+            </View>
+            <View
+              style={{
+                backgroundColor: c.cardBg,
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: c.lineDark,
+                padding: 14,
+              }}
+            >
+              <ServingsSelector
+                embedded
+                people={people}
+                setPeople={setPeople}
+                leftoverKey={leftoverKey}
+                setLeftoverKey={setLeftoverKey}
+                baseServings={recipe.base_servings}
+                outputUnit={recipe.output_unit}
+                outputUnitPlural={recipe.output_unit_plural}
+                extraForTomorrowLabel={recipe.extra_for_tomorrow_label}
+              />
+            </View>
+          </View>
+        ) : null}
+
         {/* ── v7 IN YOUR PANTRY (build #129) ────────────────────────────
             Pantry-aware match card. N/M from scoreRecipeAgainstPantry; the
             missing list and "Add to shopping list" button reuse the same
-            engine the Kitchen tab and pantry carousel use. */}
+            engine the Kitchen tab and pantry carousel use. Sits flush under
+            the Servings card above (matched pair). */}
         {!cooking && match && recipe.ingredients.length > 0 ? (
-          <View style={{ paddingHorizontal: 20, marginTop: 14 }}>
+          <View style={{ paddingHorizontal: 20, marginTop: 10 }}>
             {/* bronze eyebrow — HONE-008: removed N/M pill badge; the large
                 N/M number in the card body below already shows this count.
                 Showing it twice was the "duplicate 0/9" Patrick flagged. */}
@@ -1052,26 +1091,9 @@ function RecipeDetailScreenInner() {
                 borderWidth: 1,
                 borderColor: c.lineDark,
                 padding: 14,
-                gap: 12,
+                gap: 10,
               }}
             >
-              {/* Portion control — merged into the pantry card (Recipe Page
-                  Design): servings + pantry read as one unit. Embedded mode
-                  drops ServingsSelector's own card so it sits flush here. */}
-              <ServingsSelector
-                embedded
-                people={people}
-                setPeople={setPeople}
-                leftoverKey={leftoverKey}
-                setLeftoverKey={setLeftoverKey}
-                baseServings={recipe.base_servings}
-                outputUnit={recipe.output_unit}
-                outputUnitPlural={recipe.output_unit_plural}
-                extraForTomorrowLabel={recipe.extra_for_tomorrow_label}
-              />
-              {/* Full-bleed hairline splitting the portion zone from the
-                  pantry-match zone. */}
-              <View style={{ height: 1, backgroundColor: c.line, marginHorizontal: -14 }} />
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14 }}>
                 <Text style={{ fontFamily: fonts.display, fontSize: 32, lineHeight: 36, color: tokens.bronze }}>
                   {match.haveCount}<Text style={{ color: tokens.bronze, opacity: 0.4 }}>/{match.totalCount}</Text>
