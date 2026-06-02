@@ -82,6 +82,14 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
+### HANDOFF → Senior Engineer · 2026-06-02 · OPEN — fix GitHub Issue #13 (weighed-ingredient units)
+**Lane:** Claude Code. **From:** COO. Patrick: fix this one next.
+
+Fix **GitHub Issue #13** — full repro/spec in the issue. Core: a weighed ingredient from a recipe (e.g. 160 g) loses its unit in the shopping list/pantry, and the +/- stepper flattens it to a count (99). Each ingredient needs a measure type (weight / volume / count) carried recipe→shopping-list→pantry; stepper + display must respect it (counts step by 1; weighed keep their unit). Likely shares plumbing with the add-to-shopping flow + DECISION-014 units. You MAY build + dispatch when ready (batch sensibly). Per R-015, Patrick validates on-device — don't self-close.
+
+---
+
+
 ### HANDOFF → Senior Engineer · 2026-06-02 · OPEN — HONE-022 polish the Today tab
 **Lane:** Claude Code. **From:** COO. Patrick approved.
 
