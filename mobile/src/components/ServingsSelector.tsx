@@ -45,6 +45,13 @@ type Props = {
   outputUnitPlural?: string;
   /** Recipe-aware label for the leftover-mode hint. */
   extraForTomorrowLabel?: string;
+  /**
+   * Embedded mode — render WITHOUT the standalone card chrome so the control
+   * nests at the top of the recipe's "In your pantry" card (Recipe Page Design
+   * — servings + pantry unified into one card). The left label becomes a
+   * "How many <unit>?" question to match the design.
+   */
+  embedded?: boolean;
 };
 
 /** Pluralise an output unit; explicit plural prop wins, fallback appends "s". */
@@ -82,6 +89,7 @@ export function ServingsSelector({
   outputUnit,
   outputUnitPlural,
   extraForTomorrowLabel,
+  embedded = false,
 }: Props) {
   const option = leftoverById(leftoverKey);
 
@@ -91,6 +99,12 @@ export function ServingsSelector({
   const unitCaption = outputUnit
     ? captionFor(outputUnit, outputUnitPlural, people)
     : people === 1 ? 'person' : 'people';
+
+  // Embedded heading noun — always plural ("How many burgers?"). Person-units
+  // read as "people".
+  const headingNoun = outputUnit
+    ? (isPersonUnit(outputUnit) ? 'people' : pluralise(outputUnit, outputUnitPlural, 2))
+    : 'people';
 
   const minusDisabled = people <= MIN_COUNT;
   const plusDisabled = people >= MAX_COUNT;
@@ -109,46 +123,39 @@ export function ServingsSelector({
     setLeftoverKey(id);
   };
 
-  return (
-    <View
-      style={{
-        backgroundColor: tokens.cream,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: tokens.lineDark,
-        padding: 18,
-        shadowColor: tokens.ink,
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 6,
-        elevation: 2,
-      }}
-    >
-      {/* Servings row — the v2.2 pill. Verb on the left, stepper on the right.
-          Centre cell of the stepper holds the stacked number + unit caption. */}
+  const body = (
+    <>
+      {/* Servings row. Embedded (inside the pantry card) → plain heading +
+          stepper to match the Recipe Page Design. Standalone → the recessed
+          v2.2 pill. Centre cell of the stepper holds the stacked number +
+          unit caption in both modes. */}
       <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingVertical: 12,
-          paddingHorizontal: 14,
-          backgroundColor: tokens.bg,
-          borderRadius: 12,
-          borderWidth: 1,
-          borderColor: tokens.line,
-        }}
+        style={
+          embedded
+            ? { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }
+            : {
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingVertical: 12,
+                paddingHorizontal: 14,
+                backgroundColor: tokens.bg,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: tokens.line,
+              }
+        }
       >
-        {/* Left: verb */}
+        {/* Left: "How many <unit>?" (embedded) or the verb (standalone) */}
         <Text
           style={{
             fontFamily: fonts.sansBold,
             fontSize: 13,
-            color: tokens.inkSoft,
+            color: embedded ? tokens.ink : tokens.inkSoft,
             lineHeight: 16,
           }}
         >
-          {verb}
+          {embedded ? `How many ${headingNoun}?` : verb}
         </Text>
 
         {/* Right: stepper pill */}
@@ -256,6 +263,31 @@ export function ServingsSelector({
           ? extraForTomorrowLabel
           : option.hint}
       </Text>
+    </>
+  );
+
+  // Embedded — no card chrome; the parent "In your pantry" card provides it.
+  if (embedded) {
+    return <View>{body}</View>;
+  }
+
+  // Standalone — original v2.2 card.
+  return (
+    <View
+      style={{
+        backgroundColor: tokens.cream,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: tokens.lineDark,
+        padding: 18,
+        shadowColor: tokens.ink,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 6,
+        elevation: 2,
+      }}
+    >
+      {body}
     </View>
   );
 }

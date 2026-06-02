@@ -1052,9 +1052,26 @@ function RecipeDetailScreenInner() {
                 borderWidth: 1,
                 borderColor: c.lineDark,
                 padding: 14,
-                gap: 10,
+                gap: 12,
               }}
             >
+              {/* Portion control — merged into the pantry card (Recipe Page
+                  Design): servings + pantry read as one unit. Embedded mode
+                  drops ServingsSelector's own card so it sits flush here. */}
+              <ServingsSelector
+                embedded
+                people={people}
+                setPeople={setPeople}
+                leftoverKey={leftoverKey}
+                setLeftoverKey={setLeftoverKey}
+                baseServings={recipe.base_servings}
+                outputUnit={recipe.output_unit}
+                outputUnitPlural={recipe.output_unit_plural}
+                extraForTomorrowLabel={recipe.extra_for_tomorrow_label}
+              />
+              {/* Full-bleed hairline splitting the portion zone from the
+                  pantry-match zone. */}
+              <View style={{ height: 1, backgroundColor: c.line, marginHorizontal: -14 }} />
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14 }}>
                 <Text style={{ fontFamily: fonts.display, fontSize: 32, lineHeight: 36, color: tokens.bronze }}>
                   {match.haveCount}<Text style={{ color: tokens.bronze, opacity: 0.4 }}>/{match.totalCount}</Text>
@@ -1312,22 +1329,9 @@ function RecipeDetailScreenInner() {
           </View>
         )}
 
-        {/* Servings selector — DECISION-014 per-recipe units. The selector
-            falls back to legacy "people / portions" when output_unit is
-            absent, so non-launch recipes keep working until cook authors
-            their unit data in v1.1+. */}
-        <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
-          <ServingsSelector
-            people={people}
-            setPeople={setPeople}
-            leftoverKey={leftoverKey}
-            setLeftoverKey={setLeftoverKey}
-            baseServings={recipe.base_servings}
-            outputUnit={recipe.output_unit}
-            outputUnitPlural={recipe.output_unit_plural}
-            extraForTomorrowLabel={recipe.extra_for_tomorrow_label}
-          />
-        </View>
+        {/* Servings selector moved INTO the "In your pantry" card above
+            (Recipe Page Design — portion box + pantry unified into one card).
+            Browse mode only; cook mode inherits the servings chosen in browse. */}
 
         {/* Ingredients */}
         <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
