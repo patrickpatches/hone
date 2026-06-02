@@ -19,7 +19,7 @@ Bring the **Today** tab up to the polish of the new Bugs page so it's a best-in-
 ## COO TRIAGE — 2026-06-02
 P3 cosmetic — the daily-driver screen, so worth it, but no functional risk allowed. Dashboard-only; no EAS build.
 
-## FIX ATTEMPTED — docs/infra commit `<tbd>` — 2026-06-02
+## FIX ATTEMPTED — docs/infra commit `eba08dc` — 2026-06-02
 
 _Senior Engineer. **CSS-only** pass — zero JS touched, no element IDs/classes renamed, so every function is intact by construction. No EAS build._
 
