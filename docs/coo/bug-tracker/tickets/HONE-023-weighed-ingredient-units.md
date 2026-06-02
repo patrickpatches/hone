@@ -9,7 +9,7 @@ RECIPE:          (any with weighed ingredients)
 ASSIGNEE:        Engineer
 EPIC:            EPIC-launch-ready
 FOUND IN BUILD:  #135 (Patrick's phone)
-FIX ATTEMPTED:   #<tbd> (commit <tbd>)
+FIX ATTEMPTED:   #139 (commit 11cbd64)
 TARGET BUILD:    next EAS build
 REPRODUCIBLE:    Always
 DEVICE:          Patrick's phone (Android)
@@ -34,7 +34,7 @@ Weighed items (160 g, 400 ml) keep amount + unit through display and the stepper
 
 ---
 
-## FIX ATTEMPTED — build #<tbd> (commit `<tbd>`) — 2026-06-02
+## FIX ATTEMPTED — build #139 (commit `11cbd64`) — 2026-06-02
 
 _Senior Engineer._
 
