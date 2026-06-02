@@ -811,7 +811,7 @@ function RecipeDetailScreenInner() {
             {/* Meta row */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18, marginTop: 14 }}>
               <MetaPill icon="clock" label={`${recipe.time_min} min`} color={c.inkSoft} />
-              <MetaPill icon="flame" label={difficultyLabel} color={c.inkSoft} />
+              {difficultyLabel ? <MetaPill icon="flame" label={difficultyLabel} color={c.inkSoft} /> : null}
             </View>
 
             {/* Description */}
@@ -2353,4 +2353,4 @@ function formatTimer(seconds: number): string {
   const h = Math.floor(m / 60);
   const rem = m % 60;
   return rem === 0 ? `${h} h` : `${h} h ${rem} min`;
-}
+}
