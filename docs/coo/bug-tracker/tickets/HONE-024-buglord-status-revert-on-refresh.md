@@ -7,7 +7,7 @@ CATEGORY:        Infra / UX
 SCREEN:          Bug Lord (Bugs page)
 ASSIGNEE:        Engineer
 EPIC:            EPIC-launch-ready
-FIX ATTEMPTED:   docs/infra commit <tbd> (dashboard-only, no EAS build)
+FIX ATTEMPTED:   docs/infra commit 144f75a (dashboard-only, no EAS build)
 REPRODUCIBLE:    Always (within ~60s of an edit)
 ROOT CAUSE:      Cloudflare KV is eventually consistent. /update writes the
                  override to KV; /bugs reads it back via KV.get which edge-caches
@@ -26,7 +26,7 @@ ROOT CAUSE:      Cloudflare KV is eventually consistent. /update writes the
 ## Expected
 An edit is instant and stays put across refresh — no waiting on KV.
 
-## FIX ATTEMPTED — docs/infra commit `<tbd>` — 2026-06-02
+## FIX ATTEMPTED — docs/infra commit `144f75a` — 2026-06-02
 
 _Senior Engineer. Dashboard-only; no Worker change; no EAS build._
 
