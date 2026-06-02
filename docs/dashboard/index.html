@@ -471,17 +471,10 @@ const WORKER_URL='https://hone-buglord.patrick-nasr11.workers.dev';
 // no ticket vanishes. As each of these gets filed as a GitHub Issue with the
 // `bug` label, delete its row here. When this array is empty, the Worker is
 // the literal single source.
-const BUGS_SEED=[
-  {id:'HONE-013',sev:'Annoying',t:"Our team's notes file got cut off and lost history",d:"A behind-the-scenes file was truncated. No effect on the app.",who:'Engineer',build:'after #134',st:'done'},
-  {id:'HONE-014',sev:'Tidy-up',t:"That same notes file is bloated and messy",d:"Done — old handoffs archived, file trimmed (1 June). Internal only, no app effect.",who:'File Organiser',build:'n/a',st:'done'},
-  {id:'HONE-015',sev:'Annoying',t:"Make the recipe notes appear where they apply (proper fix)",d:"The quality version of HONE-009: each prep note moves onto the exact step or ingredient it's about.",who:'Cook → Engineer',build:'before launch',st:'done'},
-  {id:'HONE-016',sev:'Annoying',t:"Build automated screen-testing (so the tester can tap through the app)",d:"Built — 5 Maestro flows + a local runner are in (#135). Next: confirm they run on a device.",who:'Engineer',build:'#135',st:'check'},
-  {id:'HONE-017',sev:'Annoying',t:"Items added from a recipe were tagged wrong in the shopping list",d:"Fixed (#135) — recipe-added items now carry the right source so they don't get swept away.",who:'Engineer',build:'#135',st:'check'},
-  {id:'HONE-018',sev:'Tidy-up',t:"No quick way to clear one recipe's items from the Shop list",d:"Fixed (#135) — added a remove-by-recipe button in Shop.",who:'You to decide',build:'#135',st:'done'},
-  {id:'HONE-019',sev:'Annoying',t:"Make Bug Lord live — no more copy-paste",d:"Done (#138) — Worker live, new GitHub Issues auto-appear on the board.",who:'You to decide',build:'#138',st:'done'},
-  {id:'HONE-020',sev:'Annoying',t:"Finish the live board — saving + live build number",d:"Done — taps save live to the cloud, build number pulls automatically from GitHub/EAS. (Tooling change, no new app build.)",who:'You to decide',build:'live',st:'done'}
-];
-let BUGS=BUGS_SEED.slice();
+// HONE-025: every ticket is now a real GitHub issue (single source of truth).
+// The hardcoded seed is retired — the board renders from the last-good cache
+// instantly, then refreshes live from the Worker.
+let BUGS=[];
 const SEV_DEF=[['Show-stopper','var(--bad)'],['Serious','var(--warn)'],['Annoying','var(--aqua)'],['Tidy-up','var(--mut2)']];
 // SEV and badge are recomputed by recomputeSev() after BUGS loads from Worker
 const SEV=SEV_DEF.map(d=>({name:d[0],c:d[1],n:0}));
@@ -567,10 +560,10 @@ $('readybars').innerHTML=READY.map(r=>`<div class="bar"><div class="lab"><span>$
 const ST_OPTS=[['open','Open'],['fixing','Being fixed'],['check','Fixed — build & check'],['call','Needs your call'],['later','Tracked for later'],['done','Done ✓']];
 const SEV_OPTS=['Show-stopper','Serious','Annoying','Tidy-up'];
 const WHO_OPTS=['Engineer','Designer','Cook','Photography','Bug Tester','COO (me)','Designer → Engineer','Cook → Engineer','You to decide','File Organiser'];
-function sel(field,id,cur,opts){
+function sel(field,id,num,cur,opts){
   const norm=opts.map(o=>Array.isArray(o)?o:[o,o]);
   if(!norm.some(o=>o[0]===cur)) norm.unshift([cur,cur]);
-  return '<select class="bsel" data-id="'+id+'" data-field="'+field+'">'+norm.map(o=>'<option value="'+String(o[0]).replace(/"/g,'&quot;')+'"'+(o[0]===cur?' selected':'')+'>'+o[1]+'</option>').join('')+'</select>';
+  return '<select class="bsel" data-id="'+id+'" data-num="'+(num==null?'':num)+'" data-field="'+field+'">'+norm.map(o=>'<option value="'+String(o[0]).replace(/"/g,'&quot;')+'"'+(o[0]===cur?' selected':'')+'>'+o[1]+'</option>').join('')+'</select>';
 }
 const stMap={open:{t:'Open',bg:'rgba(255,92,122,.14)',c:'#FF8AA0'},check:{t:'Fixed — build & check',bg:'rgba(40,224,176,.14)',c:'#5BE8C4'},fixing:{t:'Being fixed (quick version)',bg:'rgba(255,194,75,.14)',c:'#FFD27A'},later:{t:'Tracked for later',bg:'rgba(134,150,176,.16)',c:'#A7B4C8'},call:{t:'Needs your call',bg:'rgba(255,46,166,.16)',c:'#FF8AD0'},done:{t:'Done ✓',bg:'rgba(40,224,176,.18)',c:'#5BE8C4'}};
 const sevCol={'Show-stopper':'var(--bad)','Serious':'var(--warn)','Annoying':'var(--aqua)','Tidy-up':'var(--mut2)'};
@@ -685,47 +678,21 @@ function applyLocal(id,field,value){
   recomputeSev();
 }
 
-/* ---- Persistent optimistic overlay (fixes KV read-after-write lag) ----
-   Cloudflare KV is eventually consistent: after /update writes a value, a
-   /bugs read seconds later can still return the OLD value for up to ~60s, so
-   a refresh would "revert" the edit until KV propagates. We persist each
-   confirmed edit to localStorage and re-apply it on every load, then drop it
-   automatically once the server's value matches (self-healing). A 10-minute
-   safety expiry prevents a stuck override if state ever diverges. */
-const OKEY='buglord_pending_overrides_v1';
-const PENDING_TTL=10*60*1000;
-function loadOverrides(){try{return JSON.parse(localStorage.getItem(OKEY)||'{}')}catch(e){return {}}}
-function saveOverrides(p){try{localStorage.setItem(OKEY,JSON.stringify(p))}catch(e){}}
-function rememberOverride(id,field,value){
-  const p=loadOverrides();
-  const e=p[id]||{fields:{},ts:0};
-  e.fields[field]=value; e.ts=Date.now(); p[id]=e; saveOverrides(p);
-}
-// Overlay held edits onto fetched bugs; drop any the server already matches
-// (KV caught up) or that have expired. Returns the same array, mutated.
-function applyOverrides(bugs){
-  const p=loadOverrides(); let changed=false; const now=Date.now();
-  const byId={}; bugs.forEach(function(b){byId[b.id]=b;});
-  Object.keys(p).forEach(function(id){
-    const e=p[id];
-    if(now-(e.ts||0)>PENDING_TTL){delete p[id];changed=true;return;}
-    const b=byId[id];
-    if(!b)return; // bug not in this list (filtered/closed) — keep pending for now
-    Object.keys(e.fields).forEach(function(f){
-      if(b[f]===e.fields[f]){delete e.fields[f];changed=true;}   // server caught up
-      else{b[f]=e.fields[f];}                                     // hold optimistic value
-    });
-    if(!Object.keys(e.fields).length){delete p[id];changed=true;}
-  });
-  if(changed)saveOverrides(p);
-  return bugs;
-}
+/* ---- Last-good cache (stale-while-revalidate) ----
+   GitHub is now the single, strongly-consistent source, so we no longer need
+   any overlay. We just cache the last fetched board and render it instantly on
+   load, then refresh from the Worker — no blank "Loading…" flash, and since the
+   source is consistent the cached view matches the server (no flip, no revert). */
+const CKEY='buglord_bugs_cache_v1';
+function loadCache(){try{const a=JSON.parse(localStorage.getItem(CKEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
+function saveCache(){try{localStorage.setItem(CKEY,JSON.stringify(BUGS))}catch(e){}}
 
-async function doSave(id,field,value){
+async function doSave(num,field,value){
+  if(!num) return 'err'; // every ticket is a real GitHub issue now
   try{
     const r=await fetch(WORKER_URL+'/update',{method:'POST',
       headers:{'Content-Type':'application/json','X-Write-Key':getWriteKey()},
-      body:JSON.stringify({id,field,value})});
+      body:JSON.stringify({num,field,value})});
     return r.status===401?'401':(r.ok?'ok':'err');
   }catch(e){return 'err';}
 }
@@ -739,33 +706,31 @@ function revealKeyBox(){
 }
 
 async function handleEdit(sl){
-  const id=sl.dataset.id,field=sl.dataset.field,value=sl.value;
-  // 1. Optimistic — the change is visible instantly in the model + table.
-  //    The edited select lives in the drawer, so re-rendering the table
-  //    behind it never blanks the control.
+  const id=sl.dataset.id,num=Number(sl.dataset.num)||0,field=sl.dataset.field,value=sl.value;
+  // 1. Optimistic — the change is visible instantly. The edited select lives in
+  //    the drawer, so re-rendering the table behind it never blanks the control.
   applyLocal(id,field,value);
-  renderBugs();
+  saveCache(); renderBugs();
   sl.classList.remove('saved','error');
 
   // 2. No key yet → reveal the inline box, queue the edit. No blocking prompt.
   if(!getWriteKey()){
-    pendingEdits.push({id,field,value,sl});
+    pendingEdits.push({num,field,value,sl});
     promptDrawerKey();
     toast('Enter your key once to save changes','');
     return;
   }
 
-  // 3. Save in the background.
+  // 3. Save to GitHub (strongly consistent — a refresh reflects it immediately).
   sl.classList.add('saving');
   toast('Saving…','');
-  const res=await doSave(id,field,value);
+  const res=await doSave(num,field,value);
   sl.classList.remove('saving');
   if(res==='ok'){
-    rememberOverride(id,field,value); // hold across refresh until KV catches up
     sl.classList.add('saved'); setTimeout(function(){sl.classList.remove('saved');},1500);
     toast('Saved ✓','ok');
   } else if(res==='401'){
-    pendingEdits.push({id,field,value,sl}); revealKeyBox();
+    pendingEdits.push({num,field,value,sl}); revealKeyBox();
     sl.classList.add('error'); toast('Key rejected — re-enter it','err');
     localStorage.removeItem(WKEY);
   } else {
@@ -781,10 +746,9 @@ async function flushPending(){
   for(let i=0;i<batch.length;i++){
     const e=batch[i];
     if(e.sl)e.sl.classList.add('saving');
-    const res=await doSave(e.id,e.field,e.value);
+    const res=await doSave(e.num,e.field,e.value);
     if(e.sl)e.sl.classList.remove('saving');
     if(res==='ok'){
-      rememberOverride(e.id,e.field,e.value); // hold across refresh until KV catches up
       if(e.sl){e.sl.classList.remove('error');e.sl.classList.add('saved');
         (function(sl){setTimeout(function(){sl.classList.remove('saved');},1500);})(e.sl);}
     } else { okAll=false; if(e.sl)e.sl.classList.add('error'); pendingEdits.push(e); }
@@ -819,9 +783,9 @@ function openDrawer(bug){
   else gh.style.display='none';
   // Editable Status / Severity / Who — reuse the optimistic save engine.
   $('drawerEdit').innerHTML=
-    '<label>Status</label>'+sel('st',bug.id,bug.st,ST_OPTS)+
-    '<label>Severity</label>'+sel('sev',bug.id,bug.sev,SEV_OPTS)+
-    '<label>Who</label>'+sel('who',bug.id,bug.who,WHO_OPTS);
+    '<label>Status</label>'+sel('st',bug.id,bug.num,bug.st,ST_OPTS)+
+    '<label>Severity</label>'+sel('sev',bug.id,bug.num,bug.sev,SEV_OPTS)+
+    '<label>Who</label>'+sel('who',bug.id,bug.num,bug.who,WHO_OPTS);
   wireSelects($('drawerEdit'));
   // Comments
   const cl=$('cmtList'), ci=$('cmtInput'), cc=$('cmtCount');
@@ -917,17 +881,17 @@ document.addEventListener('click',function(e){
   }
 });
 
-// Render the seed list immediately so the board is never blank, then
-// initBugLord() (below) merges live Worker data over it.
+// Render the last-good cache instantly (no blank flash), then refresh live.
+BUGS=loadCache();
 recomputeSev();
 renderBugs();
 
-/* ---- HONE-020: live board ----------------------------------------------
+/* ---- HONE-025: live board (GitHub is the single source) ----------------
    initBugLord() fires once on load:
-     1. GET /bugs   → live GitHub Issues + KV overrides; merged over BUGS_SEED
-                      by id (live wins; seed-only engineering tickets remain)
+     1. GET /bugs   → all `bug` GitHub issues (st/sev/who from state+labels)
      2. GET /build  → live EAS build number from GitHub Actions API
-   If the Worker is briefly unreachable, the seed list stays — never blank.
+   The board is rendered from cache first, so there's no loading flash; the
+   fetch then replaces it with live data (consistent, so no visible flip).
    -------------------------------------------------------------------- */
 async function initBugLord(){
   // ── 1. Bugs ──────────────────────────────────────────────────────────────
@@ -936,16 +900,15 @@ async function initBugLord(){
     if(r.ok){
       const live=await r.json();
       if(Array.isArray(live)){
-        // Merge: live issues override seed by id; seed-only tickets remain.
-        const liveIds=new Set(live.map(function(b){return b.id;}));
-        BUGS=applyOverrides(live.concat(BUGS_SEED.filter(function(b){return !liveIds.has(b.id);})));
+        BUGS=live;
+        saveCache();
         recomputeSev();
         renderBugs();
         $('stamp').textContent='as of '+new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
       }
     }
   }catch(e){
-    // Worker briefly unreachable — the seed list is already rendered, leave it.
+    // Worker briefly unreachable — the cached board stays rendered.
   }
 
   // ── 2. Build ─────────────────────────────────────────────────────────────
@@ -990,11 +953,9 @@ async function refreshBugs(){
     if(!r.ok)return;
     const live=await r.json();
     if(!Array.isArray(live))return;
-    const liveIds=new Set(live.map(b=>b.id));
-    const next=applyOverrides(live.concat(BUGS_SEED.filter(b=>!liveIds.has(b.id))));
     // Only re-render if something actually changed (cheap signature compare).
-    if(JSON.stringify(next)!==JSON.stringify(BUGS)){
-      BUGS=next; recomputeSev(); renderBugs();
+    if(JSON.stringify(live)!==JSON.stringify(BUGS)){
+      BUGS=live; saveCache(); recomputeSev(); renderBugs();
     }
   }catch(e){/* offline tick — ignore */}
 }

@@ -1,34 +1,32 @@
 /**
- * hone-buglord — Cloudflare Worker  (HONE-020 — Phase 2)
+ * hone-buglord — Cloudflare Worker  (HONE-025 — single source = GitHub Issues)
  *
  * Endpoints:
- *   GET  /bugs    — GitHub Issues + KV overrides → BUGS array JSON
- *   POST /update  — write-key gated; persists {id,field,value} to KV
- *   GET  /build   — latest EAS build number from public GitHub Actions API
- *   GET  /        — health check
+ *   GET  /bugs                — all `bug` issues → BUGS array JSON
+ *   POST /update              — write-key gated; persists st/sev/who to the
+ *                               GitHub issue itself (state + labels)
+ *   POST /issue               — write-key gated; creates a new GitHub issue
+ *   GET  /issue/:n            — issue detail + comment thread
+ *   POST /issue/:n/comment    — write-key gated; add a dated comment
+ *   GET  /build               — latest EAS build number (GitHub Actions API)
+ *   GET  /                    — health check
  *
- * Status model:
- *   GitHub issue state/labels drive the base status:
- *     closed                  → done
- *     label 'fix-attempted'   → check
- *     label 'being-fixed'     → fixing
- *     else                    → open
- *   KV overrides win for any of: st, sev, who, build.
- *   This lets the dashboard taps save for real without a git push.
+ * Single source of truth = GitHub Issues. Status / severity / who are encoded
+ * on the issue itself, so reads are strongly read-after-write consistent — no
+ * KV, no client overlay, no revert-on-refresh.
+ *   st  : closed → done | label st:<x> (fixing/check/call/later)
+ *         | legacy fix-attempted→check / being-fixed→fixing | else open
+ *   sev : label sev:<X> | else parsed from the issue body
+ *   who : label who:<X> | else assignee | else Patrick
  *
  * Secrets (wrangler secret put):
- *   GITHUB_TOKEN   fine-grained, Issues read-only
+ *   GITHUB_TOKEN   fine-grained, Issues read AND write
  *   WRITE_KEY      any string Patrick chooses; dashboard sends in X-Write-Key
- *
- * KV namespace:
- *   HONE_STATE  — id 33fab36582ed42bf93329fa5517bca24
- *   Keys:  bug:{id}   → JSON {st,sev,who,build}
  */
 
 export interface Env {
   GITHUB_TOKEN: string;
   WRITE_KEY: string;
-  HONE_STATE: KVNamespace;
 }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -46,7 +44,6 @@ interface GHIssue {
 }
 interface GHComment { user?: { login: string }; created_at: string; body: string | null }
 interface HoneBug { id: string; sev: string; t: string; d: string; who: string; build: string; st: string; num?: number; upd?: string }
-type KVOverride = Partial<Pick<HoneBug, 'st' | 'sev' | 'who' | 'build'>>;
 
 // Cache-busted GitHub fetch. GitHub returns Cache-Control: max-age=60, which
 // Cloudflare honours on subrequests — so a plain re-fetch can be up to 60s
@@ -122,22 +119,34 @@ function cleanTitle(title: string): string {
   return title.replace(/^\[BUG\]\s*/i, '').replace(/^HONE-\d+\s*[-–:]\s*/i, '').trim();
 }
 
+// GitHub Issues are the single source of truth (HONE-025). Status / severity /
+// who are persisted as the issue's state + labels, so reads are strongly
+// read-after-write consistent (no KV lag, no client overlay):
+//   st   : closed → done | label st:<x> | legacy fix-attempted→check /
+//          being-fixed→fixing | else open
+//   sev  : label sev:<X> | else parsed from the issue body | else Tidy-up
+//   who  : label who:<X> | else first assignee | else Patrick
 function issueToHoneBug(issue: GHIssue): HoneBug {
   const body = issue.body ?? '';
   const labels = issue.labels.map(l => l.name);
+  const stLabel = labels.find(n => n.startsWith('st:'));
   const st = issue.state === 'closed' ? 'done'
+    : stLabel ? stLabel.slice(3)
     : labels.includes('fix-attempted') ? 'check'
     : labels.includes('being-fixed') ? 'fixing'
     : 'open';
+  const sevLabel = labels.find(n => n.startsWith('sev:'));
+  const sev = sevLabel ? sevLabel.slice(4) : parseSeverity(body, issue.title);
+  const whoLabel = labels.find(n => n.startsWith('who:'));
+  const who = whoLabel ? whoLabel.slice(4) : (issue.assignees[0]?.login ?? 'Patrick');
   const id = (issue.title.match(/HONE-(\d+)/i)?.[0] ?? `#${issue.number}`).toUpperCase();
-  const who = issue.assignees[0]?.login ?? 'Patrick';
   const actualSec = (body.match(/##\s+Actual\s*\n+([\s\S]*?)(?=\n##|$)/i)?.[1] ?? '').trim().split('\n')[0] ?? '';
   const firstLine = body.split('\n').find(l => {
     const t = l.trim();
     return t.length > 10 && !t.startsWith('#') && !/^[A-Z_]+\s*:/.test(t);
   }) ?? '';
   const d = parseActual(body) || actualSec || firstLine || cleanTitle(issue.title);
-  return { id, sev: parseSeverity(body, issue.title), t: cleanTitle(issue.title), d, who, build: parseBuild(body), st, num: issue.number, upd: issue.updated_at };
+  return { id, sev, t: cleanTitle(issue.title), d, who, build: parseBuild(body), st, num: issue.number, upd: issue.updated_at };
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
@@ -152,7 +161,9 @@ export default {
     const url = new URL(request.url);
 
     // ── GET /bugs ──────────────────────────────────────────────────────────────
-    // Fetches GitHub Issues + overlays KV overrides → authoritative BUGS array.
+    // GitHub Issues are the single source of truth. st/sev/who come straight
+    // from each issue's state + labels (read-after-write consistent), so no KV
+    // overlay and no client-side patching is needed.
     if (request.method === 'GET' && url.pathname === '/bugs') {
       const ghRes = await ghFetch(
         'https://api.github.com/repos/patrickpatches/hone/issues?state=all&labels=bug&per_page=100&sort=created&direction=asc',
@@ -164,53 +175,67 @@ export default {
       }
 
       const issues: GHIssue[] = await ghRes.json();
-
-      // Overlay KV overrides for each bug
-      const bugs = await Promise.all(issues.map(async issue => {
-        const base = issueToHoneBug(issue);
-        const override = await env.HONE_STATE.get(`bug:${base.id}`, 'json').catch(() => null) as KVOverride | null;
-        return override ? { ...base, ...override, id: base.id, t: base.t, d: base.d } : base;
-      }));
-
-      // no-store: every read is live (GitHub + KV). A bug board must always
-      // show current state; the GitHub fetch (~200-400ms) is fast enough that
-      // edge caching isn't worth the staleness. (HONE-020 item 3.)
+      const bugs = issues.map(issueToHoneBug);
       return json(bugs, 200, { 'Cache-Control': 'no-store' });
     }
 
     // ── POST /update ───────────────────────────────────────────────────────────
-    // Write-key gated. Body: { id, field, value }
-    // Persists a single field override to KV. Returns updated state.
+    // Write-key gated. Body: { num, field, value } where num is the GitHub issue
+    // number. Persists st/sev/who to the GitHub Issue itself (state + labels) —
+    // strongly consistent, so a refresh never reverts.
+    //   st  : 'done' → close; 'open' → reopen + clear st labels;
+    //         else → reopen + set st:<value> label
+    //   sev : set sev:<value> label
+    //   who : set who:<value> label
     if (request.method === 'POST' && url.pathname === '/update') {
-      // Reject if the secret isn't configured, or the header doesn't match.
-      // Guarding against an unset/empty WRITE_KEY prevents an empty header
-      // from ever authenticating.
       const provided = request.headers.get('X-Write-Key');
       if (!env.WRITE_KEY || !provided || provided !== env.WRITE_KEY) {
         return json({ error: 'Unauthorized — set X-Write-Key header' }, 401);
       }
 
-      let body: { id?: string; field?: string; value?: string };
+      let body: { num?: number; id?: string; field?: string; value?: string };
       try {
         body = await request.json() as typeof body;
       } catch {
         return json({ error: 'Invalid JSON body' }, 400);
       }
 
-      const { id, field, value } = body;
-      if (!id || !field || value === undefined) {
-        return json({ error: 'Required: id, field, value' }, 400);
+      const { num, field, value } = body;
+      if (!num || !field || value === undefined) {
+        return json({ error: 'Required: num (issue number), field, value' }, 400);
       }
-      const allowed = ['st', 'sev', 'who', 'build'];
-      if (!allowed.includes(field)) {
-        return json({ error: `field must be one of: ${allowed.join(', ')}` }, 400);
+      if (!['st', 'sev', 'who'].includes(field)) {
+        return json({ error: 'field must be st, sev or who' }, 400);
       }
 
-      const existing = await env.HONE_STATE.get(`bug:${id}`, 'json').catch(() => null) as Record<string,string> | null ?? {};
-      const next = { ...existing, [field]: value };
-      await env.HONE_STATE.put(`bug:${id}`, JSON.stringify(next));
+      // Read current labels so we replace only the namespace we're changing.
+      const cur = await ghFetch(`https://api.github.com/repos/patrickpatches/hone/issues/${num}`, env).catch(() => null);
+      if (!cur || !cur.ok) return json({ error: 'Issue not found', status: cur?.status ?? 502 }, cur?.status === 404 ? 404 : 502);
+      const issue = await cur.json() as GHIssue;
+      let labels = issue.labels.map(l => l.name);
 
-      return json({ ok: true, id, updated: next });
+      const patch: { labels: string[]; state?: 'open' | 'closed' } = { labels };
+
+      if (field === 'st') {
+        // strip any prior status encoding
+        labels = labels.filter(n => !n.startsWith('st:') && n !== 'fix-attempted' && n !== 'being-fixed');
+        if (value === 'done') { patch.state = 'closed'; }
+        else { patch.state = 'open'; if (value !== 'open') labels.push(`st:${value}`); }
+        patch.labels = labels;
+      } else {
+        const ns = `${field}:`;
+        patch.labels = labels.filter(n => !n.startsWith(ns)).concat(`${ns}${value}`);
+      }
+
+      const pr = await ghFetch(`https://api.github.com/repos/patrickpatches/hone/issues/${num}`, env, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch),
+      }).catch(() => null);
+
+      if (!pr) return json({ error: 'Could not reach GitHub' }, 502);
+      if (pr.status === 403 || pr.status === 404) return json({ error: "Token can't edit this issue (needs Issues write).", status: pr.status }, 403);
+      if (!pr.ok) { const t = await pr.text().catch(() => ''); return json({ error: 'GitHub rejected the update', status: pr.status, detail: t.slice(0, 200) }, 502); }
+
+      return json({ ok: true, num, field, value });
     }
 
     // ── POST /issue ────────────────────────────────────────────────────────────
@@ -247,6 +272,11 @@ export default {
         '### How bad is it?', `${sevP} — filed from Bug Lord`,
       ].join('\n');
 
+      // who is carried as a who:<role> label (GitHub is the single source).
+      const who = (b.who ?? '').trim();
+      const labels = ['bug', 'needs-triage'];
+      if (who && who !== 'Patrick') labels.push(`who:${who}`);
+
       const ghRes = await fetch('https://api.github.com/repos/patrickpatches/hone/issues', {
         method: 'POST',
         headers: {
@@ -255,7 +285,7 @@ export default {
           'User-Agent': 'HoneBugLord/1.0',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title, body: issueBody, labels: ['bug', 'needs-triage'] }),
+        body: JSON.stringify({ title, body: issueBody, labels }),
       }).catch(() => null);
 
       if (!ghRes) return json({ error: 'Could not reach GitHub' }, 502);
@@ -272,11 +302,6 @@ export default {
 
       const created = await ghRes.json() as { number: number; html_url: string };
       const id = (title.match(/HONE-(\d+)/i)?.[0]?.toUpperCase()) ?? `#${created.number}`;
-      const who = (b.who ?? '').trim();
-      if (who && who !== 'Patrick') {
-        await env.HONE_STATE.put(`bug:${id}`, JSON.stringify({ who })).catch(() => {});
-      }
-
       return json({ ok: true, number: created.number, url: created.html_url, id });
     }
 
@@ -296,9 +321,7 @@ export default {
       const issue = await iRes.json() as GHIssue;
       const comments: GHComment[] = cRes && cRes.ok ? await cRes.json() : [];
 
-      const base = issueToHoneBug(issue);
-      const override = await env.HONE_STATE.get(`bug:${base.id}`, 'json').catch(() => null) as KVOverride | null;
-      const merged = override ? { ...base, ...override, id: base.id, t: base.t, d: base.d } : base;
+      const merged = issueToHoneBug(issue);
 
       return json({
         ...merged,
