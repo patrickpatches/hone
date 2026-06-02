@@ -934,18 +934,36 @@ function RecipeDetailScreenInner() {
                 selector below owns that); country text replaced by the SVG flag. */}
             {(() => {
               const origin = originForCuisine(recipe.categories?.cuisines?.[0]);
+              const metaText = { fontFamily: fonts.poppins, fontSize: 13, color: tokens.bronze };
+              // Round-dot separator (3×3, lineDark) — matches the Recipe Page
+              // Design meta strip exactly (the old build used a "·" text glyph).
+              const Dot = () => (
+                <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: tokens.lineDark }} />
+              );
+              // difficulty · time · origin — "20 min" restored between the
+              // difficulty word and the country flag (design parity). Each
+              // segment is conditional, dots only render between present ones.
+              const segs: React.ReactNode[] = [];
+              if (difficultyLabel) segs.push(<Text key="diff" style={metaText}>{difficultyLabel}</Text>);
+              if (recipe.time_min) segs.push(<Text key="time" style={metaText}>{recipe.time_min} min</Text>);
+              segs.push(
+                origin.kind === 'country' ? (
+                  <Flag key="origin" code={origin.code} width={22} />
+                ) : (
+                  <View key="origin" style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <GlobeGlyph size={15} color={tokens.bronze} />
+                    <Text style={metaText}>{origin.label}</Text>
+                  </View>
+                ),
+              );
               return (
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
-                  <Text style={{ fontFamily: fonts.poppins, fontSize: 13, color: tokens.bronze }}>{difficultyLabel}</Text>
-                  <Text style={{ fontFamily: fonts.poppins, fontSize: 13, color: tokens.bronze }}>·</Text>
-                  {origin.kind === 'country' ? (
-                    <Flag code={origin.code} width={22} />
-                  ) : (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <GlobeGlyph size={15} color={tokens.bronze} />
-                      <Text style={{ fontFamily: fonts.poppins, fontSize: 13, color: tokens.bronze }}>{origin.label}</Text>
-                    </View>
-                  )}
+                  {segs.map((seg, i) => (
+                    <React.Fragment key={i}>
+                      {i > 0 ? <Dot /> : null}
+                      {seg}
+                    </React.Fragment>
+                  ))}
                 </View>
               );
             })()}
@@ -969,6 +987,7 @@ function RecipeDetailScreenInner() {
                 <View style={{
                   width: 36, height: 36, borderRadius: 18,
                   backgroundColor: 'rgba(194,161,90,0.18)',
+                  borderWidth: 1.5, borderColor: 'rgba(194,161,90,0.35)',
                   alignItems: 'center', justifyContent: 'center',
                 }}>
                   <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: tokens.bronze }}>
