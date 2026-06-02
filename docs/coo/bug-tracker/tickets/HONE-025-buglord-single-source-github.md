@@ -7,7 +7,7 @@ CATEGORY:        Infra
 SCREEN:          Bug Lord
 ASSIGNEE:        Engineer
 EPIC:            EPIC-launch-ready
-FIX ATTEMPTED:   docs/infra commit <tbd> (dashboard + Worker; no EAS build)
+FIX ATTEMPTED:   docs/infra commit 129cba8 (dashboard + Worker; no EAS build)
 ROOT CAUSE:      Two problems compounded: (1) some tickets (HONE-013..020) were
                  hardcoded in the dashboard's BUGS_SEED, not real records — editing
                  them wrote to a store the read path couldn't reconcile, so they
