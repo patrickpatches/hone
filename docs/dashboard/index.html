@@ -685,6 +685,42 @@ function applyLocal(id,field,value){
   recomputeSev();
 }
 
+/* ---- Persistent optimistic overlay (fixes KV read-after-write lag) ----
+   Cloudflare KV is eventually consistent: after /update writes a value, a
+   /bugs read seconds later can still return the OLD value for up to ~60s, so
+   a refresh would "revert" the edit until KV propagates. We persist each
+   confirmed edit to localStorage and re-apply it on every load, then drop it
+   automatically once the server's value matches (self-healing). A 10-minute
+   safety expiry prevents a stuck override if state ever diverges. */
+const OKEY='buglord_pending_overrides_v1';
+const PENDING_TTL=10*60*1000;
+function loadOverrides(){try{return JSON.parse(localStorage.getItem(OKEY)||'{}')}catch(e){return {}}}
+function saveOverrides(p){try{localStorage.setItem(OKEY,JSON.stringify(p))}catch(e){}}
+function rememberOverride(id,field,value){
+  const p=loadOverrides();
+  const e=p[id]||{fields:{},ts:0};
+  e.fields[field]=value; e.ts=Date.now(); p[id]=e; saveOverrides(p);
+}
+// Overlay held edits onto fetched bugs; drop any the server already matches
+// (KV caught up) or that have expired. Returns the same array, mutated.
+function applyOverrides(bugs){
+  const p=loadOverrides(); let changed=false; const now=Date.now();
+  const byId={}; bugs.forEach(function(b){byId[b.id]=b;});
+  Object.keys(p).forEach(function(id){
+    const e=p[id];
+    if(now-(e.ts||0)>PENDING_TTL){delete p[id];changed=true;return;}
+    const b=byId[id];
+    if(!b)return; // bug not in this list (filtered/closed) — keep pending for now
+    Object.keys(e.fields).forEach(function(f){
+      if(b[f]===e.fields[f]){delete e.fields[f];changed=true;}   // server caught up
+      else{b[f]=e.fields[f];}                                     // hold optimistic value
+    });
+    if(!Object.keys(e.fields).length){delete p[id];changed=true;}
+  });
+  if(changed)saveOverrides(p);
+  return bugs;
+}
+
 async function doSave(id,field,value){
   try{
     const r=await fetch(WORKER_URL+'/update',{method:'POST',
@@ -725,6 +761,7 @@ async function handleEdit(sl){
   const res=await doSave(id,field,value);
   sl.classList.remove('saving');
   if(res==='ok'){
+    rememberOverride(id,field,value); // hold across refresh until KV catches up
     sl.classList.add('saved'); setTimeout(function(){sl.classList.remove('saved');},1500);
     toast('Saved ✓','ok');
   } else if(res==='401'){
@@ -747,6 +784,7 @@ async function flushPending(){
     const res=await doSave(e.id,e.field,e.value);
     if(e.sl)e.sl.classList.remove('saving');
     if(res==='ok'){
+      rememberOverride(e.id,e.field,e.value); // hold across refresh until KV catches up
       if(e.sl){e.sl.classList.remove('error');e.sl.classList.add('saved');
         (function(sl){setTimeout(function(){sl.classList.remove('saved');},1500);})(e.sl);}
     } else { okAll=false; if(e.sl)e.sl.classList.add('error'); pendingEdits.push(e); }
@@ -900,7 +938,7 @@ async function initBugLord(){
       if(Array.isArray(live)){
         // Merge: live issues override seed by id; seed-only tickets remain.
         const liveIds=new Set(live.map(function(b){return b.id;}));
-        BUGS=live.concat(BUGS_SEED.filter(function(b){return !liveIds.has(b.id);}));
+        BUGS=applyOverrides(live.concat(BUGS_SEED.filter(function(b){return !liveIds.has(b.id);})));
         recomputeSev();
         renderBugs();
         $('stamp').textContent='as of '+new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
@@ -953,7 +991,7 @@ async function refreshBugs(){
     const live=await r.json();
     if(!Array.isArray(live))return;
     const liveIds=new Set(live.map(b=>b.id));
-    const next=live.concat(BUGS_SEED.filter(b=>!liveIds.has(b.id)));
+    const next=applyOverrides(live.concat(BUGS_SEED.filter(b=>!liveIds.has(b.id))));
     // Only re-render if something actually changed (cheap signature compare).
     if(JSON.stringify(next)!==JSON.stringify(BUGS)){
       BUGS=next; recomputeSev(); renderBugs();
