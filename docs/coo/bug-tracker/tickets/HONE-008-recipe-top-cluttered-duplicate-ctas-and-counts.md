@@ -10,6 +10,7 @@ ASSIGNEE:        Engineer
 EPIC:            EPIC-v7-mise
 FOUND IN BUILD:  #132
 FIX ATTEMPTED:   #136 (commit 328a7f0c97 — 2026-06-01)
+STATUS:          FIX ATTEMPTED — awaiting Patrick on-device (R-015)
 TARGET BUILD:    #136
 REPRODUCIBLE:    Always
 DEVICE:          Patrick's Pixel (Android 14)
@@ -51,4 +52,4 @@ _Added by Bug Tester (scheduled run)._
   - Ghost-row marginTop increased 14→20 (+6px breathing room per spec).
   - Prior commits (#134) already removed the inline Start cooking pill and the eyebrow N/M badge.
 - **Result:** One Watch link (ghost row), one Start cooking CTA (sticky bottom pill), clean attribution eyebrow.
-- **Per R-015:** not self-closing. Awaiting Patrick's on-device validation.
+- **Pe
