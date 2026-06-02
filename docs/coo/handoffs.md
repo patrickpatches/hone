@@ -83,6 +83,14 @@ When a handoff is DONE, leave it in the file for one week so it's auditable, the
 
 ## Open handoffs
 
+### HANDOFF → Senior Engineer · 2026-06-02 · OPEN — Recipe detail design polish (GitHub Issue #23)
+**Lane:** Claude Code. **From:** COO. Patrick's Claude-Design handoff.
+
+Implement the recipe-detail design changes in `mobile/app/recipe/[id].tsx` — full spec in **Issue #23**. Lift the `CountryFlag` SVG component from `docs/prototypes/Recipe Page Design.html`. Browse mode only; cook mode untouched. Nav-icon colours, gold title, Poppins centred meta (no "Serves N"), country flag, drop "+ Plan it", new Chef Source Card, remove the blue stage-photos notice. Add `@expo-google-fonts/poppins` if needed. **Respect the recipe-screen crash history** (hooks above guards, no scroll-driven Animated listeners); tsc + R-014 pre-flight. Build a preview when ready; Patrick validates on-device (R-015).
+
+---
+
+
 ### HANDOFF → Senior Engineer · 2026-06-02 · DONE — fix GitHub Issue #13 (weighed-ingredient units)
 **Lane:** Claude Code. **From:** COO. Patrick: fix this one next.
 
