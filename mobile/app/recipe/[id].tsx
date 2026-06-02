@@ -40,6 +40,7 @@ import {
 } from '../../db/database';
 import type { PantryItem, ShoppingItem } from '../../db/database';
 import { tokens, fonts } from '../../src/theme/tokens';
+import { Flag, GlobeGlyph, originForCuisine } from '../../src/components/OriginFlag';
 import { Icon } from '../../src/components/Icon';
 import { SubstitutionSheet } from '../../src/components/SubstitutionSheet';
 import { ServingsSelector } from '../../src/components/ServingsSelector';
@@ -394,9 +395,6 @@ function RecipeDetailScreenInner() {
 
   const option       = leftoverById(leftoverKey);
   const totalPortions = totalPortionsFor(option, people, recipe.base_servings);
-  // True only when every step already has a photo URL.
-  // Derived, not persisted — no schema change needed.
-  const hasStagePhotos = recipe.steps.every((s) => Boolean(s.photo_url));
   const stepsDoneCount = Object.values(stepsDone).filter(Boolean).length;
   const progress     = cooking ? stepsDoneCount / recipe.steps.length : 0;
   const gradient     = recipe.hero_fallback ?? [tokens.ink, tokens.warmBrown, tokens.bgDeep];
@@ -404,9 +402,6 @@ function RecipeDetailScreenInner() {
   // DECISION-008 derived display values
   const difficultyLabel = recipe.difficulty
     ? recipe.difficulty.charAt(0).toUpperCase() + recipe.difficulty.slice(1)
-    : null;
-  const cuisineLabel = recipe.categories?.cuisines?.[0]
-    ? recipe.categories.cuisines[0].charAt(0).toUpperCase() + recipe.categories.cuisines[0].slice(1)
     : null;
 
   // Cook-mode surface palette. CLAUDE.md: dark, OLED-friendly true blacks.
@@ -629,7 +624,8 @@ function RecipeDetailScreenInner() {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-                <Icon name={isPlanned ? 'check' : 'plus'} size={20} color={isPlanned ? tokens.primaryInk : tokens.ink} />
+                {/* Issue #23 §1: warm amber when not planned */}
+                <Icon name={isPlanned ? 'check' : 'plus'} size={20} color={isPlanned ? tokens.primaryInk : 'rgb(250,178,102)'} />
               </View>
             </Pressable>
             {/* Favourite */}
@@ -654,7 +650,8 @@ function RecipeDetailScreenInner() {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-                <Icon name="heart" size={20} color={favorite ? tokens.primary : tokens.ink} fill={favorite ? tokens.primary : 'none'} />
+                {/* Issue #23 §1: salmon when not favourited */}
+                <Icon name="heart" size={20} color={favorite ? tokens.primary : 'rgb(230,102,102)'} fill={favorite ? tokens.primary : 'none'} />
               </View>
             </Pressable>
           </View>
@@ -901,19 +898,11 @@ function RecipeDetailScreenInner() {
         ) : (
           /* ── v7 BROWSE TITLE BLOCK + INLINE CTA (Commit B2 §3.2/§3.4) ── */
           <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
-            {/* Bronze eyebrow — Inspired by {chef} only.
-                HONE-008: Watch link moved to ghost row below so the eyebrow
-                carries attribution only and Watch appears once in one place. */}
-            {(recipe.source?.chef || attribution) ? (
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
-                <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: tokens.bronze }}>
-                  {recipe.source?.chef ? `Inspired by ${recipe.source.chef}` : attribution}
-                </Text>
-              </View>
-            ) : null}
+            {/* Issue #23 §2: bronze "Inspired by" eyebrow removed — attribution
+                now lives in the Chef Source Card below. */}
 
-            {/* Title — Fraunces 38sp */}
-            <Text style={{ fontFamily: fonts.display, fontSize: 38, lineHeight: 40, letterSpacing: -0.6, color: tokens.ink }}>
+            {/* Title — Fraunces 38sp, warm gold (Issue #23 §2) */}
+            <Text style={{ fontFamily: fonts.display, fontSize: 38, lineHeight: 40, letterSpacing: -0.6, color: 'rgb(255,202,89)' }}>
               {recipe.title}
             </Text>
 
@@ -924,50 +913,83 @@ function RecipeDetailScreenInner() {
               </Text>
             ) : null}
 
-            {/* Compact meta line — difficulty · serves · cuisine */}
-            <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: tokens.muted, marginTop: 10 }}>
-              {[
-                difficultyLabel,  // HONE-012: capitalised ('Intermediate' not 'intermediate')
-                `Serves ${recipe.output_default ?? recipe.base_servings}`,
-                cuisineLabel,
-              ].filter(Boolean).join('   ·   ')}
-            </Text>
+            {/* Meta line — Poppins, centred, bronze (Issue #23 §2).
+                difficulty · <country flag>. "Serves N" dropped (the servings
+                selector below owns that); country text replaced by the SVG flag. */}
+            {(() => {
+              const origin = originForCuisine(recipe.categories?.cuisines?.[0]);
+              return (
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+                  <Text style={{ fontFamily: fonts.poppins, fontSize: 13, color: tokens.bronze }}>{difficultyLabel}</Text>
+                  <Text style={{ fontFamily: fonts.poppins, fontSize: 13, color: tokens.bronze }}>·</Text>
+                  {origin.kind === 'country' ? (
+                    <Flag code={origin.code} width={22} />
+                  ) : (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <GlobeGlyph size={15} color={tokens.bronze} />
+                      <Text style={{ fontFamily: fonts.poppins, fontSize: 13, color: tokens.bronze }}>{origin.label}</Text>
+                    </View>
+                  )}
+                </View>
+              );
+            })()}
 
-            {/* HONE-008 fix: inline Start cooking pill removed — sticky bottom
-                pill (always visible, never scroll-gated) is the single CTA.
-                Two "Start cooking" buttons confused Patrick; one is enough. */}
-
-            {/* Ghost row — Plan it + Watch the chef (HONE-008 complete fix).
-                Watch moved here from eyebrow: one link, right place.
-                6-8px extra breathing room (marginTop 20 vs 14). */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 20, marginTop: 20 }}>
-              <Pressable
-                onPress={handleTogglePlan}
-                accessibilityRole="button"
-                accessibilityLabel={isPlanned ? 'Remove from plan' : 'Plan it'}
-                hitSlop={8}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
-              >
-                <Icon name={isPlanned ? 'check' : 'plus'} size={14} color={isPlanned ? tokens.primaryInk : tokens.muted} />
-                <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: isPlanned ? tokens.primaryInk : tokens.muted }}>
-                  {isPlanned ? 'In your plan' : 'Plan it'}
-                </Text>
-              </Pressable>
-              {recipe.source?.video_url ? (
-                <Pressable
-                  onPress={openSource}
-                  accessibilityRole="link"
-                  accessibilityLabel="Watch the chef"
-                  hitSlop={8}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
-                >
-                  <Icon name="play" size={12} color={tokens.primaryInk} fill={tokens.primaryInk} />
-                  <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: tokens.primaryInk }}>
-                    Watch the chef
+            {/* Chef Source Card (Issue #23 §2) — replaces the ghost Plan-it/Watch
+                row. "+ Plan it" removed (redundant with Add-to-shopping). */}
+            {recipe.source?.chef ? (
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
+                marginTop: 18,
+                backgroundColor: tokens.bronzeSoft,
+                borderWidth: 1,
+                borderColor: 'rgba(194,161,90,0.22)',
+                borderRadius: 14,
+                paddingVertical: 12,
+                paddingHorizontal: 12,
+              }}>
+                {/* Avatar — chef initials */}
+                <View style={{
+                  width: 36, height: 36, borderRadius: 18,
+                  backgroundColor: 'rgba(194,161,90,0.18)',
+                  alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: tokens.bronze }}>
+                    {recipe.source.chef.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()}
                   </Text>
-                </Pressable>
-              ) : null}
-            </View>
+                </View>
+                {/* Chef name + subtitle */}
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: tokens.ink }} numberOfLines={1}>
+                    {recipe.source.chef}
+                  </Text>
+                  <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: tokens.muted, marginTop: 1 }}>
+                    Inspired by this recipe
+                  </Text>
+                </View>
+                {/* Watch pill — only when a video source exists */}
+                {recipe.source?.video_url ? (
+                  <Pressable
+                    onPress={openSource}
+                    accessibilityRole="link"
+                    accessibilityLabel="Watch the original"
+                    hitSlop={8}
+                    style={{
+                      flexDirection: 'row', alignItems: 'center', gap: 5,
+                      backgroundColor: 'rgba(195,64,64,0.18)',
+                      borderWidth: 1, borderColor: 'rgba(240,85,72,0.35)',
+                      borderRadius: 999, paddingVertical: 6, paddingHorizontal: 12,
+                    }}
+                  >
+                    <Icon name="play" size={11} color="rgb(224,86,66)" fill="rgb(224,86,66)" />
+                    <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: 'rgb(224,86,66)' }}>
+                      Watch
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            ) : null}
           </View>
         )}
 
@@ -1162,38 +1184,8 @@ function RecipeDetailScreenInner() {
             difficulty) and the Your-Kitchen-Journey card (time). Keeping both
             was redundant and visually competing. */}
 
-        {/* Stage photos notice — shown once when recipe has no stage photos.
-            Hidden in cook mode (no point showing it while actively cooking). */}
-        {!cooking && !hasStagePhotos && (
-          <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                gap: 10,
-                backgroundColor: tokens.skyLight,
-                borderRadius: 10,
-                borderWidth: 1,
-                borderColor: 'rgba(168,196,208,0.35)',
-                paddingHorizontal: 12,
-                paddingVertical: 10,
-              }}
-            >
-              <Icon name="camera" size={14} color={tokens.skyDeep} style={{ marginTop: 2 }} />
-              <Text
-                style={{
-                  fontFamily: fonts.sans,
-                  fontSize: 12,
-                  lineHeight: 17,
-                  color: tokens.inkSoft,
-                  flex: 1,
-                }}
-              >
-                Stage-by-stage photos are on the way — we'll photograph this recipe soon.
-              </Text>
-            </View>
-          </View>
-        )}
+        {/* Issue #23 §3: the sky-blue "Stage-by-stage photos are on the way"
+            camera notice was removed entirely. */}
 
         {/* ── WHAT TO KNOW (DECISION-008) ──
             Rendered from before_you_start[]. Max 3 items per schema.

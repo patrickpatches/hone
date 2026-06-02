@@ -50,6 +50,7 @@ import {
   Inter_600SemiBold,
   Inter_800ExtraBold,
 } from '@expo-google-fonts/inter';
+import { Poppins_400Regular } from '@expo-google-fonts/poppins';
 import { tokens } from '../src/theme/tokens';
 import { initDatabase } from '../db/database';
 import { seedDatabase, syncNewSeedRecipes, refreshSeedRecipeFields, updateSubstitutions, pruneOrphanedSeedRecipes, smokeAlarmSeedCount, validateDecision015 } from '../db/seed';
@@ -124,6 +125,7 @@ export default function RootLayout() {
     Inter_400Regular,
     Inter_600SemiBold,
     Inter_800ExtraBold,
+    Poppins_400Regular,
   });
 
   useEffect(() => {

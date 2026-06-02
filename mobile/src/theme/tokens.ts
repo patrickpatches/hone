@@ -163,6 +163,8 @@ export const fonts = {
   sans:          'Inter_400Regular',
   sansBold:      'Inter_600SemiBold',
   sansXBold:     'Inter_800ExtraBold',
+  // Poppins — recipe-detail browse meta line (Issue #23). Loaded in _layout.tsx.
+  poppins:       'Poppins_400Regular',
 } as const;
 
 export type TokenName = keyof typeof tokens;
