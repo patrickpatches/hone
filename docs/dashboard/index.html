@@ -559,7 +559,7 @@ $('readybars').innerHTML=READY.map(r=>`<div class="bar"><div class="lab"><span>$
 
 const ST_OPTS=[['open','Open'],['fixing','Being fixed'],['check','Fixed — build & check'],['call','Needs your call'],['later','Tracked for later'],['done','Done ✓']];
 const SEV_OPTS=['Show-stopper','Serious','Annoying','Tidy-up'];
-const WHO_OPTS=['Engineer','Designer','Cook','Photography','Bug Tester','COO (me)','Designer → Engineer','Cook → Engineer','You to decide','File Organiser'];
+const WHO_OPTS=['You (Patrick)','Engineer','Designer','Cook','Photography','Worker (auto)','File Organiser','Accountant','COO'];
 function sel(field,id,num,cur,opts){
   const norm=opts.map(o=>Array.isArray(o)?o:[o,o]);
   if(!norm.some(o=>o[0]===cur)) norm.unshift([cur,cur]);
