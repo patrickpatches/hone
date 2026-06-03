@@ -379,7 +379,7 @@ const PASTA_CARBONARA: Recipe = {
       ],
     },
     {
-      id: 'i2', name: 'Guanciale (or pancetta)', amount: 100, unit: 'g', scales: 'linear',
+      id: 'i2', name: 'Guanciale (or pancetta)', amount: 150, unit: 'g', scales: 'linear',
       substitutions: [
         {
           ingredient: 'Pancetta, diced',
@@ -411,7 +411,7 @@ const PASTA_CARBONARA: Recipe = {
     },
     { id: 'i4', name: 'Whole egg', amount: 1, unit: '', scales: 'fixed' },
     {
-      id: 'i5', name: 'Pecorino Romano, finely grated', amount: 60, unit: 'g', scales: 'linear',
+      id: 'i5', name: 'Pecorino Romano, finely grated', amount: 100, unit: 'g', scales: 'linear',
       substitutions: [
         {
           ingredient: 'Parmigiano Reggiano',
@@ -425,14 +425,14 @@ const PASTA_CARBONARA: Recipe = {
         },
       ],
     },
-    { id: 'i6', name: 'Black pepper, freshly cracked', amount: 1, unit: 'tsp', scales: 'fixed' },
+    { id: 'i6', name: 'Black pepper, freshly cracked', amount: 1, unit: 'tsp', scales: 'linear' },
     { id: 'i7', name: 'Salt (for pasta water)', amount: 1, unit: 'tbsp', scales: 'fixed' },
   ],
   steps: [
     { id: 's1', title: 'Mix the sauce off-heat', content: 'Whisk yolks, whole egg, and pecorino into a thick paste. Add cracked pepper. This is your sauce — make it before anything else.', why_note: "Cold eggs mixed with cold cheese form a stable emulsion. Mixing it warm causes the eggs to start cooking before they hit the pasta, and you'll get scrambled eggs instead of silk." },
     { id: 's2', title: 'Render the guanciale', content: 'Cook guanciale cubes in a cold, dry pan over medium heat. The fat renders slowly and the meat crisps without burning. Remove and leave the fat in the pan.', timer_seconds: 480, why_note: 'Starting cold renders the fat gradually — starting hot burns the outside before the inside renders. The rendered fat is your cooking medium for the whole dish.' },
     { id: 's3', title: 'Cook pasta in well-salted water', content: 'Salt your pasta water until it tastes like the sea. Cook pasta 2 minutes short of package time — it finishes cooking in the sauce. Reserve a generous ladleful of pasta water before draining.', why_note: "Pasta water is starch and salt. It's the only liquid that can loosen carbonara sauce without breaking it. Plain water dilutes and ruins it." },
-    { id: 's4', title: 'Combine off heat — this is the critical step', content: 'Add drained pasta to the guanciale pan. Take the pan completely off heat. Add egg mixture, toss constantly, adding pasta water a splash at a time until you have a creamy sauce that coats every strand. If it seizes, add more water.', why_note: "Eggs scramble above 70°C. Off heat, the pasta's residual heat (around 65°C) is exactly right to cook the eggs without curdling. Adding water regulates the temperature and creates the emulsion. This is why carbonara has a reputation — the temperature window is narrow." },
+    { id: 's4', title: 'Combine off heat — this is the critical step', content: 'Add drained pasta to the guanciale pan. Take the pan completely off heat. Add the reserved crispy guanciale pieces back in. Add egg mixture, toss constantly, adding pasta water a splash at a time until you have a creamy sauce that coats every strand. If it seizes, add more water.', why_note: "Eggs scramble above 70°C. Off heat, the pasta's residual heat (around 65°C) is exactly right to cook the eggs without curdling. Adding water regulates the temperature and creates the emulsion. This is why carbonara has a reputation — the temperature window is narrow." },
     { id: 's5', title: 'Serve immediately', content: 'Plate immediately, top with extra pecorino and more black pepper. Carbonara does not wait — it thickens rapidly as it cools.' },
   ],
   categories: { cuisines: ['italian'], types: ['pasta'] },
@@ -647,7 +647,7 @@ const ROAST_CHICKEN: Recipe = {
     { id: 's1', title: 'Dry brine the day before', content: 'Pat the chicken completely dry. Rub salt all over, including inside the cavity. Refrigerate uncovered overnight — at minimum 2 hours.', why_note: 'Dry brining draws moisture to the surface via osmosis, then the salt dissolves back in. The resulting brine penetrates the meat. The uncovered fridge also dries the skin — dry skin crisps, wet skin steams.' },
     { id: 's2', title: 'Bring to room temp and preheat', content: 'Take chicken out of fridge 45 minutes before cooking. Preheat oven to 230°C (fan 210°C).', timer_seconds: 2700, why_note: 'Cold meat hitting a hot oven creates a large gradient — the outside overcooks before the inside is done. Room temp meat cooks more evenly. 230°C is high enough to blister the skin before reducing.' },
     { id: 's3', title: 'Butter under and over the skin', content: 'Mix softened butter with crushed garlic and thyme leaves. Slide your fingers between the skin and breast meat starting from the neck end — push gently, the membrane separates easily; do not tear through the skin. Push the butter mixture under the skin and massage it across the whole breast from the outside until it spreads evenly. Rub any remaining butter over the rest of the bird.', why_note: 'Butter under the skin bastes the breast meat directly as it melts. Butter on the outside browns the skin through the Maillard reaction. The breast is the first part to dry out — this solves that. Massaging from outside spreads the butter without tearing the skin.' },
-    { id: 's4', title: 'Roast high then reduce', content: 'Place chicken breast-side up in a roasting pan. Roast at 230°C for 15 minutes, then reduce to 190°C. Continue for 50–60 minutes until the thigh juices run clear.', timer_seconds: 900, why_note: 'The initial high heat blisters and crisps the skin. Reducing heat prevents the skin burning before the interior is cooked. The breast-side-up position means the thighs — which take longer — face the heat from below and the reflected heat from the sides.' },
+    { id: 's4', title: 'Roast high then reduce', content: 'Place chicken breast-side up in a roasting pan. Roast at 230°C (fan 210°C) for 15 minutes, then reduce to 190°C (fan 170°C). Continue for 65–80 minutes until the thigh juices run clear.', timer_seconds: 900, why_note: 'The initial high heat blisters and crisps the skin. Reducing heat prevents the skin burning before the interior is cooked. The breast-side-up position means the thighs — which take longer — face the heat from below and the reflected heat from the sides.' },
     { id: 's5', title: 'Rest properly', content: 'Transfer to a board, loosely tent with foil. Rest 15 minutes before carving. This is not optional.', timer_seconds: 900, why_note: 'Muscle fibres that contracted during cooking relax during resting, and the juices redistribute evenly. Cutting early releases all those juices onto the board. 15 minutes for a whole chicken — 5 minutes is not enough.' },
     { id: 's6', title: 'Pan sauce from the fond', content: 'Pour off most of the rendered fat from the roasting pan but keep about a tablespoon and all the dark fond stuck to the base. Set the pan over medium heat on the stove. Add 100ml dry white wine and scrape up the fond with a wooden spoon. Let it reduce until it just coats the spoon (90 seconds to 2 minutes). Off heat, swirl in a small knob of cold butter to round it out. Pour over the carved chicken.', timer_seconds: 180, stage_note: 'The sauce should be glossy and just thick enough to coat the back of a spoon — not syrupy', why_note: "This is the step most home recipes skip and it's the easiest restaurant-level upgrade you can make to a roast. The fond is fully developed flavour — water alone makes a thin jus; wine deglazes properly and reduces to something with body. Cold butter at the end is the classic mount; it makes the sauce silky without weighing it down." },
   ],
@@ -929,7 +929,7 @@ const HUMMUS: Recipe = {
         { ingredient: 'Tinned chickpeas (2 × 400g tins, drained)', changes: 'The hummus will be grainier and less silky. You skip the 12-hour soak and long cook, which is the trade-off. If you use tinned, boil them with bicarbonate for a further 20 minutes to soften them enough.', quality: 'red', quantity_note: 'use 2 × 400g tins, draining off the liquid' },
       ],
     },
-    { id: 'i2', name: 'Good tahini (Palestinian or Lebanese)', amount: 120, unit: 'ml', scales: 'linear', prep: 'Brand matters enormously. Bitter or thin tahini ruins hummus. Taste it raw first — it should be nutty, not bitter.',
+    { id: 'i2', name: 'Good tahini (Palestinian or Lebanese)', amount: 200, unit: 'ml', scales: 'linear', prep: 'Brand matters enormously. Bitter or thin tahini ruins hummus. Taste it raw first — it should be nutty, not bitter.',
       substitutions: [
         { ingredient: 'Unhulled tahini', changes: 'Darker, more bitter, and earthier. The hummus will have a stronger sesame flavour — some prefer it. Use a touch less lemon to balance.', quality: 'yellow' },
       ],
@@ -944,7 +944,7 @@ const HUMMUS: Recipe = {
         { ingredient: 'Roasted garlic cloves', changes: 'Sweeter, nuttier, and milder than raw garlic. The hummus will be more mellow — less pungent but deeply flavoured. Roast a whole head at 180°C for 45 minutes.', quality: 'yellow', quantity_note: 'use 4 roasted cloves to match the flavour impact of 2 raw' },
       ],
     },
-    { id: 'i5', name: 'Ice-cold water', amount: 60, unit: 'ml', scales: 'linear' },
+    { id: 'i5', name: 'Ice-cold water', amount: 100, unit: 'ml', scales: 'linear', prep: 'Add gradually as needed — richer tahini ratio absorbs more water to reach dropping consistency' },
     { id: 'i6', name: 'Bicarbonate of soda', amount: 0.5, unit: 'tsp', scales: 'fixed', prep: 'Added to the cooking water — it softens the chickpea skins and lets them blend ultra-smooth' },
     { id: 'i7', name: 'Salt', amount: 1, unit: 'tsp', scales: 'fixed' },
     { id: 'i8', name: 'Extra virgin olive oil, to serve', amount: 2, unit: 'tbsp', scales: 'fixed' },
@@ -985,7 +985,7 @@ const HUMMUS: Recipe = {
     "Fill the pot with fresh cold water, add bicarbonate of soda",
     "Squeeze lemon juice and measure tahini before the chickpeas finish cooking — you want to start the food processor while the chickpeas are still hot",
     "Peel and measure garlic cloves",
-    "Fill a small bowl with ice water and measure 60ml ice-cold liquid just before blending",
+    "Fill a small bowl with ice water and measure up to 100ml ice-cold liquid just before blending — add gradually to reach silky dropping consistency",
   ],
   finishing_note: "Before serving, taste the hummus and adjust: salt, lemon, or water for consistency. The right texture is thick enough to hold a well in the centre when spread in a bowl — it should not run or be liquid. The flavour should be deeply savoury from the chickpeas, bright from the lemon, nutty from the tahini, with a quiet background note of garlic. Spread in a shallow bowl using the back of a spoon in one fluid circular motion — this creates the well that catches the olive oil. Fill the well with extra virgin olive oil, scatter a few whole cooked chickpeas, dust with paprika or sumac. Serve with warm flatbread.",
   leftovers_note: "Hummus keeps 5 days refrigerated in an airtight container. It improves for the first 24 hours as the flavours integrate. It firms up when cold — take it out 20 minutes before serving, or reheat very gently in a pan over low heat with a splash of water. Don't microwave — it goes grainy. Drizzle fresh olive oil each time you serve.",
