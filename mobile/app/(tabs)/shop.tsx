@@ -803,18 +803,12 @@ export default function ShopTab() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 160, paddingTop: 4 }}
         >
-          {recipeGroups.length > 0 && (
-            <RecipeAddsCard
-              groups={recipeGroups}
-              onRemove={handleRemoveRecipeItems}
-            />
-          )}
-          {plannedMealGroups.length > 0 && (
-            <PlannedMealsCard
-              groups={plannedMealGroups}
-              onRemove={handleRemovePlanItems}
-            />
-          )}
+          {/* RecipeAddsCard and PlannedMealsCard removed per Engineering Handoff
+              (Recipe Page Design): the "N from meals / N added" cards above
+              the aisle sections broke the density rhythm. Source info is
+              accessible via long-press on any individual row, which is already
+              implemented. The underlying recipeGroups / plannedMealGroups state
+              and handlers are kept intact for any future re-use. */}
           {sections.map((item) => (
             <Section
               key={item.cat}
