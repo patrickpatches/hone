@@ -6,6 +6,15 @@
 
 ---
 
+## Daily culinary review — rotation log
+
+> Hone Cook daily verifier. 2 recipes/run, rotating oldest-first across the 16 launch recipes (`SEED_RECIPES`). One line per review: date · recipe · verdict.
+
+- 2026-06-05 · Smash Burger · Solid — fix: patty target 1 cm → ~5 mm (Andy Cooks). Issue #32.
+- 2026-06-05 · Pasta Carbonara · Needs work — wrong chef credit (Gordon Ramsay's carbonara uses crème fraîche/bacon/parmesan, contradicts the no-cream Roman recipe); re-credit. Issue #33.
+
+---
+
 ## Audit summary
 
 | | Count |
@@ -623,10 +632,4 @@
 
 | Recipe ID | Issue | Recommendation |
 |---|---|---|
-| SHEET_PAN_HARISSA_CHICKEN | `levantine` tag — harissa is North African, not Levantine | Change to `north_african` or `mediterranean` |
-| CHICKEN_VEG_STIR_FRY | `chinese, australian` dual tag — minor taxonomy note | Review in taxonomy pass; acceptable for v1 |
-| FLOUR_TORTILLAS | Chef field `Patrick Nasr` — consistency decision needed | COO decision: keep personal attribution or use `Hone Kitchen` |
-
----
-
-*Last updated: 2026-05-08. Next update: Pass 2 (substitutions / voice / AU English), target 2026-05-12.*
+| SHEET_PAN_HAR
