@@ -195,6 +195,8 @@ function RecipeDetailScreenInner() {
     setMiseChecked(new Set());
     setMiseExpanded(false);
     miseExpandOpacity.setValue(0);
+    setOpenSections(new Set());
+    setExpandedSteps(new Set());
   }, [recipe?.id]);
 
   // Cook mode
@@ -233,6 +235,10 @@ function RecipeDetailScreenInner() {
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
   // Prep / Cook tab switcher — browse mode only (cook mode ignores tabs).
   const [activeTab, setActiveTab] = useState<'Prep' | 'Cook'>('Prep');
+  // Browse-mode method accordion — set of step ids currently expanded.
+  const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
+  // Prep tab — which accordion sections are open
+  const [openSections, setOpenSections] = useState<Set<string>>(new Set());
   const [journeyExpanded, setJourneyExpanded] = useState<null | 'plate'>(null);
   const [shoppingAdded, setShoppingAdded] = useState(false);
   const [miseExpanded, setMiseExpanded] = useState(false);
@@ -1036,118 +1042,269 @@ function RecipeDetailScreenInner() {
         )}
 
 
-        {/* ── v7 IN YOUR PANTRY (Prep tab only) ────────────────────────
-            Servings stepper integrated at the top of the pantry card per
-            Engineering Handoff — Recipe Page. The standalone Servings card
-            is removed; the embedded selector sits above the N/M fraction
-            row separated by a thin rule. */}
-        {!cooking && activeTab === 'Prep' && match && recipe.ingredients.length > 0 ? (
+        {/* ── PREP TAB — unified accordion card ──────────────────────────
+            One card, three tappable section rows (like Method): Ingredients
+            (pantry info merged in), Equipment, Prep. All start collapsed.
+            Cook mode renders ingredients separately below. */}
+        {!cooking && activeTab === 'Prep' && (
           <View style={{ paddingHorizontal: 20, marginTop: 14 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 10 }}>
-              <FoodIcon name="cat-pantry" size={14} color={tokens.bronze} />
-              <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: tokens.bronze }}>
-                In your pantry
-              </Text>
-            </View>
-            {/* card body */}
-            <View
-              style={{
-                backgroundColor: c.cardBg,
-                borderRadius: 14,
-                borderWidth: 1,
-                borderColor: c.lineDark,
-                padding: 14,
-                gap: 10,
-              }}
-            >
-              {/* Servings stepper — top of pantry card, hairline below */}
-              <View
-                style={{
-                  paddingBottom: 10,
-                  borderBottomWidth: 1,
-                  borderBottomColor: c.line,
+            <View style={{ backgroundColor: c.cardBg, borderRadius: 18, borderWidth: 1, borderColor: c.lineDark, overflow: 'hidden' }}>
+
+              {/* ── INGREDIENTS row ── */}
+              <Pressable
+                onPress={() => {
+                  Haptics.selectionAsync().catch(() => {});
+                  setOpenSections(prev => { const n = new Set(prev); n.has('ing') ? n.delete('ing') : n.add('ing'); return n; });
                 }}
+                android_ripple={{ color: tokens.primaryLight, borderless: false }}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: openSections.has('ing') }}
               >
-                <ServingsSelector
-                  embedded
-                  people={people}
-                  setPeople={setPeople}
-                  leftoverKey={leftoverKey}
-                  setLeftoverKey={setLeftoverKey}
-                  baseServings={recipe.base_servings}
-                  outputUnit={recipe.output_unit}
-                  outputUnitPlural={recipe.output_unit_plural}
-                  extraForTomorrowLabel={recipe.extra_for_tomorrow_label}
-                />
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14 }}>
-                <Text style={{ fontFamily: fonts.display, fontSize: 32, lineHeight: 36, color: tokens.bronze }}>
-                  {match.haveCount}<Text style={{ color: tokens.bronze, opacity: 0.4 }}>/{match.totalCount}</Text>
-                </Text>
-                <View style={{ flex: 1, paddingTop: 2 }}>
-                  <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: c.ink }}>
-                    {match.haveCount === match.totalCount ? 'Ready to cook now' :
-                     match.haveCount === 0 ? "You don't have any of this yet" :
-                     match.haveCount >= match.totalCount - 3 ? "You're nearly there" :
-                     "Some of it's already in your pantry"}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 }}>
+                  <Text style={{ flex: 1, fontFamily: fonts.sansBold, fontSize: 16, color: c.ink }}>Ingredients</Text>
+                  <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: c.muted }}>
+                    {recipe.ingredients.length} items
                   </Text>
-                  <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: c.muted, marginTop: 3 }}>
-                    {match.missingIngredients.length === 0
-                      ? 'Tap Start cooking below'
-                      : `${match.missingIngredients.length} ingredient${match.missingIngredients.length === 1 ? '' : 's'} to pick up`}
-                  </Text>
-                </View>
-              </View>
-              {match.missingIngredients.length > 0 ? (
-                <>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                    {match.missingIngredients.slice(0, 6).map((mi) => (
-                      <View
-                        key={mi.name}
-                        style={{
-                          paddingHorizontal: 9,
-                          paddingVertical: 4,
-                          borderRadius: 999,
-                          backgroundColor: c.bgDeep,
-                          borderWidth: 1,
-                          borderColor: c.lineDark,
-                        }}
-                      >
-                        <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.inkSoft }}>
-                          {mi.name}
-                        </Text>
-                      </View>
-                    ))}
-                    {match.missingIngredients.length > 6 ? (
-                      <View style={{ paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999, backgroundColor: c.bgDeep, borderWidth: 1, borderColor: c.lineDark }}>
-                        <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.muted }}>+{match.missingIngredients.length - 6}</Text>
-                      </View>
-                    ) : null}
+                  <View style={{ transform: [{ rotate: openSections.has('ing') ? '180deg' : '0deg' }] }}>
+                    <Icon name="arrow-down" size={16} color={openSections.has('ing') ? tokens.bronze : c.muted} />
                   </View>
+                </View>
+              </Pressable>
+
+              {openSections.has('ing') && (
+                <View style={{ borderTopWidth: 1, borderTopColor: c.line }}>
+                  {/* Servings stepper */}
+                  <View style={{ paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: c.line }}>
+                    <ServingsSelector
+                      embedded
+                      people={people}
+                      setPeople={setPeople}
+                      leftoverKey={leftoverKey}
+                      setLeftoverKey={setLeftoverKey}
+                      baseServings={recipe.base_servings}
+                      outputUnit={recipe.output_unit}
+                      outputUnitPlural={recipe.output_unit_plural}
+                      extraForTomorrowLabel={recipe.extra_for_tomorrow_label}
+                    />
+                  </View>
+                  {/* Pantry match */}
+                  {match && recipe.ingredients.length > 0 && (
+                    <View style={{ paddingHorizontal: 14, paddingVertical: 12, gap: 10, borderBottomWidth: 1, borderBottomColor: c.line }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14 }}>
+                        <Text style={{ fontFamily: fonts.display, fontSize: 28, lineHeight: 32, color: tokens.bronze }}>
+                          {match.haveCount}<Text style={{ color: tokens.bronze, opacity: 0.4 }}>/{match.totalCount}</Text>
+                        </Text>
+                        <View style={{ flex: 1, paddingTop: 2 }}>
+                          <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: c.ink }}>
+                            {match.haveCount === match.totalCount ? 'Ready to cook now' :
+                             match.haveCount === 0 ? "You don't have any of this yet" :
+                             match.haveCount >= match.totalCount - 3 ? "You're nearly there" :
+                             "Some of it's already in your pantry"}
+                          </Text>
+                          <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: c.muted, marginTop: 3 }}>
+                            {match.missingIngredients.length === 0 ? 'Tap Start cooking below'
+                              : `${match.missingIngredients.length} ingredient${match.missingIngredients.length === 1 ? '' : 's'} to pick up`}
+                          </Text>
+                        </View>
+                      </View>
+                      {match.missingIngredients.length > 0 && (
+                        <>
+                          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                            {match.missingIngredients.slice(0, 6).map((mi) => (
+                              <View key={mi.name} style={{ paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999, backgroundColor: c.bgDeep, borderWidth: 1, borderColor: c.lineDark }}>
+                                <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.inkSoft }}>{mi.name}</Text>
+                              </View>
+                            ))}
+                            {match.missingIngredients.length > 6 && (
+                              <View style={{ paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999, backgroundColor: c.bgDeep, borderWidth: 1, borderColor: c.lineDark }}>
+                                <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.muted }}>+{match.missingIngredients.length - 6}</Text>
+                              </View>
+                            )}
+                          </View>
+                          <Pressable
+                            onPress={addMissingToShoppingList}
+                            accessibilityRole="button"
+                            accessibilityLabel="Add missing ingredients to shopping list"
+                            android_ripple={{ color: 'rgba(242,204,42,0.18)', borderless: false }}
+                            style={{ borderRadius: 12 }}
+                          >
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 11, borderRadius: 12, borderWidth: 1.5, borderColor: 'rgba(242,204,42,0.55)', backgroundColor: 'rgba(242,204,42,0.06)' }}>
+                              <Icon name={shoppingAdded ? 'check' : 'cart'} size={14} color={tokens.gold} />
+                              <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.gold, letterSpacing: 0.2 }}>
+                                {shoppingAdded ? 'Added to shopping list' : 'Add missing to shopping list'}
+                              </Text>
+                            </View>
+                          </Pressable>
+                        </>
+                      )}
+                    </View>
+                  )}
+                  {/* Ingredient list — browse rows */}
+                  {recipe.ingredients.map((ing, idx) => {
+                    const amount      = scaleIngredient(ing, totalPortions, recipe.base_servings);
+                    const showUnit    = ing.unit && ing.unit !== 'to taste' && ing.unit !== 'as needed';
+                    const inlineUnit  = ing.unit === 'to taste' || ing.unit === 'as needed';
+                    const hasSwaps    = (ing.substitutions?.length ?? 0) > 0;
+                    const activeSwap  = activeSwaps[ing.id];
+                    const isSwapped   = activeSwap !== undefined && activeSwap !== null;
+                    const displayName = isSwapped ? (activeSwap as Substitution).ingredient : ing.name;
+                    const isLastIng   = idx === recipe.ingredients.length - 1;
+                    const inPantry    = ingredientInPantry(ing.name);
+                    const onList      = !inPantry && ingredientOnShoppingList(ing.name);
+                    const amountText  = inlineUnit ? (ing.unit || '') : `${formatAmount(amount)}${showUnit ? ' ' + ing.unit : ''}`;
+                    const showHonest  = isSwapped && !!(activeSwap as Substitution).changes;
+                    return (
+                      <View key={ing.id} style={{ borderBottomWidth: isLastIng ? 0 : 1, borderBottomColor: c.line }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 }}>
+                          <FoodIcon name={ingredientIconName(ing.name, categorizeIngredient(ing.name))} size={28} color={inPantry ? tokens.bronze : tokens.inkSoft} />
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ fontFamily: fonts.sansBold, fontSize: 14, lineHeight: 19, color: inPantry ? tokens.muted : (isSwapped ? tokens.primary : tokens.ink), textDecorationLine: inPantry ? 'line-through' : 'none', textDecorationColor: tokens.bronze }}>
+                              {displayName}
+                            </Text>
+                            {isSwapped ? <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: tokens.muted, textDecorationLine: 'line-through' }}>was {ing.name}</Text> : null}
+                            <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: tokens.muted, marginTop: 2 }} numberOfLines={1}>
+                              <Text style={{ fontVariant: ['tabular-nums'] }}>{amountText}</Text>
+                              {inPantry ? <Text style={{ color: tokens.bronze }}>{'   ·   in pantry'}</Text> : onList ? <Text style={{ color: tokens.bronze }}>{'   ·   on shopping list'}</Text> : null}
+                            </Text>
+                          </View>
+                          {hasSwaps ? (
+                            <Pressable onPress={() => openSwapSheet(ing)} hitSlop={6} android_ripple={{ color: tokens.primaryLight, borderless: false }} style={{ borderRadius: 999 }}>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: isSwapped ? tokens.bronzeSoft : 'transparent', borderWidth: 1, borderColor: isSwapped ? tokens.bronze : 'rgba(242,204,42,0.42)' }}>
+                                <Icon name="swap" size={11} color={isSwapped ? tokens.bronze : tokens.gold} />
+                                <Text style={{ fontFamily: fonts.sansBold, fontSize: 10, letterSpacing: 0.3, color: isSwapped ? tokens.bronze : tokens.gold }}>{isSwapped ? 'Swapped' : 'Swap'}</Text>
+                              </View>
+                            </Pressable>
+                          ) : null}
+                        </View>
+                        {showHonest ? (
+                          <View style={{ marginHorizontal: 14, marginBottom: 12, padding: 12, borderRadius: 10, backgroundColor: tokens.bronzeSoft, borderLeftWidth: 3, borderLeftColor: tokens.bronze }}>
+                            <Text style={{ fontFamily: fonts.sansBold, fontSize: 10, letterSpacing: 1.4, textTransform: 'uppercase', color: tokens.bronze, marginBottom: 4 }}>Honest swap</Text>
+                            <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic', fontSize: 13, lineHeight: 19, color: tokens.inkSoft }}>{(activeSwap as Substitution).changes}</Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+
+              {/* ── EQUIPMENT row ── */}
+              {(recipe.equipment?.length ?? 0) > 0 && (
+                <>
+                  <View style={{ height: 1, backgroundColor: c.lineDark }} />
                   <Pressable
-                    onPress={addMissingToShoppingList}
+                    onPress={() => {
+                      Haptics.selectionAsync().catch(() => {});
+                      setOpenSections(prev => { const n = new Set(prev); n.has('eq') ? n.delete('eq') : n.add('eq'); return n; });
+                    }}
+                    android_ripple={{ color: tokens.primaryLight, borderless: false }}
                     accessibilityRole="button"
-                    accessibilityLabel="Add missing ingredients to shopping list"
-                    android_ripple={{ color: 'rgba(242,204,42,0.18)', borderless: false }}
-                    style={{ borderRadius: 12 }}
+                    accessibilityState={{ expanded: openSections.has('eq') }}
                   >
-                    <View style={{
-                      flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-                      paddingVertical: 11, borderRadius: 12,
-                      borderWidth: 1.5, borderColor: 'rgba(242,204,42,0.55)',
-                      backgroundColor: 'rgba(242,204,42,0.06)',
-                    }}>
-                      <Icon name={shoppingAdded ? 'check' : 'cart'} size={14} color={tokens.gold} />
-                      <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.gold, letterSpacing: 0.2 }}>
-                        {shoppingAdded ? 'Added to shopping list' : 'Add missing to shopping list'}
-                      </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 }}>
+                      <Text style={{ flex: 1, fontFamily: fonts.sansBold, fontSize: 16, color: c.ink }}>Equipment</Text>
+                      <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: c.muted }}>{recipe.equipment!.length} items</Text>
+                      <View style={{ transform: [{ rotate: openSections.has('eq') ? '180deg' : '0deg' }] }}>
+                        <Icon name="arrow-down" size={16} color={openSections.has('eq') ? tokens.bronze : c.muted} />
+                      </View>
                     </View>
                   </Pressable>
+                  {openSections.has('eq') && (
+                    <View style={{ borderTopWidth: 1, borderTopColor: c.line }}>
+                      {recipe.equipment!.map((raw, i) => {
+                        const parenIdx = raw.indexOf('(');
+                        const name = parenIdx > -1 ? raw.slice(0, parenIdx).trim() : raw;
+                        const note = parenIdx > -1 ? raw.slice(parenIdx + 1).replace(/\)$/, '').trim() : null;
+                        const isLast = i === recipe.equipment!.length - 1;
+                        return (
+                          <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: 14, paddingVertical: 13, borderBottomWidth: isLast ? 0 : 1, borderBottomColor: c.line }}>
+                            <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: tokens.bronzeSoft, borderWidth: 1, borderColor: 'rgba(194,161,90,0.30)', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                              <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, color: tokens.bronze }}>{i + 1}</Text>
+                            </View>
+                            <View style={{ flex: 1 }}>
+                              <Text style={{ fontFamily: fonts.sansBold, fontSize: 14, lineHeight: 20, color: c.ink }}>{name}</Text>
+                              {note ? <Text style={{ fontFamily: fonts.sans, fontSize: 12, lineHeight: 17, color: c.muted, marginTop: 3 }}>{note}</Text> : null}
+                            </View>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  )}
                 </>
-              ) : null}
+              )}
+
+              {/* ── PREP row ── */}
+              {(recipe.mise_en_place?.length ?? 0) > 0 && (() => {
+                const total = recipe.mise_en_place!.length;
+                const done = miseChecked.size;
+                const allDone = done === total;
+                const pct = total > 0 ? done / total : 0;
+                return (
+                  <>
+                    <View style={{ height: 1, backgroundColor: c.lineDark }} />
+                    <Pressable
+                      onPress={() => {
+                        Haptics.selectionAsync().catch(() => {});
+                        setOpenSections(prev => { const n = new Set(prev); n.has('prep') ? n.delete('prep') : n.add('prep'); return n; });
+                      }}
+                      android_ripple={{ color: tokens.primaryLight, borderless: false }}
+                      accessibilityRole="button"
+                      accessibilityState={{ expanded: openSections.has('prep') }}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 }}>
+                        <Text style={{ flex: 1, fontFamily: fonts.sansBold, fontSize: 16, color: c.ink }}>Prep</Text>
+                        <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: allDone ? tokens.sage : c.muted }}>
+                          {allDone ? 'All done ✓' : `${done} / ${total} done`}
+                        </Text>
+                        <View style={{ transform: [{ rotate: openSections.has('prep') ? '180deg' : '0deg' }] }}>
+                          <Icon name="arrow-down" size={16} color={openSections.has('prep') ? tokens.bronze : c.muted} />
+                        </View>
+                      </View>
+                    </Pressable>
+                    {openSections.has('prep') && (
+                      <View style={{ borderTopWidth: 1, borderTopColor: c.line }}>
+                        {/* Progress bar */}
+                        <View style={{ paddingHorizontal: 14, paddingTop: 12, paddingBottom: 10 }}>
+                          <View style={{ height: 4, borderRadius: 2, backgroundColor: c.lineDark, overflow: 'hidden' }}>
+                            <View style={{ height: 4, borderRadius: 2, width: `${pct * 100}%` as any, backgroundColor: allDone ? tokens.sage : tokens.bronze }} />
+                          </View>
+                        </View>
+                        {/* Prep checklist */}
+                        {recipe.mise_en_place!.map((task, i) => {
+                          const checked = miseChecked.has(i);
+                          const isLast = i === recipe.mise_en_place!.length - 1;
+                          return (
+                            <Pressable
+                              key={i}
+                              onPress={() => toggleMise(i)}
+                              accessibilityRole="checkbox"
+                              accessibilityLabel={task}
+                              accessibilityState={{ checked }}
+                              android_ripple={{ color: 'rgba(242,216,150,0.10)', borderless: false }}
+                            >
+                              <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: 14, paddingVertical: 13, borderTopWidth: 1, borderTopColor: c.line, opacity: checked ? 0.5 : 1 }}>
+                                <View style={{ width: 24, height: 24, borderRadius: 12, flexShrink: 0, marginTop: 1, borderWidth: 2, borderColor: checked ? tokens.sage : c.lineDark, backgroundColor: checked ? tokens.sage : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                                  {checked && <Icon name="check" size={12} color={tokens.bg} />}
+                                </View>
+                                <Text style={{ flex: 1, fontFamily: fonts.sans, fontSize: 14, lineHeight: 21, color: checked ? c.muted : c.inkSoft, textDecorationLine: checked ? 'line-through' : 'none' }}>
+                                  {task}
+                                </Text>
+                              </View>
+                            </Pressable>
+                          );
+                        })}
+                        {/* Invisible last spacer to close card edge cleanly */}
+                        <View style={{ height: 4 }} />
+                      </View>
+                    )}
+                  </>
+                );
+              })()}
+
             </View>
           </View>
-        ) : null}
+        )}
+
 
         {/* ── v7 YOUR KITCHEN JOURNEY (build #129) ──────────────────────────
             Read-only 3-card row: Mise · Cook · Plate. Plate is tap-to-expand
@@ -1337,12 +1494,10 @@ function RecipeDetailScreenInner() {
           </View>
         )}
 
-        {/* Ingredients — Prep tab in browse; always shown in cook mode */}
-        {(cooking || activeTab === 'Prep') && <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
-          {cooking
-            ? <SectionHeader title="Ingredients" hint="Tap to tick off" inkColor={c.ink} mutedColor={c.muted} />
-            : <Eyebrow label="Ingredients" />}
-          <View
+        {/* Ingredients — cook mode only (browse mode uses the unified accordion above) */}
+        {cooking && <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
+          <SectionHeader title="Ingredients" hint="Tap to tick off" inkColor={c.ink} mutedColor={c.muted} />
+          {<View
             style={{
               backgroundColor: c.cardBg,
               borderRadius: 18,
@@ -1565,150 +1720,10 @@ function RecipeDetailScreenInner() {
                 </View>
               );
             })}
-          </View>
+          </View>}
         </View>}
 
-        {/* ── PLACEHOLDER for recipes with no Equipment AND no Prep ──
-            One small honest line where the Equipment/Prep blocks would have
-            been. Only renders when BOTH fields are absent — if either is
-            populated, that block renders normally and we don't show this.
-            Currently this affects only sourdough-maintenance (the starter
-            feeder guide, intentionally outside the DECISION-008 schema).
-            UI guard against the "looks half-built" state Patrick reported. */}
-        {!cooking && activeTab === 'Prep'
-          && (recipe.equipment?.length ?? 0) === 0
-          && (recipe.mise_en_place?.length ?? 0) === 0 && (
-          <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
-            <View
-              style={{
-                paddingVertical: 14,
-                paddingHorizontal: 16,
-                borderRadius: 14,
-                backgroundColor: 'rgba(170,204,168,0.08)',
-                borderWidth: 1,
-                borderColor: 'rgba(170,204,168,0.22)',
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                gap: 10,
-              }}
-            >
-              <Icon name="chef" size={14} color={tokens.sage} style={{ marginTop: 2 }} />
-              <Text
-                style={{
-                  flex: 1,
-                  fontFamily: fonts.sans,
-                  fontSize: 13,
-                  lineHeight: 19,
-                  color: c.inkSoft,
-                }}
-              >
-                Equipment and prep notes are coming — the chef hasn't written the audit for this recipe yet. Ingredients and method below are complete.
-              </Text>
-            </View>
-          </View>
-        )}
 
-        {/* ── GET READY (Commit B2 §3.5) — Equipment + Prep merged ──
-            One bronze "Get ready" eyebrow over a single card with two
-            sub-areas (Equipment, Prep) split by a thin rule. Equipment is
-            bronze-dot b-rows (no "Essential" tag — that's Phase 2). Prep
-            keeps the MiseItem checklist + expand behaviour, restyled to v7. */}
-        {!cooking && activeTab === 'Prep' && ((recipe.equipment?.length ?? 0) > 0 || (recipe.mise_en_place?.length ?? 0) > 0) && (
-          <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
-            <Eyebrow label="Get ready" />
-            <View style={{ backgroundColor: c.cardBg, borderRadius: 18, borderWidth: 1, borderColor: c.lineDark, overflow: 'hidden' }}>
-              {/* Equipment sub-area */}
-              {(recipe.equipment?.length ?? 0) > 0 ? (
-                <View style={{ paddingHorizontal: 14, paddingTop: 14, paddingBottom: 12 }}>
-                  <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: c.ink, marginBottom: 10 }}>
-                    Equipment
-                  </Text>
-                  <View style={{ gap: 9 }}>
-                    {recipe.equipment!.map((item, i) => (
-                      <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                        <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: tokens.bronze }} />
-                        <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: c.inkSoft, flex: 1 }}>
-                          {item}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              ) : null}
-
-              {/* Divider — only when both sub-areas are present */}
-              {(recipe.equipment?.length ?? 0) > 0 && (recipe.mise_en_place?.length ?? 0) > 0 ? (
-                <View style={{ height: 1, backgroundColor: c.lineDark }} />
-              ) : null}
-
-              {/* Prep sub-area */}
-              {(recipe.mise_en_place?.length ?? 0) > 0 ? (
-                <View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingTop: 14, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: c.line }}>
-                    <View>
-                      <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: c.ink }}>
-                        Prep
-                      </Text>
-                      <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: c.muted, marginTop: 2 }}>
-                        Do this before you heat anything
-                      </Text>
-                    </View>
-                    <Text
-                      style={{ fontFamily: fonts.sansBold, fontSize: 11, color: tokens.bronze }}
-                      accessibilityLabel={`${miseChecked.size} of ${recipe.mise_en_place!.length} prep steps done`}
-                    >
-                      {miseChecked.size} / {recipe.mise_en_place!.length} done
-                    </Text>
-                  </View>
-
-                  {recipe.mise_en_place!.slice(0, 4).map((task, i) => (
-                    <MiseItem
-                      key={i}
-                      text={task}
-                      checked={miseChecked.has(i)}
-                      onToggle={() => toggleMise(i)}
-                      isLast={i === Math.min(3, recipe.mise_en_place!.length - 1) && recipe.mise_en_place!.length <= 4}
-                      lineColor={c.line}
-                      inkColor={c.inkSoft}
-                    />
-                  ))}
-
-                  {recipe.mise_en_place!.length > 4 && !miseExpanded ? (
-                    <Pressable
-                      onPress={expandMise}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Show ${recipe.mise_en_place!.length - 4} more prep tasks`}
-                      android_ripple={{ color: tokens.bronzeSoft, borderless: false }}
-                      style={{ margin: 10, borderRadius: 12 }}
-                    >
-                      <View style={{ paddingVertical: 10, borderRadius: 12, backgroundColor: tokens.bronzeSoft, borderWidth: 1, borderColor: 'rgba(194,161,90,0.30)', alignItems: 'center' }}>
-                        <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.bronze }}>
-                          Show {recipe.mise_en_place!.length - 4} more prep tasks
-                        </Text>
-                      </View>
-                    </Pressable>
-                  ) : null}
-
-                  {recipe.mise_en_place!.length > 4 && miseExpanded ? (
-                    <Animated.View style={{ opacity: miseExpandOpacity }}>
-                      {recipe.mise_en_place!.slice(4).map((task, i) => (
-                        <MiseItem
-                          key={i + 4}
-                          text={task}
-                          checked={miseChecked.has(i + 4)}
-                          onToggle={() => toggleMise(i + 4)}
-                          isLast={i + 4 === recipe.mise_en_place!.length - 1}
-                          lineColor={c.line}
-                          inkColor={c.inkSoft}
-                        />
-                      ))}
-                    </Animated.View>
-                  ) : null}
-                </View>
-              ) : null}
-            </View>
-          </View>
-        )}
 
         {/* Method — Cook tab in browse; always shown in cook mode */}
         {(cooking || activeTab === 'Cook') && <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
@@ -1989,42 +2004,105 @@ function RecipeDetailScreenInner() {
               );
             })()
           ) : (
-          /* ── v7 BROWSE METHOD (Commit B2 §3.6) — compact tap-to-cook rows ──
-             Bronze Fraunces step number · cream title · tabular muted time ·
-             chevron. Tapping a row enters cook mode at that step (existing
-             setCurrentStepIdx + setCooking). The full step content, doneness
-             cues and photos live in cook mode. */
+          /* ── BROWSE METHOD — accordion: tap to expand step detail inline ──
+             Tapping a row drops down the step content, timer, doneness cue,
+             and why-note. Arrow rotates to indicate open/closed. Multiple
+             steps can be open at once. "Start Cooking" still enters cook mode. */
           <View style={{ backgroundColor: c.cardBg, borderRadius: 18, borderWidth: 1, borderColor: c.lineDark, overflow: 'hidden' }}>
             {recipe.steps.map((step, idx) => {
               const isLastStep = idx === recipe.steps.length - 1;
+              const isOpen = expandedSteps.has(step.id);
+              const toggle = () => {
+                Haptics.selectionAsync().catch(() => {});
+                setExpandedSteps(prev => {
+                  const next = new Set(prev);
+                  next.has(step.id) ? next.delete(step.id) : next.add(step.id);
+                  return next;
+                });
+              };
               return (
-                <Pressable
+                <View
                   key={step.id}
-                  onPress={() => {
-                    Haptics.selectionAsync().catch(() => {});
-                    setCurrentStepIdx(idx);
-                    setCooking(true);
-                  }}
-                  android_ripple={{ color: tokens.primaryLight, borderless: false }}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Cook from step ${idx + 1}: ${step.title}`}
-                  style={{ borderBottomWidth: isLastStep ? 0 : 1, borderBottomColor: c.line }}
+                  style={{ borderBottomWidth: isLastStep && !isOpen ? 0 : 1, borderBottomColor: c.line }}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 }}>
-                    <Text style={{ fontFamily: fonts.display, fontSize: 22, lineHeight: 24, color: tokens.bronze, width: 26, textAlign: 'center' }}>
-                      {idx + 1}
-                    </Text>
-                    <Text style={{ flex: 1, fontFamily: fonts.sansBold, fontSize: 16, color: c.ink }} numberOfLines={2}>
-                      {step.title}
-                    </Text>
-                    {step.timer_seconds ? (
-                      <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: c.muted, fontVariant: ['tabular-nums'] }}>
-                        {formatTimer(step.timer_seconds)}
+                  {/* ── Header row — always visible ── */}
+                  <Pressable
+                    onPress={toggle}
+                    android_ripple={{ color: tokens.primaryLight, borderless: false }}
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded: isOpen }}
+                    accessibilityLabel={`Step ${idx + 1}: ${step.title}`}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 }}>
+                      <Text style={{ fontFamily: fonts.display, fontSize: 22, lineHeight: 24, color: tokens.bronze, width: 26, textAlign: 'center' }}>
+                        {idx + 1}
                       </Text>
-                    ) : null}
-                    <Icon name="arrow-right" size={16} color={c.muted} />
-                  </View>
-                </Pressable>
+                      <Text style={{ flex: 1, fontFamily: fonts.sansBold, fontSize: 16, color: c.ink }} numberOfLines={isOpen ? undefined : 2}>
+                        {step.title}
+                      </Text>
+                      {step.timer_seconds && !isOpen ? (
+                        <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: c.muted, fontVariant: ['tabular-nums'] }}>
+                          {formatTimer(step.timer_seconds)}
+                        </Text>
+                      ) : null}
+                      <View style={{ transform: [{ rotate: isOpen ? '180deg' : '0deg' }] }}>
+                        <Icon name="arrow-down" size={16} color={isOpen ? tokens.bronze : c.muted} />
+                      </View>
+                    </View>
+                  </Pressable>
+
+                  {/* ── Expanded body ── */}
+                  {isOpen && (
+                    <View style={{ paddingHorizontal: 14, paddingBottom: 16, gap: 12 }}>
+                      {/* Timer pill */}
+                      {step.timer_seconds ? (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <Icon name="clock" size={13} color={c.muted} />
+                          <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: c.muted }}>
+                            {formatTimer(step.timer_seconds)}
+                          </Text>
+                        </View>
+                      ) : null}
+
+                      {/* Step content */}
+                      {step.content ? (
+                        <Text style={{ fontFamily: fonts.sans, fontSize: 14, lineHeight: 22, color: c.inkSoft }}>
+                          {step.content}
+                        </Text>
+                      ) : null}
+
+                      {/* Doneness cue — "Look for this" gold band */}
+                      {step.stage_note ? (
+                        <View style={{
+                          borderLeftWidth: 3, borderLeftColor: tokens.gold,
+                          borderRightWidth: 1, borderTopWidth: 1, borderBottomWidth: 1,
+                          borderRightColor: 'rgba(242,204,42,0.25)',
+                          borderTopColor: 'rgba(242,204,42,0.25)',
+                          borderBottomColor: 'rgba(242,204,42,0.25)',
+                          backgroundColor: 'rgba(242,204,42,0.07)',
+                          borderTopRightRadius: 10, borderBottomRightRadius: 10,
+                          paddingVertical: 9, paddingHorizontal: 12,
+                        }}>
+                          <Text style={{ fontFamily: fonts.sansBold, fontSize: 9, letterSpacing: 0.7, textTransform: 'uppercase', color: tokens.gold, marginBottom: 3 }}>
+                            Look for this
+                          </Text>
+                          <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic', fontSize: 13, color: 'rgba(242,204,42,0.82)', lineHeight: 19 }}>
+                            {step.stage_note}
+                          </Text>
+                        </View>
+                      ) : null}
+
+                      {/* Why note */}
+                      {step.why_note ? (
+                        <View style={{ borderTopWidth: 1, borderTopColor: c.line, paddingTop: 10 }}>
+                          <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic', fontSize: 12, color: c.muted, lineHeight: 18 }}>
+                            {step.why_note}
+                          </Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  )}
+                </View>
               );
             })}
           </View>

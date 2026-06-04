@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "expo-app",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "expo"],
+      "port": 8081
+    },
+    {
+      "name": "expo-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "expo-web"],
+      "port": 8081
+    },
+    {
+      "name": "bug-lord-worker",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "worker"],
+      "port": 8787
+    }
+  ]
+}

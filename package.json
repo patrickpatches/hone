@@ -1,0 +1,10 @@
+{
+  "name": "hone-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "expo": "npm run --prefix mobile start",
+    "expo-web": "npm run --prefix mobile web",
+    "worker": "npm run --prefix workers/bug-lord dev"
+  }
+}
