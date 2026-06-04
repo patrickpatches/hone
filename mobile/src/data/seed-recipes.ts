@@ -216,7 +216,7 @@ const SMASH_BURGER: Recipe = {
   steps: [
     { id: 's1', title: 'Ball and season', content: "Divide the beef into one ball per burger — roughly 100g each. Don't pack them tightly, just enough to hold a rough sphere. Let them sit at room temperature for 10 minutes before cooking. Season only the outside with salt right before they go in the pan, not before.", why_note: 'Cold mince straight from the fridge drops the pan temperature on contact and slows crust formation. 10 minutes at room temp makes a difference. Pre-salting draws moisture to the surface, which steams instead of browning — season at the last moment.', photo_url: 'https://raw.githubusercontent.com/patrickpatches/hone/main/mobile/assets/recipes/smash-burger-mise.jpg' },
     { id: 's2', title: 'Get the pan screaming', content: 'Cast iron or heavy steel pan on highest heat for at least 3 minutes. No oil — the beef fat does the work. It should be starting to smoke.', timer_seconds: 180, why_note: 'Maillard browning needs metal above 180°C. A warm pan just steams the meat. Three minutes on max heat gets cast iron where it needs to be.' },
-    { id: 's3', title: 'Smash hard and hold', content: 'Place a ball on the pan, put a piece of baking paper on top, and press down with a flat spatula as hard as you can. Hold for 10 full seconds. The patty should be 1cm thin.', timer_seconds: 10, why_note: 'The smash maximises surface contact with hot metal. More contact = more Maillard = more crust. The paper stops the spatula sticking.', photo_url: 'https://raw.githubusercontent.com/patrickpatches/hone/main/mobile/assets/recipes/smash-burger-smash.jpg' },
+    { id: 's3', title: 'Smash hard and hold', content: 'Place a ball on the pan, put a piece of baking paper on top, and press down with a flat spatula as hard as you can. Hold for 10 full seconds. Smash it as thin as you can — about 5 mm.', timer_seconds: 10, why_note: 'The smash maximises surface contact with hot metal. More contact = more Maillard = more crust. The paper stops the spatula sticking.', photo_url: 'https://raw.githubusercontent.com/patrickpatches/hone/main/mobile/assets/recipes/smash-burger-smash.jpg' },
     { id: 's4', title: 'Cook and cheese', content: 'Cook 90 seconds without touching — you want a deep brown crust forming underneath. Flip once, immediately lay the cheese slice over the patty. Cook 45 more seconds. The cheese melts from the residual heat of the pan and the patty.', timer_seconds: 90, why_note: 'Single flip, no exceptions. Moving the patty breaks the crust while it\'s forming. Cheese goes on right after the flip so it has the full 45 seconds to melt evenly — American cheese is engineered to melt smooth and glossy, not stringy.' },
     { id: 's5', title: 'Toast the bun', content: 'While the patty finishes, toast the bun cut-side down in the same pan. 30–45 seconds until golden. The beef fat left in the pan flavours it.', timer_seconds: 30, why_note: "A toasted bun won't go soggy when sauces and steam hit it. The fat residue adds flavour that plain toasting misses." },
     { id: 's6', title: 'Stack and serve', content: 'Sauce on the bottom bun, pickles, onion, patty (cheese-side up), shredded iceberg lettuce, top bun. Eat immediately — smash burgers do not improve with waiting.', why_note: 'Order matters: sauce on the bottom bun protects it from moisture. Onion under the patty gets warmed by the meat. Lettuce on top of the patty, not underneath — it stays crisper and gives you that cool contrast against the hot beef. Eat within 2 minutes before the crust softens.' },
@@ -355,8 +355,9 @@ const PASTA_CARBONARA: Recipe = {
   user_added: false,
   generated_by_claude: false,
   source: {
-    chef: 'Gordon Ramsay',
-    video_url: 'https://www.youtube.com/watch?v=5t7JLjr1FxQ',
+    chef: 'Luciano Monosilio',
+    video_url: 'https://www.youtube.com/watch?v=nYLoCwAR4pY',
+    notes: "Luciano Monosilio — Roman chef and 'King of Carbonara' at Luciano Cucina Italiana, Rome. Guanciale, Pecorino Romano, egg yolks, no cream. The authentic Roman method.",
   },
   emoji: '🍝',
   hero_url: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=1200&q=80',
