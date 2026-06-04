@@ -231,6 +231,8 @@ function RecipeDetailScreenInner() {
   // sub-line on ingredient rows. Defensive default [] so it's safe to read
   // while recipe is still undefined (Rules-of-Hooks hoist requirement).
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
+  // Prep / Cook tab switcher — browse mode only (cook mode ignores tabs).
+  const [activeTab, setActiveTab] = useState<'Prep' | 'Cook'>('Prep');
   const [journeyExpanded, setJourneyExpanded] = useState<null | 'plate'>(null);
   const [shoppingAdded, setShoppingAdded] = useState(false);
   const [miseExpanded, setMiseExpanded] = useState(false);
@@ -1025,58 +1027,22 @@ function RecipeDetailScreenInner() {
                 ) : null}
               </View>
             ) : null}
+
+            {/* Prep / Cook tab bar — browse mode only, placed below chef card */}
+            {!cooking && (
+              <RecipeTabBar active={activeTab} setActive={setActiveTab} />
+            )}
           </View>
         )}
 
 
-        {/* ── SERVINGS (Recipe Page Design) ───────────────────────────────
-            Its own container, styled IDENTICALLY to the "In your pantry" card
-            below (same cardBg / radius / border / padding) and sitting directly
-            above it, so portion + pantry read as a matched pair. The selector
-            renders in `embedded` mode (no card chrome of its own — this card is
-            the chrome). Browse mode only. */}
-        {!cooking ? (
+        {/* ── v7 IN YOUR PANTRY (Prep tab only) ────────────────────────
+            Servings stepper integrated at the top of the pantry card per
+            Engineering Handoff — Recipe Page. The standalone Servings card
+            is removed; the embedded selector sits above the N/M fraction
+            row separated by a thin rule. */}
+        {!cooking && activeTab === 'Prep' && match && recipe.ingredients.length > 0 ? (
           <View style={{ paddingHorizontal: 20, marginTop: 14 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 10 }}>
-              <Icon name="users" size={14} color={tokens.bronze} />
-              <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: tokens.bronze }}>
-                Servings
-              </Text>
-            </View>
-            <View
-              style={{
-                backgroundColor: c.cardBg,
-                borderRadius: 14,
-                borderWidth: 1,
-                borderColor: c.lineDark,
-                padding: 14,
-              }}
-            >
-              <ServingsSelector
-                embedded
-                people={people}
-                setPeople={setPeople}
-                leftoverKey={leftoverKey}
-                setLeftoverKey={setLeftoverKey}
-                baseServings={recipe.base_servings}
-                outputUnit={recipe.output_unit}
-                outputUnitPlural={recipe.output_unit_plural}
-                extraForTomorrowLabel={recipe.extra_for_tomorrow_label}
-              />
-            </View>
-          </View>
-        ) : null}
-
-        {/* ── v7 IN YOUR PANTRY (build #129) ────────────────────────────
-            Pantry-aware match card. N/M from scoreRecipeAgainstPantry; the
-            missing list and "Add to shopping list" button reuse the same
-            engine the Kitchen tab and pantry carousel use. Sits flush under
-            the Servings card above (matched pair). */}
-        {!cooking && match && recipe.ingredients.length > 0 ? (
-          <View style={{ paddingHorizontal: 20, marginTop: 10 }}>
-            {/* bronze eyebrow — HONE-008: removed N/M pill badge; the large
-                N/M number in the card body below already shows this count.
-                Showing it twice was the "duplicate 0/9" Patrick flagged. */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 10 }}>
               <FoodIcon name="cat-pantry" size={14} color={tokens.bronze} />
               <Text style={{ fontFamily: fonts.sansBold, fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: tokens.bronze }}>
@@ -1094,6 +1060,26 @@ function RecipeDetailScreenInner() {
                 gap: 10,
               }}
             >
+              {/* Servings stepper — top of pantry card, hairline below */}
+              <View
+                style={{
+                  paddingBottom: 10,
+                  borderBottomWidth: 1,
+                  borderBottomColor: c.line,
+                }}
+              >
+                <ServingsSelector
+                  embedded
+                  people={people}
+                  setPeople={setPeople}
+                  leftoverKey={leftoverKey}
+                  setLeftoverKey={setLeftoverKey}
+                  baseServings={recipe.base_servings}
+                  outputUnit={recipe.output_unit}
+                  outputUnitPlural={recipe.output_unit_plural}
+                  extraForTomorrowLabel={recipe.extra_for_tomorrow_label}
+                />
+              </View>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14 }}>
                 <Text style={{ fontFamily: fonts.display, fontSize: 32, lineHeight: 36, color: tokens.bronze }}>
                   {match.haveCount}<Text style={{ color: tokens.bronze, opacity: 0.4 }}>/{match.totalCount}</Text>
@@ -1167,7 +1153,7 @@ function RecipeDetailScreenInner() {
             Read-only 3-card row: Mise · Cook · Plate. Plate is tap-to-expand
             and carries finishing_note + leftovers_note (Patrick's call —
             fold them into Plate, not separate sections). No Animated. */}
-        {!cooking ? (
+        {!cooking && activeTab === 'Cook' ? (
           <View style={{ paddingHorizontal: 20, marginTop: 18 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 10 }}>
               <FoodIcon name="cat-spice" size={14} color={tokens.bronze} />
@@ -1267,7 +1253,7 @@ function RecipeDetailScreenInner() {
         {/* HONE-009 fix: collapsed by default — first note as a one-line tease,
             tap to expand the full list. Keeps the viewport from dumping a wall
             of theory on the user before they've decided to cook. */}
-        {!cooking && (recipe.before_you_start?.length ?? 0) > 0 && (
+        {!cooking && activeTab === 'Cook' && (recipe.before_you_start?.length ?? 0) > 0 && (
           <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
             <Pressable
               onPress={() => setKnowExpanded(prev => !prev)}
@@ -1351,12 +1337,8 @@ function RecipeDetailScreenInner() {
           </View>
         )}
 
-        {/* Servings selector moved INTO the "In your pantry" card above
-            (Recipe Page Design — portion box + pantry unified into one card).
-            Browse mode only; cook mode inherits the servings chosen in browse. */}
-
-        {/* Ingredients */}
-        <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
+        {/* Ingredients — Prep tab in browse; always shown in cook mode */}
+        {(cooking || activeTab === 'Prep') && <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
           {cooking
             ? <SectionHeader title="Ingredients" hint="Tap to tick off" inkColor={c.ink} mutedColor={c.muted} />
             : <Eyebrow label="Ingredients" />}
@@ -1584,7 +1566,7 @@ function RecipeDetailScreenInner() {
               );
             })}
           </View>
-        </View>
+        </View>}
 
         {/* ── PLACEHOLDER for recipes with no Equipment AND no Prep ──
             One small honest line where the Equipment/Prep blocks would have
@@ -1593,7 +1575,7 @@ function RecipeDetailScreenInner() {
             Currently this affects only sourdough-maintenance (the starter
             feeder guide, intentionally outside the DECISION-008 schema).
             UI guard against the "looks half-built" state Patrick reported. */}
-        {!cooking
+        {!cooking && activeTab === 'Prep'
           && (recipe.equipment?.length ?? 0) === 0
           && (recipe.mise_en_place?.length ?? 0) === 0 && (
           <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
@@ -1631,7 +1613,7 @@ function RecipeDetailScreenInner() {
             sub-areas (Equipment, Prep) split by a thin rule. Equipment is
             bronze-dot b-rows (no "Essential" tag — that's Phase 2). Prep
             keeps the MiseItem checklist + expand behaviour, restyled to v7. */}
-        {!cooking && ((recipe.equipment?.length ?? 0) > 0 || (recipe.mise_en_place?.length ?? 0) > 0) && (
+        {!cooking && activeTab === 'Prep' && ((recipe.equipment?.length ?? 0) > 0 || (recipe.mise_en_place?.length ?? 0) > 0) && (
           <View style={{ paddingHorizontal: 20, marginTop: 22 }}>
             <Eyebrow label="Get ready" />
             <View style={{ backgroundColor: c.cardBg, borderRadius: 18, borderWidth: 1, borderColor: c.lineDark, overflow: 'hidden' }}>
@@ -1728,8 +1710,8 @@ function RecipeDetailScreenInner() {
           </View>
         )}
 
-        {/* Method */}
-        <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
+        {/* Method — Cook tab in browse; always shown in cook mode */}
+        {(cooking || activeTab === 'Cook') && <View style={{ paddingHorizontal: 20, marginTop: 24 }}>
           {cooking
             ? <SectionHeader title="Method" hint="Tap Next to advance" inkColor={c.ink} mutedColor={c.muted} />
             : <Eyebrow label="Method" />}
@@ -2075,7 +2057,7 @@ function RecipeDetailScreenInner() {
               </Text>
             </View>
           ) : null}
-        </View>
+        </View>}
 
 
 
@@ -2365,6 +2347,83 @@ function MiseItem({
         </Text>
       </View>
     </Pressable>
+  );
+}
+
+/**
+ * RecipeTabBar — Prep / Cook segmented pill switcher.
+ *
+ * Sits below the chef source card in browse mode. Active tab gets an
+ * elevated cream pill; inactive label is muted. Matches the screenshot
+ * in the Engineering Handoff — Recipe Page.html.
+ *
+ * Prep tab: Pantry (+ servings), Ingredients, Get Ready.
+ * Cook tab:  Kitchen Journey, What to Know, Method.
+ */
+function RecipeTabBar({
+  active,
+  setActive,
+}: {
+  active: 'Prep' | 'Cook';
+  setActive: (t: 'Prep' | 'Cook') => void;
+}) {
+  return (
+    <View style={{ paddingHorizontal: 20, marginTop: 14, marginBottom: 4 }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          backgroundColor: tokens.bgDeep,
+          borderRadius: 14,
+          padding: 4,
+          borderWidth: 1,
+          borderColor: tokens.lineDark,
+        }}
+      >
+        {(['Prep', 'Cook'] as const).map((tab) => {
+          const isActive = active === tab;
+          return (
+            <Pressable
+              key={tab}
+              onPress={() => {
+                Haptics.selectionAsync().catch(() => {});
+                setActive(tab);
+              }}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={tab}
+              style={{ flex: 1, borderRadius: 10 }}
+              android_ripple={{ color: tokens.primaryLight, borderless: false }}
+            >
+              <View
+                style={{
+                  paddingVertical: 10,
+                  borderRadius: 10,
+                  backgroundColor: isActive ? tokens.cream : 'transparent',
+                  borderWidth: isActive ? 1 : 0,
+                  borderColor: tokens.lineDark,
+                  alignItems: 'center',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: isActive ? 0.25 : 0,
+                  shadowRadius: 3,
+                  elevation: isActive ? 2 : 0,
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: fonts.sansBold,
+                    fontSize: 13,
+                    color: isActive ? tokens.ink : tokens.muted,
+                  }}
+                >
+                  {tab}
+                </Text>
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
   );
 }
 
