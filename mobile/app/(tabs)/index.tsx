@@ -579,10 +579,10 @@ export default function KitchenHome() {
                 paddingTop: 9,
                 paddingBottom: 7,
                 paddingHorizontal: 4,
-                backgroundColor: active ? tokens.gold : tokens.cream,
+                backgroundColor: active ? tokens.primary : tokens.cream,
                 borderRadius: 14,
                 borderWidth: 1,
-                borderColor: active ? tokens.gold : tokens.lineDark,
+                borderColor: active ? tokens.primary : tokens.lineDark,
                 alignItems: 'center',
                 gap: 4,
               }}
@@ -593,7 +593,7 @@ export default function KitchenHome() {
                   fontFamily: active ? fonts.sansBold : fonts.sans,
                   fontSize: 9,
                   textAlign: 'center',
-                  color: active ? '#0F1A14' : tokens.inkSoft,
+                  color: active ? tokens.onPrimary : tokens.inkSoft,
                   lineHeight: 11,
                 }}
                 numberOfLines={1}

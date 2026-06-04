@@ -44,14 +44,19 @@ export const tokens = {
   inkSoft: '#C4B8A8',   // softer cream — secondary text
   muted:   '#8A7E72',   // warm taupe — captions, hints, placeholders
 
-  // Primary — rust (buttons, links, Kitchen eyebrow, active states, step numbers).
-  // Buttons with `backgroundColor: primary` use `color: tokens.onPrimary` (#FAFAF7).
-  // For inline text: `primaryInk` — same rust, reads on dark surfaces.
-  primary:      '#B84030',
-  primaryDeep:  '#8E2E20',                   // pressed states / borders
-  primaryInk:   '#D05040',                   // slightly lightened rust for text on dark
-  primaryLight: 'rgba(184,64,48,0.18)',      // tint for chips, selected states (raised opacity for dark bg)
-  onPrimary:    '#FAFAF7',                   // text/icon on solid rust surfaces
+  // Primary — magenta (DECISION-016, 2026-06-05). Replaces rust #B84030 across
+  // the app for buttons, links, Kitchen eyebrow, active tab, Plan button, step
+  // numbers — anywhere `primary` is referenced. Sits warm against the gold +
+  // bronze palette without clashing. Cook mode keeps its own rust accent on
+  // OLED black (visually distinct context, separate token group below).
+  //
+  // Buttons with `backgroundColor: primary` use `color: tokens.onPrimary` (#FFF6F0).
+  // For inline text on dark surfaces: `primaryInk` — slightly lifted magenta.
+  primary:      '#C8267E',
+  primaryDeep:  '#9E1A62',                   // pressed states / borders
+  primaryInk:   '#E64A98',                   // lifted magenta for text on dark surfaces
+  primaryLight: 'rgba(200,38,126,0.18)',     // tint for chips, selected states
+  onPrimary:    '#FFF6F0',                   // warm cream — text/icon on solid magenta
 
   // Secondary — forest green (Pantry/Shop eyebrow, "See all" chip, "why" callouts,
   //   step completion, checked states).

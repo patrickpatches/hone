@@ -618,11 +618,11 @@ function RecipeDetailScreenInner() {
                 width: 42,
                 height: 42,
                 borderRadius: 21,
-                backgroundColor: 'transparent',
+                backgroundColor: tokens.primary,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-                <Icon name="arrow-left" size={20} color={tokens.ink} />
+                <Icon name="arrow-left" size={20} color={tokens.onPrimary} />
               </View>
             </Pressable>
             {/* Spacer — the recipe title now lives in the v7 title block
@@ -649,7 +649,7 @@ function RecipeDetailScreenInner() {
                 justifyContent: 'center',
               }}>
                 {/* Issue #23 §1: warm amber when not planned */}
-                <Icon name={isPlanned ? 'check' : 'plus'} size={20} color={isPlanned ? tokens.primaryInk : 'rgb(250,178,102)'} />
+                <Icon name={isPlanned ? 'check' : 'plus'} size={20} color={isPlanned ? tokens.primaryInk : tokens.primaryInk} />
               </View>
             </Pressable>
             {/* Favourite */}
@@ -930,9 +930,9 @@ function RecipeDetailScreenInner() {
               {recipe.title}
             </Text>
 
-            {/* Tagline — Fraunces italic */}
+            {/* Tagline — Fraunces italic, 19sp for more presence against the 38sp title */}
             {recipe.tagline ? (
-              <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic', fontSize: 17, lineHeight: 23, color: tokens.inkSoft, marginTop: 8 }}>
+              <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic', fontSize: 19, lineHeight: 26, color: tokens.inkSoft, marginTop: 10 }}>
                 {recipe.tagline}
               </Text>
             ) : null}
@@ -1007,7 +1007,7 @@ function RecipeDetailScreenInner() {
                   <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: tokens.ink }} numberOfLines={1}>
                     {recipe.source.chef}
                   </Text>
-                  <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: tokens.muted, marginTop: 1 }}>
+                  <Text style={{ fontFamily: fonts.displayItalic, fontStyle: 'italic', fontSize: 12, color: tokens.inkSoft, marginTop: 2 }}>
                     Inspired by this recipe
                   </Text>
                 </View>
@@ -1060,13 +1060,13 @@ function RecipeDetailScreenInner() {
                 accessibilityRole="button"
                 accessibilityState={{ expanded: openSections.has('ing') }}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 }}>
-                  <Text style={{ flex: 1, fontFamily: fonts.sansBold, fontSize: 16, color: c.ink }}>Ingredients</Text>
-                  <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: c.muted }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 16 }}>
+                  <Text style={{ flex: 1, fontFamily: fonts.display, fontSize: 20, lineHeight: 24, letterSpacing: -0.3, color: c.ink }}>Ingredients</Text>
+                  <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.bronze }}>
                     {recipe.ingredients.length} items
                   </Text>
                   <View style={{ transform: [{ rotate: openSections.has('ing') ? '180deg' : '0deg' }] }}>
-                    <Icon name="arrow-down" size={16} color={openSections.has('ing') ? tokens.bronze : c.muted} />
+                    <Icon name="arrow-down" size={15} color={tokens.bronze} />
                   </View>
                 </View>
               </Pressable>
@@ -1201,11 +1201,11 @@ function RecipeDetailScreenInner() {
                     accessibilityRole="button"
                     accessibilityState={{ expanded: openSections.has('eq') }}
                   >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 }}>
-                      <Text style={{ flex: 1, fontFamily: fonts.sansBold, fontSize: 16, color: c.ink }}>Equipment</Text>
-                      <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: c.muted }}>{recipe.equipment!.length} items</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 16 }}>
+                      <Text style={{ flex: 1, fontFamily: fonts.display, fontSize: 20, lineHeight: 24, letterSpacing: -0.3, color: c.ink }}>Equipment</Text>
+                      <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.bronze }}>{recipe.equipment!.length} items</Text>
                       <View style={{ transform: [{ rotate: openSections.has('eq') ? '180deg' : '0deg' }] }}>
-                        <Icon name="arrow-down" size={16} color={openSections.has('eq') ? tokens.bronze : c.muted} />
+                        <Icon name="arrow-down" size={15} color={tokens.bronze} />
                       </View>
                     </View>
                   </Pressable>
@@ -1251,13 +1251,13 @@ function RecipeDetailScreenInner() {
                       accessibilityRole="button"
                       accessibilityState={{ expanded: openSections.has('prep') }}
                     >
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 }}>
-                        <Text style={{ flex: 1, fontFamily: fonts.sansBold, fontSize: 16, color: c.ink }}>Prep</Text>
-                        <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: allDone ? tokens.sage : c.muted }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 16 }}>
+                        <Text style={{ flex: 1, fontFamily: fonts.display, fontSize: 20, lineHeight: 24, letterSpacing: -0.3, color: c.ink }}>Prep</Text>
+                        <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: allDone ? tokens.sage : tokens.bronze }}>
                           {allDone ? 'All done ✓' : `${done} / ${total} done`}
                         </Text>
                         <View style={{ transform: [{ rotate: openSections.has('prep') ? '180deg' : '0deg' }] }}>
-                          <Icon name="arrow-down" size={16} color={openSections.has('prep') ? tokens.bronze : c.muted} />
+                          <Icon name="arrow-down" size={15} color={tokens.bronze} />
                         </View>
                       </View>
                     </Pressable>
@@ -2033,20 +2033,20 @@ function RecipeDetailScreenInner() {
                     accessibilityState={{ expanded: isOpen }}
                     accessibilityLabel={`Step ${idx + 1}: ${step.title}`}
                   >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 }}>
-                      <Text style={{ fontFamily: fonts.display, fontSize: 22, lineHeight: 24, color: tokens.bronze, width: 26, textAlign: 'center' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 16 }}>
+                      <Text style={{ fontFamily: fonts.display, fontSize: 24, lineHeight: 26, color: tokens.bronze, width: 28, textAlign: 'center' }}>
                         {idx + 1}
                       </Text>
-                      <Text style={{ flex: 1, fontFamily: fonts.sansBold, fontSize: 16, color: c.ink }} numberOfLines={isOpen ? undefined : 2}>
+                      <Text style={{ flex: 1, fontFamily: fonts.display, fontSize: 18, lineHeight: 23, letterSpacing: -0.2, color: c.ink }} numberOfLines={isOpen ? undefined : 2}>
                         {step.title}
                       </Text>
                       {step.timer_seconds && !isOpen ? (
-                        <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: c.muted, fontVariant: ['tabular-nums'] }}>
+                        <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.bronze, fontVariant: ['tabular-nums'] }}>
                           {formatTimer(step.timer_seconds)}
                         </Text>
                       ) : null}
                       <View style={{ transform: [{ rotate: isOpen ? '180deg' : '0deg' }] }}>
-                        <Icon name="arrow-down" size={16} color={isOpen ? tokens.bronze : c.muted} />
+                        <Icon name="arrow-down" size={15} color={tokens.bronze} />
                       </View>
                     </View>
                   </Pressable>
@@ -2179,23 +2179,23 @@ function RecipeDetailScreenInner() {
                 paddingHorizontal: 32,
                 borderRadius: 999,
                 backgroundColor: tokens.primary,
-                shadowColor: tokens.ink,
+                shadowColor: tokens.primary,
                 shadowOffset: { width: 0, height: 6 },
-                shadowOpacity: 0.22,
+                shadowOpacity: 0.35,
                 shadowRadius: 14,
                 elevation: 8,
               }}
             >
-              <Icon name="chef" size={18} color={tokens.ink} />
+              <Icon name="chef" size={18} color={tokens.onPrimary} />
               <Text
                 style={{
                   fontFamily: fonts.sansXBold,
                   fontSize: 15,
-                  color: tokens.ink,
+                  color: tokens.onPrimary,
                   letterSpacing: 0.3,
                 }}
               >
-                Start Cooking
+                Chef Mode
               </Text>
             </View>
           </Pressable>
@@ -2474,24 +2474,25 @@ function RecipeTabBar({
             >
               <View
                 style={{
-                  paddingVertical: 10,
+                  paddingVertical: 11,
                   borderRadius: 10,
                   backgroundColor: isActive ? tokens.cream : 'transparent',
                   borderWidth: isActive ? 1 : 0,
-                  borderColor: tokens.lineDark,
+                  borderColor: 'rgba(194,161,90,0.30)',
                   alignItems: 'center',
                   shadowColor: '#000',
                   shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: isActive ? 0.25 : 0,
-                  shadowRadius: 3,
+                  shadowOpacity: isActive ? 0.3 : 0,
+                  shadowRadius: 4,
                   elevation: isActive ? 2 : 0,
                 }}
               >
                 <Text
                   style={{
                     fontFamily: fonts.sansBold,
-                    fontSize: 13,
-                    color: isActive ? tokens.ink : tokens.muted,
+                    fontSize: 14,
+                    letterSpacing: 0.3,
+                    color: isActive ? tokens.bronze : tokens.inkSoft,
                   }}
                 >
                   {tab}
