@@ -12,6 +12,8 @@
 
 - 2026-06-05 · Smash Burger · Solid — fix: patty target 1 cm → ~5 mm (Andy Cooks). Issue #32.
 - 2026-06-05 · Pasta Carbonara · Needs work — wrong chef credit (Gordon Ramsay's carbonara uses crème fraîche/bacon/parmesan, contradicts the no-cream Roman recipe); re-credit. Issue #33.
+- 2026-06-06 · Perfect Roast Chicken · Solid — method is professional-grade. Prior timing/fan fix (#27/#28) confirmed in code (15min@230°C → 65–80min@190°C ≈ 90min total, correct for 1.8kg per Waitrose/Food52). New: roast step leads with "juices run clear" — should lead with internal temp (breast 72–74°C, thigh 82°C; temps already in equipment list). Issue #34.
+- 2026-06-06 · Hummus from Scratch · Solid — tahini fix from #29 confirmed in code (now 200ml/250g dried, in professional Palestinian range per Ottolenghi *Jerusalem*). Technique (blend tahini+lemon first, hot chickpeas, 4–5min blend, ice water) is restaurant-grade. AU English clean (bicarb soda, tinned). No new issues; time_min vs total_time_minutes mismatch falls under #30.
 
 ---
 
@@ -632,4 +634,10 @@
 
 | Recipe ID | Issue | Recommendation |
 |---|---|---|
-| SHEET_PAN_HAR
+| SHEET_PAN_HARISSA_CHICKEN | `levantine` tag — harissa is North African, not Levantine | Change to `north_african` or `mediterranean` |
+| CHICKEN_VEG_STIR_FRY | `chinese, australian` dual tag — minor taxonomy note | Review in taxonomy pass; acceptable for v1 |
+| FLOUR_TORTILLAS | Chef field `Patrick Nasr` — consistency decision needed | COO decision: keep personal attribution or use `Hone Kitchen` |
+
+---
+
+*Last updated: 2026-05-08. Next update: Pass 2 (substitutions / voice / AU English), target 2026-05-12.*
