@@ -32,6 +32,7 @@ export interface Env {
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface GHLabel { name: string }
+interface GHMilestone { number: number; title: string; due_on: string | null; state: string; open_issues?: number; closed_issues?: number }
 interface GHIssue {
   number: number;
   title: string;
@@ -39,11 +40,13 @@ interface GHIssue {
   state: 'open' | 'closed';
   labels: GHLabel[];
   assignees: { login: string }[];
+  milestone?: GHMilestone | null;
   updated_at?: string;
   html_url?: string;
 }
 interface GHComment { user?: { login: string }; created_at: string; body: string | null }
-interface HoneBug { id: string; sev: string; t: string; d: string; who: string; build: string; st: string; num?: number; upd?: string }
+// epic = big Goal (from `epic:` label); ms = sprint title + due date (GitHub Milestone)
+interface HoneBug { id: string; sev: string; t: string; d: string; who: string; build: string; st: string; num?: number; upd?: string; epic?: string; ms?: string; msNum?: number; msDue?: string | null }
 
 // Cache-busted GitHub fetch. GitHub returns Cache-Control: max-age=60, which
 // Cloudflare honours on subrequests — so a plain re-fetch can be up to 60s
@@ -139,6 +142,10 @@ function issueToHoneBug(issue: GHIssue): HoneBug {
   const sev = sevLabel ? sevLabel.slice(4) : parseSeverity(body, issue.title);
   const whoLabel = labels.find(n => n.startsWith('who:'));
   const who = whoLabel ? whoLabel.slice(4) : (issue.assignees[0]?.login ?? 'Patrick');
+  // epic = the big Goal this job serves (label `epic: <name>`); milestone = the
+  // sprint it's slotted into (GitHub Milestone, with an optional due date).
+  const epicLabel = labels.find(n => n.startsWith('epic:'));
+  const epic = epicLabel ? epicLabel.slice(5).trim() : '';
   const id = (issue.title.match(/HONE-(\d+)/i)?.[0] ?? `#${issue.number}`).toUpperCase();
   const actualSec = (body.match(/##\s+Actual\s*\n+([\s\S]*?)(?=\n##|$)/i)?.[1] ?? '').trim().split('\n')[0] ?? '';
   const firstLine = body.split('\n').find(l => {
@@ -146,7 +153,14 @@ function issueToHoneBug(issue: GHIssue): HoneBug {
     return t.length > 10 && !t.startsWith('#') && !/^[A-Z_]+\s*:/.test(t);
   }) ?? '';
   const d = parseActual(body) || actualSec || firstLine || cleanTitle(issue.title);
-  return { id, sev, t: cleanTitle(issue.title), d, who, build: parseBuild(body), st, num: issue.number, upd: issue.updated_at };
+  return {
+    id, sev, t: cleanTitle(issue.title), d, who, build: parseBuild(body), st,
+    num: issue.number, upd: issue.updated_at,
+    epic,
+    ms: issue.milestone?.title ?? '',
+    msNum: issue.milestone?.number,
+    msDue: issue.milestone?.due_on ?? null,
+  };
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
@@ -390,9 +404,33 @@ export default {
       }, 200, { 'Cache-Control': 'no-store' });
     }
 
+    // ── GET /milestones ──────────────────────────────────────────────────────
+    // Sprints. Returns open milestones (sorted by nearest due date first) with
+    // their title, due date, and open/closed issue counts — powers the
+    // "This week" view + the sprint picker. Read-only, no auth.
+    if (request.method === 'GET' && url.pathname === '/milestones') {
+      const res = await ghFetch(
+        'https://api.github.com/repos/patrickpatches/hone/milestones?state=open&sort=due_on&direction=asc&per_page=50',
+        env,
+      ).catch(() => null);
+
+      if (!res || !res.ok) {
+        return json({ error: 'Could not reach GitHub milestones API', milestones: [] }, 200);
+      }
+      const list = await res.json() as GHMilestone[];
+      const milestones = list.map(m => ({
+        number: m.number,
+        title: m.title,
+        due_on: m.due_on,
+        open: m.open_issues ?? 0,
+        closed: m.closed_issues ?? 0,
+      }));
+      return json(milestones, 200, { 'Cache-Control': 'no-store' });
+    }
+
     // ── GET / (health) ─────────────────────────────────────────────────────────
     if (request.method === 'GET' && url.pathname === '/') {
-      return json({ ok: true, endpoints: ['GET /bugs', 'POST /update', 'POST /issue', 'GET /issue/:n', 'POST /issue/:n/comment', 'GET /build'] });
+      return json({ ok: true, endpoints: ['GET /bugs', 'POST /update', 'POST /issue', 'GET /issue/:n', 'POST /issue/:n/comment', 'GET /build', 'GET /milestones'] });
     }
 
     return new Response('Not found', { status: 404, headers: CORS });

@@ -187,6 +187,51 @@
     .bugtable td.ucell,.bugtable th.col-upd{display:none}
     .bugtable td,.bugtable thead th{padding:11px 7px}
   }
+  /* ── Goals (Epics) + This week (Sprints) — Issue #42 ── */
+  .vtoggle{display:flex;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .vtoggle button{flex:0 0 auto;border:none;background:transparent;color:var(--mut);font-family:inherit;
+    font-size:12px;font-weight:700;padding:6px 13px;border-radius:999px;cursor:pointer;transition:.12s}
+  .vtoggle button.on{background:var(--grad);color:#06121f}
+  /* progress bar — reused by goals + sprint */
+  .pbar{height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+  .pbar>i{display:block;height:100%;border-radius:999px;background:var(--good);transition:width .4s ease}
+  .pbar.full>i{background:var(--good)}
+  /* goal group */
+  .goal{border:1px solid var(--line);border-radius:14px;margin-top:12px;overflow:hidden;background:var(--card)}
+  .goal-hd{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
+  .goal-hd:hover{background:rgba(255,255,255,.02)}
+  .goal-chev{color:var(--mut);font-size:13px;transition:transform .15s;flex:0 0 auto}
+  .goal.open .goal-chev{transform:rotate(90deg)}
+  .goal-main{flex:1;min-width:0}
+  .goal-name{font-size:15px;font-weight:750;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .goal-sub{font-size:11.5px;color:var(--mut);margin-top:5px}
+  .goal-pct{font-size:13px;font-weight:800;color:var(--good);flex:0 0 auto;font-variant-numeric:tabular-nums}
+  .goal-prog{margin-top:8px}
+  .goal-body{display:none;border-top:1px solid var(--line)}
+  .goal.open .goal-body{display:block}
+  .goal-row{display:flex;align-items:center;gap:11px;padding:11px 16px;border-top:1px solid var(--line);cursor:pointer}
+  .goal-row:first-child{border-top:none}
+  .goal-row:hover{background:rgba(255,255,255,.03)}
+  .goal-row.done .grt{opacity:.5;text-decoration:line-through}
+  .grt{flex:1;min-width:0;font-size:13.5px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .grt .tid{font-size:10.5px;color:var(--mut2);margin-left:7px}
+  .gr-st{font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:999px;flex:0 0 auto}
+  /* This week */
+  .wkpick{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+  .wkpick button{border:1px solid var(--line);background:var(--card);color:var(--mut);font-family:inherit;
+    font-size:12.5px;font-weight:700;padding:8px 14px;border-radius:999px;cursor:pointer;transition:.12s}
+  .wkpick button:hover{color:var(--ink);border-color:var(--line2)}
+  .wkpick button.on{background:var(--grad);color:#06121f;border-color:transparent}
+  .wkhero{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-top:12px}
+  .wkhero .wktitle{font-size:18px;font-weight:800;color:var(--ink)}
+  .wkhero .wkdays{display:inline-block;margin-top:8px;font-size:12px;font-weight:800;padding:4px 12px;border-radius:999px}
+  .wkhero .wkbig{font-size:34px;font-weight:850;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
+  .wkhero .wkof{font-size:13px;color:var(--mut)}
+  .wkline{display:flex;align-items:center;gap:10px;background:rgba(40,224,176,.07);border:1px solid rgba(40,224,176,.25);
+    border-radius:12px;padding:12px 15px;margin-top:14px;font-size:13.5px;color:var(--ink)}
+  .wkline b{color:var(--good)}
+  .wkempty{background:var(--card);border:1px dashed var(--line2);border-radius:16px;padding:22px;margin-top:12px;
+    color:var(--mut);font-size:13px;line-height:1.6}
   /* Drawer */
   .scrim{position:fixed;inset:0;background:rgba(4,7,14,.6);backdrop-filter:blur(2px);z-index:60;opacity:0;
     pointer-events:none;transition:opacity .2s}
@@ -304,6 +349,8 @@
       </div>
     </div>
 
+    <div id="weekline"></div>
+
     <div class="buildstatus" id="buildstatus"></div>
 
     <!-- COMPOSER — files a real ticket live -->
@@ -352,6 +399,13 @@
       <div class="why" style="font-size:12px;color:var(--mut);margin-top:3px">One honest number, split into its parts. The gap shows where the work is — right now it's the testing gate, not the app.</div>
       <div class="mini"><div id="donut"></div><div class="bars" id="readybars"></div></div>
     </div>
+  </section>
+
+  <!-- THIS WEEK (Sprints) -->
+  <section class="panel" data-tab="week">
+    <div class="lead">This week's focus — the jobs we're smashing right now. A sprint is just a GitHub Milestone with a due date; pick one below.</div>
+    <div class="wkpick" id="wkpick"></div>
+    <div id="weekview"></div>
   </section>
 
   <!-- ROADMAP -->
@@ -450,7 +504,7 @@
 
 <script>
 const LAUNCH=new Date('2026-07-24T00:00:00+10:00'); const AS_OF='live';
-const TABS=[{id:'today',label:'Today'},{id:'flow',label:'How we work'},{id:'roadmap',label:'Roadmap'},{id:'bugs',label:'Bugs',badge:10},{id:'later',label:'After launch'}];
+const TABS=[{id:'today',label:'Today'},{id:'week',label:'This week'},{id:'flow',label:'How we work'},{id:'roadmap',label:'Roadmap'},{id:'bugs',label:'Bugs',badge:10},{id:'later',label:'After launch'}];
 
 const JOBS=[
   {pri:1,t:"Find out what kind of Play Store account you have",d:"Personal or Organisation — and when did you open it? If it's Personal and opened after Nov 2023, Google forces a 14-day test with 12 people before you can launch. This one fact decides if 24 July is comfortable or tight.",done:"Done when: you tell me 'personal' or 'organisation' + the rough sign-up date."},
@@ -583,6 +637,14 @@ function sel(field,id,num,cur,opts){
 const stMap={open:{t:'Open',bg:'rgba(255,92,122,.14)',c:'#FF8AA0'},check:{t:'Fixed — build & check',bg:'rgba(40,224,176,.14)',c:'#5BE8C4'},fixing:{t:'Being fixed (quick version)',bg:'rgba(255,194,75,.14)',c:'#FFD27A'},later:{t:'Tracked for later',bg:'rgba(134,150,176,.16)',c:'#A7B4C8'},call:{t:'Needs your call',bg:'rgba(255,46,166,.16)',c:'#FF8AD0'},done:{t:'Done ✓',bg:'rgba(40,224,176,.18)',c:'#5BE8C4'}};
 const sevCol={'Show-stopper':'var(--bad)','Serious':'var(--warn)','Annoying':'var(--aqua)','Tidy-up':'var(--mut2)'};
 let bugFilter='open', bugSearch='', sortKey='sev', sortDir=1;
+// Issue #42 — Goals (Epics) + This week (Sprints)
+let bugView='flat';                 // 'flat' table | 'goal' grouped
+let MILESTONES=[];                  // sprints from /milestones
+let selectedMs=null;                // chosen sprint number (null = soonest-due)
+const goalOpen={};                  // which goal headers are expanded
+// Display order for the goals — matches the epics Patrick uses, "No goal yet" last.
+const EPIC_ORDER=['Launch-ready','The cooking moment','Meal planning','Keep them coming back','Trust & safety'];
+function epicRank(name){const i=EPIC_ORDER.indexOf(name);return i<0?98:i;}
 const sevOrder={'Show-stopper':0,'Serious':1,'Annoying':2,'Tidy-up':3};
 const stLabelMap={open:'Open',fixing:'Being fixed',check:'Fixed — check',call:'Needs your call',later:'Tracked later',done:'Done ✓'};
 
@@ -619,9 +681,28 @@ function renderBugs(){
   if(bugSearch){const q=bugSearch.toLowerCase();list=list.filter(b=>(b.t+' '+b.d+' '+b.id+' '+b.who).toLowerCase().includes(q));}
   list=sortBugs(list);
 
+  // View toggle — flat list vs grouped under Goals
+  const vtoggle='<div class="vtoggle">'+
+    '<button data-v="flat"'+(bugView==='flat'?' class="on"':'')+'>List</button>'+
+    '<button data-v="goal"'+(bugView==='goal'?' class="on"':'')+'>By goal</button>'+
+    '</div>';
+
   const tools='<div class="bugtools"><div class="bugfilter">'+
     [['open','Open',openN],['done','Done',doneN],['all','All',BUGS.length]].map(o=>'<button class="ffbtn'+(bugFilter===o[0]?' on':'')+'" data-f="'+o[0]+'">'+o[1]+' '+o[2]+'</button>').join('')+
-    '</div><input class="bugsearch" id="bugsearch" placeholder="Search bugs…" value="'+esc(bugSearch)+'"></div>';
+    '</div>'+vtoggle+'<input class="bugsearch" id="bugsearch" placeholder="Search bugs…" value="'+esc(bugSearch)+'"></div>';
+
+  // ── BY GOAL view — collapsible epic groups with progress bars ──
+  if(bugView==='goal'){
+    $('buglist').innerHTML=tools+renderGoalGroups(list);
+    wireBugTools();
+    document.querySelectorAll('.goal-hd').forEach(h=>h.addEventListener('click',()=>{
+      const g=h.dataset.goal; goalOpen[g]=!goalOpen[g]; renderBugs();
+    }));
+    document.querySelectorAll('.goal-row[data-id]').forEach(r=>r.addEventListener('click',()=>{
+      const bug=BUGS.find(x=>x.id===r.dataset.id); if(bug)openDrawer(bug);
+    }));
+    return;
+  }
 
   const arr=k=>sortKey===k?('<span class="arr">'+(sortDir>0?'▲':'▼')+'</span>'):'';
   const head='<thead><tr>'+
@@ -648,12 +729,8 @@ function renderBugs(){
   const empty=list.length?'':'<tr><td colspan="6" style="padding:20px;color:var(--mut2)">No bugs match.</td></tr>';
   $('buglist').innerHTML=tools+'<table class="bugtable">'+head+'<tbody>'+(rows||empty)+'</tbody></table>';
 
-  // Wire filter buttons
-  document.querySelectorAll('.ffbtn').forEach(btn=>btn.addEventListener('click',()=>{bugFilter=btn.dataset.f;renderBugs();}));
-  // Wire search (preserve focus + caret)
-  const sb=$('bugsearch');
-  if(sb)sb.addEventListener('input',()=>{bugSearch=sb.value;const pos=sb.selectionStart;renderBugs();const nb=$('bugsearch');if(nb){nb.focus();try{nb.setSelectionRange(pos,pos);}catch(e){}}});
-  // Wire sortable headers
+  wireBugTools();
+  // Wire sortable headers (flat view only)
   document.querySelectorAll('.bugtable thead th').forEach(th=>th.addEventListener('click',()=>{
     const k=th.dataset.sort; if(!k)return;
     if(sortKey===k)sortDir=-sortDir; else{sortKey=k;sortDir=(k==='upd')?1:1;}
@@ -663,6 +740,129 @@ function renderBugs(){
   document.querySelectorAll('.bugtable tbody tr[data-id]').forEach(tr=>tr.addEventListener('click',()=>{
     const bug=BUGS.find(x=>x.id===tr.dataset.id); if(bug)openDrawer(bug);
   }));
+}
+
+// Shared wiring for the tools bar (filter pills, view toggle, search) — used
+// by both the flat table and the by-goal grouped view.
+function wireBugTools(){
+  document.querySelectorAll('.ffbtn').forEach(btn=>btn.addEventListener('click',()=>{bugFilter=btn.dataset.f;renderBugs();}));
+  document.querySelectorAll('.vtoggle button').forEach(btn=>btn.addEventListener('click',()=>{bugView=btn.dataset.v;try{localStorage.setItem('buglord_bugview',bugView);}catch(e){}renderBugs();}));
+  const sb=$('bugsearch');
+  if(sb)sb.addEventListener('input',()=>{bugSearch=sb.value;const pos=sb.selectionStart;renderBugs();const nb=$('bugsearch');if(nb){nb.focus();try{nb.setSelectionRange(pos,pos);}catch(e){}}});
+}
+
+// ── Goals (Epics): group the filtered list under collapsible headers, each
+//    with a done/total count + progress bar. Plain language: "Goals". ──
+function renderGoalGroups(list){
+  const groups={};
+  list.forEach(b=>{const k=b.epic||'No goal yet';(groups[k]=groups[k]||[]).push(b);});
+  const names=Object.keys(groups).sort((a,b)=>{
+    const r=epicRank(a==='No goal yet'?'~':a)-epicRank(b==='No goal yet'?'~':b);
+    if(a==='No goal yet')return 1; if(b==='No goal yet')return -1;
+    return r||a.localeCompare(b);
+  });
+  if(!names.length)return '<div style="padding:18px;color:var(--mut2)">No jobs match.</div>';
+  return names.map(name=>{
+    const items=groups[name];
+    // Progress counts the WHOLE epic (not just the current filter) so the bar is honest.
+    const all=BUGS.filter(b=>(b.epic||'No goal yet')===name);
+    const done=all.filter(b=>b.st==='done').length, total=all.length;
+    const pct=total?Math.round(done/total*100):0;
+    const open=goalOpen[name]!==false && (goalOpen[name]||name!=='No goal yet'); // goals open by default, "No goal" closed
+    const rows=items.map(b=>{
+      const st=stMap[b.st]||{t:b.st,bg:'rgba(255,255,255,.06)',c:'var(--mut)'};
+      return '<div class="goal-row'+(b.st==='done'?' done':'')+'" data-id="'+esc(b.id)+'">'+
+        '<span class="sevdot" style="background:'+(sevCol[b.sev]||'var(--mut)')+'"></span>'+
+        '<span class="grt">'+esc(b.t)+'<span class="tid">'+esc(b.id)+'</span></span>'+
+        '<span class="gr-st" style="background:'+st.bg+';color:'+st.c+'">'+esc(stLabelMap[b.st]||st.t)+'</span>'+
+      '</div>';
+    }).join('');
+    return '<div class="goal'+(open?' open':'')+'">'+
+      '<div class="goal-hd" data-goal="'+esc(name)+'">'+
+        '<span class="goal-chev">▶</span>'+
+        '<div class="goal-main">'+
+          '<div class="goal-name">'+(name==='No goal yet'?'🗂️ No goal yet':'🎯 '+esc(name))+'</div>'+
+          '<div class="goal-sub">'+done+' of '+total+' done</div>'+
+          '<div class="goal-prog pbar'+(pct===100?' full':'')+'"><i style="width:'+pct+'%"></i></div>'+
+        '</div>'+
+        '<div class="goal-pct">'+pct+'%</div>'+
+      '</div>'+
+      '<div class="goal-body">'+rows+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+// ── This week (Sprints) ───────────────────────────────────────────────────
+// daysLeft → {n, label, color} from an ISO due date.
+function sprintDays(due){
+  if(!due)return null;
+  const ms=new Date(due).getTime()-Date.now();
+  const n=Math.ceil(ms/86400000);
+  if(n<0)return {n,label:Math.abs(n)+' day'+(Math.abs(n)===1?'':'s')+' overdue',color:'var(--bad)'};
+  if(n===0)return {n,label:'due today',color:'var(--warn)'};
+  return {n,label:n+' day'+(n===1?'':'s')+' left',color:n<=2?'var(--warn)':'var(--good)'};
+}
+// The sprint we're showing: explicit pick → else soonest due → else first.
+function currentSprint(){
+  if(!MILESTONES.length)return null;
+  if(selectedMs!=null){const m=MILESTONES.find(x=>x.number===selectedMs);if(m)return m;}
+  const withDue=MILESTONES.filter(m=>m.due_on).sort((a,b)=>new Date(a.due_on)-new Date(b.due_on));
+  return withDue[0]||MILESTONES[0];
+}
+function renderWeek(){
+  const pick=$('wkpick'), view=$('weekview'); if(!view)return;
+  if(!MILESTONES.length){
+    pick.innerHTML='';
+    view.innerHTML='<div class="wkempty"><b style="color:var(--ink)">No sprint set yet.</b><br>'+
+      'A “sprint” is just this week’s focus. To start one: in GitHub, make a <b>Milestone</b> '+
+      '(e.g. “Week of 9 Jun”), give it a due date, and tick the jobs into it. They’ll show up here '+
+      'with a progress bar and days-left — automatically.</div>';
+    return;
+  }
+  const cur=currentSprint();
+  pick.innerHTML=MILESTONES.map(m=>'<button data-ms="'+m.number+'"'+(cur&&m.number===cur.number?' class="on"':'')+'>'+esc(m.title)+'</button>').join('');
+  pick.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{selectedMs=Number(b.dataset.ms);renderWeek();}));
+
+  const jobs=BUGS.filter(b=>b.msNum===cur.number);
+  const done=jobs.filter(b=>b.st==='done').length, total=jobs.length;
+  const pct=total?Math.round(done/total*100):0;
+  const d=sprintDays(cur.due_on);
+  const daysPill=d?'<div class="wkdays" style="background:rgba(255,255,255,.06);color:'+d.color+'">'+esc(d.label)+'</div>':'';
+
+  const rows=jobs.length?jobs.slice().sort((a,b)=>{const xd=a.st==='done',yd=b.st==='done';return xd-yd;}).map(b=>{
+    const st=stMap[b.st]||{t:b.st,bg:'rgba(255,255,255,.06)',c:'var(--mut)'};
+    return '<div class="goal-row'+(b.st==='done'?' done':'')+'" data-id="'+esc(b.id)+'">'+
+      '<span class="sevdot" style="background:'+(sevCol[b.sev]||'var(--mut)')+'"></span>'+
+      '<span class="grt">'+esc(b.t)+'<span class="tid">'+esc(b.id)+'</span></span>'+
+      '<span class="gr-st" style="background:'+st.bg+';color:'+st.c+'">'+esc(stLabelMap[b.st]||st.t)+'</span>'+
+    '</div>';
+  }).join(''):'<div style="padding:16px;color:var(--mut2)">No jobs in this sprint yet — add them to the “'+esc(cur.title)+'” milestone in GitHub.</div>';
+
+  view.innerHTML=
+    '<div class="wkhero">'+
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px">'+
+        '<div><div class="wktitle">'+esc(cur.title)+'</div>'+daysPill+'</div>'+
+        '<div style="text-align:right"><div class="wkbig">'+done+'<span style="color:var(--mut);font-size:20px">/'+total+'</span></div><div class="wkof">jobs done</div></div>'+
+      '</div>'+
+      '<div class="pbar'+(pct===100?' full':'')+'" style="margin-top:14px"><i style="width:'+pct+'%"></i></div>'+
+    '</div>'+
+    '<div class="goal" style="margin-top:12px"><div class="goal-body" style="display:block">'+rows+'</div></div>';
+
+  view.querySelectorAll('.goal-row[data-id]').forEach(r=>r.addEventListener('click',()=>{
+    const bug=BUGS.find(x=>x.id===r.dataset.id); if(bug)openDrawer(bug);
+  }));
+}
+// Today tab one-liner: "This week: X of Y done."
+function renderWeekLine(){
+  const el=$('weekline'); if(!el)return;
+  const cur=currentSprint();
+  if(!cur){el.innerHTML='';return;}
+  const jobs=BUGS.filter(b=>b.msNum===cur.number);
+  const done=jobs.filter(b=>b.st==='done').length, total=jobs.length;
+  const d=sprintDays(cur.due_on);
+  el.innerHTML='<div class="wkline" style="cursor:pointer" onclick="show(\'week\')">📌 '+
+    '<span>This week (<b style="color:var(--ink)">'+esc(cur.title)+'</b>): <b>'+done+' of '+total+'</b> done'+
+    (d?' · '+esc(d.label):'')+'</span></div>';
 }
 
 $('later').innerHTML=LATER.map(l=>`<div class="lcard"><div class="lt">${l.lt}</div><div class="ld">${l.ld}</div><div class="ls">${l.ls}</div></div>`).join('');
@@ -896,10 +1096,16 @@ document.addEventListener('click',function(e){
   }
 });
 
+// Restore the saved Bugs view (flat / by-goal) + cached sprints.
+try{const v=localStorage.getItem('buglord_bugview');if(v==='goal'||v==='flat')bugView=v;}catch(e){}
+try{const m=JSON.parse(localStorage.getItem('buglord_ms_cache')||'[]');if(Array.isArray(m))MILESTONES=m;}catch(e){}
+
 // Render the last-good cache instantly (no blank flash), then refresh live.
 BUGS=loadCache();
 recomputeSev();
 renderBugs();
+renderWeek();
+renderWeekLine();
 
 /* ---- HONE-025: live board (GitHub is the single source) ----------------
    initBugLord() fires once on load:
@@ -919,12 +1125,28 @@ async function initBugLord(){
         saveCache();
         recomputeSev();
         renderBugs();
+        renderWeek();
+        renderWeekLine();
         $('stamp').textContent='as of '+new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
       }
     }
   }catch(e){
     // Worker briefly unreachable — the cached board stays rendered.
   }
+
+  // ── 1b. Sprints (milestones) ───────────────────────────────────────────────
+  try{
+    const rm=await fetch(WORKER_URL+'/milestones?t='+Date.now());
+    if(rm.ok){
+      const live=await rm.json();
+      if(Array.isArray(live)){
+        MILESTONES=live;
+        try{localStorage.setItem('buglord_ms_cache',JSON.stringify(live));}catch(e){}
+        renderWeek();
+        renderWeekLine();
+      }
+    }
+  }catch(e){/* keep cached sprints */}
 
   // ── 2. Build ─────────────────────────────────────────────────────────────
   try{
@@ -970,7 +1192,7 @@ async function refreshBugs(){
     if(!Array.isArray(live))return;
     // Only re-render if something actually changed (cheap signature compare).
     if(JSON.stringify(live)!==JSON.stringify(BUGS)){
-      BUGS=live; saveCache(); recomputeSev(); renderBugs();
+      BUGS=live; saveCache(); recomputeSev(); renderBugs(); renderWeek(); renderWeekLine();
     }
   }catch(e){/* offline tick — ignore */}
 }
