@@ -1,0 +1,26 @@
+name = "tuckerspice-tracker"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+# Repo the tracker reads/writes. Set as a var so the rename is a one-line flip
+# (no code change). At Phase-2 cutover, change this to "patrickpatches/tucker-spice"
+# and redeploy. (GitHub also 301-redirects the old API path, so there's no gap.)
+[vars]
+REPO = "patrickpatches/hone"
+
+# ── CRITICAL (Issue #50, Phase 1.2) ─────────────────────────────────────────
+# SAME KV namespace id as the old hone-buglord worker, so any saved board state
+# carries over verbatim — this binds the existing store, it does NOT create a new
+# empty one. (Note: the current code keeps board state in GitHub Issues, not KV,
+# so this is belt-and-braces — but we preserve it exactly as the ticket requires.)
+[[kv_namespaces]]
+binding = "HONE_STATE"
+id = "33fab36582ed42bf93329fa5517bca24"
+
+# Secrets (set via `wrangler secret put` on THIS worker — same values as the old
+# one; they are write-only and cannot be copied programmatically):
+#   GITHUB_TOKEN  — fine-grained token, Issues read AND write on the repo
+#   WRITE_KEY     — the phrase Patrick chose; entered once in the dashboard
+#
+# Deploy: wrangler deploy
+# Dev:    wrangler dev   (hit http://localhost:8787)

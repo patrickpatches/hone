@@ -1,0 +1,14 @@
+{
+  "name": "tuckerspice-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Worker — proxies GitHub Issues to the Tucker & Spice tracker dashboard",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4",
+    "wrangler": "^3"
+  }
+}
