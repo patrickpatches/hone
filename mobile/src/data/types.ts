@@ -27,6 +27,7 @@
  */
 
 import { z } from 'zod';
+import { AllergenId } from './allergens';
 
 // ---------------------------------------------------------------------------
 // Taxonomy — dual-axis category system
@@ -343,6 +344,23 @@ export const Recipe = z.object({
     cuisines: z.array(CuisineId).min(1),
     types: z.array(TypeId).min(1),
   }).optional(),
+
+  /**
+   * Allergen declaration (Australian PEAL / Food Standards Code 1.2.3).
+   *
+   * DERIVED, not authored or persisted. It is computed from the ingredient
+   * names by `recipeAllergens()` (src/data/allergens.ts) at the DB-load
+   * boundary in `rowToRecipe`, so one auditable rule set covers seed recipes,
+   * user-added recipes, and pantry/Claude-generated recipes alike — nothing
+   * can ship an ingredient whose allergens go undeclared. Optional here
+   * because raw seed objects don't carry it; the field is populated on the
+   * in-memory Recipe the UI receives.
+   *
+   * An empty array after derivation means "no major allergens from the listed
+   * ingredients" — a real result the UI renders explicitly, distinct from
+   * `undefined` (not yet computed).
+   */
+  allergens: z.array(AllergenId).optional(),
 
   /**
    * Attribution. REQUIRED unless user_added or generated_by_claude.

@@ -320,7 +320,11 @@ export default function KitchenHome() {
             <Text style={{ color: tokens.gold }}>.</Text>
           </Text>
         </View>
-        <View
+        <Pressable
+          onPress={() => router.push('/settings')}
+          accessibilityRole="button"
+          accessibilityLabel="Profile and settings"
+          hitSlop={10}
           style={{
             width: 32,
             height: 32,
@@ -332,12 +336,11 @@ export default function KitchenHome() {
             justifyContent: 'center',
             marginBottom: 2,
           }}
-          accessibilityLabel="Profile"
         >
           <Text style={{ fontFamily: fonts.sansBold, fontSize: 12, color: tokens.inkSoft }}>
             {USER_INITIAL}
           </Text>
-        </View>
+        </Pressable>
       </View>
 
       {/* ── SEARCH — gold border ──────────────────────────────────────────── */}

@@ -9,6 +9,7 @@
  */
 import type { SQLiteDatabase } from 'expo-sqlite';
 import type { Recipe, Ingredient, Step } from '../src/data/types';
+import { recipeAllergens } from '../src/data/allergens';
 import { SCHEMA_SQL, SCHEMA_MIGRATIONS, SCHEMA_VERSION } from './schema';
 // seed.ts is intentionally NOT imported here — seed.ts imports insertRecipe
 // from this file, so any import back creates a circular dependency that
@@ -166,6 +167,11 @@ function rowToRecipe(
     generated_by_claude: Boolean(row.generated_by_claude),
     ingredients,
     steps,
+    // Allergen declaration — DERIVED from ingredient names at the load
+    // boundary (not a stored column), so it can never drift from the
+    // ingredients and one rule set covers seed + user + Claude recipes.
+    // See src/data/allergens.ts for the AU PEAL rationale.
+    allergens: recipeAllergens({ ingredients }),
     leftover_mode:
       row.leftover_extra_servings != null
         ? { extra_servings: row.leftover_extra_servings, note: row.leftover_note ?? '' }
@@ -649,17 +655,6 @@ export interface MealPlanEntry {
   date: string;
   recipe_id: string;
   servings: number;
-}
-
-export async function getMealPlanForWeek(
-  db: SQLiteDatabase,
-  weekStart: string,
-  weekEnd: string,
-): Promise<MealPlanEntry[]> {
-  return db.getAllAsync<MealPlanEntry>(
-    'SELECT * FROM meal_plan WHERE date >= ? AND date <= ? ORDER BY date',
-    [weekStart, weekEnd],
-  );
 }
 
 export async function getAllMealPlan(

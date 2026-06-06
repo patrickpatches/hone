@@ -1,129 +1,169 @@
 /**
- * Design tokens — Tucker & Spice Dark palette.
+ * Design tokens — Tucker & Spice.
  *
- * DECISION-012 · 2026-05-07. Direction: Dark.
- * Previous: Sage palette (DECISION-011, light surfaces #E8F0E6).
+ * Two named themes (v2):
+ *   darkTokens  ("Dark")  — dark warm "cookbook on near-black paper" (original brand).
+ *   lightTokens ("Light") — neon green canvas, hot-pink CTAs, magenta editorial accent.
  *
- * CHANGE:
- *   Surfaces moved to very dark grey almost-black. Ink inverted to warm cream.
- *   Accent colours (rust, forest, ochre, sky) unchanged — all read well on dark.
+ * The exported `tokens` object is MUTABLE — setActiveTheme() swaps values in
+ * place so static importers see the new theme on next render after a remount.
  *
- * Surfaces:
- *   bg      #141414   — primary screen background (very dark grey)
- *   bgDeep  #0F0F0F   — section headers, pressed states, deeper recesses
- *   cream   #1E1E1E   — elevated card surfaces, input backgrounds
- *
- * Ink (inverted from Sage):
- *   ink     #F5EFE8   — warm cream — primary text  (~16:1 on #141414)
- *   inkSoft #C4B8A8   — softer cream — secondary text
- *   muted   #8A7E72   — warm taupe — captions, hints, placeholders
- *
- * Lines (white-alpha on dark):
- *   line     rgba(255,255,255,0.07)
- *   lineDark rgba(255,255,255,0.13)
- *
- * Cook mode (CLAUDE.md mandate: OLED true blacks) stays at #000000
- * — visually distinct from app bg #141414.
- *
- * Contrast notes (against bg #141414):
- *   ink     #F5EFE8   ~16:1   AAA body
- *   inkSoft #C4B8A8   ~8.5:1  AAA body
- *   muted   #8A7E72   ~4.2:1  AA large text + UI components
- *   primary #B84030   ~3.8:1  AA large text + UI components (rust on near-black)
- *   sage    #2E5E3E   ~2.9:1  use for icons/badges only, not body text
+ * Themes are toggled from ThemeContext (src/theme/ThemeContext.tsx) which
+ * forces a Stack remount via key={theme} in _layout.tsx.
  */
 
-export const tokens = {
-  // Surfaces — dark
-  bg:      '#141414',   // very dark grey — primary background
-  bgDeep:  '#0F0F0F',   // deeper dark — section headers, pressed states
-  cream:   '#1E1E1E',   // elevated dark — card surfaces, inputs
+// ─── Dark (warm near-black) ─────────────────────────────────────────────────
+export const darkTokens = {
+  bg:      '#141414',
+  bgDeep:  '#0F0F0F',
+  cream:   '#1E1E1E',
+  dockBg:  '#1E1E1E',
 
-  // Ink — warm cream on dark
-  ink:     '#F5EFE8',   // warm cream — primary text
-  inkSoft: '#C4B8A8',   // softer cream — secondary text
-  muted:   '#8A7E72',   // warm taupe — captions, hints, placeholders
+  ink:     '#F5EFE8',
+  inkSoft: '#C4B8A8',
+  muted:   '#8A7E72',
 
-  // Primary — magenta (DECISION-016, 2026-06-05). Replaces rust #B84030 across
-  // the app for buttons, links, Kitchen eyebrow, active tab, Plan button, step
-  // numbers — anywhere `primary` is referenced. Sits warm against the gold +
-  // bronze palette without clashing. Cook mode keeps its own rust accent on
-  // OLED black (visually distinct context, separate token group below).
-  //
-  // Buttons with `backgroundColor: primary` use `color: tokens.onPrimary` (#FFF6F0).
-  // For inline text on dark surfaces: `primaryInk` — slightly lifted magenta.
-  primary:      '#C8267E',
-  primaryDeep:  '#9E1A62',                   // pressed states / borders
-  primaryInk:   '#E64A98',                   // lifted magenta for text on dark surfaces
-  primaryLight: 'rgba(200,38,126,0.18)',     // tint for chips, selected states
-  onPrimary:    '#FFF6F0',                   // warm cream — text/icon on solid magenta
+  // Gold — action accent. Bright yellow fill, so text ON the button must be
+  // dark (onPrimary) for contrast. primaryInk stays bright gold — it's used as
+  // text ON the dark bg, where gold reads ~10:1.
+  primary:      '#F2CC2A',
+  primaryDeep:  '#D4A91A',
+  primaryInk:   '#F5D64A',
+  primaryLight: 'rgba(242,204,42,0.18)',
+  onPrimary:    '#1A1206',
 
-  // Secondary — forest green (Pantry/Shop eyebrow, "See all" chip, "why" callouts,
-  //   step completion, checked states).
-  // Text on solid forest = tokens.onPrimary (#FAFAF7).
-  sage:      '#3A7050',                      // slightly lightened for dark bg legibility
+  sage:      '#3A7050',
   sageDeep:  '#1E4E2E',
-  sageLight: 'rgba(46,94,62,0.20)',          // raised opacity for dark bg
+  sageLight: 'rgba(46,94,62,0.20)',
 
-  // Tertiary — amber/ochre (mise en place zone, badges, highlights).
-  ochre:     '#C07038',                      // slightly lightened for dark bg
+  ochre:     '#C07038',
   ochreDeep: '#A05C28',
 
-  // Warm brown — recipe detail framing headers (Finishing & tasting band).
-  warmBrown: '#B08060',                      // lightened for dark bg
+  warmBrown: '#B08060',
 
-  // Amber — mise en place zone background + border.
-  amber:     '#1E1408',                      // dark amber tint (was warm cream #FEF4E2)
-  amberLine: 'rgba(160,92,40,0.32)',         // raised opacity for dark bg
+  amber:     '#1E1408',
+  amberLine: 'rgba(160,92,40,0.32)',
 
-  // Sky — soft info/filter accent (filter chips, informational states).
   sky:      '#7AAABB',
   skyDeep:  '#5A8A9B',
   skyLight: 'rgba(122,170,187,0.20)',
 
-  // Gold — Editorial accent (introduced 2026-05-10). Used by the Kitchen
-  // wordmark period, search border, active category tile fill, recipe
-  // cuisine tags, and 'Tonight'/'Planned' badges. Single source of truth
-  // for the gold accent so any future tweak propagates everywhere at once.
-  gold:    '#F2CC2A',
-  goldDim: 'rgba(242,204,42,0.15)',
-  // Soft antique bronze-gold — header accents (eyebrow, title italic). Deliberately
-  // darker/desaturated vs the bright stepper gold so the two never compete.
-  bronze:  '#C2A15A',
-  // Bronze tinted at low alpha — honest-swap callout bg, swap-pill 'on' state (v7).
+  // Gold — editorial accent (wordmark period, search border, cuisine tags).
+  gold:       '#F2CC2A',
+  goldDim:    'rgba(242,204,42,0.15)',
+  bronze:     '#C2A15A',
   bronzeSoft: 'rgba(194,161,90,0.10)',
 
-  // Structural — white-alpha on dark surfaces
-  line:     'rgba(255,255,255,0.07)',   // subtle dividers
-  lineDark: 'rgba(255,255,255,0.13)',   // stronger borders
+  // Recipe hero title colour. Warm gold on dark (Issue #23 §2).
+  recipeTitle: 'rgb(255,202,89)',
 
-  // Cook-mode surfaces. CLAUDE.md mandate: dark, OLED true blacks.
-  // True #000000 to be visually distinct from app bg #141414.
-  // The recipe screen pulls from this group while `cooking` is true.
+  line:     'rgba(255,255,255,0.07)',
+  lineDark: 'rgba(255,255,255,0.13)',
+
+  // Inactive tab colour — cream at 55% on dark dock.
+  tabInactive: 'rgba(245,239,232,0.55)',
+
   cookMode: {
-    screenBg: '#000000',   // true OLED black — visually distinct from app bg #141414
-    cardBg:   '#0D0D0D',   // raised card surface
-    bgDeep:   '#161616',   // callouts, leftover note
-    ink:      '#F5EFE8',   // warm cream — primary text
-    inkSoft:  '#C4B8A8',   // softer cream for body
-    muted:    '#8A7E72',   // warm taupe for captions
+    screenBg: '#000000',
+    cardBg:   '#0D0D0D',
+    bgDeep:   '#161616',
+    ink:      '#F5EFE8',
+    inkSoft:  '#C4B8A8',
+    muted:    '#8A7E72',
     line:     'rgba(255,255,255,0.06)',
     lineDark: 'rgba(255,255,255,0.12)',
-    // Accents — rust and forest read well on true black.
-    primary:  '#B84030',   // rust — same as app primary
-    sage:     '#2E5E3E',   // forest — same as app sage
-    ochre:    '#A05C28',   // amber ochre
+    primary:  '#B84030',
+    sage:     '#2E5E3E',
+    ochre:    '#A05C28',
   },
-} as const;
+};
+
+// ─── Light (bright green canvas) ───────────────────────────────────────────
+export const lightTokens = {
+  bg:      '#00FF9A',
+  bgDeep:  '#00D482',
+  cream:   '#E8FFF5',   // mint-tinted cards — part of the green world, not cold white
+  dockBg:  '#0D1B2A',   // dark navy dock floats on neon green
+
+  // Ink inverted — dark navy on light surfaces.
+  ink:     '#0D1B2A',
+  inkSoft: '#1E3A4A',
+  muted:   '#4A7A8A',
+
+  // Hot pink — action accent.
+  primary:      '#FF2E88',
+  primaryDeep:  '#CC1A6A',
+  primaryInk:   '#CC0060',
+  primaryLight: 'rgba(255,46,136,0.12)',
+  onPrimary:    '#F6F7FF',
+
+  sage:      '#3A7050',
+  sageDeep:  '#1E4E2E',
+  sageLight: 'rgba(46,94,62,0.20)',
+
+  ochre:     '#C07038',
+  ochreDeep: '#A05C28',
+
+  warmBrown: '#0D1B2A',
+
+  amber:     '#D4FFF0',
+  amberLine: 'rgba(13,27,42,0.10)',
+
+  sky:      '#7AAABB',
+  skyDeep:  '#5A8A9B',
+  skyLight: 'rgba(122,170,187,0.20)',
+
+  // Hot pink — editorial accent (cuisine tags, search border, wordmark period).
+  // Unified with primary — one accent, not two competing colours.
+  gold:       '#FF2E88',
+  goldDim:    'rgba(255,46,136,0.12)',
+  bronze:     '#FF2E88',
+  bronzeSoft: 'rgba(255,46,136,0.10)',
+
+  // Recipe hero title — magenta in Neon (replaces the orphan gold).
+  recipeTitle: '#FF2E88',
+
+  // Lines — dark-alpha on light surfaces (inverted from stealth).
+  line:     'rgba(13,27,42,0.08)',
+  lineDark: 'rgba(13,27,42,0.16)',
+
+  // Inactive tab — near-white at 50% on dark navy dock.
+  tabInactive: 'rgba(246,247,255,0.50)',
+
+  cookMode: {
+    screenBg: '#000000',
+    cardBg:   '#0D0D0D',
+    bgDeep:   '#161616',
+    ink:      '#F5EFE8',
+    inkSoft:  '#C4B8A8',
+    muted:    '#8A7E72',
+    line:     'rgba(255,255,255,0.06)',
+    lineDark: 'rgba(255,255,255,0.12)',
+    primary:  '#00FF9A',   // neon green on OLED black
+    sage:     '#2E5E3E',
+    ochre:    '#A05C28',
+  },
+};
+
+export type ActiveTheme = 'light' | 'dark';
 
 /**
- * Shadow tokens — single source of truth for elevation.
- *
- * `card` is the default shadow for any raised surface (recipe cards, pantry
- * zone, shop sections). One look across the app, no per-component tuning.
- * `cardLifted` is for actively-pressed-up surfaces.
- * `toast` is for floating overlays (undo banner, etc.).
+ * Mutable active token object. Components import this statically; setActiveTheme
+ * mutates it in place so a forced remount picks up the new values automatically.
+ * Default = dark (the original brand).
  */
+export const tokens: typeof darkTokens = {
+  ...darkTokens,
+  cookMode: { ...darkTokens.cookMode },
+};
+
+export function setActiveTheme(name: ActiveTheme): void {
+  const src = name === 'dark' ? darkTokens : lightTokens;
+  Object.assign(tokens, src);
+  Object.assign(tokens.cookMode, src.cookMode);
+}
+
+// ─── Shadows ──────────────────────────────────────────────────────────────
 export const shadows = {
   card: {
     shadowColor: '#1F1814',
@@ -148,27 +188,13 @@ export const shadows = {
   },
 } as const;
 
-/**
- * Font family tokens.
- * Must match exactly what _layout.tsx loads via useFonts.
- *
- * Fraunces (display) + Inter (body): editorial serif paired with
- * a geometric sans. v0.6 change: Source Sans 3 → Inter for body text.
- * Inter is more architectural and confident at UI sizes (12–15sp); it
- * also has tighter default letter-spacing which suits the deeper terracotta
- * palette — less delicate, more considered.
- *
- * Engineer note: swap @expo-google-fonts/playfair-display → @expo-google-fonts/fraunces (v7, build #127)
- * in package.json and update useFonts() in mobile/app/_layout.tsx.
- * Constant names are unchanged — no component rename pass required.
- */
+// ─── Fonts ────────────────────────────────────────────────────────────────
 export const fonts = {
   display:       'Fraunces_700Bold',
   displayItalic: 'Fraunces_500Medium_Italic',
   sans:          'Inter_400Regular',
   sansBold:      'Inter_600SemiBold',
   sansXBold:     'Inter_800ExtraBold',
-  // Poppins — recipe-detail browse meta line (Issue #23). Loaded in _layout.tsx.
   poppins:       'Poppins_400Regular',
 } as const;
 

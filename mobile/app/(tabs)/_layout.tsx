@@ -62,7 +62,7 @@ export default function TabLayout() {
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-around',
-              backgroundColor: tokens.cream,
+              backgroundColor: tokens.dockBg,
               borderRadius: 999,
               padding: 4,
               maxWidth: 480,

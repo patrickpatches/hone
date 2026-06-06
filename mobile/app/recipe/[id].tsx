@@ -46,6 +46,8 @@ import {
 } from '../../db/database';
 import type { PantryItem, ShoppingItem } from '../../db/database';
 import { tokens, fonts } from '../../src/theme/tokens';
+import { allergenMeta, ALLERGEN_DISCLAIMER } from '../../src/data/allergens';
+import { usePreferences } from '../../src/state/PreferencesContext';
 import { Flag, GlobeGlyph, originForCuisine } from '../../src/components/OriginFlag';
 import { Icon } from '../../src/components/Icon';
 import { SubstitutionSheet } from '../../src/components/SubstitutionSheet';
@@ -58,13 +60,8 @@ import {
   categorizeIngredient,
 } from '../../src/data/pantry-helpers';
 import { FoodIcon, ingredientIconName, categoryIconName } from '../../src/components/PantryIcons';
-import {
-  formatAmount,
-  scaleIngredient,
-  leftoverById,
-  totalPortionsFor,
-  type LeftoverModeId,
-} from '../../src/data/scale';
+import { scaleIngredient } from '../../src/data/scale';
+import { convertRecipeTemperature, formatMeasure } from '../../src/data/units';
 
 // Configure notifications to show while the app is foregrounded.
 Notifications.setNotificationHandler({
@@ -180,7 +177,7 @@ function RecipeDetailScreenInner() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const [recipe, setRecipe]     = useState<Recipe | null | undefined>(undefined);
+  const [rawRecipe, setRawRecipe] = useState<Recipe | null | undefined>(undefined);
   const [favorite, setFavorite] = useState(false);
   const [isPlanned, setIsPlanned] = useState(false);
 
@@ -193,7 +190,7 @@ function RecipeDetailScreenInner() {
         getPlannedRecipeIds(db),
       ]);
       if (!cancelled) {
-        setRecipe(r);
+        setRawRecipe(r);
         setFavorite(favs.has(id ?? ''));
         setIsPlanned(planned.has(id ?? ''));
       }
@@ -203,17 +200,27 @@ function RecipeDetailScreenInner() {
   }, [db, id]);
 
   // Sync default servings once recipe loads
-  const [people, setPeople]         = useState<number>(2);
-  const [leftoverKey, setLeftoverKey] = useState<LeftoverModeId>('tonight');
+  const { defaultServings, temperatureUnit, volumeSystem } = usePreferences();
+  const [people, setPeople]         = useState<number>(defaultServings);
+
+  // Display recipe = the loaded recipe with all temperatures converted to the
+  // user's unit, in ONE place so every section (steps, equipment, tips, notes)
+  // is consistent. Recomputes only when the recipe or the unit changes.
+  const recipe = useMemo(
+    () => (rawRecipe ? convertRecipeTemperature(rawRecipe, temperatureUnit) : rawRecipe),
+    [rawRecipe, temperatureUnit],
+  );
 
   useEffect(() => {
-    if (recipe) {
+    if (rawRecipe) {
       // DECISION-014: prefer output_default when the recipe has authored its
-      // per-unit count (4 burgers, 1 loaf, 8 tortillas). Falls back to
-      // base_servings for recipes that haven't been migrated yet.
-      setPeople(recipe.output_default ?? recipe.base_servings);
+      // per-unit count (4 burgers, 1 loaf, 8 tortillas) — count-based dishes
+      // ignore household size. People-based recipes pre-scale to the user's
+      // "Cooking for N" preference (Settings → Cooking). Keyed on rawRecipe so
+      // flipping the temperature unit never resets the servings.
+      setPeople(rawRecipe.output_default ?? defaultServings);
     }
-  }, [recipe]);
+  }, [rawRecipe, defaultServings]);
 
   // Reset mise en place when navigating to a different recipe
   useEffect(() => {
@@ -430,10 +437,8 @@ function RecipeDetailScreenInner() {
   const addMissingToShoppingList = useCallback(async () => {
     if (!recipe || !match) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    // Same scaling target the ingredient list uses, computed locally (the outer
-    // `totalPortions` const is declared below this callback, so we recompute from
-    // people + leftoverKey to keep the dep array TDZ-safe).
-    const portions = totalPortionsFor(leftoverById(leftoverKey), people, recipe.base_servings);
+    // Same scaling target the ingredient list uses: the servings the user picked.
+    const portions = people;
     try {
       await Promise.all(
         match.missingIngredients.map((mi) => {
@@ -473,7 +478,7 @@ function RecipeDetailScreenInner() {
     } catch (e) {
       console.error('addMissingToShoppingList failed', e);
     }
-  }, [db, recipe, match, people, leftoverKey]);
+  }, [db, recipe, match, people]);
 
   // ── Loading states ──────────────────────────────────────────────────────────
 
@@ -516,8 +521,8 @@ function RecipeDetailScreenInner() {
 
   // ── Derived ─────────────────────────────────────────────────────────────────
 
-  const option       = leftoverById(leftoverKey);
-  const totalPortions = totalPortionsFor(option, people, recipe.base_servings);
+  // Scale straight to the servings the user picked — no leftover multiplier.
+  const totalPortions = people;
   const stepsDoneCount = Object.values(stepsDone).filter(Boolean).length;
   const progress     = cooking ? stepsDoneCount / recipe.steps.length : 0;
   const gradient     = recipe.hero_fallback ?? [tokens.ink, tokens.warmBrown, tokens.bgDeep];
@@ -1056,8 +1061,8 @@ function RecipeDetailScreenInner() {
             {/* Issue #23 §2: bronze "Inspired by" eyebrow removed — attribution
                 now lives in the Chef Source Card below. */}
 
-            {/* Title — Fraunces 38sp, warm gold (Issue #23 §2) */}
-            <Text style={{ fontFamily: fonts.display, fontSize: 38, lineHeight: 40, letterSpacing: -0.6, color: 'rgb(255,202,89)' }}>
+            {/* Title — Fraunces 38sp. Gold in Stealth, magenta in Neon (tokens.recipeTitle). */}
+            <Text style={{ fontFamily: fonts.display, fontSize: 38, lineHeight: 40, letterSpacing: -0.6, color: tokens.recipeTitle }}>
               {recipe.title}
             </Text>
 
@@ -1192,6 +1197,78 @@ function RecipeDetailScreenInner() {
         )}
 
 
+        {/* ── ALLERGENS card — food-safety declaration ───────────────────
+            Australian PEAL allergens, DERIVED from the ingredient list (see
+            src/data/allergens.ts). Placed above the ingredients/shop accordion
+            so a user sees it before they shop or cook. An empty result is shown
+            explicitly ("no major allergens"), never as a missing card, so the
+            absence of a warning is never ambiguous. Always paired with the
+            honest "check the packet" disclaimer. */}
+        {!cooking && activeTab === 'Prep' && (() => {
+          const allergens = recipe.allergens ?? [];
+          const none = allergens.length === 0;
+          const summary = none
+            ? 'No major allergens from the listed ingredients'
+            : 'Contains ' + allergens.map((a) => allergenMeta(a).label.toLowerCase()).join(', ');
+          return (
+            <View style={{ paddingHorizontal: 20, marginTop: 14 }}>
+              <View
+                accessible
+                accessibilityLabel={`Allergens. ${summary}.`}
+                style={{
+                  backgroundColor: c.cardBg, borderRadius: 18, borderWidth: 1,
+                  borderColor: none ? c.lineDark : 'rgba(192,112,56,0.45)',
+                  padding: 16,
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <Icon name={none ? 'check' : 'alert'} size={16} color={none ? tokens.sage : tokens.ochre} />
+                  <Text style={{ flex: 1, fontFamily: fonts.display, fontSize: 18, lineHeight: 22, letterSpacing: -0.3, color: c.ink }}>
+                    Allergens
+                  </Text>
+                </View>
+
+                {none ? (
+                  <Text style={{ fontFamily: fonts.sans, fontSize: 13, lineHeight: 19, color: c.muted, marginTop: 10 }}>
+                    No major allergens from the listed ingredients. {ALLERGEN_DISCLAIMER}
+                  </Text>
+                ) : (
+                  <>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+                      {allergens.map((id) => {
+                        const m = allergenMeta(id);
+                        return (
+                          <View
+                            key={id}
+                            style={{
+                              paddingHorizontal: 11, paddingVertical: 7, borderRadius: 12,
+                              backgroundColor: 'rgba(192,112,56,0.12)',
+                              borderWidth: 1, borderColor: 'rgba(192,112,56,0.40)',
+                            }}
+                          >
+                            <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, lineHeight: 16, color: tokens.ochre }}>
+                              {m.label}
+                            </Text>
+                            {m.note ? (
+                              <Text style={{ fontFamily: fonts.sans, fontSize: 10, lineHeight: 13, color: c.muted, marginTop: 1 }}>
+                                {m.note}
+                              </Text>
+                            ) : null}
+                          </View>
+                        );
+                      })}
+                    </View>
+                    <Text style={{ fontFamily: fonts.sans, fontSize: 11, lineHeight: 16, color: c.muted, marginTop: 12 }}>
+                      {ALLERGEN_DISCLAIMER}
+                    </Text>
+                  </>
+                )}
+              </View>
+            </View>
+          );
+        })()}
+
+
         {/* ── PREP TAB — unified accordion card ──────────────────────────
             One card, three tappable section rows (like Method): Ingredients
             (pantry info merged in), Equipment, Prep. All start collapsed.
@@ -1229,12 +1306,9 @@ function RecipeDetailScreenInner() {
                       embedded
                       people={people}
                       setPeople={setPeople}
-                      leftoverKey={leftoverKey}
-                      setLeftoverKey={setLeftoverKey}
                       baseServings={recipe.base_servings}
                       outputUnit={recipe.output_unit}
                       outputUnitPlural={recipe.output_unit_plural}
-                      extraForTomorrowLabel={recipe.extra_for_tomorrow_label}
                     />
                   </View>
                   {/* Pantry match */}
@@ -1292,7 +1366,6 @@ function RecipeDetailScreenInner() {
                   {/* Ingredient list — browse rows */}
                   {recipe.ingredients.map((ing, idx) => {
                     const amount      = scaleIngredient(ing, totalPortions, recipe.base_servings);
-                    const showUnit    = ing.unit && ing.unit !== 'to taste' && ing.unit !== 'as needed';
                     const inlineUnit  = ing.unit === 'to taste' || ing.unit === 'as needed';
                     const hasSwaps    = (ing.substitutions?.length ?? 0) > 0;
                     const activeSwap  = activeSwaps[ing.id];
@@ -1301,7 +1374,7 @@ function RecipeDetailScreenInner() {
                     const isLastIng   = idx === recipe.ingredients.length - 1;
                     const inPantry    = ingredientInPantry(ing.name);
                     const onList      = !inPantry && ingredientOnShoppingList(ing.name);
-                    const amountText  = inlineUnit ? (ing.unit || '') : `${formatAmount(amount)}${showUnit ? ' ' + ing.unit : ''}`;
+                    const amountText  = inlineUnit ? (ing.unit || '') : formatMeasure(amount, ing.unit, volumeSystem);
                     const showHonest  = isSwapped && !!(activeSwap as Substitution).changes;
                     return (
                       <View key={ing.id} style={{ borderBottomWidth: isLastIng ? 0 : 1, borderBottomColor: c.line }}>
@@ -1664,7 +1737,6 @@ function RecipeDetailScreenInner() {
             {recipe.ingredients.map((ing, idx) => {
               const checked     = !!ingTicked[ing.id];
               const amount      = scaleIngredient(ing, totalPortions, recipe.base_servings);
-              const showUnit    = ing.unit && ing.unit !== 'to taste' && ing.unit !== 'as needed';
               const inlineUnit  = ing.unit === 'to taste' || ing.unit === 'as needed';
               const hasSwaps    = (ing.substitutions?.length ?? 0) > 0;
               // Active swap for this ingredient: null means "restored to original",
@@ -1718,9 +1790,8 @@ function RecipeDetailScreenInner() {
                         {!inlineUnit ? (
                           <>
                             <Text style={{ fontFamily: fonts.sansBold, fontVariant: ['tabular-nums'], color: checked ? c.muted : c.ink }}>
-                              {formatAmount(amount)}
+                              {formatMeasure(amount, ing.unit, volumeSystem)}
                             </Text>
-                            {showUnit ? <Text style={{ fontFamily: fonts.sansBold }}> {ing.unit}</Text> : null}
                             <Text style={isSwapped ? { color: c.primary } : undefined}> {displayName}</Text>
                             {isSwapped && (
                               <Text style={{ fontFamily: fonts.sans, color: c.muted, textDecorationLine: 'line-through' }}>
@@ -1757,7 +1828,7 @@ function RecipeDetailScreenInner() {
               const onList     = !inPantry && ingredientOnShoppingList(ing.name);
               const amountText = inlineUnit
                 ? (ing.unit || '')
-                : `${formatAmount(amount)}${showUnit ? ' ' + ing.unit : ''}`;
+                : formatMeasure(amount, ing.unit, volumeSystem);
               const showHonest = isSwapped && !!(activeSwap as Substitution).changes;
 
               return (

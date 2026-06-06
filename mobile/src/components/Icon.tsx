@@ -48,7 +48,9 @@ export type IconName =
   | 'calendar'
   | 'plus-circle'
   | 'grip'
-  | 'camera';
+  | 'camera'
+  | 'sun'
+  | 'moon';
 
 type Props = {
   name: IconName;
@@ -112,4 +114,6 @@ const PATHS: Record<IconName, React.ReactNode> = {
   'plus-circle': <><Circle cx="12" cy="12" r="10" /><Line x1="12" x2="12" y1="8" y2="16" /><Line x1="8" x2="16" y1="12" y2="12" /></>,
   'grip': <><Circle cx="9" cy="6" r="1" /><Circle cx="9" cy="12" r="1" /><Circle cx="9" cy="18" r="1" /><Circle cx="15" cy="6" r="1" /><Circle cx="15" cy="12" r="1" /><Circle cx="15" cy="18" r="1" /></>,
   'camera': <><Path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><Circle cx="12" cy="13" r="4" /></>,
+  'sun': <><Circle cx="12" cy="12" r="4" /><Path d="M12 2v2" /><Path d="M12 20v2" /><Path d="m4.93 4.93 1.41 1.41" /><Path d="m17.66 17.66 1.41 1.41" /><Path d="M2 12h2" /><Path d="M20 12h2" /><Path d="m6.34 17.66-1.41 1.41" /><Path d="m19.07 4.93-1.41 1.41" /></>,
+  'moon': <Path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />,
 };

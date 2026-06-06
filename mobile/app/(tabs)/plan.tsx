@@ -96,7 +96,11 @@ export default function PlanScreen() {
     setEntries(weekEntries);
   }, [db, startISO, endISO]);
 
-  useFocusEffect(load);
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
   const handleAdd = async (recipeId: string) => {
     if (!pickerDay) return;
