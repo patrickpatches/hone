@@ -25,6 +25,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as Haptics from 'expo-haptics';
+import * as Notifications from 'expo-notifications';
 import { useSQLiteContext } from 'expo-sqlite';
 
 import type { Recipe, Ingredient, Substitution } from '../../src/data/types';
@@ -59,6 +60,25 @@ import {
   totalPortionsFor,
   type LeftoverModeId,
 } from '../../src/data/scale';
+
+// Configure notifications to show while the app is foregrounded.
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
+interface ActiveTimer {
+  id: string;        // `${stepId}-${startedAt}`
+  stepTitle: string;
+  totalSecs: number;
+  startedAt: number; // Date.now() when started
+  notifId: string | null;
+}
 
 // ── v7 diagnostic ErrorBoundary (build #130) ──────────────────────────────
 //
@@ -209,6 +229,10 @@ function RecipeDetailScreenInner() {
   const [stepsDone, setStepsDone]   = useState<Record<string, boolean>>({});
   const [ingTicked, setIngTicked]   = useState<Record<string, boolean>>({});
 
+  // Running cooking timers — multiple concurrent, each backed by a local notification.
+  const [activeTimers, setActiveTimers] = useState<ActiveTimer[]>([]);
+  const [timerTick, setTimerTick]       = useState(0); // incremented each second, forces countdown re-render
+
   // Substitution sheet state.
   // activeSwaps maps ingredient.id → chosen Substitution (null = restored original).
   const [sheetIngredient, setSheetIngredient] = useState<Ingredient | null>(null);
@@ -255,6 +279,57 @@ function RecipeDetailScreenInner() {
     }
     return undefined;
   }, [cooking]);
+
+  // Tick every second while any timer is running so countdowns stay live.
+  const hasTimers = activeTimers.length > 0;
+  useEffect(() => {
+    if (!hasTimers) return;
+    const id = setInterval(() => {
+      setTimerTick(t => t + 1);
+      // Drop timers that have been done for >30 s — they've already fired the alarm.
+      setActiveTimers(prev =>
+        prev.filter(t => Date.now() < t.startedAt + (t.totalSecs + 30) * 1000)
+      );
+    }, 1000);
+    return () => clearInterval(id);
+  }, [hasTimers]);
+
+  const startTimer = async (stepId: string, stepTitle: string, totalSecs: number) => {
+    const startedAt = Date.now();
+    let notifId: string | null = null;
+    try {
+      const { status: existing } = await Notifications.getPermissionsAsync();
+      const { status } = existing === 'granted'
+        ? { status: existing }
+        : await Notifications.requestPermissionsAsync();
+      if (status === 'granted') {
+        notifId = await Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'Tucker & Spice',
+            body: `${stepTitle} — time's up!`,
+            sound: true,
+          },
+          trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: totalSecs, repeats: false },
+        });
+      }
+    } catch { /* foreground-only fallback if notifications unavailable */ }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    setActiveTimers(prev => [
+      ...prev,
+      { id: `${stepId}-${startedAt}`, stepTitle, totalSecs, startedAt, notifId },
+    ]);
+  };
+
+  const cancelTimer = async (timer: ActiveTimer) => {
+    if (timer.notifId) {
+      await Notifications.cancelScheduledNotificationAsync(timer.notifId).catch(() => {});
+    }
+    Haptics.selectionAsync().catch(() => {});
+    setActiveTimers(prev => prev.filter(t => t.id !== timer.id));
+  };
+
+  const getRemainingSecs = (timer: ActiveTimer): number =>
+    Math.max(0, Math.ceil((timer.startedAt + timer.totalSecs * 1000 - Date.now()) / 1000));
 
   // v7 — load the user's pantry once on mount. Recipe screen re-mounts each
   // time you tap a recipe card so a one-shot load is sufficient; no focus
@@ -1909,22 +1984,86 @@ function RecipeDetailScreenInner() {
                     </View>
                   ) : null}
 
-                  {/* ── TIMER (NEW v2 — 38sp Playfair) ── */}
-                  {step.timer_seconds ? (
-                    <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 14, marginBottom: 14 }}>
-                      <Text
-                        style={{
-                          fontFamily: fonts.display, fontSize: 38,
-                          color: c.ink, letterSpacing: -1, lineHeight: 40,
-                        }}
-                      >
-                        {formatTimer(step.timer_seconds)}
-                      </Text>
-                      <Text style={{ fontSize: 11, color: c.muted, marginBottom: 6 }}>
-                        rough timer
-                      </Text>
-                    </View>
-                  ) : null}
+                  {/* ── TIMER — live countdown + start/cancel ── */}
+                  {step.timer_seconds ? (() => {
+                    const timerId = `${step.id}-`;
+                    const running = activeTimers.find(t => t.id.startsWith(timerId));
+                    const remSecs = running ? getRemainingSecs(running) : step.timer_seconds;
+                    const isDone  = running && remSecs === 0;
+                    return (
+                      <View style={{ marginBottom: 14 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 14 }}>
+                          <Text
+                            style={{
+                              fontFamily: fonts.display, fontSize: 38,
+                              color: isDone ? c.primary : c.ink,
+                              letterSpacing: -1, lineHeight: 40,
+                            }}
+                          >
+                            {isDone ? 'Done!' : formatTimer(remSecs)}
+                          </Text>
+                          {!running && (
+                            <Pressable
+                              onPress={() => startTimer(step.id, step.title, step.timer_seconds!)}
+                              accessibilityRole="button"
+                              accessibilityLabel={`Start ${formatTimer(step.timer_seconds!)} timer for ${step.title}`}
+                              style={{
+                                backgroundColor: c.primary, borderRadius: 20,
+                                paddingHorizontal: 16, paddingVertical: 7,
+                                marginBottom: 4,
+                              }}
+                            >
+                              <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: tokens.onPrimary }}>
+                                Start
+                              </Text>
+                            </Pressable>
+                          )}
+                          {running && !isDone && (
+                            <Pressable
+                              onPress={() => cancelTimer(running)}
+                              accessibilityRole="button"
+                              accessibilityLabel="Cancel timer"
+                              style={{
+                                borderWidth: 1, borderColor: c.lineDark, borderRadius: 20,
+                                paddingHorizontal: 16, paddingVertical: 7,
+                                marginBottom: 4,
+                              }}
+                            >
+                              <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: c.muted }}>
+                                Cancel
+                              </Text>
+                            </Pressable>
+                          )}
+                          {isDone && (
+                            <Pressable
+                              onPress={() => cancelTimer(running!)}
+                              accessibilityRole="button"
+                              accessibilityLabel="Dismiss timer"
+                              style={{
+                                backgroundColor: c.primary, borderRadius: 20,
+                                paddingHorizontal: 16, paddingVertical: 7,
+                                marginBottom: 4,
+                              }}
+                            >
+                              <Text style={{ fontFamily: fonts.sansBold, fontSize: 13, color: tokens.onPrimary }}>
+                                Dismiss
+                              </Text>
+                            </Pressable>
+                          )}
+                        </View>
+                        {!running && (
+                          <Text style={{ fontSize: 11, color: c.muted, marginTop: 2 }}>
+                            rough timer · tap Start to count down
+                          </Text>
+                        )}
+                        {running && !isDone && (
+                          <Text style={{ fontSize: 11, color: c.muted, marginTop: 2 }}>
+                            counting · alarm fires when locked
+                          </Text>
+                        )}
+                      </View>
+                    );
+                  })() : null}
 
                   {/* ── WHY NOTE (preserved, restyled to Playfair italic) ── */}
                   {step.why_note ? (
@@ -1943,6 +2082,61 @@ function RecipeDetailScreenInner() {
                       >
                         {step.why_note}
                       </Text>
+                    </View>
+                  ) : null}
+
+                  {/* ── ACTIVE TIMERS STRIP — all running timers across all steps ── */}
+                  {activeTimers.length > 0 ? (
+                    <View
+                      style={{
+                        borderRadius: 12, borderWidth: 1,
+                        borderColor: c.lineDark, overflow: 'hidden',
+                        marginBottom: 12,
+                      }}
+                    >
+                      {activeTimers.map((timer, idx) => {
+                        const remSecs = getRemainingSecs(timer);
+                        const done = remSecs === 0;
+                        const isLast = idx === activeTimers.length - 1;
+                        return (
+                          <View
+                            key={timer.id}
+                            style={{
+                              flexDirection: 'row', alignItems: 'center',
+                              paddingHorizontal: 14, paddingVertical: 10,
+                              borderBottomWidth: isLast ? 0 : 1, borderBottomColor: c.lineDark,
+                              backgroundColor: done ? 'rgba(242,204,42,0.08)' : 'transparent',
+                            }}
+                          >
+                            <Text style={{ fontSize: 16 }}>{done ? '✓' : '⏱'}</Text>
+                            <View style={{ flex: 1, marginLeft: 10 }}>
+                              <Text
+                                style={{
+                                  fontFamily: fonts.sansBold, fontSize: 13,
+                                  color: done ? c.primary : c.ink,
+                                }}
+                                numberOfLines={1}
+                              >
+                                {done ? 'Done!' : formatTimer(remSecs)}
+                              </Text>
+                              <Text
+                                style={{ fontSize: 11, color: c.muted, marginTop: 1 }}
+                                numberOfLines={1}
+                              >
+                                {timer.stepTitle}
+                              </Text>
+                            </View>
+                            <Pressable
+                              onPress={() => cancelTimer(timer)}
+                              accessibilityRole="button"
+                              accessibilityLabel={done ? 'Dismiss timer' : 'Cancel timer'}
+                              hitSlop={12}
+                            >
+                              <Text style={{ fontSize: 18, color: c.muted, paddingLeft: 8 }}>×</Text>
+                            </Pressable>
+                          </View>
+                        );
+                      })}
                     </View>
                   ) : null}
 

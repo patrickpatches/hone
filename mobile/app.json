@@ -27,7 +27,10 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.VIBRATE",
-        "android.permission.WAKE_LOCK"
+        "android.permission.WAKE_LOCK",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.POST_NOTIFICATIONS"
       ],
       "versionCode": 55,
       "allowBackup": false
@@ -40,7 +43,18 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": {
+            "name": "tucker-spice-timers",
+            "importance": "high",
+            "sound": true,
+            "vibrate": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
