@@ -310,13 +310,13 @@ export default function KitchenHome() {
           <Text
             style={{
               fontFamily: fonts.display,
-              fontSize: 30,
+              fontSize: 23,
               color: tokens.ink,
-              letterSpacing: -1,
-              lineHeight: 32,
+              letterSpacing: -0.3,
+              lineHeight: 28,
             }}
           >
-            hone
+            tucker <Text style={{ color: tokens.primary }}>&</Text> spice
             <Text style={{ color: tokens.gold }}>.</Text>
           </Text>
         </View>

@@ -46,7 +46,7 @@ jobs:
 #         with:
 #           run_id: ${{ github.event.inputs.run_id }}
 #           name_is_regexp: true
-#           name: hone-v.*
+#           name: tuckerspice-v.*
 #           path: apk/
 #
 #       - name: Locate APK

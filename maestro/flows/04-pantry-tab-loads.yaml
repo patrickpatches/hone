@@ -1,4 +1,4 @@
-appId: com.patricknasr.hone
+appId: com.patricknasr.tuckerspice
 ---
 # Smoke: Pantry tab loads without crashing.
 # Catches: any DB-read crash or blank Pantry regression.

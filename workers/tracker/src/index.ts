@@ -178,7 +178,7 @@ export default {
 
     const url = new URL(request.url);
     // owner/repo — from the REPO var (wrangler.toml). Rename = flip one var.
-    const REPO = env.REPO || 'patrickpatches/hone';
+    const REPO = env.REPO || 'patrickpatches/tucker-spice';
 
     // ── GET /bugs ──────────────────────────────────────────────────────────────
     // GitHub Issues are the single source of truth. st/sev/who come straight

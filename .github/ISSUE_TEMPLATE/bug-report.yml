@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Thanks for filing a bug. Fill in what you know — the more specific, the faster the fix.
-        Per the Hone protocol, this ticket will be picked up by the Bug Tester and mirrored into `docs/coo/bug-tracker/tickets/`.
+        Per the Tucker & Spice protocol, this ticket will be picked up by the Bug Tester and mirrored into `docs/coo/bug-tracker/tickets/`.
 
   - type: input
     id: build

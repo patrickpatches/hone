@@ -1,4 +1,4 @@
-# Hone — Regression Checklist
+# Tucker & Spice — Regression Checklist
 
 > Every non-trivial bug fix gets one row here before the session ends.
 > Run this checklist before every release tag — it takes under two minutes.

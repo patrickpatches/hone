@@ -1,4 +1,4 @@
-# Hone — Local Dev Preview Setup
+# Tucker & Spice — Local Dev Preview Setup
 
 Everything has been set up automatically. You have two steps left, then it's one double-click forever.
 

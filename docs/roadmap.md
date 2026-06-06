@@ -1,4 +1,4 @@
-# Hone — Development Roadmap
+# Tucker & Spice — Development Roadmap
 
 > Last updated: 2026-04-22 (session 3). This is the working build plan. Update it as phases complete or priorities shift.
 

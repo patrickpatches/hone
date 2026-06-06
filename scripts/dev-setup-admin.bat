@@ -1,6 +1,6 @@
 @echo off
 :: ─────────────────────────────────────────────────────────────────────────────
-::  Hone — ONE-TIME admin step
+::  Tucker & Spice — ONE-TIME admin step
 ::  Right-click this file → "Run as administrator"
 ::  You only ever need to do this once.
 ::

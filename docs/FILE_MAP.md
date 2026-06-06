@@ -1,6 +1,6 @@
 # FILE_MAP.md — Canonical File & Folder Index
 
-> Last updated: 2026-05-25. This is the authoritative map of what lives where in the Hone repo.
+> Last updated: 2026-05-25. This is the authoritative map of what lives where in the Tucker & Spice repo.
 > If you create a new file and aren't sure where it goes, this doc has the answer.
 > If something is missing from this map, add it here when you create it.
 
@@ -14,7 +14,7 @@
 | `BUGS.md` | Open bug tracker. Synced from GitHub Issues at session start. Never self-close bugs — Patrick validates on-device. |
 | `CHANGELOG.md` | Shipped version history. Keep a Changelog format, semver from 1.0. |
 | `README.md` | Public-facing repo intro: stack, rules, build instructions, doc index. |
-| `index.html` | The deployed PWA — web export of the Hone app. Copied to `_site/` by the Pages workflow. Do not move. |
+| `index.html` | The deployed PWA — web export of the Tucker & Spice app. Copied to `_site/` by the Pages workflow. Do not move. |
 | `mobile/` | The entire Expo / React Native app. All app code lives here. |
 | `docs/` | All project documentation. See below. |
 | `scripts/` | Developer utility scripts (bat, sh). Not app code. |
@@ -46,7 +46,7 @@
 | `docs/coo/specialists/` | Role briefs for each specialist chat. One file per role. |
 | `docs/coo/photography/` | Photography Director outputs — shot lists, preset, pre-flight checklist, shoot retrospectives. |
 | `docs/coo/photography/preflight-checklist.md` | Pre-flight checklist Patrick runs every shoot weekend. Print-ready, one page. |
-| `docs/coo/photography/post-processing-preset.md` | Lightroom Mobile settings for the Hone visual preset. Apply consistently to every photo. |
+| `docs/coo/photography/post-processing-preset.md` | Lightroom Mobile settings for the Tucker & Spice visual preset. Apply consistently to every photo. |
 | `docs/coo/photography/shot-list-showcase.md` | Per-recipe stage shot lists for the 10 showcase recipes. Includes doneness cues, alt text, and schedule. |
 | `docs/coo/photography/shot-list-hero-only.md` | Hero-only shot list for ~24 remaining recipes. Includes hero batch weekend plan. |
 | `docs/coo/photography/image-briefs/` | Per-recipe working briefs for AI image generation. One file per recipe. Contains deep research, DALL-E 3 prompts, cook validation checklists. |

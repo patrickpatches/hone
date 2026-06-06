@@ -42,7 +42,7 @@ Allocate a full dedicated session. Steps:
 3. Build a **test APK** that does nothing but boot the app + log a heartbeat
    on launch — no business logic. Verify it reaches Patrick's phone and
    the OTA mechanism works (push a trivial JS change, see it apply).
-4. Only after that test passes, layer it onto the real Hone codebase.
+4. Only after that test passes, layer it onto the real Tucker & Spice codebase.
 5. Replace our DIY `eas-build.yml` workflow with a simpler one that calls
    EAS Build remotely (or trigger via the EAS dashboard).
 

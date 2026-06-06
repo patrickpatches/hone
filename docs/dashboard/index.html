@@ -994,7 +994,7 @@ function openDrawer(bug){
   $('drawerTitle').textContent=bug.t;
   $('drawerDesc').textContent=bug.d||'(no description)';
   const gh=$('drawerGh');
-  if(bug.num){gh.style.display='';gh.href='https://github.com/patrickpatches/hone/issues/'+bug.num;}
+  if(bug.num){gh.style.display='';gh.href='https://github.com/patrickpatches/tucker-spice/issues/'+bug.num;}
   else gh.style.display='none';
   // Editable Status / Severity / Who — reuse the optimistic save engine.
   $('drawerEdit').innerHTML=

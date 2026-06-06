@@ -38,7 +38,7 @@ jobs:
         run: npx expo export --platform web
 
       # Single-page apps on GitHub Pages need a 404 fallback that serves the
-      # same SPA bundle, otherwise deep links (e.g. /hone/recipe/<id>) hit a
+      # same SPA bundle, otherwise deep links (e.g. /tucker-spice/recipe/<id>) hit a
       # real 404. Copying index.html → 404.html lets Expo Router handle the
       # route on the client.
       - name: Add SPA 404 fallback

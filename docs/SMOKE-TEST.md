@@ -1,4 +1,4 @@
-# Hone — pre-release smoke test
+# Tucker & Spice — pre-release smoke test
 
 A 5-minute manual checklist run on the latest APK before claiming a release
 is "shippable". Triggered by Patrick's session 14 review where multiple

@@ -1,4 +1,4 @@
-appId: com.patricknasr.hone
+appId: com.patricknasr.tuckerspice
 ---
 # Smoke: entering cook mode from a recipe does not crash.
 # Catches: any cook-mode render failure; also validates the sticky CTA tap target.

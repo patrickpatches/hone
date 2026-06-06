@@ -2,7 +2,7 @@
 setlocal EnableDelayedExpansion
 
 :: ─────────────────────────────────────────────────────────────────────────────
-::  Hone Dev Preview  —  double-click to start your live preview
+::  Tucker & Spice Dev Preview  —  double-click to start your live preview
 :: ─────────────────────────────────────────────────────────────────────────────
 ::
 ::  What it does:
@@ -14,7 +14,7 @@ setlocal EnableDelayedExpansion
 ::  Once it's running:
 ::    - Edit any file in mobile\ and the app reloads within ~1 second.
 ::    - Your phone can also connect — scan the QR code shown below with
-::      the "Expo Go" app (iOS) or the Hone dev build (Android).
+::      the "Expo Go" app (iOS) or the Tucker & Spice dev build (Android).
 ::    - Press 'r' in this window to force a full reload.
 ::    - Press 'Ctrl+C' to stop. The emulator keeps running.
 ::
@@ -32,7 +32,7 @@ set "APP_DIR=C:\Users\patri\hone\mobile"
 
 echo.
 echo  ===========================================
-echo    Hone Dev Preview
+echo    Tucker & Spice Dev Preview
 echo  ===========================================
 echo.
 

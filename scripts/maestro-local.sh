@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Run the Maestro smoke suite against the installed Hone APK.
+# Run the Maestro smoke suite against the installed Tucker & Spice APK.
 #
 # Prerequisites
 #   1. Maestro CLI installed:  curl -Ls "https://get.maestro.mobile.dev" | bash
 #   2. Android device connected via USB with USB debugging enabled,
 #      OR an Android emulator running (API 26+).
-#   3. Hone APK installed on the device/emulator.
+#   3. Tucker & Spice APK installed on the device/emulator.
 #
 # Usage
 #   From the repo root: ./scripts/maestro-local.sh
@@ -25,5 +25,5 @@ if ! command -v maestro &>/dev/null; then
   exit 1
 fi
 
-echo "Running Hone Maestro suite against connected device..."
+echo "Running Tucker & Spice Maestro suite against connected device..."
 maestro test "$FLOWS_DIR"

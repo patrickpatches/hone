@@ -1,4 +1,4 @@
-appId: com.patricknasr.hone
+appId: com.patricknasr.tuckerspice
 ---
 # Smoke: Kitchen tab renders on cold launch.
 # Catches: any startup crash, blank-screen regression, tab-bar missing.

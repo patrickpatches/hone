@@ -1,4 +1,4 @@
-appId: com.patricknasr.hone
+appId: com.patricknasr.tuckerspice
 ---
 # Regression: HONE-007 — items added via "Add missing" must survive the Shop
 # tab's reconcile() sweep on focus. Root cause was kind:'meal' items being

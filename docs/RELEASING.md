@@ -1,4 +1,4 @@
-# Releasing a new version of Hone
+# Releasing a new version of Tucker & Spice
 
 Single source of truth for cutting an APK release. Follow top to bottom.
 
@@ -73,8 +73,8 @@ git push origin v0.6.0
 ### 5. Trigger the APK build
 
 ```bash
-gh workflow run "Hone Android Build" --field profile=preview --ref v0.6.0
-# or via the GitHub UI: Actions → Hone Android Build → Run workflow → ref v0.6.0
+gh workflow run "Tucker & Spice Android Build" --field profile=preview --ref v0.6.0
+# or via the GitHub UI: Actions → Tucker & Spice Android Build → Run workflow → ref v0.6.0
 ```
 
 The workflow uses `github.run_number` as `versionCode`, so each push
@@ -84,13 +84,13 @@ each upload without complaint.
 ### 6. Attach the APK to the GitHub Release
 
 When the build completes, the APK lands as a workflow artifact named
-`hone-release.apk`. Download it, then:
+`tuckerspice-release.apk`. Download it, then:
 
 ```bash
 gh release create v0.6.0 \
   --title "v0.6.0 — short title" \
   --notes-file <(awk '/## \[0.6.0\]/,/## \[/' CHANGELOG.md | head -n -1) \
-  hone-release.apk
+  tuckerspice-release.apk
 ```
 
 Or via the GitHub UI: Releases → Create release → choose tag `v0.6.0` →
@@ -102,7 +102,7 @@ which expire after 90 days.
 ### 7. Install on your phone
 
 Download the APK from the GitHub Release page, install over the previous
-version (same package id `com.patricknasr.hone` — settles in place).
+version (same package id `com.patricknasr.tuckerspice` — settles in place).
 
 ## Hotfix flow
 

@@ -1,7 +1,7 @@
 # BUGS.md — Session Bug Cache
 
 > This file is the session-level cache of all known bugs, synced from GitHub Issues at the start of each session.
-> Source of truth: GitHub Issues at https://github.com/patrickpatches/hone/issues
+> Source of truth: GitHub Issues at https://github.com/patrickpatches/tucker-spice/issues
 > Status flow: OPEN → FIX ATTEMPTED → VALIDATED ✅ (by Patrick) or REJECTED 🔴 (reopened)
 > Rule: never self-close. Status only moves to VALIDATED when Patrick confirms on-device.
 

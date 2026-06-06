@@ -2,7 +2,7 @@
 setlocal EnableDelayedExpansion
 
 :: ─────────────────────────────────────────────────────────────────────────────
-::  Hone First-Time Build  —  run this ONCE before dev-preview.bat
+::  Tucker & Spice First-Time Build  —  run this ONCE before dev-preview.bat
 :: ─────────────────────────────────────────────────────────────────────────────
 ::
 ::  What it does:
@@ -35,7 +35,7 @@ set "APP_DIR=C:\Users\patri\hone\mobile"
 
 echo.
 echo  ===========================================
-echo    Hone First-Time Build
+echo    Tucker & Spice First-Time Build
 echo    Make a coffee. This takes 15-25 minutes.
 echo  ===========================================
 echo.
@@ -76,7 +76,7 @@ adb shell input keyevent 82 >nul 2>&1
 :BUILD
 :: ── Step 2: Compile + install ─────────────────────────────────────────────
 echo.
-echo  [2/2] Building and installing Hone on the emulator...
+echo  [2/2] Building and installing Tucker & Spice on the emulator...
 echo        (You will see a lot of Gradle output — that is normal.)
 echo.
 cd /d "%APP_DIR%"

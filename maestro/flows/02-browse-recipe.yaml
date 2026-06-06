@@ -1,4 +1,4 @@
-appId: com.patricknasr.hone
+appId: com.patricknasr.tuckerspice
 ---
 # Smoke: tapping a recipe opens the detail screen without crashing.
 # Catches: the Rules-of-Hooks crash class (v7 Phase B, builds #129–#131).

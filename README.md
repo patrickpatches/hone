@@ -55,8 +55,8 @@ Every recipe uses whole, unprocessed ingredients only. No preservatives. No stoc
 Prerequisites: Node 20+, JDK 17, Android SDK + emulator (or a connected device).
 
 ```bash
-git clone https://github.com/patrickpatches/hone
-cd hone/mobile
+git clone https://github.com/patrickpatches/tucker-spice
+cd tucker-spice/mobile
 npm ci
 npx expo install --check    # ensures package versions match SDK 54
 npx expo prebuild --platform android --clean
