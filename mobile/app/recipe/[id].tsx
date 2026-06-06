@@ -1897,8 +1897,11 @@ function RecipeDetailScreenInner() {
                       </Text>
                       <Text
                         style={{
-                          fontFamily: fonts.displayItalic, fontStyle: 'italic',
-                          fontSize: 12.5, color: 'rgba(242,204,42,0.82)', lineHeight: 18,
+                          fontFamily: fonts.sansBold,
+                          fontSize: 19,
+                          lineHeight: 27,
+                          color: tokens.ink,
+                          letterSpacing: 0.1,
                         }}
                       >
                         {step.stage_note}
