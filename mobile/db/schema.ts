@@ -13,7 +13,7 @@
  */
 
 /** Current target schema version. Must match the highest key in SCHEMA_MIGRATIONS. */
-export const SCHEMA_VERSION = 9;
+export const SCHEMA_VERSION = 10;
 
 /**
  * Full schema for a fresh install.
@@ -147,6 +147,20 @@ export const SCHEMA_SQL: string[] = [
     created_at    TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
   )`,
+
+  `CREATE TABLE IF NOT EXISTS cook_history (
+    id         TEXT PRIMARY KEY,
+    recipe_id  TEXT NOT NULL,
+    cooked_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS recipe_notes (
+    recipe_id  TEXT PRIMARY KEY,
+    notes      TEXT NOT NULL DEFAULT '',
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
+  )`,
 ];
 
 /**
@@ -254,5 +268,20 @@ export const SCHEMA_MIGRATIONS: Record<number, string[]> = {
     // 014's portion-sizing fields. One nullable column; refreshSeedRecipe-
     // Fields (seed.ts) backfills it on every launch.
     `ALTER TABLE recipes ADD COLUMN hero_attribution TEXT`,
+  ],
+  10: [
+    // 2026-06-06 — issue #41. Cook history + per-recipe notes.
+    `CREATE TABLE IF NOT EXISTS cook_history (
+      id         TEXT PRIMARY KEY,
+      recipe_id  TEXT NOT NULL,
+      cooked_at  TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
+    )`,
+    `CREATE TABLE IF NOT EXISTS recipe_notes (
+      recipe_id  TEXT PRIMARY KEY,
+      notes      TEXT NOT NULL DEFAULT '',
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (recipe_id) REFERENCES recipes(id) ON DELETE CASCADE
+    )`,
   ],
 };

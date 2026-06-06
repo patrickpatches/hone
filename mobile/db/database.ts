@@ -769,3 +769,93 @@ export async function replaceShoppingItems(
     throw e;
   }
 }
+
+// ── Cook history (issue #41) ──────────────────────────────────────────────────
+
+export interface CookHistoryEntry {
+  id: string;
+  recipe_id: string;
+  cooked_at: string;
+}
+
+/** Record that the user completed cooking a recipe. */
+export async function markAsCooked(
+  db: SQLiteDatabase,
+  recipeId: string,
+): Promise<void> {
+  const id = `${recipeId}-${Date.now()}`;
+  await db.runAsync(
+    "INSERT INTO cook_history (id, recipe_id, cooked_at) VALUES (?, ?, datetime('now'))",
+    [id, recipeId],
+  );
+}
+
+/** How many times has this recipe been cooked? */
+export async function getCookCount(
+  db: SQLiteDatabase,
+  recipeId: string,
+): Promise<number> {
+  const row = await db.getFirstAsync<{ n: number }>(
+    'SELECT COUNT(*) AS n FROM cook_history WHERE recipe_id = ?',
+    [recipeId],
+  );
+  return row?.n ?? 0;
+}
+
+/** Full cook history for one recipe, newest first. */
+export async function getCookHistory(
+  db: SQLiteDatabase,
+  recipeId: string,
+): Promise<CookHistoryEntry[]> {
+  return db.getAllAsync<CookHistoryEntry>(
+    'SELECT * FROM cook_history WHERE recipe_id = ? ORDER BY cooked_at DESC',
+    [recipeId],
+  );
+}
+
+/** Recent cook sessions across all recipes — for the Kitchen "recently cooked" strip. */
+export async function getRecentCooks(
+  db: SQLiteDatabase,
+  limit = 10,
+): Promise<{ recipe_id: string; cooked_at: string }[]> {
+  return db.getAllAsync<{ recipe_id: string; cooked_at: string }>(
+    `SELECT recipe_id, MAX(cooked_at) AS cooked_at
+     FROM cook_history
+     GROUP BY recipe_id
+     ORDER BY cooked_at DESC
+     LIMIT ?`,
+    [limit],
+  );
+}
+
+// ── Recipe notes (issue #41) ──────────────────────────────────────────────────
+
+/** Get the user's personal note for a recipe (empty string if none). */
+export async function getRecipeNote(
+  db: SQLiteDatabase,
+  recipeId: string,
+): Promise<string> {
+  const row = await db.getFirstAsync<{ notes: string }>(
+    'SELECT notes FROM recipe_notes WHERE recipe_id = ?',
+    [recipeId],
+  );
+  return row?.notes ?? '';
+}
+
+/** Save (create or replace) a note for a recipe. */
+export async function upsertRecipeNote(
+  db: SQLiteDatabase,
+  recipeId: string,
+  notes: string,
+): Promise<void> {
+  if (notes.trim() === '') {
+    await db.runAsync('DELETE FROM recipe_notes WHERE recipe_id = ?', [recipeId]);
+  } else {
+    await db.runAsync(
+      `INSERT INTO recipe_notes (recipe_id, notes, updated_at)
+       VALUES (?, ?, datetime('now'))
+       ON CONFLICT(recipe_id) DO UPDATE SET notes = excluded.notes, updated_at = excluded.updated_at`,
+      [recipeId, notes.trim()],
+    );
+  }
+}

@@ -18,6 +18,7 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -38,6 +39,10 @@ import {
   getPantryItems,
   upsertShoppingItem,
   getShoppingItems,
+  markAsCooked,
+  getCookCount,
+  getRecipeNote,
+  upsertRecipeNote,
 } from '../../db/database';
 import type { PantryItem, ShoppingItem } from '../../db/database';
 import { tokens, fonts } from '../../src/theme/tokens';
@@ -270,6 +275,12 @@ function RecipeDetailScreenInner() {
   const miseExpandOpacity = useRef(new Animated.Value(0)).current;
   const [activeSwaps, setActiveSwaps]         = useState<Record<string, Substitution | null>>({});
 
+  // Cook history + personal notes (issue #41)
+  const [cookCount, setCookCount]   = useState(0);
+  const [userNote, setUserNote]     = useState('');
+  const [noteEditing, setNoteEditing] = useState(false);
+  const [noteDraft, setNoteDraft]   = useState('');
+
   // Wake lock while cooking
   useEffect(() => {
     const tag = 'cook-mode';
@@ -352,6 +363,19 @@ function RecipeDetailScreenInner() {
       .catch((e) => console.error('recipe screen shopping load failed', e));
     return () => { cancelled = true; };
   }, [db]);
+
+  // Load cook count + user note once on mount (screen remounts each entry).
+  useEffect(() => {
+    if (!recipe?.id) return;
+    let cancelled = false;
+    getCookCount(db, recipe.id)
+      .then((n) => { if (!cancelled) setCookCount(n); })
+      .catch(() => {});
+    getRecipeNote(db, recipe.id)
+      .then((note) => { if (!cancelled) { setUserNote(note); setNoteDraft(note); } })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [db, recipe?.id]);
 
   // ── v7 hooks — Rules of Hooks compliant (build #131 fix) ──────────────────
   // ALL hooks must run in the same order on every render. These previously
@@ -1050,6 +1074,25 @@ function RecipeDetailScreenInner() {
                 </View>
               );
             })()}
+
+            {/* Cook count badge — shows once you've cooked this at least once */}
+            {cookCount > 0 ? (
+              <View style={{ alignItems: 'center', marginTop: 10 }}>
+                <View style={{
+                  flexDirection: 'row', alignItems: 'center', gap: 5,
+                  backgroundColor: 'rgba(46,94,62,0.15)',
+                  borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5,
+                }}>
+                  <Text style={{ fontSize: 13 }}>✓</Text>
+                  <Text style={{
+                    fontFamily: fonts.sansBold, fontSize: 12,
+                    color: tokens.sage, letterSpacing: 0.2,
+                  }}>
+                    {cookCount === 1 ? 'Cooked once' : `Cooked ${cookCount} times`}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
 
             {/* Chef Source Card (Issue #23 §2) — replaces the ghost Plan-it/Watch
                 row. "+ Plan it" removed (redundant with Add-to-shopping). */}
@@ -1832,7 +1875,11 @@ function RecipeDetailScreenInner() {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
                 if (!stepsDone[step.id]) setStepsDone(prev => ({ ...prev, [step.id]: true }));
                 if (isFinal) {
-                  // Final step "Done" exits cook mode entirely.
+                  // Mark as cooked + exit cook mode.
+                  markAsCooked(db, recipe.id)
+                    .then(() => getCookCount(db, recipe.id))
+                    .then((n) => setCookCount(n))
+                    .catch(() => {});
                   setCooking(false);
                   setCurrentStepIdx(0);
                 } else {
@@ -2335,6 +2382,65 @@ function RecipeDetailScreenInner() {
         </View>}
 
 
+
+        {/* ── YOUR NOTES (issue #41) — personal note per recipe, auto-saves ── */}
+        {!cooking && recipe ? (
+          <View style={{ paddingHorizontal: 20, marginTop: 24, marginBottom: 8 }}>
+            <Text style={{
+              fontFamily: fonts.sansBold, fontSize: 10,
+              letterSpacing: 1.5, textTransform: 'uppercase',
+              color: c.muted, marginBottom: 8,
+            }}>
+              Your notes
+            </Text>
+            {noteEditing ? (
+              <TextInput
+                value={noteDraft}
+                onChangeText={setNoteDraft}
+                onBlur={() => {
+                  setNoteEditing(false);
+                  setUserNote(noteDraft);
+                  upsertRecipeNote(db, recipe.id, noteDraft).catch(() => {});
+                }}
+                multiline
+                autoFocus
+                placeholder="e.g. more chilli next time, used capsicum instead of carrot"
+                placeholderTextColor={c.muted}
+                style={{
+                  fontFamily: fonts.sans, fontSize: 14, lineHeight: 21,
+                  color: c.ink,
+                  backgroundColor: c.cardBg,
+                  borderRadius: 12, borderWidth: 1, borderColor: c.lineDark,
+                  paddingHorizontal: 14, paddingVertical: 12,
+                  minHeight: 80,
+                }}
+              />
+            ) : (
+              <Pressable
+                onPress={() => { setNoteEditing(true); setNoteDraft(userNote); }}
+                accessibilityRole="button"
+                accessibilityLabel={userNote ? `Your note: ${userNote}. Tap to edit.` : 'Add a personal note to this recipe'}
+              >
+                <View style={{
+                  backgroundColor: c.cardBg, borderRadius: 12,
+                  borderWidth: 1, borderColor: c.lineDark,
+                  paddingHorizontal: 14, paddingVertical: 12,
+                  minHeight: 48, justifyContent: 'center',
+                }}>
+                  {userNote ? (
+                    <Text style={{ fontFamily: fonts.sans, fontSize: 14, lineHeight: 21, color: c.ink }}>
+                      {userNote}
+                    </Text>
+                  ) : (
+                    <Text style={{ fontFamily: fonts.sans, fontSize: 14, color: c.muted, fontStyle: 'italic' }}>
+                      Add a note — e.g. "more chilli next time"
+                    </Text>
+                  )}
+                </View>
+              </Pressable>
+            )}
+          </View>
+        ) : null}
 
       </ScrollView>
 
