@@ -1,0 +1,88 @@
+# Startup smoke — on-device boot check.
+#
+# Why this exists: build #156 compiled cleanly, passed the web preview, and
+# still FROZE on the splash screen on a real device (a provider-ordering bug
+# that web SQLite/splash never reproduced). CI built an APK it never launched.
+#
+# This workflow closes that gap: after every Android build it boots an API 26
+# emulator (matches minSdkVersion 26), installs the APK, and runs the startup
+# smoke flow (maestro/flows/01-kitchen-loads.yaml) which asserts the Kitchen
+# home screen renders within 6s of cold launch. If the app hangs on the splash,
+# this fails — loudly, on the commit — instead of shipping a frozen build.
+#
+# Scope is deliberately narrow (the boot check only) so it stays fast and
+# non-flaky. The full Maestro suite remains Phase 2 (see maestro-e2e.yml).
+
+name: Startup smoke (on-device boot check)
+
+on:
+  # Auto-run after each Android build completes.
+  workflow_run:
+    workflows: ["Tucker & Spice Android Build"]
+    types: [completed]
+  # Manual: pass the eas-build run id to pull its APK.
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'eas-build run id to pull the APK from'
+        required: true
+
+jobs:
+  smoke:
+    name: Boots to Kitchen on a real emulator
+    runs-on: ubuntu-latest
+    # Only run when the build succeeded (or when dispatched manually).
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout (for the Maestro flow)
+        uses: actions/checkout@v4
+
+      - name: Download the build's APK artifact
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          run_id: ${{ github.event.workflow_run.id || github.event.inputs.run_id }}
+          name: tuckerspice-v.*
+          name_is_regexp: true
+          path: apk/
+
+      - name: Locate APK
+        id: apk
+        run: |
+          APK=$(find apk/ -name "*.apk" | head -1)
+          if [ -z "$APK" ]; then echo "::error::No APK found in artifact"; exit 1; fi
+          echo "path=$APK" >> "$GITHUB_OUTPUT"
+          echo "Found APK: $APK"
+
+      - name: Install Maestro CLI
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Enable KVM (hardware acceleration for the emulator)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Boot emulator, install APK, run startup smoke
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 26
+          arch: x86_64
+          profile: pixel_6
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          script: |
+            adb install -r "${{ steps.apk.outputs.path }}"
+            maestro test maestro/flows/01-kitchen-loads.yaml
+
+      - name: Upload Maestro debug output on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-startup-smoke-debug
+          path: ~/.maestro/tests/**
+          retention-days: 14
+          if-no-files-found: ignore

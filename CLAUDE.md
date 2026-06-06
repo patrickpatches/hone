@@ -10,6 +10,7 @@
 - **Explain the why.** Not just *what* — the reason (cooking, technical, design). Patrick wants the underlying logic, always.
 - **Secrets stay secret.** Never hardcode or commit secrets; separate tokens for dev/prod; validate input server-side; rate-limit auth/writes.
 - **Test the unhappy paths.** Network drops, bad data, dropped connections — a recipe in progress must never fail offline.
+- **Startup-critical changes need an on-device check.** Anything touching app startup, provider hierarchy, SQLite/DB init, splash screen, fonts, or native modules can pass CI *and* the web preview yet freeze on a real device — web SQLite and the splash behave differently (this is exactly how build #156 froze on launch). Before calling such a change done: confirm the app boots to the Kitchen screen on a device/emulator. The `startup-smoke` workflow runs `maestro/flows/01-kitchen-loads.yaml` after every build as the automated net; web preview alone is **not** sufficient for these.
 - **Observability from day one.** Crash reporting + persistent logging (matters for launch-week crash rate).
 - **Time:** store UTC, show local.
 - **Discipline:** fix hacky code now or open a tracked ticket — "later" never comes. Leave a testable checkpoint after every meaningful change.
