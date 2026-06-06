@@ -6,7 +6,7 @@ compatibility_date = "2025-01-01"
 # (no code change). At Phase-2 cutover, change this to "patrickpatches/tucker-spice"
 # and redeploy. (GitHub also 301-redirects the old API path, so there's no gap.)
 [vars]
-REPO = "patrickpatches/hone"
+REPO = "patrickpatches/tucker-spice"
 
 # ── CRITICAL (Issue #50, Phase 1.2) ─────────────────────────────────────────
 # SAME KV namespace id as the old hone-buglord worker, so any saved board state
