@@ -14,7 +14,6 @@
 | REGN-001 | Recipe cards misalign after first scroll | FIX ATTEMPTED | Commit `1fca0aaa3d3d` — awaiting Patrick on-device validation |
 | REGN-006 | Equipment + Prep sections missing on most recipes | FIX ATTEMPTED | UI rendering restored 7 May 2026 — awaiting on-device validation |
 | REGN-007 | Pantry STILL NEED chip state broken (undo, X-removal, ✓-toggle) | FIX ATTEMPTED | Refactored to derive state from shopping list — awaiting on-device validation |
-| HONE-008 | Top of recipe screen is cluttered — duplicate Start cooking, duplicate 0/9, duplicate Watch | FIX ATTEMPTED | Build #136 (commit 328a7f0c97). Watch link moved from eyebrow to ghost row; ghost row gets 6px extra breathing room. GitHub Issue #8 still OPEN — awaiting Patrick on-device validation. |
 
 **REGN-006 root cause (diagnosed 7 May 2026):**
 - Patrick reported Equipment + Mise en place sections missing across most recipes (not just SMASH_BURGER).
@@ -61,6 +60,7 @@ The DECISION-008 fields are: `equipment[]`, `before_you_start[]`, `mise_en_place
 | REGN-001 (carousel) | Pantry recipe card carousel partial-snap | VALIDATED ✅ | 5 May 2026 — Patrick confirmed on-device |
 | REGN-002 | OneDrive null-byte corruption | VALIDATED ✅ | 28 Apr 2026 — process fix; write via GitHub API only |
 | REGN-003 | pantry.tsx file-write truncation | VALIDATED ✅ | 3 May 2026 — full-file rebuild + Python assert validation before push |
+| HONE-008 | Top of recipe screen cluttered — duplicate Start cooking/0/9/Watch | VALIDATED ✅ | Build #136 (328a7f0c97) — Patrick closed GitHub Issue #8 on-device 3 Jun 2026 |
 
 ---
 
