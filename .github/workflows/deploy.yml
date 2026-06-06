@@ -52,7 +52,7 @@ jobs:
 
       # Bug Tracker dashboard — bookmark on phone home screen.
       # Lives as a sibling path so the SPA's 404 fallback doesn't swallow it.
-      # Public URL: https://<user>.github.io/hone/bug-tracker/
+      # Public URL: https://<user>.github.io/tucker-spice/bug-tracker/
       - name: Add bug-tracker dashboard
         run: |
           mkdir -p dist/bug-tracker

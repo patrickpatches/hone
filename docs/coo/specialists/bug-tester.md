@@ -154,8 +154,8 @@ You
 
 Bug Lord is Hone's single hub for fixing and progress. **Check it at the start of every session and route your status through it.**
 
-- **Phone / desktop:** https://patrickpatches.github.io/hone/pass/
-- **Desktop sidebar:** Cowork artifact `hone-bug-tracker`
+- **Phone / desktop:** https://patrickpatches.github.io/tucker-spice/bug-tracker/
+- **Desktop sidebar:** Cowork artifact `tuckerspice-tracker`
 - **Source of truth for tickets:** `docs/coo/bug-tracker/tickets/` — file/append here; the dashboard reflects them.
 
 At session start, read the open tickets relevant to your role. When you act, update the ticket (mark `FIX ATTEMPTED` / change status) — **never self-close** (R-015; Patrick validates on-device). Plain English, no jargon — this is what Patrick reads.

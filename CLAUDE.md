@@ -62,7 +62,7 @@ No Israeli-labelled recipes. No stock recipe-app patterns (endless feeds, likes,
 
 ## 3 · How we operate (Bug Lord + the team)
 
-**Bug Lord is the live hub** for fixing and progress — the single place everything flows through. Two synced faces: phone/desktop at `https://patrickpatches.github.io/hone/pass/` and the Cowork artifact `hone-bug-tracker`. It is **live**: it reads and writes **GitHub Issues** through a Cloudflare Worker (`hone-buglord.patrick-nasr11.workers.dev` — `/bugs`, `/build`, `/update`, comments). Status edits and new bugs save instantly; the build number auto-reads from GitHub.
+**Bug Lord is the live hub** for fixing and progress — the single place everything flows through. Two synced faces: phone/desktop at `https://patrickpatches.github.io/tucker-spice/bug-tracker/` and the Cowork artifact `tuckerspice-tracker`. It is **live**: it reads and writes **GitHub Issues** through a Cloudflare Worker (`tuckerspice-tracker.patrick-nasr11.workers.dev` — `/bugs`, `/build`, `/update`, comments). Status edits and new bugs save instantly; the build number auto-reads from GitHub.
 
 - **Numbering = the GitHub Issue `#N`, full stop.** Never prefix an issue title with `HONE-NNN`. (Internal `HONE-NNN` names live only in ticket `.md` files/handoffs, never on the board.)
 - **Build number = the real GitHub Actions `eas-build.yml` run number.** Never invented; queried live.

@@ -22,8 +22,8 @@ A bug has exactly **one source of truth** and three derived views:
 | **GitHub Issue** at `patrickpatches/hone/issues/N` | Source of truth | Whatever the GitHub Issue says, IS the bug's state |
 | `docs/coo/bug-tracker/tickets/HONE-NNN-kebab-slug.md` | Mirror file | Re-generated from the Issue. Adds full repro + diagnostic history. Read locally; never editable as the truth |
 | `BUGS.md` | Session roster | Quick-glance index. Regenerated from the mirrors each session |
-| Cowork artifact `hone-bug-tracker` | Patrick's desktop dashboard | Reads from `BUGS.md` + `build-history.csv` (baked into HTML). Persists; status overrides + drafts persist to localStorage |
-| GitHub Pages dashboard at `/hone/bug-tracker/` | Patrick's mobile dashboard | Static deploy of the same HTML. Bookmark on phone home screen. Auto-rebuilds on every push to main |
+| Cowork artifact `tuckerspice-tracker` | Patrick's desktop dashboard | Reads from `BUGS.md` + `build-history.csv` (baked into HTML). Persists; status overrides + drafts persist to localStorage |
+| GitHub Pages dashboard at `/tucker-spice/bug-tracker/` | Patrick's mobile dashboard | Static deploy of the same HTML. Bookmark on phone home screen. Auto-rebuilds on every push to main |
 
 **The dashboard NEVER reads from a stale source.** The Bug Tester syncs everything at session start.
 
