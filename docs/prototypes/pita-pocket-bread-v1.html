@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Tucker &amp; Spice · Fluffy Pita Pocket Bread</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────────────────────
+   Tucker & Spice · Pita Pocket Bread — standalone phone tool v1
+   One file, works offline once cached. Same dark OLED palette and
+   five-token colour language as the app (recipe-detail v7).
+   Two recipes (instant yeast / sourdough), each with a back-timer
+   that works the whole schedule backwards from your finish time.
+   ───────────────────────────────────────────────────────────── */
+:root{
+  --bg:#000; --card:#0E0E0E; --cardSoft:#161616; --cardLift:#1E1E1E;
+  --ink:#F5EFE8; --inkSoft:#C4B8A8; --muted:#8A7E72;
+  --terra:#D8634F; --terraSoft:rgba(216,99,79,.12); --terraDeep:#B84030;
+  --gold:#F2CC2A; --goldSoft:rgba(242,204,42,.10);
+  --bronze:#C2A15A; --bronzeSoft:rgba(194,161,90,.10);
+  --line:rgba(255,255,255,.08); --lineSoft:rgba(255,255,255,.05);
+  --display:'Fraunces',Georgia,serif;
+  --body:'Inter',-apple-system,system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);
+  line-height:1.5;min-height:100vh;
+  padding:0 0 calc(40px + env(safe-area-inset-bottom));}
+.wrap{max-width:560px;margin:0 auto;padding:0 18px}
+
+/* ── Header ── */
+header{padding:calc(28px + env(safe-area-inset-top)) 0 18px;text-align:center}
+.eye{font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--bronze);margin-bottom:9px}
+h1{font-family:var(--display);font-variation-settings:"opsz" 120,"wght" 700;
+  font-size:34px;line-height:1.02;letter-spacing:-.5px;margin-bottom:8px}
+.sub{font-family:var(--display);font-variation-settings:"opsz" 28,"wght" 400;
+  font-style:italic;font-size:15px;color:var(--inkSoft);line-height:1.45;max-width:34ch;margin:0 auto}
+
+/* ── Recipe tabs ── */
+.tabs{display:flex;gap:8px;margin:22px 0 6px;background:var(--cardSoft);
+  border:1px solid var(--line);border-radius:14px;padding:5px}
+.tab{flex:1;border:none;background:transparent;color:var(--inkSoft);
+  font-family:var(--body);font-weight:600;font-size:13.5px;padding:11px 8px;border-radius:10px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;transition:.15s}
+.tab small{font-weight:500;font-size:10.5px;color:var(--muted);letter-spacing:.02em}
+.tab.on{background:var(--terra);color:#fff;box-shadow:0 6px 16px rgba(216,99,79,.25)}
+.tab.on small{color:rgba(255,255,255,.8)}
+
+/* ── Section eyebrow ── */
+.sec{margin-top:26px}
+.sec-h{display:flex;align-items:center;gap:9px;padding:0 2px 9px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.sec-ic{color:var(--bronze);display:flex;flex-shrink:0}
+.sec-t{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--bronze);flex:1}
+.sec-c{font-size:11.5px;color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
+
+/* ── Cards / controls ── */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.card + .card{margin-top:10px}
+.lead{font-family:var(--display);font-style:italic;font-variation-settings:"opsz" 18,"wght" 400;
+  font-size:13.5px;color:var(--inkSoft);line-height:1.5;margin-bottom:6px}
+
+label.fld{display:block;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.ctl-row{display:flex;gap:12px;flex-wrap:wrap}
+.ctl{flex:1;min-width:150px}
+input[type=time],input[type=number]{width:100%;background:var(--cardLift);border:1px solid var(--line);
+  color:var(--ink);font-family:var(--body);font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;
+  border-radius:12px;padding:12px 14px;outline:none}
+input[type=time]:focus,input[type=number]:focus{border-color:var(--gold)}
+.stepper{display:flex;align-items:stretch;background:var(--cardLift);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.stepper button{width:50px;border:none;background:transparent;color:var(--gold);font-size:24px;font-weight:300;cursor:pointer}
+.stepper button:active{background:var(--goldSoft)}
+.stepper input{border:none;border-radius:0;text-align:center;background:transparent}
+.hint{font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.45}
+.hint b{color:var(--bronze);font-weight:600}
+
+.btn-now{width:100%;margin-top:12px;height:46px;border:1.5px solid var(--gold);background:transparent;color:var(--gold);
+  font-family:var(--body);font-weight:700;font-size:13.5px;letter-spacing:.02em;border-radius:100px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-now:active{background:var(--goldSoft)}
+
+/* ── Hero "start at" ── */
+.hero{background:linear-gradient(160deg,#1a0d08,#0E0E0E 60%);border:1px solid var(--line);
+  border-radius:18px;padding:20px;text-align:center;margin-top:14px;position:relative;overflow:hidden}
+.hero-l{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--bronze);margin-bottom:6px}
+.hero-time{font-family:var(--body);font-size:52px;font-weight:800;letter-spacing:-1.5px;color:var(--gold);
+  font-variant-numeric:tabular-nums;line-height:1}
+.hero-day{font-size:13px;color:var(--inkSoft);margin-top:4px;font-weight:500}
+.hero-sub{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.5}
+.hero-sub b{color:var(--inkSoft);font-weight:600}
+.hero.warn{background:linear-gradient(160deg,#2a0e0a,#0E0E0E 60%);border-color:rgba(216,99,79,.4)}
+.hero.warn .hero-time{color:var(--terra)}
+
+/* ── Live timer banner ── */
+.timerbar{position:sticky;top:0;z-index:40;background:rgba(0,0,0,.92);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);padding:10px 18px;display:none;align-items:center;gap:14px}
+.timerbar.on{display:flex}
+.tb-v{font-family:var(--body);font-size:30px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;letter-spacing:-1px;line-height:1}
+.tb-info{flex:1;min-width:0}
+.tb-name{font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-lbl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+.tb-x{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:var(--inkSoft);font-size:16px;cursor:pointer;flex-shrink:0}
+
+/* ── Schedule list ── */
+.step{display:flex;gap:13px;padding:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:8px;position:relative}
+.step.active{border-color:var(--gold);background:linear-gradient(160deg,rgba(242,204,42,.06),var(--card))}
+.step.done{opacity:.55}
+.s-when{flex-shrink:0;width:74px;text-align:right}
+.s-time{font-family:var(--body);font-size:17px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1;letter-spacing:-.3px}
+.step.active .s-time{color:var(--gold)}
+.s-day{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;font-weight:600}
+.s-dur{font-size:10.5px;color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums}
+.s-rail{flex-shrink:0;width:2px;background:var(--line);border-radius:2px;position:relative}
+.step.active .s-rail{background:var(--gold)}
+.s-body{flex:1;min-width:0}
+.s-head{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.s-num{font-family:var(--display);font-variation-settings:"opsz" 24,"wght" 700;font-size:12px;color:var(--bronze)}
+.s-name{font-size:15px;font-weight:700;color:var(--ink)}
+.s-tempo{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:7px}
+.tempo-calm{color:var(--bronze);background:var(--bronzeSoft)}
+.tempo-steady{color:var(--inkSoft);background:rgba(255,255,255,.05)}
+.tempo-urgent{color:var(--terra);background:var(--terraSoft)}
+.s-instr{font-size:13.5px;color:var(--inkSoft);line-height:1.5}
+.s-instr b{color:var(--ink);font-weight:700}
+.s-why{margin-top:8px;padding:8px 11px;background:var(--bronzeSoft);border-left:2px solid var(--bronze);border-radius:0 9px 9px 0;
+  font-family:var(--display);font-style:italic;font-variation-settings:"opsz" 14,"wght" 400;font-size:12.5px;color:var(--inkSoft);line-height:1.45}
+.s-why b{font-style:normal;font-family:var(--body);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--bronze);margin-right:6px}
+.s-cue{margin-top:8px;padding:8px 11px;background:var(--goldSoft);border-left:2px solid var(--gold);border-radius:0 9px 9px 0;font-size:12.5px;color:var(--ink);line-height:1.45}
+.s-cue b{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-right:6px;display:block;margin-bottom:2px}
+.s-timerbtn{margin-top:10px;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--cardLift);
+  color:var(--inkSoft);font-family:var(--body);font-weight:600;font-size:11.5px;border-radius:100px;padding:7px 13px;cursor:pointer}
+.s-timerbtn:active{background:var(--goldSoft);color:var(--gold);border-color:var(--gold)}
+
+.now-pill{position:absolute;top:-9px;right:12px;background:var(--gold);color:#000;font-size:9px;font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:100px}
+
+/* preheat alert */
+.preheat{display:flex;gap:13px;padding:14px;background:linear-gradient(160deg,rgba(216,99,79,.10),var(--card));
+  border:1px solid rgba(216,99,79,.35);border-radius:14px;margin-bottom:8px}
+.preheat .s-when{color:var(--terra)}
+.preheat .s-time{color:var(--terra)}
+.preheat .s-name{color:var(--terra)}
+
+/* ── Ingredients ── */
+.ing{display:flex;align-items:flex-start;gap:12px;padding:11px 2px;border-bottom:1px solid var(--lineSoft)}
+.ing:last-child{border-bottom:none}
+.ing-amt{flex-shrink:0;width:88px;text-align:right;font-weight:700;font-size:14px;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1.3}
+.ing-amt small{display:block;font-size:10.5px;color:var(--muted);font-weight:500}
+.ing-info{flex:1;min-width:0}
+.ing-n{font-size:14px;font-weight:600;color:var(--ink)}
+.ing-sub{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.4}
+
+/* ── Notes / honesty ── */
+.note{padding:13px 15px;border-radius:13px;margin-bottom:8px;font-size:13px;line-height:1.55}
+.note-honest{background:var(--bronzeSoft);border-left:3px solid var(--bronze);color:var(--inkSoft)}
+.note-honest b{color:var(--bronze);display:block;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px}
+.note-credit{background:var(--cardSoft);border:1px solid var(--line);color:var(--muted);font-size:12px;text-align:center}
+.note-credit b{color:var(--inkSoft)}
+
+.toggle-row{display:flex;align-items:center;gap:12px;padding:12px 0;cursor:pointer}
+.toggle-row .tg-txt{flex:1}
+.tg-t{font-size:13.5px;font-weight:600;color:var(--ink)}
+.tg-s{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.4}
+.tg{width:46px;height:27px;border-radius:100px;background:var(--cardLift);border:1px solid var(--line);position:relative;flex-shrink:0;transition:.2s}
+.tg::after{content:"";position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:var(--muted);transition:.2s}
+.tg.on{background:var(--gold)}
+.tg.on::after{left:21px;background:#000}
+
+footer{text-align:center;color:var(--muted);font-size:11px;margin-top:30px;line-height:1.6}
+.hidden{display:none !important}
+</style>
+</head>
+<body>
+
+<!-- live countdown banner -->
+<div class="timerbar" id="timerbar">
+  <span class="tb-v" id="tbV">0:00</span>
+  <div class="tb-info"><div class="tb-name" id="tbName">—</div><div class="tb-lbl">step timer running</div></div>
+  <button class="tb-x" id="tbX" aria-label="Stop timer">✕</button>
+</div>
+
+<div class="wrap">
+
+  <header>
+    <div class="eye">Tucker &amp; Spice · Baking &amp; Bread</div>
+    <h1>Fluffy Pita<br>Pocket Bread</h1>
+    <p class="sub">Tell it when you want them on the table — it works the whole day backwards and tells you when to start each step.</p>
+  </header>
+
+  <!-- recipe toggle -->
+  <div class="tabs">
+    <button class="tab on" data-recipe="yeast">Instant Yeast<small>same day · ~3 hr</small></button>
+    <button class="tab" data-recipe="sourdough">Sourdough<small>starter · ~6 hr</small></button>
+  </div>
+
+  <!-- ── PLAN ── -->
+  <div class="sec">
+    <div class="sec-h">
+      <span class="sec-ic"><svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="5.5"/><path d="M7 4V7L9.2 8.4" stroke-linecap="round"/></svg></span>
+      <span class="sec-t">Plan your bake</span>
+      <span class="sec-c" id="planTotal">—</span>
+    </div>
+
+    <div class="card">
+      <div class="ctl-row">
+        <div class="ctl">
+          <label class="fld" for="finish">Ready on the table at</label>
+          <input type="time" id="finish" value="18:30">
+        </div>
+        <div class="ctl">
+          <label class="fld" for="count">How many pitas</label>
+          <div class="stepper">
+            <button id="minus" aria-label="Fewer">−</button>
+            <input type="number" id="count" value="8" min="1" max="24" inputmode="numeric">
+            <button id="plus" aria-label="More">+</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn-now" id="startNow">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 3v4l3 2"/><circle cx="7" cy="7" r="6"/></svg>
+        I want to start right now
+      </button>
+      <p class="hint"><b>Pita is a number, not “serves N.”</b> Scale by how many rounds you want — leftovers freeze and reheat beautifully.</p>
+    </div>
+
+    <!-- sourdough-only: ripe starter toggle -->
+    <div class="card hidden" id="starterCard">
+      <div class="toggle-row" id="starterToggle">
+        <div class="tg-txt">
+          <div class="tg-t">My starter is already ripe &amp; bubbly</div>
+          <div class="tg-s">If not, we’ll add a 5-hour feed to the front of the plan so it’s domed and active before you mix.</div>
+        </div>
+        <div class="tg on" id="starterTg"></div>
+      </div>
+    </div>
+
+    <div class="hero" id="hero">
+      <div class="hero-l">Start your first step at</div>
+      <div class="hero-time" id="heroTime">—</div>
+      <div class="hero-day" id="heroDay"></div>
+      <div class="hero-sub" id="heroSub"></div>
+    </div>
+  </div>
+
+  <!-- ── SCHEDULE ── -->
+  <div class="sec">
+    <div class="sec-h">
+      <span class="sec-ic"><svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 3h10M2 7h7M2 11h10"/></svg></span>
+      <span class="sec-t">Your timing plan</span>
+      <span class="sec-c">start → finish</span>
+    </div>
+    <div id="schedule"></div>
+  </div>
+
+  <!-- ── INGREDIENTS ── -->
+  <div class="sec">
+    <div class="sec-h">
+      <span class="sec-ic"><svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 2C5 2 3.5 3.5 3.5 5.5C3.5 7.5 5 9 7 9C9 9 10.5 7.5 10.5 5.5C10.5 3.5 9 2 7 2Z"/><path d="M7 9V13" stroke-linecap="round"/></svg></span>
+      <span class="sec-t">Ingredients</span>
+      <span class="sec-c" id="ingCount">for 8</span>
+    </div>
+    <div class="card"><div id="ingredients"></div></div>
+  </div>
+
+  <!-- ── GEAR / honesty ── -->
+  <div class="sec">
+    <div class="sec-h">
+      <span class="sec-ic"><svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12 L7 2 L12 12 Z"/><path d="M4 9 H10"/></svg></span>
+      <span class="sec-t">Honest about it</span>
+    </div>
+    <div id="notes"></div>
+  </div>
+
+  <footer>
+    Stored in UTC, shown in your local time. Works offline once loaded.<br>
+    Tucker &amp; Spice — calm head chef, fridge to plate.
+  </footer>
+
+</div>
+
+<script>
+"use strict";
+/* ─────────────────────────────────────────────────────────────
+   DATA — both recipes. Quantities are baked for 8 rounds and scale
+   linearly (flour-led dough scales cleanly across 1–24 pitas).
+   Durations are in minutes. The schedule engine works backwards
+   from your finish time, so the only thing you set is the end.
+   ───────────────────────────────────────────────────────────── */
+const RECIPES = {
+  yeast: {
+    label: "Instant-yeast pita",
+    base: 8,
+    ingredients: [
+      {n:"Bakers (strong) flour", amt:450, unit:"g", sub:"Plain flour also works — a touch softer, slightly less puff."},
+      {n:"Warm water", amt:290, unit:"g", sub:"Blood-warm, ~35°C. Hot water kills the yeast."},
+      {n:"Instant dried yeast", amt:5, unit:"g", sub:"≈ ¾ of a 7 g sachet (Tandaco/Lowan). No need to bloom, but a 2-min head start in the water doesn’t hurt."},
+      {n:"Fine salt", amt:9, unit:"g", sub:"Flavour and it tightens the gluten. Don’t skip it."},
+      {n:"Olive oil", amt:15, unit:"g", sub:"≈ 1 tbsp. Keeps the crumb tender and foldable."},
+      {n:"Sugar or honey", amt:6, unit:"g", sub:"≈ 1 tsp. Feeds the yeast and helps the freckling."}
+    ],
+    preheat: {lead:35, label:"Oven ON — full whack", text:"Crank the oven as hot as it goes (250–260°C) with a pizza steel, stone, or upturned heavy tray on the top-third shelf. It needs a solid 30+ minutes to load up real heat — this is the single biggest factor in getting a pocket."},
+    steps: [
+      {name:"Mix & knead", dur:15, tempo:"steady",
+        instr:"Stir the yeast, sugar and warm water in a bowl; leave 2 min until it smells bready. Add flour, salt and oil. Mix to a shaggy dough, then knead <b>8–10 minutes</b> until smooth and springy (or 5 min in a mixer).",
+        why:"Kneading builds the gluten net that traps steam later. No net, no pocket.",
+        cue:"Smooth, slightly tacky, springs back when you poke it."},
+      {name:"Bulk rise", dur:90, tempo:"calm",
+        instr:"Oil the bowl, cover it, and leave somewhere warm and draught-free.",
+        why:"The first rise builds flavour and a relaxed, stretchy dough — that slow inflation is what lets it balloon.",
+        cue:"Roughly doubled and wobbles like a full water balloon. Cold Aussie winter kitchen? Give it longer; summer it’ll fly."},
+      {name:"Divide & ball", dur:10, tempo:"steady",
+        instr:"Tip out (don’t knock back hard), divide into your <b id='divN'>8</b> even pieces, and roll each into a tight, smooth ball.",
+        why:"Even weight bakes evenly; a tight ball gives surface tension so it rolls round, not raggedy.",
+        cue:"Smooth domes with a sealed seam underneath."},
+      {name:"Bench rest", dur:25, tempo:"calm",
+        instr:"Cover the balls with a tea towel and walk away.",
+        why:"This relaxes the gluten so the dough rolls thin without snapping back or tearing — and a torn skin won’t hold steam.",
+        cue:"Balls look relaxed and a little puffed, not tight."},
+      {name:"Roll out", dur:10, tempo:"steady",
+        instr:"On a lightly floured bench, roll each ball to an even <b>4–5 mm</b> round. Even thickness matters more than a perfect circle.",
+        why:"A thick rim or a thin patch bakes unevenly and won’t split into one clean pocket.",
+        cue:"Translucent-even, no thick belly in the middle."},
+      {name:"Bake", dur:18, tempo:"urgent",
+        instr:"Slide rounds onto the screaming-hot steel. <b>2–3 minutes</b> — they balloon — then a few seconds more. Bake in batches; keep the heat fierce.",
+        why:"Ferocious bottom heat flash-boils the water inside to steam, and the steam blows the two skins apart. That’s your pocket.",
+        cue:"Puffs into a dome within ~1 min. Pull them PALE with just a few golden freckles — overbake and they go crisp instead of soft and foldable. Wrap in a tea towel as they come off to keep them supple."}
+    ],
+    notes: [
+      {t:"honest", h:"No pocket? Here’s why", b:"Nine times out of ten the surface wasn’t hot enough, or the round was uneven. Don’t bin it — a flat one is still a gorgeous soft flatbread. Fold it round a kebab and no one will know."},
+      {t:"honest", h:"No steel or stone?", b:"A heavy cast-iron pan on the stovetop over high heat works brilliantly — cook one at a time, flip when it puffs. A thick oven tray left to preheat is the next best thing."},
+      {t:"credit", h:"", b:"Technique follows <b>traditional Levantine pocket bread</b> (khubz) — old, communal kitchen knowledge. We won’t bolt on a fake celebrity link to dress it up."}
+    ]
+  },
+
+  sourdough: {
+    label: "Sourdough pita",
+    base: 8,
+    ingredients: [
+      {n:"Bakers (strong) flour", amt:400, unit:"g", sub:"Plain flour works; bakers gives a chewier, stronger pocket."},
+      {n:"Active sourdough starter", amt:100, unit:"g", sub:"100% hydration, ripe & bubbly. This is your only leavening — it must be lively."},
+      {n:"Water", amt:250, unit:"g", sub:"Cool-ish, ~28–30°C. Sourdough makes its own warmth over the long ferment."},
+      {n:"Fine salt", amt:9, unit:"g", sub:"Added after a short rest, not at the same time as the starter."},
+      {n:"Olive oil", amt:15, unit:"g", sub:"≈ 1 tbsp. For a tender, foldable crumb."}
+    ],
+    preheat: {lead:35, label:"Oven ON — full whack", text:"Crank the oven as hot as it goes (250–260°C) with a steel, stone, or upturned heavy tray on the top-third shelf. Give it a full 30+ minutes — fierce, loaded heat is what makes the pocket."},
+    levain: {name:"Feed your starter", dur:300, tempo:"calm",
+      instr:"If your starter isn’t already ripe, feed it now (e.g. 1 part starter : 2 flour : 2 water) and leave it warm.",
+      why:"Wild yeast only puffs bread when it’s at its peak — sluggish starter means a sad, dense pita.",
+      cue:"Domed, bubbly, smells tangy-sweet, and a teaspoon of it floats in water."},
+    steps: [
+      {name:"Mix & autolyse", dur:20, tempo:"steady",
+        instr:"Dissolve the starter into the water, add the flour, and mix to a shaggy mass. Rest <b>20 min</b>, then add the salt and oil and squeeze them through until smooth.",
+        why:"That short rest (autolyse) lets the flour drink the water, so the dough comes together silkier with far less work.",
+        cue:"Cohesive and a little stretchy once the salt’s worked in."},
+      {name:"Bulk ferment + folds", dur:300, tempo:"calm",
+        instr:"Cover. Over the first 90 min give it <b>3 sets of stretch-and-folds</b>, ~30 min apart. Then let it ride.",
+        why:"Wild yeast is slower than commercial — it needs hours, and the folds build strength without kneading. Here, time is the flavour.",
+        cue:"Risen ~50–75%, domed and jiggly with a few bubbles on top. At ~22°C count on ~5 hr; cold kitchen 7–8 hr; warm summer 3–4 hr. Read the dough, not the clock."},
+      {name:"Divide & ball", dur:10, tempo:"steady",
+        instr:"Tip out gently, divide into your <b id='divN2'>8</b> even pieces, and shape each into a tight, smooth ball.",
+        why:"Even weight bakes evenly; surface tension on the ball makes it roll round and even.",
+        cue:"Smooth domes, seam sealed underneath."},
+      {name:"Bench rest", dur:30, tempo:"calm",
+        instr:"Cover and rest. Sourdough is slacker than yeast dough, so give it the full half hour.",
+        why:"Fully relaxes the gluten so it rolls thin without fighting back or tearing — a tear is a lost pocket.",
+        cue:"Balls relaxed and slightly spread, not springy-tight."},
+      {name:"Roll out", dur:10, tempo:"steady",
+        instr:"Roll each ball to an even <b>4–5 mm</b> round on a lightly floured bench. Even beats round.",
+        why:"Uneven thickness is the main reason a pocket only half-forms.",
+        cue:"Even all the way across, no thick middle."},
+      {name:"Bake", dur:18, tempo:"urgent",
+        instr:"Onto the screaming-hot steel. <b>2–3 minutes</b> — they balloon — then moments more. Batch them, keep it fierce.",
+        why:"Fierce bottom heat flash-boils the moisture to steam, and steam splits the two skins into a pocket.",
+        cue:"Domes within ~1 min. Pull PALE with a few freckles — soft and foldable, not crisp. Tea-towel them as they come off to stay supple."}
+    ],
+    notes: [
+      {t:"honest", h:"The clock is a guide — the dough is the boss", b:"Every sourdough time here assumes a ~22°C kitchen. Cold and it’ll run long; warm and it’ll race. Always trust the look (risen ~50–75%, jiggly) over the minutes."},
+      {t:"honest", h:"No pocket?", b:"Usually the surface wasn’t hot enough, the round was uneven, or the dough was over-proofed and too slack. Still delicious flat — use it as a wrap or tear it for dips."},
+      {t:"credit", h:"", b:"Technique follows <b>traditional Levantine pocket bread</b> (khubz), leavened the old way. No invented attribution."}
+    ]
+  }
+};
+
+/* ── STATE ── */
+let current = "yeast";
+let starterReady = true;   // sourdough only
+let activeTimer = null;    // {endTs, name}
+let scheduleCache = [];    // [{start,end,...}] for live highlighting
+
+/* ── helpers ── */
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2,"0");
+function fmtTime(d){
+  let h=d.getHours(), m=d.getMinutes();
+  const ap = h>=12 ? "pm":"am"; let hh=h%12; if(hh===0)hh=12;
+  return hh+":"+pad(m)+" "+ap;
+}
+function fmtDur(min){
+  if(min>=60){const h=Math.floor(min/60),m=min%60;return m?h+" hr "+m+" min":h+" hr";}
+  return min+" min";
+}
+const SHORTDAY=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+function dayTag(d, refDay){
+  // refDay = the calendar date (midnight) of the finish; tag if different
+  const day = new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  if(day.getTime()===refDay.getTime()) return "";
+  return SHORTDAY[d.getDay()];
+}
+function roundAmt(v){
+  if(v>=100) return Math.round(v/5)*5;       // nearest 5 g for big amounts
+  if(v>=20)  return Math.round(v);
+  return Math.round(v*10)/10;                // 1 dp for small
+}
+
+/* ── build the ordered step list (incl. optional levain) ── */
+function activeSteps(){
+  const r = RECIPES[current];
+  const steps = r.steps.slice();
+  if(current==="sourdough" && !starterReady && r.levain){
+    return [r.levain, ...steps];
+  }
+  return steps;
+}
+
+/* ── the back-timer: work the schedule backwards from finish ── */
+function computeSchedule(){
+  const r = RECIPES[current];
+  const steps = activeSteps();
+  const val = $("#finish").value || "18:30";
+  const [fh,fm] = val.split(":").map(Number);
+
+  const now = new Date();
+  let finish = new Date();
+  finish.setHours(fh,fm,0,0);
+  if(finish.getTime() <= now.getTime()-60000) finish.setDate(finish.getDate()+1); // past → tomorrow
+
+  // walk backwards
+  let cursor = new Date(finish);
+  const rows = [];
+  for(let i=steps.length-1;i>=0;i--){
+    const end = new Date(cursor);
+    const start = new Date(cursor.getTime() - steps[i].dur*60000);
+    rows.unshift({...steps[i], start, end, index:i});
+    cursor = start;
+  }
+  const firstStart = rows.length ? rows[0].start : finish;
+
+  // preheat reminder = bake start − lead (bake is the last step)
+  const bake = rows[rows.length-1];
+  const preheat = {
+    isPreheat:true, label:r.preheat.label, text:r.preheat.text,
+    start:new Date(bake.start.getTime() - r.preheat.lead*60000)
+  };
+
+  return {rows, finish, firstStart, preheat, now,
+    total: steps.reduce((a,s)=>a+s.dur,0)};
+}
+
+/* ── render everything ── */
+function render(){
+  const r = RECIPES[current];
+  const {rows, finish, firstStart, preheat, now, total} = computeSchedule();
+  scheduleCache = rows;
+  const refDay = new Date(finish.getFullYear(),finish.getMonth(),finish.getDate());
+
+  // header total
+  $("#planTotal").textContent = "~"+fmtDur(total)+" hands-off + hands-on";
+
+  // hero
+  const hero=$("#hero"), late = firstStart.getTime() < now.getTime()-60000;
+  const dt = dayTag(firstStart, refDay);
+  $("#heroTime").textContent = fmtTime(firstStart);
+  $("#heroDay").textContent = (dt?dt+" — ":"") + "to be ready by "+fmtTime(finish)+(dayTag(finish,new Date(now.getFullYear(),now.getMonth(),now.getDate()))?" tomorrow":"");
+  if(late){
+    hero.classList.add("warn");
+    $("#hero .hero-l").textContent = "Too late for that finish time";
+    const over = Math.round((now-firstStart)/60000);
+    $("#heroSub").innerHTML = "To land at <b>"+fmtTime(finish)+"</b> you’d have needed to start about <b>"+fmtDur(over)+"</b> ago. Pick a later finish, or hit “start right now”.";
+  }else{
+    hero.classList.remove("warn");
+    $("#hero .hero-l").textContent = "Start your first step at";
+    const mins = Math.max(0,Math.round((firstStart-now)/60000));
+    $("#heroSub").innerHTML = mins<2 ? "That’s <b>right now</b> — let’s go." :
+      "That’s in <b>"+fmtDur(mins)+"</b>. Total active + resting time is about <b>"+fmtDur(total)+"</b>.";
+  }
+
+  // schedule
+  let html="";
+  rows.forEach((row,i)=>{
+    // inject the preheat alert just before the bake (last) step
+    if(i===rows.length-1){
+      const pdt=dayTag(preheat.start,refDay);
+      html+=`<div class="preheat">
+        <div class="s-when"><div class="s-time">${fmtTime(preheat.start)}</div>${pdt?`<div class="s-day">${pdt}</div>`:""}<div class="s-dur">≈35 min</div></div>
+        <div class="s-rail"></div>
+        <div class="s-body"><div class="s-head"><span class="s-name">${preheat.label}</span></div>
+        <div class="s-instr">${preheat.text}</div></div></div>`;
+    }
+    const live = now>=row.start && now<row.end;
+    const done = now>=row.end;
+    const tdt=dayTag(row.start,refDay);
+    html+=`<div class="step${live?' active':''}${done?' done':''}">
+      ${live?'<span class="now-pill">now</span>':''}
+      <div class="s-when"><div class="s-time">${fmtTime(row.start)}</div>${tdt?`<div class="s-day">${tdt}</div>`:""}<div class="s-dur">${fmtDur(row.dur)}</div></div>
+      <div class="s-rail"></div>
+      <div class="s-body">
+        <div class="s-head"><span class="s-num">${pad(i+1)}</span><span class="s-name">${row.name}</span><span class="s-tempo tempo-${row.tempo}">${row.tempo}</span></div>
+        <div class="s-instr">${injectCount(row.instr)}</div>
+        <div class="s-why"><b>Why</b>${row.why}</div>
+        ${row.cue?`<div class="s-cue"><b>Look for</b>${row.cue}</div>`:""}
+        <button class="s-timerbtn" data-dur="${row.dur}" data-name="${row.name.replace(/"/g,'')}">
+          <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="8" r="5"/><path d="M7 5.5V8L8.7 9.2M5.5 1.5h3M7 1.5v2" stroke-linecap="round"/></svg>
+          Start ${fmtDur(row.dur)} timer
+        </button>
+      </div></div>`;
+  });
+  $("#schedule").innerHTML = html;
+  bindTimerButtons();
+
+  // ingredients (scaled)
+  const count = clampCount();
+  const factor = count / r.base;
+  $("#ingCount").textContent = "for "+count;
+  $("#ingredients").innerHTML = r.ingredients.map(ig=>{
+    const a = roundAmt(ig.amt*factor);
+    return `<div class="ing"><div class="ing-amt">${a} ${ig.unit}</div>
+      <div class="ing-info"><div class="ing-n">${ig.n}</div><div class="ing-sub">${ig.sub}</div></div></div>`;
+  }).join("");
+
+  // notes
+  $("#notes").innerHTML = r.notes.map(nn=>{
+    if(nn.t==="credit") return `<div class="note note-credit">${nn.b}</div>`;
+    return `<div class="note note-honest"><b>${nn.h}</b>${nn.b}</div>`;
+  }).join("");
+}
+
+function clampCount(){
+  let c = parseInt($("#count").value,10);
+  if(isNaN(c)||c<1) c=1; if(c>24) c=24;
+  return c;
+}
+function injectCount(str){
+  return str.replace(/id='divN2?'>8</, ">"+clampCount()+"<");
+}
+
+/* ── per-step countdown timer (offline beep + haptic) ── */
+function bindTimerButtons(){
+  document.querySelectorAll(".s-timerbtn").forEach(b=>{
+    b.onclick = ()=> startTimer(parseInt(b.dataset.dur,10)*60, b.dataset.name);
+  });
+}
+function startTimer(secs, name){
+  activeTimer = {endTs: Date.now()+secs*1000, name};
+  $("#timerbar").classList.add("on");
+  $("#tbName").textContent = name;
+  tickTimer();
+}
+function tickTimer(){
+  if(!activeTimer) return;
+  const left = Math.round((activeTimer.endTs - Date.now())/1000);
+  if(left<=0){
+    $("#tbV").textContent = "done";
+    beep(); if(navigator.vibrate) navigator.vibrate([300,150,300]);
+    const nm = activeTimer.name; activeTimer=null;
+    $("#tbName").textContent = nm+" — time’s up";
+    return;
+  }
+  const m=Math.floor(left/60), s=left%60;
+  $("#tbV").textContent = m+":"+pad(s);
+}
+$("#tbX").onclick = ()=>{ activeTimer=null; $("#timerbar").classList.remove("on"); };
+
+let audioCtx=null;
+function beep(){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    [0,0.5,1].forEach(t=>{
+      const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+      o.frequency.value=880; o.type="sine";
+      o.connect(g); g.connect(audioCtx.destination);
+      const st=audioCtx.currentTime+t;
+      g.gain.setValueAtTime(0.0001,st);
+      g.gain.exponentialRampToValueAtTime(0.4,st+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,st+0.35);
+      o.start(st); o.stop(st+0.36);
+    });
+  }catch(e){}
+}
+
+/* ── events ── */
+document.querySelectorAll(".tab").forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+    t.classList.add("on");
+    current=t.dataset.recipe;
+    $("#starterCard").classList.toggle("hidden", current!=="sourdough");
+    render();
+  };
+});
+$("#starterToggle").onclick=()=>{
+  starterReady=!starterReady;
+  $("#starterTg").classList.toggle("on",starterReady);
+  render();
+};
+$("#finish").oninput=render;
+$("#count").oninput=render;
+$("#minus").onclick=()=>{ $("#count").value=Math.max(1,clampCount()-1); render(); };
+$("#plus").onclick =()=>{ $("#count").value=Math.min(24,clampCount()+1); render(); };
+$("#startNow").onclick=()=>{
+  const {total} = computeSchedule();
+  const end = new Date(Date.now()+total*60000);
+  $("#finish").value = pad(end.getHours())+":"+pad(end.getMinutes());
+  render();
+};
+
+/* live re-render every 30s so "now" highlight + countdown stay honest */
+setInterval(()=>{ if(activeTimer) tickTimer(); }, 1000);
+setInterval(render, 30000);
+render();
+</script>
+</body>
+</html>

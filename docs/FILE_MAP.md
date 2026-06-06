@@ -67,6 +67,7 @@
 | `docs/prototypes/recipe-detail-v5.html` | Recipe detail "The Pass" (latest) — v4 + origin flag, sticky CTA, collapsing app bar. APPROVED for engineer build. |
 | `docs/prototypes/recipe-detail-v6.html` | Aesthetic-only restyle of the working build-#126 recipe page — safe rebuild after the v5 crash (no scroll-driven chrome). |
 | `docs/prototypes/recipe-detail-v7.html` | **Vision concept** — kitchen-first redesign: warm-paper browse + OLED cook flow, Fraunces+Inter type, pantry signal up top, ergonomic cook step. For Patrick's direction call. |
+| `docs/prototypes/pita-pocket-bread-v1.html` | Standalone, offline-capable phone tool for fluffy pita pocket bread — two recipes (instant yeast / sourdough), each with a back-timer that schedules every step backwards from your chosen finish time. Scales by pita count (bread is a number), per-step countdown timers, T&S dark palette + voice. Patrick's personal kitchen tool, not app code. |
 | `docs/archive/` | Completed checklists, old backups, superseded documents. Nothing here is current. |
 | `docs/archive/sessions/` | Numbered session backup folders (11–14, README). |
 | `docs/archive/backup-*/` | Point-in-time snapshot backups created during risky refactors. |
