@@ -1,6 +1,6 @@
-# CLAUDE.md — Standing Instructions (Hone)
+# CLAUDE.md — Standing Instructions (Tucker & Spice)
 
-> Source of truth for the Hone project. Read first, every session. Lean by design — if a rule isn't here, it isn't a rule.
+> Source of truth for the Tucker & Spice project. Read first, every session. Lean by design — if a rule isn't here, it isn't a rule.
 
 ---
 
@@ -20,7 +20,7 @@
 
 ## 2 · What we're building
 
-**Hone** — a recipe & meal-planning app for **Google Play, Android-first, Australia-first** (iOS out of scope for v1). The product is a **calm, intuitive head chef** that guides you from fridge to plate: shop → prep → cook → plate → cleanup, in one voice. Not a recipe library with a timer bolted on.
+**Tucker & Spice** — a recipe & meal-planning app for **Google Play, Android-first, Australia-first** (iOS out of scope for v1). The product is a **calm, intuitive head chef** that guides you from fridge to plate: shop → prep → cook → plate → cleanup, in one voice. Not a recipe library with a timer bolted on.
 
 **Beat Supercook & Yummly on three axes:** (1) ease of use — fewer taps, no discovery maze; (2) Australian audience — metric, Aussie ingredient names (capsicum, coriander), Southern-Hemisphere seasonality, local produce; (3) presentation — chef-credited, stage-by-stage photos.
 

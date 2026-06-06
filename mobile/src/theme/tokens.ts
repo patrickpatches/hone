@@ -1,5 +1,5 @@
 /**
- * Design tokens — Hone Dark palette.
+ * Design tokens — Tucker & Spice Dark palette.
  *
  * DECISION-012 · 2026-05-07. Direction: Dark.
  * Previous: Sage palette (DECISION-011, light surfaces #E8F0E6).

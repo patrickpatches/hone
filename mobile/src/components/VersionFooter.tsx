@@ -33,9 +33,9 @@ export function VersionFooter({
           color: tokens.muted,
           opacity: 0.7,
         }}
-        accessibilityLabel={`Hone ${VERSION_LABEL}`}
+        accessibilityLabel={`Tucker & Spice ${VERSION_LABEL}`}
       >
-        Hone · {VERSION_LABEL}
+        Tucker & Spice · {VERSION_LABEL}
       </Text>
     </View>
   );

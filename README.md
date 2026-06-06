@@ -1,4 +1,4 @@
-# Hone
+# Tucker & Spice
 
 A recipe and meal planning app for the Google Play Store. Australian-first,
 metric-only, chef-inspired, whole-food only. The app's POV: a calm, intuitive
@@ -71,7 +71,7 @@ For PWA: `cd mobile && npx expo export --platform web` then deploy `dist/` to an
 Push to `main` triggers GitHub Actions. To build an APK on demand:
 
 ```
-gh workflow run "Hone Android Build" --field profile=preview
+gh workflow run "Tucker & Spice Android Build" --field profile=preview
 ```
 
 Artifact attaches to the run. See [docs/RELEASING.md](./docs/RELEASING.md) for the full release runbook.

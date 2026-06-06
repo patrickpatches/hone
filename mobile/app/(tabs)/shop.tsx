@@ -471,7 +471,7 @@ export default function ShopTab() {
 
   // ── Share handler ──────────────────────────────────────────────────────────
   const handleShare = useCallback(async () => {
-    const lines: string[] = ['Shopping list (Hone)\n'];
+    const lines: string[] = ['Shopping list (Tucker & Spice)\n'];
     for (const sec of sections) {
       lines.push(`\n${sec.label.toUpperCase()}`);
       for (const it of sec.items) {

@@ -7,7 +7,7 @@
  *
  * The build number (Android versionCode) is the bookkeeping integer the
  * Play Store uses for ordering — it must increase monotonically. We expose
- * it here so the version footer can show "Hone v0.2.0 · build 2".
+ * it here so the version footer can show "Tucker & Spice v0.2.0 · build 2".
  */
 import Constants from 'expo-constants';
 

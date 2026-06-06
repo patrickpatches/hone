@@ -21,7 +21,7 @@
  * and sourdough-loaf below.
  *
  * Attribution (Golden Rule #2) is preserved on every chef-inspired recipe.
- * Originals use `chef: 'Hone Kitchen'` as source so the schema's refine
+ * Originals use `chef: 'Tucker & Spice Kitchen'` as source so the schema's refine
  * check passes without pretending to a chef who didn't author them.
  */
 
@@ -589,8 +589,8 @@ const ROAST_CHICKEN: Recipe = {
   user_added: false,
   generated_by_claude: false,
   source: {
-    chef: 'Hone Kitchen',
-    notes: "Hone Kitchen original — professional dry-brine + butter-under-skin method developed in-house. Informed by the canon (Keller's high-heat simplicity, Liaw's overnight dry brine, Maggie Beer's compound butter) but distinct: 230\u00B0C blister then 190\u00B0C through, a true 15-min rest, and a 3-minute pan sauce from the fond — the part most home recipes skip.",
+    chef: 'Tucker & Spice Kitchen',
+    notes: "Tucker & Spice Kitchen original — professional dry-brine + butter-under-skin method developed in-house. Informed by the canon (Keller's high-heat simplicity, Liaw's overnight dry brine, Maggie Beer's compound butter) but distinct: 230\u00B0C blister then 190\u00B0C through, a true 15-min rest, and a 3-minute pan sauce from the fond — the part most home recipes skip.",
   },
   emoji: '🐔',
   hero_url: 'https://images.unsplash.com/photo-1606728035253-49e8a23146de?w=1200&q=80',
@@ -2498,8 +2498,8 @@ const WEEKDAY_BOLOGNESE: Recipe = {
 };
 
 // ────────────────────────────────────────────────────────────────────────────
-//  5 Originals — Hone Kitchen
-//  Authored in-house in the chef-guide voice. Sourced as "Hone Kitchen"
+//  5 Originals — Tucker & Spice Kitchen
+//  Authored in-house in the chef-guide voice. Sourced as "Tucker & Spice Kitchen"
 //  so the Zod refine check passes honestly — no chef is claimed who didn't
 //  actually author these.
 // ────────────────────────────────────────────────────────────────────────────
@@ -2516,7 +2516,7 @@ const AGLIO_E_OLIO: Recipe = {
   user_added: false,
   generated_by_claude: false,
   source: {
-    chef: 'Hone Kitchen',
+    chef: 'Tucker & Spice Kitchen',
     notes: 'Original in-house recipe in the style of a Roman trattoria late-night plate. No chef attribution — this is our own.',
   },
   emoji: '🍝',
@@ -2590,7 +2590,7 @@ const MUJADARA: Recipe = {
   user_added: false,
   generated_by_claude: false,
   source: {
-    chef: 'Hone Kitchen',
+    chef: 'Tucker & Spice Kitchen',
     notes: 'Original in-house recipe built on the standard Lebanese / Palestinian ratios. No chef attribution — our own.',
   },
   emoji: '🍚',
@@ -2689,7 +2689,7 @@ const SHEET_PAN_HARISSA_CHICKEN: Recipe = {
   user_added: false,
   generated_by_claude: false,
   source: {
-    chef: 'Hone Kitchen',
+    chef: 'Tucker & Spice Kitchen',
     notes: 'Original in-house recipe. The rose harissa / honey combination leans Tunisian; the approach is modern sheet-pan. No chef attribution.',
   },
   emoji: '🌶️',
@@ -2802,7 +2802,7 @@ const EGG_FRIED_RICE: Recipe = {
   user_added: false,
   generated_by_claude: false,
   source: {
-    chef: 'Hone Kitchen',
+    chef: 'Tucker & Spice Kitchen',
     notes: 'Original in-house recipe, Cantonese style (egg + spring onion base, no carrots and peas clutter).',
   },
   emoji: '🍳',
@@ -2890,7 +2890,7 @@ const LAMB_SHAWARMA: Recipe = {
   user_added: false,
   generated_by_claude: false,
   source: {
-    chef: 'Hone Kitchen',
+    chef: 'Tucker & Spice Kitchen',
     notes: 'Original in-house recipe — a home-oven adaptation of the spit-roasted original. No chef attribution.',
   },
   emoji: '🥩',
@@ -3016,7 +3016,7 @@ const CHICKEN_SHAWARMA: Recipe = {
   user_added: false,
   generated_by_claude: false,
   source: {
-    chef: 'Hone Kitchen',
+    chef: 'Tucker & Spice Kitchen',
     notes: "A traditional Levantine method (Palestinian and Lebanese home cooking). No single chef attribution — this is a consensus home-oven adaptation of street-vendor shawarma.",
   },
   emoji: '🌯',
@@ -3856,7 +3856,7 @@ const SAAG_PANEER: Recipe = {
   user_added: false,
   generated_by_claude: false,
   source: {
-    chef: 'Hone Kitchen',
+    chef: 'Tucker & Spice Kitchen',
     notes: 'Original in-house recipe. Technique drawn from Indian restaurant practice. Uses fresh spinach — not frozen.',
   },
   emoji: '🌿',
@@ -4238,7 +4238,7 @@ const BARRAMUNDI: Recipe = {
   user_added: false,
   generated_by_claude: false,
   source: {
-    chef: 'Hone Kitchen',
+    chef: 'Tucker & Spice Kitchen',
     notes: 'Original in-house recipe. The dry-skin technique is standard professional kitchen practice.',
   },
   emoji: '🐟',

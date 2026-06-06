@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Hone",
+    "name": "Tucker & Spice",
     "slug": "hone",
-    "scheme": "hone",
+    "scheme": "tuckerspice",
     "version": "0.5.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,10 +15,10 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.patricknasr.hone"
+      "bundleIdentifier": "com.patricknasr.tuckerspice"
     },
     "android": {
-      "package": "com.patricknasr.hone",
+      "package": "com.patricknasr.tuckerspice",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#111111"
@@ -44,7 +44,7 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "baseUrl": "/hone"
+      "baseUrl": "/tucker-spice"
     },
     "runtimeVersion": {
       "policy": "appVersion"

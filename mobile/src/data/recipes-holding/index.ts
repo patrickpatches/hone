@@ -1227,7 +1227,7 @@ const AGLIO_E_OLIO: Recipe = {
   user_added: false,
   generated_by_claude: false,
   source: {
-    chef: 'Hone Kitchen',
+    chef: 'Tucker & Spice Kitchen',
     notes: 'Original in-house recipe in the style of a Roman trattoria late-night plate. No chef attribution — this is our own.',
   },
   emoji: '🍝',
@@ -1278,7 +1278,7 @@ const MUJADARA: Recipe = {
   user_added: false,
   generated_by_claude: false,
   source: {
-    chef: 'Hone Kitchen',
+    chef: 'Tucker & Spice Kitchen',
     notes: 'Original in-house recipe built on the standard Lebanese / Palestinian ratios. No chef attribution — our own.',
   },
   emoji: '🍚',
@@ -1355,7 +1355,7 @@ const SHEET_PAN_HARISSA_CHICKEN: Recipe = {
   user_added: false,
   generated_by_claude: false,
   source: {
-    chef: 'Hone Kitchen',
+    chef: 'Tucker & Spice Kitchen',
     notes: 'Original in-house recipe. The rose harissa / honey combination leans Tunisian; the approach is modern sheet-pan. No chef attribution.',
   },
   emoji: '🌶️',
@@ -1445,7 +1445,7 @@ const EGG_FRIED_RICE: Recipe = {
   user_added: false,
   generated_by_claude: false,
   source: {
-    chef: 'Hone Kitchen',
+    chef: 'Tucker & Spice Kitchen',
     notes: 'Original in-house recipe, Cantonese style (egg + spring onion base, no carrots and peas clutter).',
   },
   emoji: '🍳',
