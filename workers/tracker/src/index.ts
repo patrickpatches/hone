@@ -311,7 +311,7 @@ export default {
       if (!ghRes) return json({ error: 'Could not reach GitHub' }, 502);
       if (ghRes.status === 403 || ghRes.status === 404) {
         return json({
-          error: "The Worker's GitHub token can't create issues. Upgrade the hone-buglord token to Issues: Read AND write, then it works.",
+          error: "The Worker's GitHub token can't create issues. Upgrade the tuckerspice-tracker token to Issues: Read AND write, then it works.",
           status: ghRes.status,
         }, 403);
       }
