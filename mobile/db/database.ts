@@ -597,6 +597,51 @@ export async function removePlannedRecipe(
   await db.runAsync('DELETE FROM meal_plan WHERE id = ?', [recipeId]);
 }
 
+// ── Weekly planner (issue #38) ────────────────────────────────────────────────
+// Uses meal_plan with real ISO dates ('2026-06-09') for weekly view entries.
+// Sentinel-dated rows (date='planned') are the older plan-toggle feature
+// and co-exist peacefully — Shop tab picks up ALL rows.
+
+export interface WeeklyPlanEntry {
+  id: string;
+  date: string;        // ISO: 'YYYY-MM-DD'
+  recipe_id: string;
+  servings: number;
+}
+
+export async function getMealPlanForWeek(
+  db: SQLiteDatabase,
+  startDate: string,   // ISO 'YYYY-MM-DD' — Monday of the week
+  endDate: string,     // ISO 'YYYY-MM-DD' — Sunday of the week
+): Promise<WeeklyPlanEntry[]> {
+  return db.getAllAsync<WeeklyPlanEntry>(
+    `SELECT * FROM meal_plan
+     WHERE date >= ? AND date <= ?
+     ORDER BY date, rowid`,
+    [startDate, endDate],
+  );
+}
+
+export async function addWeeklyMealPlan(
+  db: SQLiteDatabase,
+  date: string,        // ISO 'YYYY-MM-DD'
+  recipeId: string,
+  servings: number,
+): Promise<void> {
+  const id = `weekly-${date}-${recipeId}-${Date.now()}`;
+  await db.runAsync(
+    'INSERT INTO meal_plan (id, date, recipe_id, servings) VALUES (?, ?, ?, ?)',
+    [id, date, recipeId, servings],
+  );
+}
+
+export async function removeWeeklyMealPlan(
+  db: SQLiteDatabase,
+  entryId: string,
+): Promise<void> {
+  await db.runAsync('DELETE FROM meal_plan WHERE id = ?', [entryId]);
+}
+
 // ── Meal Plan ─────────────────────────────────────────────────────────────────
 
 export interface MealPlanEntry {
