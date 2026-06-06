@@ -91,6 +91,7 @@
 | `mobile/src/components/` | Shared React Native components. |
 | `mobile/src/data/` | Business logic: types, scaling, seed recipes, pantry helpers. |
 | `mobile/src/data/types.ts` | Zod schemas and TypeScript types for recipes, ingredients, substitutions. |
+| `mobile/src/data/allergens.ts` | Australian PEAL allergen taxonomy + name-based inference. Derives each recipe's allergen declaration. |
 | `mobile/src/data/seed-recipes.ts` | All seeded recipe data. The recipe library. |
 | `mobile/src/data/scale.ts` | Ingredient scaling logic (linear / fixed / custom). |
 | `mobile/src/data/pantry-helpers.ts` | Pantry-to-recipe matching and scoring. |

@@ -11,9 +11,20 @@
 
 | ID | Title | Status | Notes |
 |---|---|---|---|
+| STARTUP-FREEZE | APK boots and freezes on the splash screen | FIX ATTEMPTED | Two root causes fixed (see notes below) — awaiting Patrick on-device validation |
 | REGN-001 | Recipe cards misalign after first scroll | FIX ATTEMPTED | Commit `1fca0aaa3d3d` — awaiting Patrick on-device validation |
 | REGN-006 | Equipment + Prep sections missing on most recipes | FIX ATTEMPTED | UI rendering restored 7 May 2026 — awaiting on-device validation |
 | REGN-007 | Pantry STILL NEED chip state broken (undo, X-removal, ✓-toggle) | FIX ATTEMPTED | Refactored to derive state from shopping list — awaiting on-device validation |
+| HONE-006 | Recipe detail v7 Phase 1 (styling + IA) | FIX ATTEMPTED | All 3 commits done (584dba2) — awaiting Patrick on-device validation |
+| HONE-037 | Bulletproof cooking timers | FIX ATTEMPTED | expo-notifications, live countdown, background alarm (6bcfa89) — awaiting on-device validation |
+| HONE-041 | 'I cooked this' history + personal recipe notes | FIX ATTEMPTED | Schema v10, DB functions, cook count badge, notes editor (64d2b7b) — awaiting on-device validation |
+| HONE-040 | Reminders & notifications | FIX ATTEMPTED | Nightly 5:30pm meal reminder when plan has recipes (10cc8dd) — awaiting on-device validation |
+| HONE-038 | Weekly meal-planner view | FIX ATTEMPTED | New Plan tab, 7-day grid, recipe picker, shopping list auto-wired (98349d5) — awaiting on-device validation |
+
+**STARTUP-FREEZE root cause (diagnosed 7 June 2026):**
+Two independent bugs, both fixed in the same commit:
+1. **Syntax error (build-breaking)** — `seed-recipes.ts` PAD_THAI step s1 content was a single-quoted string containing an unescaped apostrophe (`that's`). Hermes-parser failed at line 1849:212 (`'}' expected`). Fixed: escaped to `that\'s`. Confirmed broken via hermes-parser on HEAD, fixed in working tree.
+2. **Startup freeze (SQLiteProvider)** — `SplashScreen.hideAsync()` lives in `AppShell`, which is a child of `SQLiteProvider`. `SQLiteProvider` returns `null` while loading (so AppShell never renders). With no `onError` prop, any throw during `setupDatabase` re-throws during render with no error boundary — native splash freezes forever. Pure hangs (locked DB file) are equally silent. Fix: `onError` + `onDbError` callback surfacing failures via `DbErrorScreen` (raw RN primitives, hides splash), 15 s watchdog for the hang case, `dbAttempt` counter to change `onInit` identity and force SQLiteProvider to retry on remount.
 
 **REGN-006 root cause (diagnosed 7 May 2026):**
 - Patrick reported Equipment + Mise en place sections missing across most recipes (not just SMASH_BURGER).
