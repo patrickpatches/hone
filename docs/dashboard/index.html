@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bug Lord — Hone Mission Control</title>
+<title>Bug Lord — Tucker & Spice Mission Control</title>
 <style>
   :root{
     color-scheme:dark;
@@ -327,7 +327,7 @@
   <div class="top">
     <header>
       <div class="brand"><div class="crown">👑</div>
-        <div><h1>Bug Lord</h1><div class="sub">Hone — mission control</div></div></div>
+        <div><h1>Bug Lord</h1><div class="sub">Tucker & Spice — mission control</div></div></div>
       <div class="ministat"><b id="mini">—</b><br><span>days to launch · <span id="stamp"></span></span></div>
     </header>
     <div class="tabs" id="tabs"></div>
@@ -455,12 +455,12 @@
 
   <!-- AFTER LAUNCH -->
   <section class="panel" data-tab="later">
-    <div class="lead">You have no users yet, so download counts and follower numbers would be noise. These four actually tell us if Hone works. They switch on at launch — empty until then, on purpose.</div>
+    <div class="lead">You have no users yet, so download counts and follower numbers would be noise. These four actually tell us if Tucker & Spice works. They switch on at launch — empty until then, on purpose.</div>
     <div class="later" id="later"></div>
   </section>
 
   <section class="panel" data-tab="flow">
-    <div class="lead">How Hone actually gets built — the whole team, the path every job takes, and how we keep the version honest. This is the operating system; every worker runs on it.</div>
+    <div class="lead">How Tucker & Spice actually gets built — the whole team, the path every job takes, and how we keep the version honest. This is the operating system; every worker runs on it.</div>
     <div class="sectlabel2">The team</div>
     <div id="flowteam"></div>
     <div class="sectlabel2">How every job flows</div>
@@ -509,7 +509,7 @@ const TABS=[{id:'today',label:'Today'},{id:'week',label:'This week'},{id:'flow',
 const JOBS=[
   {pri:1,t:"Find out what kind of Play Store account you have",d:"Personal or Organisation — and when did you open it? If it's Personal and opened after Nov 2023, Google forces a 14-day test with 12 people before you can launch. This one fact decides if 24 July is comfortable or tight.",done:"Done when: you tell me 'personal' or 'organisation' + the rough sign-up date."},
   {pri:2,t:"Install the latest build (#138) and test it",d:"#138 is the latest build — it has all the recent fixes. Install it from GitHub Actions, open a recipe, and post your result in the box below.",done:"Done when: you've opened a recipe on #138 and marked each fix pass/fail."},
-  {pri:3,t:"Start a list of 12 testers",d:"Anyone with an Android phone who'll install Hone and keep it 14 straight days. You need at least 12 for the Google gate — the slowest part to organise, so start now.",done:"Done when: you have 12 names + their Google emails."}
+  {pri:3,t:"Start a list of 12 testers",d:"Anyone with an Android phone who'll install Tucker & Spice and keep it 14 straight days. You need at least 12 for the Google gate — the slowest part to organise, so start now.",done:"Done when: you have 12 names + their Google emails."}
 ];
 
 const ROAD=[
@@ -521,7 +521,7 @@ const ROAD=[
   {phase:"July",sub:"The run-up to launch — and the one hard gate",items:[
     {name:"Closed test — 12 people, 14 days straight",when:"Start by early July",state:"gate",gate:true,desc:"Google's gate. At least 12 people install it and keep it 14 consecutive days. You can't apply to launch until this is done.",done:"Done when: 12 testers have been opted in for 14 unbroken days."},
     {name:"Apply to publish",when:"Mid-July",state:"later",desc:"After the 14 days, request production access — Google reviews it (usually a few days). Get the store page ready in parallel: title, screenshots, description, data-safety form.",done:"Done when: Google grants production access and the listing is complete."},
-    {name:"Launch day — gentle rollout",when:"Friday 24 July",state:"later",desc:"Don't flip it on for everyone at once. Release to a small slice of Australia first (~20%), watch for crashes, ramp to 100% as it proves stable. Halt instantly if something's wrong.",done:"Done when: 100% of your chosen Australian audience can download Hone."}
+    {name:"Launch day — gentle rollout",when:"Friday 24 July",state:"later",desc:"Don't flip it on for everyone at once. Release to a small slice of Australia first (~20%), watch for crashes, ramp to 100% as it proves stable. Halt instantly if something's wrong.",done:"Done when: 100% of your chosen Australian audience can download Tucker & Spice."}
   ]},
   {phase:"After launch",sub:"From firefighting to a calm routine",items:[
     {name:"Settle & fix",when:"Late July → August",state:"later",desc:"First weeks live. Watch the crash rate and first reviews like a hawk. Fix fast — early reviews set your reputation.",done:"Done when: crashes are rare, reviews stable, no fire burning."},
@@ -559,7 +559,7 @@ function recomputeSev(){
 }
 TABS.find(t=>t.id==='bugs').badge=0;
 const LATER=[
-  {lt:"Do people come back the next day?",ld:"Of everyone who opens Hone today, how many open it again tomorrow. The strongest sign the app is actually useful.",ls:"starts at launch"},
+  {lt:"Do people come back the next day?",ld:"Of everyone who opens Tucker & Spice today, how many open it again tomorrow. The strongest sign the app is actually useful.",ls:"starts at launch"},
   {lt:"How fast to their first cooked dish?",ld:"Time from opening the app to tapping 'Start cooking' on something real. Slow = friction from fridge to plate.",ls:"starts at launch"},
   {lt:"Crash-free rate",ld:"The % of sessions with no crash. Below ~99% and early reviews punish you. The launch-week number that matters most.",ls:"starts at launch"},
   {lt:"What the bad reviews actually say",ld:"Not the star average — the words in the 1- and 2-star reviews. That's where the real to-do list comes from.",ls:"starts at launch"}
