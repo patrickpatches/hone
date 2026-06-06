@@ -16,7 +16,7 @@
    ───────────────────────────────────────────────────────────── */
 :root{
   --bg:#000; --card:#0E0E0E; --cardSoft:#161616; --cardLift:#1E1E1E;
-  --ink:#F5EFE8; --inkSoft:#C4B8A8; --muted:#8A7E72;
+  --ink:#F7F2EC; --inkSoft:#DBD0C2; --muted:#A99C8D;
   --terra:#D8634F; --terraSoft:rgba(216,99,79,.12); --terraDeep:#B84030;
   --gold:#F2CC2A; --goldSoft:rgba(242,204,42,.10);
   --bronze:#C2A15A; --bronzeSoft:rgba(194,161,90,.10);
@@ -27,7 +27,7 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);
-  line-height:1.5;min-height:100vh;
+  font-size:17px;line-height:1.6;min-height:100vh;
   padding:0 0 calc(40px + env(safe-area-inset-bottom));}
 .wrap{max-width:560px;margin:0 auto;padding:0 18px}
 
@@ -37,15 +37,15 @@ header{padding:calc(28px + env(safe-area-inset-top)) 0 18px;text-align:center}
 h1{font-family:var(--display);font-variation-settings:"opsz" 120,"wght" 700;
   font-size:34px;line-height:1.02;letter-spacing:-.5px;margin-bottom:8px}
 .sub{font-family:var(--display);font-variation-settings:"opsz" 28,"wght" 400;
-  font-style:italic;font-size:15px;color:var(--inkSoft);line-height:1.45;max-width:34ch;margin:0 auto}
+  font-style:italic;font-size:16.5px;color:var(--inkSoft);line-height:1.5;max-width:34ch;margin:0 auto}
 
 /* ── Recipe tabs ── */
 .tabs{display:flex;gap:8px;margin:22px 0 6px;background:var(--cardSoft);
   border:1px solid var(--line);border-radius:14px;padding:5px}
 .tab{flex:1;border:none;background:transparent;color:var(--inkSoft);
-  font-family:var(--body);font-weight:600;font-size:13.5px;padding:11px 8px;border-radius:10px;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;gap:2px;transition:.15s}
-.tab small{font-weight:500;font-size:10.5px;color:var(--muted);letter-spacing:.02em}
+  font-family:var(--body);font-weight:600;font-size:15px;padding:12px 8px;border-radius:10px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;transition:.15s}
+.tab small{font-weight:500;font-size:11.5px;color:var(--muted);letter-spacing:.02em}
 .tab.on{background:var(--terra);color:#fff;box-shadow:0 6px 16px rgba(216,99,79,.25)}
 .tab.on small{color:rgba(255,255,255,.8)}
 
@@ -53,16 +53,16 @@ h1{font-family:var(--display);font-variation-settings:"opsz" 120,"wght" 700;
 .sec{margin-top:26px}
 .sec-h{display:flex;align-items:center;gap:9px;padding:0 2px 9px;border-bottom:1px solid var(--line);margin-bottom:14px}
 .sec-ic{color:var(--bronze);display:flex;flex-shrink:0}
-.sec-t{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--bronze);flex:1}
-.sec-c{font-size:11.5px;color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
+.sec-t{font-size:13px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--bronze);flex:1}
+.sec-c{font-size:12.5px;color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
 
 /* ── Cards / controls ── */
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
 .card + .card{margin-top:10px}
 .lead{font-family:var(--display);font-style:italic;font-variation-settings:"opsz" 18,"wght" 400;
-  font-size:13.5px;color:var(--inkSoft);line-height:1.5;margin-bottom:6px}
+  font-size:15px;color:var(--inkSoft);line-height:1.55;margin-bottom:6px}
 
-label.fld{display:block;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+label.fld{display:block;font-size:12px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
 .ctl-row{display:flex;gap:12px;flex-wrap:wrap}
 .ctl{flex:1;min-width:150px}
 input[type=time],input[type=number]{width:100%;background:var(--cardLift);border:1px solid var(--line);
@@ -73,22 +73,22 @@ input[type=time]:focus,input[type=number]:focus{border-color:var(--gold)}
 .stepper button{width:50px;border:none;background:transparent;color:var(--gold);font-size:24px;font-weight:300;cursor:pointer}
 .stepper button:active{background:var(--goldSoft)}
 .stepper input{border:none;border-radius:0;text-align:center;background:transparent}
-.hint{font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.45}
+.hint{font-size:13px;color:var(--muted);margin-top:11px;line-height:1.5}
 .hint b{color:var(--bronze);font-weight:600}
 
 .btn-now{width:100%;margin-top:12px;height:46px;border:1.5px solid var(--gold);background:transparent;color:var(--gold);
-  font-family:var(--body);font-weight:700;font-size:13.5px;letter-spacing:.02em;border-radius:100px;cursor:pointer;
+  font-family:var(--body);font-weight:700;font-size:15px;letter-spacing:.02em;border-radius:100px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:8px}
 .btn-now:active{background:var(--goldSoft)}
 
 /* ── Hero "start at" ── */
 .hero{background:linear-gradient(160deg,#1a0d08,#0E0E0E 60%);border:1px solid var(--line);
   border-radius:18px;padding:20px;text-align:center;margin-top:14px;position:relative;overflow:hidden}
-.hero-l{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--bronze);margin-bottom:6px}
+.hero-l{font-size:12px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--bronze);margin-bottom:6px}
 .hero-time{font-family:var(--body);font-size:52px;font-weight:800;letter-spacing:-1.5px;color:var(--gold);
   font-variant-numeric:tabular-nums;line-height:1}
-.hero-day{font-size:13px;color:var(--inkSoft);margin-top:4px;font-weight:500}
-.hero-sub{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.5}
+.hero-day{font-size:14.5px;color:var(--inkSoft);margin-top:5px;font-weight:500}
+.hero-sub{font-size:14px;color:var(--muted);margin-top:11px;line-height:1.55}
 .hero-sub b{color:var(--inkSoft);font-weight:600}
 .hero.warn{background:linear-gradient(160deg,#2a0e0a,#0E0E0E 60%);border-color:rgba(216,99,79,.4)}
 .hero.warn .hero-time{color:var(--terra)}
@@ -108,29 +108,29 @@ input[type=time]:focus,input[type=number]:focus{border-color:var(--gold)}
 .step.active{border-color:var(--gold);background:linear-gradient(160deg,rgba(242,204,42,.06),var(--card))}
 .step.done{opacity:.55}
 .s-when{flex-shrink:0;width:74px;text-align:right}
-.s-time{font-family:var(--body);font-size:17px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1;letter-spacing:-.3px}
+.s-time{font-family:var(--body);font-size:19px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1;letter-spacing:-.3px}
 .step.active .s-time{color:var(--gold)}
-.s-day{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;font-weight:600}
-.s-dur{font-size:10.5px;color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums}
+.s-day{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;font-weight:600}
+.s-dur{font-size:11.5px;color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums}
 .s-rail{flex-shrink:0;width:2px;background:var(--line);border-radius:2px;position:relative}
 .step.active .s-rail{background:var(--gold)}
 .s-body{flex:1;min-width:0}
 .s-head{display:flex;align-items:center;gap:8px;margin-bottom:5px}
-.s-num{font-family:var(--display);font-variation-settings:"opsz" 24,"wght" 700;font-size:12px;color:var(--bronze)}
-.s-name{font-size:15px;font-weight:700;color:var(--ink)}
-.s-tempo{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:7px}
+.s-num{font-family:var(--display);font-variation-settings:"opsz" 24,"wght" 700;font-size:13px;color:var(--bronze)}
+.s-name{font-size:17.5px;font-weight:700;color:var(--ink);letter-spacing:-.2px}
+.s-tempo{margin-left:auto;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:7px}
 .tempo-calm{color:var(--bronze);background:var(--bronzeSoft)}
 .tempo-steady{color:var(--inkSoft);background:rgba(255,255,255,.05)}
 .tempo-urgent{color:var(--terra);background:var(--terraSoft)}
-.s-instr{font-size:13.5px;color:var(--inkSoft);line-height:1.5}
+.s-instr{font-size:15.5px;color:var(--inkSoft);line-height:1.6}
 .s-instr b{color:var(--ink);font-weight:700}
-.s-why{margin-top:8px;padding:8px 11px;background:var(--bronzeSoft);border-left:2px solid var(--bronze);border-radius:0 9px 9px 0;
-  font-family:var(--display);font-style:italic;font-variation-settings:"opsz" 14,"wght" 400;font-size:12.5px;color:var(--inkSoft);line-height:1.45}
-.s-why b{font-style:normal;font-family:var(--body);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--bronze);margin-right:6px}
-.s-cue{margin-top:8px;padding:8px 11px;background:var(--goldSoft);border-left:2px solid var(--gold);border-radius:0 9px 9px 0;font-size:12.5px;color:var(--ink);line-height:1.45}
-.s-cue b{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-right:6px;display:block;margin-bottom:2px}
-.s-timerbtn{margin-top:10px;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--cardLift);
-  color:var(--inkSoft);font-family:var(--body);font-weight:600;font-size:11.5px;border-radius:100px;padding:7px 13px;cursor:pointer}
+.s-why{margin-top:10px;padding:10px 13px;background:var(--bronzeSoft);border-left:2px solid var(--bronze);border-radius:0 9px 9px 0;
+  font-family:var(--display);font-style:italic;font-variation-settings:"opsz" 14,"wght" 400;font-size:14px;color:var(--inkSoft);line-height:1.55}
+.s-why b{font-style:normal;font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--bronze);margin-right:7px}
+.s-cue{margin-top:10px;padding:10px 13px;background:var(--goldSoft);border-left:2px solid var(--gold);border-radius:0 9px 9px 0;font-size:15px;color:var(--ink);line-height:1.55}
+.s-cue b{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-right:6px;display:block;margin-bottom:3px}
+.s-timerbtn{margin-top:12px;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--cardLift);
+  color:var(--inkSoft);font-family:var(--body);font-weight:600;font-size:13px;border-radius:100px;padding:9px 15px;cursor:pointer}
 .s-timerbtn:active{background:var(--goldSoft);color:var(--gold);border-color:var(--gold)}
 
 .now-pill{position:absolute;top:-9px;right:12px;background:var(--gold);color:#000;font-size:9px;font-weight:800;
@@ -144,31 +144,30 @@ input[type=time]:focus,input[type=number]:focus{border-color:var(--gold)}
 .preheat .s-name{color:var(--terra)}
 
 /* ── Ingredients ── */
-.ing{display:flex;align-items:flex-start;gap:12px;padding:11px 2px;border-bottom:1px solid var(--lineSoft)}
+.ing{display:flex;align-items:flex-start;gap:14px;padding:13px 2px;border-bottom:1px solid var(--lineSoft)}
 .ing:last-child{border-bottom:none}
-.ing-amt{flex-shrink:0;width:88px;text-align:right;font-weight:700;font-size:14px;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1.3}
-.ing-amt small{display:block;font-size:10.5px;color:var(--muted);font-weight:500}
+.ing-amt{flex-shrink:0;width:78px;text-align:right;font-weight:800;font-size:18px;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1.2;letter-spacing:-.3px}
 .ing-info{flex:1;min-width:0}
-.ing-n{font-size:14px;font-weight:600;color:var(--ink)}
-.ing-sub{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.4}
+.ing-n{font-size:16px;font-weight:600;color:var(--ink);line-height:1.3}
+.ing-sub{font-size:13px;color:var(--muted);margin-top:3px;line-height:1.5}
 
 /* ── Notes / honesty ── */
-.note{padding:13px 15px;border-radius:13px;margin-bottom:8px;font-size:13px;line-height:1.55}
+.note{padding:14px 16px;border-radius:13px;margin-bottom:8px;font-size:14.5px;line-height:1.6}
 .note-honest{background:var(--bronzeSoft);border-left:3px solid var(--bronze);color:var(--inkSoft)}
-.note-honest b{color:var(--bronze);display:block;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px}
-.note-credit{background:var(--cardSoft);border:1px solid var(--line);color:var(--muted);font-size:12px;text-align:center}
+.note-honest b{color:var(--bronze);display:block;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.note-credit{background:var(--cardSoft);border:1px solid var(--line);color:var(--muted);font-size:13px;text-align:center}
 .note-credit b{color:var(--inkSoft)}
 
 .toggle-row{display:flex;align-items:center;gap:12px;padding:12px 0;cursor:pointer}
 .toggle-row .tg-txt{flex:1}
-.tg-t{font-size:13.5px;font-weight:600;color:var(--ink)}
-.tg-s{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.4}
+.tg-t{font-size:15px;font-weight:600;color:var(--ink)}
+.tg-s{font-size:13px;color:var(--muted);margin-top:3px;line-height:1.5}
 .tg{width:46px;height:27px;border-radius:100px;background:var(--cardLift);border:1px solid var(--line);position:relative;flex-shrink:0;transition:.2s}
 .tg::after{content:"";position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:var(--muted);transition:.2s}
 .tg.on{background:var(--gold)}
 .tg.on::after{left:21px;background:#000}
 
-footer{text-align:center;color:var(--muted);font-size:11px;margin-top:30px;line-height:1.6}
+footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:30px;line-height:1.6}
 .hidden{display:none !important}
 </style>
 </head>
@@ -261,7 +260,10 @@ footer{text-align:center;color:var(--muted);font-size:11px;margin-top:30px;line-
       <span class="sec-t">Ingredients</span>
       <span class="sec-c" id="ingCount">for 8</span>
     </div>
-    <div class="card"><div id="ingredients"></div></div>
+    <div class="card">
+      <p class="lead">Everything’s weighed in grams — even the water. A cheap kitchen scale is the one tool that makes bread come out the same every single time.</p>
+      <div id="ingredients"></div>
+    </div>
   </div>
 
   <!-- ── GEAR / honesty ── -->
@@ -294,11 +296,11 @@ const RECIPES = {
     base: 8,
     ingredients: [
       {n:"Bakers (strong) flour", amt:450, unit:"g", sub:"Plain flour also works — a touch softer, slightly less puff."},
-      {n:"Warm water", amt:290, unit:"g", sub:"Blood-warm, ~35°C. Hot water kills the yeast."},
-      {n:"Instant dried yeast", amt:5, unit:"g", sub:"≈ ¾ of a 7 g sachet (Tandaco/Lowan). No need to bloom, but a 2-min head start in the water doesn’t hurt."},
-      {n:"Fine salt", amt:9, unit:"g", sub:"Flavour and it tightens the gluten. Don’t skip it."},
-      {n:"Olive oil", amt:15, unit:"g", sub:"≈ 1 tbsp. Keeps the crumb tender and foldable."},
-      {n:"Sugar or honey", amt:6, unit:"g", sub:"≈ 1 tsp. Feeds the yeast and helps the freckling."}
+      {n:"Warm water", amt:290, unit:"g", sub:"Weigh it like everything else — water is 1 g per ml. Blood-warm (~35°C); hot water kills the yeast."},
+      {n:"Instant dried yeast", amt:5, unit:"g", sub:"Weigh straight in — no need to bloom. A standard sachet is 7 g if you’d rather use a whole one."},
+      {n:"Fine salt", amt:9, unit:"g", sub:"Flavour, and it tightens the gluten. Don’t skip it."},
+      {n:"Olive oil", amt:15, unit:"g", sub:"Keeps the crumb tender and foldable."},
+      {n:"Sugar or honey", amt:6, unit:"g", sub:"Feeds the yeast and gives a touch more browning."}
     ],
     preheat: {lead:35, label:"Oven ON — full whack", text:"Crank the oven as hot as it goes (250–260°C) with a pizza steel, stone, or upturned heavy tray on the top-third shelf. It needs a solid 30+ minutes to load up real heat — this is the single biggest factor in getting a pocket."},
     steps: [
@@ -340,9 +342,9 @@ const RECIPES = {
     ingredients: [
       {n:"Bakers (strong) flour", amt:400, unit:"g", sub:"Plain flour works; bakers gives a chewier, stronger pocket."},
       {n:"Active sourdough starter", amt:100, unit:"g", sub:"100% hydration, ripe & bubbly. This is your only leavening — it must be lively."},
-      {n:"Water", amt:250, unit:"g", sub:"Cool-ish, ~28–30°C. Sourdough makes its own warmth over the long ferment."},
+      {n:"Water", amt:250, unit:"g", sub:"Weigh it (1 g per ml). Cool-ish, ~28–30°C — sourdough makes its own warmth over the long ferment."},
       {n:"Fine salt", amt:9, unit:"g", sub:"Added after a short rest, not at the same time as the starter."},
-      {n:"Olive oil", amt:15, unit:"g", sub:"≈ 1 tbsp. For a tender, foldable crumb."}
+      {n:"Olive oil", amt:15, unit:"g", sub:"For a tender, foldable crumb."}
     ],
     preheat: {lead:35, label:"Oven ON — full whack", text:"Crank the oven as hot as it goes (250–260°C) with a steel, stone, or upturned heavy tray on the top-third shelf. Give it a full 30+ minutes — fierce, loaded heat is what makes the pocket."},
     levain: {name:"Feed your starter", dur:300, tempo:"calm",
@@ -409,9 +411,10 @@ function dayTag(d, refDay){
   return SHORTDAY[d.getDay()];
 }
 function roundAmt(v){
+  // Everything in clean weighed grams — no decimals to fumble at the bench.
   if(v>=100) return Math.round(v/5)*5;       // nearest 5 g for big amounts
-  if(v>=20)  return Math.round(v);
-  return Math.round(v*10)/10;                // 1 dp for small
+  if(v>=10)  return Math.round(v);           // nearest 1 g
+  return Math.round(v*2)/2;                   // nearest 0.5 g for tiny (yeast/salt)
 }
 
 /* ── build the ordered step list (incl. optional levain) ── */
