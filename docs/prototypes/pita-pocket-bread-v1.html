@@ -124,6 +124,7 @@ input[type=time]:focus,input[type=number]:focus{border-color:var(--gold)}
 .tempo-urgent{color:var(--terra);background:var(--terraSoft)}
 .s-instr{font-size:15.5px;color:var(--inkSoft);line-height:1.6}
 .s-instr b{color:var(--ink);font-weight:700}
+.s-instr .amt{color:var(--gold);font-weight:800;white-space:nowrap}
 .s-why{margin-top:10px;padding:10px 13px;background:var(--bronzeSoft);border-left:2px solid var(--bronze);border-radius:0 9px 9px 0;
   font-family:var(--display);font-style:italic;font-variation-settings:"opsz" 14,"wght" 400;font-size:14px;color:var(--inkSoft);line-height:1.55}
 .s-why b{font-style:normal;font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--bronze);margin-right:7px}
@@ -261,7 +262,7 @@ footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:30px;lin
       <span class="sec-c" id="ingCount">for 8</span>
     </div>
     <div class="card">
-      <p class="lead">Everything’s weighed in grams — even the water. A cheap kitchen scale is the one tool that makes bread come out the same every single time.</p>
+      <p class="lead">Everything’s weighed in grams — even the water. These amounts (and the gold figures in the method steps) rescale the instant you change the pita count above, so you can measure straight from the steps as you go.</p>
       <div id="ingredients"></div>
     </div>
   </div>
@@ -295,17 +296,17 @@ const RECIPES = {
     label: "Instant-yeast pita",
     base: 8,
     ingredients: [
-      {n:"Bakers (strong) flour", amt:450, unit:"g", sub:"Plain flour also works — a touch softer, slightly less puff."},
-      {n:"Warm water", amt:290, unit:"g", sub:"Weigh it like everything else — water is 1 g per ml. Blood-warm (~35°C); hot water kills the yeast."},
-      {n:"Instant dried yeast", amt:5, unit:"g", sub:"Weigh straight in — no need to bloom. A standard sachet is 7 g if you’d rather use a whole one."},
-      {n:"Fine salt", amt:9, unit:"g", sub:"Flavour, and it tightens the gluten. Don’t skip it."},
-      {n:"Olive oil", amt:15, unit:"g", sub:"Keeps the crumb tender and foldable."},
-      {n:"Sugar or honey", amt:6, unit:"g", sub:"Feeds the yeast and gives a touch more browning."}
+      {id:"flour", n:"Bakers (strong) flour", amt:450, unit:"g", sub:"Plain flour also works — a touch softer, slightly less puff."},
+      {id:"water", n:"Warm water", amt:290, unit:"g", sub:"Weigh it like everything else — water is 1 g per ml. Blood-warm (~35°C); hot water kills the yeast."},
+      {id:"yeast", n:"Instant dried yeast", amt:5, unit:"g", sub:"Weigh straight in — no need to bloom. A standard sachet is 7 g if you’d rather use a whole one."},
+      {id:"salt", n:"Fine salt", amt:9, unit:"g", sub:"Flavour, and it tightens the gluten. Don’t skip it."},
+      {id:"oil", n:"Olive oil", amt:15, unit:"g", sub:"Keeps the crumb tender and foldable."},
+      {id:"sugar", n:"Sugar or honey", amt:6, unit:"g", sub:"Feeds the yeast and gives a touch more browning."}
     ],
     preheat: {lead:35, label:"Oven ON — full whack", text:"Crank the oven as hot as it goes (250–260°C) with a pizza steel, stone, or upturned heavy tray on the top-third shelf. It needs a solid 30+ minutes to load up real heat — this is the single biggest factor in getting a pocket."},
     steps: [
       {name:"Mix & knead", dur:15, tempo:"steady",
-        instr:"Stir the yeast, sugar and warm water in a bowl; leave 2 min until it smells bready. Add flour, salt and oil. Mix to a shaggy dough, then knead <b>8–10 minutes</b> until smooth and springy (or 5 min in a mixer).",
+        instr:"Stir {yeast} instant yeast, {sugar} sugar and {water} warm water in a bowl; leave 2 min until it smells bready. Add {flour} bakers flour, {salt} fine salt and {oil} olive oil. Mix to a shaggy dough, then knead <b>8–10 minutes</b> until smooth and springy (or 5 min in a mixer).",
         why:"Kneading builds the gluten net that traps steam later. No net, no pocket.",
         cue:"Smooth, slightly tacky, springs back when you poke it."},
       {name:"Bulk rise", dur:90, tempo:"calm",
@@ -340,11 +341,11 @@ const RECIPES = {
     label: "Sourdough pita",
     base: 8,
     ingredients: [
-      {n:"Bakers (strong) flour", amt:400, unit:"g", sub:"Plain flour works; bakers gives a chewier, stronger pocket."},
-      {n:"Active sourdough starter", amt:100, unit:"g", sub:"100% hydration, ripe & bubbly. This is your only leavening — it must be lively."},
-      {n:"Water", amt:250, unit:"g", sub:"Weigh it (1 g per ml). Cool-ish, ~28–30°C — sourdough makes its own warmth over the long ferment."},
-      {n:"Fine salt", amt:9, unit:"g", sub:"Added after a short rest, not at the same time as the starter."},
-      {n:"Olive oil", amt:15, unit:"g", sub:"For a tender, foldable crumb."}
+      {id:"flour", n:"Bakers (strong) flour", amt:400, unit:"g", sub:"Plain flour works; bakers gives a chewier, stronger pocket."},
+      {id:"starter", n:"Active sourdough starter", amt:100, unit:"g", sub:"100% hydration, ripe & bubbly. This is your only leavening — it must be lively."},
+      {id:"water", n:"Water", amt:250, unit:"g", sub:"Weigh it (1 g per ml). Cool-ish, ~28–30°C — sourdough makes its own warmth over the long ferment."},
+      {id:"salt", n:"Fine salt", amt:9, unit:"g", sub:"Added after a short rest, not at the same time as the starter."},
+      {id:"oil", n:"Olive oil", amt:15, unit:"g", sub:"For a tender, foldable crumb."}
     ],
     preheat: {lead:35, label:"Oven ON — full whack", text:"Crank the oven as hot as it goes (250–260°C) with a steel, stone, or upturned heavy tray on the top-third shelf. Give it a full 30+ minutes — fierce, loaded heat is what makes the pocket."},
     levain: {name:"Feed your starter", dur:300, tempo:"calm",
@@ -353,7 +354,7 @@ const RECIPES = {
       cue:"Domed, bubbly, smells tangy-sweet, and a teaspoon of it floats in water."},
     steps: [
       {name:"Mix & autolyse", dur:20, tempo:"steady",
-        instr:"Dissolve the starter into the water, add the flour, and mix to a shaggy mass. Rest <b>20 min</b>, then add the salt and oil and squeeze them through until smooth.",
+        instr:"Dissolve {starter} active starter into {water} water, add {flour} bakers flour, and mix to a shaggy mass. Rest <b>20 min</b>, then add {salt} fine salt and {oil} olive oil and squeeze them through until smooth.",
         why:"That short rest (autolyse) lets the flour drink the water, so the dough comes together silkier with far less work.",
         cue:"Cohesive and a little stretchy once the salt’s worked in."},
       {name:"Bulk ferment + folds", dur:300, tempo:"calm",
@@ -510,7 +511,7 @@ function render(){
       <div class="s-rail"></div>
       <div class="s-body">
         <div class="s-head"><span class="s-num">${pad(i+1)}</span><span class="s-name">${row.name}</span><span class="s-tempo tempo-${row.tempo}">${row.tempo}</span></div>
-        <div class="s-instr">${injectCount(row.instr)}</div>
+        <div class="s-instr">${fillAmounts(injectCount(row.instr))}</div>
         <div class="s-why"><b>Why</b>${row.why}</div>
         ${row.cue?`<div class="s-cue"><b>Look for</b>${row.cue}</div>`:""}
         <button class="s-timerbtn" data-dur="${row.dur}" data-name="${row.name.replace(/"/g,'')}">
@@ -546,6 +547,17 @@ function clampCount(){
 }
 function injectCount(str){
   return str.replace(/id='divN2?'>8</, ">"+clampCount()+"<");
+}
+/* Replace {ingredientId} tokens in a step with the live, scaled gram
+   amount — one source of truth, so the method always matches both the
+   ingredient list and the number of pitas you asked for. */
+function fillAmounts(str){
+  const r = RECIPES[current];
+  const factor = clampCount()/r.base;
+  return str.replace(/\{(\w+)\}/g, (m,id)=>{
+    const ig = r.ingredients.find(x=>x.id===id);
+    return ig ? '<b class="amt">'+roundAmt(ig.amt*factor)+' g</b>' : m;
+  });
 }
 
 /* ── per-step countdown timer (offline beep + haptic) ── */
