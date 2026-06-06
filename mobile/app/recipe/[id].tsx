@@ -652,6 +652,38 @@ function RecipeDetailScreenInner() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     const nowPlanned = await togglePlannedRecipe(db, recipe.id, recipe.base_servings);
     setIsPlanned(nowPlanned);
+
+    // Schedule (or cancel) the nightly "time to cook" reminder.
+    try {
+      if (nowPlanned) {
+        // Replace any existing reminder — idempotent.
+        await Notifications.cancelScheduledNotificationAsync('meal-reminder').catch(() => {});
+        const { status } = await Notifications.getPermissionsAsync();
+        const granted = status === 'granted'
+          || (await Notifications.requestPermissionsAsync()).status === 'granted';
+        if (granted) {
+          await Notifications.scheduleNotificationAsync({
+            identifier: 'meal-reminder',
+            content: {
+              title: 'Tucker & Spice',
+              body: "You've got meals planned — time to cook tonight?",
+              sound: true,
+            },
+            trigger: {
+              type: Notifications.SchedulableTriggerInputTypes.DAILY,
+              hour: 17,
+              minute: 30,
+            },
+          });
+        }
+      } else {
+        // Only cancel if no more planned recipes.
+        const stillPlanned = await getPlannedRecipeIds(db);
+        if (stillPlanned.size === 0) {
+          await Notifications.cancelScheduledNotificationAsync('meal-reminder').catch(() => {});
+        }
+      }
+    } catch { /* notifications unavailable — non-fatal */ }
   };
 
   const openSource = () => {
