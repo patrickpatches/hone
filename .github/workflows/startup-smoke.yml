@@ -67,6 +67,11 @@ jobs:
 
       - name: Boot emulator, install APK, run startup smoke
         uses: reactivecircus/android-emulator-runner@v2
+        # This action returns a flaky non-zero on its own emulator teardown even
+        # when the test passes (background logcat / adb shutdown). The real pass/
+        # fail is enforced by the next step from /tmp/maestro_exit — so don't let
+        # this step's exit code decide the job.
+        continue-on-error: true
         with:
           api-level: 26
           arch: x86_64

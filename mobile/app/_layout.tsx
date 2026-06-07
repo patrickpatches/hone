@@ -217,17 +217,11 @@ function AppShell() {
   const ready =
     Platform.OS === 'web' || fontsLoaded || !!fontError || fontTimeout;
 
-  console.log(`[TS-BOOT] AppShell render ready=${ready} fontsLoaded=${fontsLoaded} fontTimeout=${fontTimeout}`); // DIAG
-
   useEffect(() => {
-    if (ready) {
-      console.log('[TS-BOOT] AppShell hiding splash'); // DIAG
-      SplashScreen.hideAsync().catch(() => {});
-    }
+    if (ready) SplashScreen.hideAsync().catch(() => {});
   }, [ready]);
 
   if (!ready) return null;
-  console.log('[TS-BOOT] AppShell rendering Stack'); // DIAG
 
   // Dark theme → light status-bar glyphs; Light theme → dark glyphs.
   const isDark = theme === 'dark';
@@ -327,8 +321,6 @@ export default function RootLayout() {
     },
     [dbAttempt],
   );
-
-  console.log(`[TS-BOOT] RootLayout render dbError=${!!dbError} dbAttempt=${dbAttempt}`); // DIAG
 
   // DB startup failed — render error screen outside all context providers.
   // GestureHandlerRootView is kept so Pressable works correctly.
