@@ -77,18 +77,40 @@ jobs:
           script: |
             adb install -r "${{ steps.apk.outputs.path }}"
             adb logcat -c || true
+            # Capture logcat LIVE in the background to a file on the runner. The
+            # emulator-runner action does not surface this script's stdout after a
+            # failing command, so inline dumping is lost — a background file that the
+            # next (normal) step prints is the reliable path.
+            adb logcat -v time > /tmp/logcat.txt 2>&1 &
             set +e
             maestro test maestro/flows/01-kitchen-loads.yaml
-            RESULT=$?
-            # Dump logcat INLINE to the job log (no file — $GITHUB_WORKSPACE is not
-            # reliably set inside this action's script context). This is what shows
-            # the actual JS/Hermes/native startup crash a Maestro screenshot can't.
-            echo "============ LOGCAT tail (maestro exit=$RESULT) ============"
-            adb logcat -d -v time | tail -500 || true
-            echo "============ APP / CRASH LINES ============"
-            adb logcat -d | grep -iE "tuckerspice|ReactNativeJS|ReactNative|hermes|AndroidRuntime|FATAL|Exception|SoLoader|UnsatisfiedLink|dlopen|Unable to load|No implementation|libc|DEBUG :" | tail -150 || true
-            echo "============ END LOGCAT ============"
-            exit $RESULT
+            echo $? > /tmp/maestro_exit
+            # Best-effort stop of the background logcat.
+            pkill -f "adb logcat" 2>/dev/null || true
+            # Always succeed here so the action finishes and /tmp files persist; the
+            # next step prints the log and enforces the real maestro result.
+            exit 0
+
+      - name: Show logcat and enforce smoke result
+        if: always()
+        run: |
+          echo "============ APP / CRASH LINES ============"
+          grep -aiE "tuckerspice|ReactNativeJS|ReactNative|hermes|AndroidRuntime|FATAL|Exception|SoLoader|UnsatisfiedLink|dlopen|Unable to load|No implementation|art_|libc|DEBUG :" /tmp/logcat.txt | tail -150 || true
+          echo "============ FULL LOGCAT TAIL (250) ============"
+          tail -250 /tmp/logcat.txt 2>/dev/null || echo "(no logcat captured)"
+          echo "==============================================="
+          RC=$(cat /tmp/maestro_exit 2>/dev/null || echo 1)
+          echo "maestro exit code: $RC"
+          [ "$RC" = "0" ] || { echo "::error::startup smoke failed — app did not reach Kitchen"; exit 1; }
+
+      - name: Upload logcat
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: startup-smoke-logcat
+          path: /tmp/logcat.txt
+          retention-days: 14
+          if-no-files-found: warn
 
       - name: Upload Maestro debug output on failure
         if: failure()
