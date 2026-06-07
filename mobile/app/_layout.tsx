@@ -184,15 +184,45 @@ function DbErrorScreen({
   );
 }
 
-// ─── Inner shell — reads theme, renders Stack ────────────────────────────
-function AppShell({ ready }: { ready: boolean }) {
+// ─── Inner shell — owns font readiness, renders Stack ─────────────────────
+//
+// Font readiness lives HERE, not in RootLayout, on purpose. Threading `ready`
+// as a prop down through SQLiteProvider froze the app (build #156): SQLiteProvider
+// renders `null` until its async DB open finishes, so AppShell mounts LATE and
+// captured a stale `ready=false`, then never re-rendered when `ready` flipped
+// true — blank splash forever. By owning the font state, AppShell's own re-renders
+// drive the gate, and it only mounts once the DB is ready anyway.
+function AppShell() {
   const { theme } = useTheme();
-  console.log(`[TS-BOOT] AppShell render ready=${ready} theme=${theme}`); // DIAG
+
+  const [fontsLoaded, fontError] = useFonts({
+    Fraunces_400Regular,
+    Fraunces_500Medium_Italic,
+    Fraunces_700Bold,
+    Inter_400Regular,
+    Inter_600SemiBold,
+    Inter_800ExtraBold,
+    Poppins_400Regular,
+  });
+
+  // Safety net: an unsettled font promise must never permanently block the UI.
+  // Web fonts swap in via CSS so we never gate there; native waits for fonts but
+  // a 2.5s timeout guarantees render even if useFonts never settles.
+  const [fontTimeout, setFontTimeout] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setFontTimeout(true), 2500);
+    return () => clearTimeout(t);
+  }, []);
+
+  const ready =
+    Platform.OS === 'web' || fontsLoaded || !!fontError || fontTimeout;
+
+  console.log(`[TS-BOOT] AppShell render ready=${ready} fontsLoaded=${fontsLoaded} fontTimeout=${fontTimeout}`); // DIAG
 
   useEffect(() => {
     if (ready) {
       console.log('[TS-BOOT] AppShell hiding splash'); // DIAG
-      SplashScreen.hideAsync().catch((e) => console.log('[TS-BOOT] hideAsync error', String(e)));
+      SplashScreen.hideAsync().catch(() => {});
     }
   }, [ready]);
 
@@ -220,31 +250,8 @@ function AppShell({ ready }: { ready: boolean }) {
 
 // ─── Root layout ──────────────────────────────────────────────────────────
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({
-    Fraunces_400Regular,
-    Fraunces_500Medium_Italic,
-    Fraunces_700Bold,
-    Inter_400Regular,
-    Inter_600SemiBold,
-    Inter_800ExtraBold,
-    Poppins_400Regular,
-  });
-
-  // Safety net: an unsettled font promise must never permanently block the UI.
-  // On web, fonts are delivered via CSS @font-face and swap in on their own, so
-  // we don't gate the tree on the JS font promise there at all — that gate is
-  // exactly what black-screens the app when useFonts hangs on web. On native we
-  // still wait for fonts (fast, reliable, avoids a flash of fallback type), but
-  // a 2.5s timeout guarantees the app renders even if the promise never settles.
-  const [fontTimeout, setFontTimeout] = useState(false);
-  useEffect(() => {
-    console.log('[TS-BOOT] font watchdog armed'); // DIAG
-    const t = setTimeout(() => {
-      console.log('[TS-BOOT] fontTimeout FIRED'); // DIAG
-      setFontTimeout(true);
-    }, 2500);
-    return () => clearTimeout(t);
-  }, []);
+  // Fonts + render readiness live in AppShell (below SQLiteProvider) — see the
+  // note there. RootLayout only owns DB startup + the error/retry path.
 
   // ── DB resilience ──────────────────────────────────────────────────────
   // Problem: SQLiteProvider (NonSuspense path) returns null while loading.
@@ -321,12 +328,7 @@ export default function RootLayout() {
     [dbAttempt],
   );
 
-  const ready =
-    Platform.OS === 'web' || fontsLoaded || !!fontError || fontTimeout;
-
-  console.log(
-    `[TS-BOOT] RootLayout ready=${ready} fontsLoaded=${fontsLoaded} fontError=${!!fontError} fontTimeout=${fontTimeout} dbError=${!!dbError} dbAttempt=${dbAttempt}`,
-  ); // DIAG
+  console.log(`[TS-BOOT] RootLayout render dbError=${!!dbError} dbAttempt=${dbAttempt}`); // DIAG
 
   // DB startup failed — render error screen outside all context providers.
   // GestureHandlerRootView is kept so Pressable works correctly.
@@ -355,7 +357,7 @@ export default function RootLayout() {
         >
           <PreferencesProvider>
             <ThemeProvider>
-              <AppShell ready={ready} />
+              <AppShell />
             </ThemeProvider>
           </PreferencesProvider>
         </SQLiteProvider>
