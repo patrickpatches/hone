@@ -76,7 +76,18 @@ jobs:
           disable-animations: true
           script: |
             adb install -r "${{ steps.apk.outputs.path }}"
+            adb logcat -c || true
+            set +e
             maestro test maestro/flows/01-kitchen-loads.yaml
+            RESULT=$?
+            set -e
+            echo "=== logcat dump (maestro exit=$RESULT) ==="
+            adb logcat -d -v time > "$GITHUB_WORKSPACE/logcat.txt" 2>&1 || true
+            # Surface app / JS / crash lines inline so triage needs no artifact download.
+            echo "----- app & crash lines -----"
+            grep -iE "tuckerspice|ReactNative|hermes|AndroidRuntime|FATAL|Exception|JS engine|Unable to load script|could not connect" "$GITHUB_WORKSPACE/logcat.txt" | tail -100 || true
+            echo "----- end -----"
+            exit $RESULT
 
       - name: Upload Maestro debug output on failure
         if: failure()
@@ -84,5 +95,14 @@ jobs:
         with:
           name: maestro-startup-smoke-debug
           path: ~/.maestro/tests/**
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload logcat on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: startup-smoke-logcat
+          path: logcat.txt
           retention-days: 14
           if-no-files-found: ignore
