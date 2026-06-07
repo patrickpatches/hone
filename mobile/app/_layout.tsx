@@ -187,12 +187,17 @@ function DbErrorScreen({
 // ─── Inner shell — reads theme, renders Stack ────────────────────────────
 function AppShell({ ready }: { ready: boolean }) {
   const { theme } = useTheme();
+  console.log(`[TS-BOOT] AppShell render ready=${ready} theme=${theme}`); // DIAG
 
   useEffect(() => {
-    if (ready) SplashScreen.hideAsync().catch(() => {});
+    if (ready) {
+      console.log('[TS-BOOT] AppShell hiding splash'); // DIAG
+      SplashScreen.hideAsync().catch((e) => console.log('[TS-BOOT] hideAsync error', String(e)));
+    }
   }, [ready]);
 
   if (!ready) return null;
+  console.log('[TS-BOOT] AppShell rendering Stack'); // DIAG
 
   // Dark theme → light status-bar glyphs; Light theme → dark glyphs.
   const isDark = theme === 'dark';
@@ -233,7 +238,11 @@ export default function RootLayout() {
   // a 2.5s timeout guarantees the app renders even if the promise never settles.
   const [fontTimeout, setFontTimeout] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setFontTimeout(true), 2500);
+    console.log('[TS-BOOT] font watchdog armed'); // DIAG
+    const t = setTimeout(() => {
+      console.log('[TS-BOOT] fontTimeout FIRED'); // DIAG
+      setFontTimeout(true);
+    }, 2500);
     return () => clearTimeout(t);
   }, []);
 
@@ -314,6 +323,10 @@ export default function RootLayout() {
 
   const ready =
     Platform.OS === 'web' || fontsLoaded || !!fontError || fontTimeout;
+
+  console.log(
+    `[TS-BOOT] RootLayout ready=${ready} fontsLoaded=${fontsLoaded} fontError=${!!fontError} fontTimeout=${fontTimeout} dbError=${!!dbError} dbAttempt=${dbAttempt}`,
+  ); // DIAG
 
   // DB startup failed — render error screen outside all context providers.
   // GestureHandlerRootView is kept so Pressable works correctly.
