@@ -11,7 +11,7 @@
 
 | ID | Title | Status | Notes |
 |---|---|---|---|
-| STARTUP-FREEZE | APK boots and freezes on the splash screen | FIX ATTEMPTED | Two root causes fixed (see notes below) — awaiting Patrick on-device validation |
+| STARTUP-FREEZE | APK boots and freezes on the splash screen | FIX ATTEMPTED | **Real root cause found + fixed (build #161). Startup smoke PASSES on a real emulator** (boots to Kitchen). See notes below — awaiting Patrick on-device validation. |
 | REGN-001 | Recipe cards misalign after first scroll | FIX ATTEMPTED | Commit `1fca0aaa3d3d` — awaiting Patrick on-device validation |
 | REGN-006 | Equipment + Prep sections missing on most recipes | FIX ATTEMPTED | UI rendering restored 7 May 2026 — awaiting on-device validation |
 | REGN-007 | Pantry STILL NEED chip state broken (undo, X-removal, ✓-toggle) | FIX ATTEMPTED | Refactored to derive state from shopping list — awaiting on-device validation |
@@ -21,10 +21,19 @@
 | HONE-040 | Reminders & notifications | FIX ATTEMPTED | Nightly 5:30pm meal reminder when plan has recipes (10cc8dd) — awaiting on-device validation |
 | HONE-038 | Weekly meal-planner view | FIX ATTEMPTED | New Plan tab, 7-day grid, recipe picker, shopping list auto-wired (98349d5) — awaiting on-device validation |
 
-**STARTUP-FREEZE root cause (diagnosed 7 June 2026):**
-Two independent bugs, both fixed in the same commit:
-1. **Syntax error (build-breaking)** — `seed-recipes.ts` PAD_THAI step s1 content was a single-quoted string containing an unescaped apostrophe (`that's`). Hermes-parser failed at line 1849:212 (`'}' expected`). Fixed: escaped to `that\'s`. Confirmed broken via hermes-parser on HEAD, fixed in working tree.
-2. **Startup freeze (SQLiteProvider)** — `SplashScreen.hideAsync()` lives in `AppShell`, which is a child of `SQLiteProvider`. `SQLiteProvider` returns `null` while loading (so AppShell never renders). With no `onError` prop, any throw during `setupDatabase` re-throws during render with no error boundary — native splash freezes forever. Pure hangs (locked DB file) are equally silent. Fix: `onError` + `onDbError` callback surfacing failures via `DbErrorScreen` (raw RN primitives, hides splash), 15 s watchdog for the hang case, `dbAttempt` counter to change `onInit` identity and force SQLiteProvider to retry on remount.
+**STARTUP-FREEZE — ACTUAL root cause (proven on-device 7 June 2026, fix in build #161, smoke PASSES):**
+
+The real freeze was a React render-ordering bug, **not** the DB. Proven via on-device `[TS-BOOT]` logcat from build #159: the app boots fine — RN mounts, `setupDatabase` completes in ~0.86 s, no crash — but renders **zero** content (Maestro saw zero TextViews; only the splash ImageView).
+
+- **Stale `ready` prop across the SQLiteProvider async boundary.** `RootLayout` computed `ready=true` early, but `SQLiteProvider` renders `null` until its async DB open resolves (~0.77 s), so `AppShell` mounted **late carrying a stale `ready=false`** and never re-rendered when `ready` later flipped true → `AppShell` returned `null` forever → blank → frozen native splash. This is build #156's freeze.
+- **Why every web check missed it:** `ready = Platform.OS === 'web' || …` short-circuits to `true` on web, so the web preview *structurally* never exercises the native readiness path.
+- **Fix (commit `599eb98`):** `AppShell` now owns `useFonts` + the 2.5 s timeout + the `ready` gate itself, so its own state drives its own re-renders — no readiness prop threaded through `SQLiteProvider`. `AppShell` only mounts once the DB is ready anyway. **Confirmed:** build #161 startup-smoke asserts "Browse by cuisine" + "Kitchen" both visible on an API-26 emulator.
+
+Earlier work that stays (valid hardening, not the root cause):
+1. **Syntax error (build-breaking, `ab031a9`)** — `seed-recipes.ts` PAD_THAI step had an unescaped apostrophe; hermes-parser failed. Fixed (escaped). Was introduced *after* #156, so not #156's freeze.
+2. **SQLiteProvider `onError` + 15 s watchdog + `DbErrorScreen`** (`ab031a9`) — real resilience for the *DB-failure* path, but the actual freeze succeeds DB init, so this never triggered. Kept. Retry race hardened with `dbGenerationRef` (`4c3a4df`).
+3. **Cold-boot speed (`4c3a4df`)** — seed + sync passes wrapped in `withTransactionAsync`; `setupDatabase` now ~0.86 s.
+4. **Automated net** — `startup-smoke` workflow boots the built APK on an emulator after every build (`maestro/flows/01-kitchen-loads.yaml`); it caught this freeze and drove the diagnosis.
 
 **REGN-006 root cause (diagnosed 7 May 2026):**
 - Patrick reported Equipment + Mise en place sections missing across most recipes (not just SMASH_BURGER).
