@@ -255,6 +255,18 @@ export default function RootLayout() {
   const [dbAttempt, setDbAttempt] = useState(0);
   const dbInitializedRef = useRef(false);
 
+  // Generation counter — bumps once per attempt. A stale setup completion (the
+  // watchdog-then-retry path, where the first hung openDatabaseWithInitAsync
+  // finally resolves AFTER the user has already retried) reads its captured
+  // generation, sees it no longer matches, and discards itself — so it cannot
+  // disarm the new attempt's watchdog or clobber its state. A mutable ref is the
+  // right tool: later mutations are visible to the still-running async closure
+  // without being in its dependency array.
+  const dbGenerationRef = useRef(0);
+  useEffect(() => {
+    dbGenerationRef.current += 1;
+  }, [dbAttempt]);
+
   // Watchdog: pure-hang case — onInit/onError never fires (e.g. platform DB
   // lock that doesn't throw).  After 15 s, surface the error screen.
   useEffect(() => {
@@ -275,7 +287,15 @@ export default function RootLayout() {
   // setupDatabase is module-level so the only dep that changes is dbAttempt.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const onDbInit = useCallback(async (db: SQLiteDatabase) => {
+    const myGeneration = dbGenerationRef.current;
+    const startedAt = Date.now();
     await setupDatabase(db);
+    console.log(
+      `[Tucker & Spice] setupDatabase completed in ${Date.now() - startedAt} ms`,
+    );
+    // Superseded by a retry while we were awaiting — discard (don't disarm the
+    // new attempt's watchdog, don't mark this stale attempt as the live one).
+    if (dbGenerationRef.current !== myGeneration) return;
     dbInitializedRef.current = true; // disarm watchdog
   }, [dbAttempt]);
 

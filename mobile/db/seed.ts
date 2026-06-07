@@ -25,17 +25,24 @@ import { SEED_RECIPES } from '../src/data/seed-recipes';
 import { insertRecipe } from './database';
 
 export async function seedDatabase(db: SQLiteDatabase): Promise<void> {
-  for (const raw of SEED_RECIPES) {
-    const parsed = RecipeSchema.safeParse(raw);
-    if (!parsed.success) {
-      const first = parsed.error.issues[0];
-      throw new Error(
-        `seed: recipe "${(raw as { id?: string }).id ?? '(unknown)'}" failed ` +
-          `validation at "${first.path.join('.')}" — ${first.message}`,
-      );
+  // One transaction for all 16 recipes. SQLite flushes to disk once on COMMIT
+  // instead of ~80 times (once per runAsync inside insertRecipe) — this is the
+  // bulk of cold-boot time. A validation throw inside rolls the whole seed back,
+  // which is correct: setupDatabase only writes `seeded=1` after this resolves,
+  // so a partial seed can never be marked complete.
+  await db.withTransactionAsync(async () => {
+    for (const raw of SEED_RECIPES) {
+      const parsed = RecipeSchema.safeParse(raw);
+      if (!parsed.success) {
+        const first = parsed.error.issues[0];
+        throw new Error(
+          `seed: recipe "${(raw as { id?: string }).id ?? '(unknown)'}" failed ` +
+            `validation at "${first.path.join('.')}" — ${first.message}`,
+        );
+      }
+      await insertRecipe(db, parsed.data);
     }
-    await insertRecipe(db, parsed.data);
-  }
+  });
 }
 
 /**
@@ -46,23 +53,28 @@ export async function seedDatabase(db: SQLiteDatabase): Promise<void> {
  * makes new seed recipes appear on existing installs without a reinstall.
  */
 export async function syncNewSeedRecipes(db: SQLiteDatabase): Promise<void> {
-  for (const raw of SEED_RECIPES) {
-    const existing = await db.getFirstAsync<{ id: string }>(
-      'SELECT id FROM recipes WHERE id = ?',
-      [(raw as { id: string }).id],
-    );
-    if (existing) continue;
-
-    const parsed = RecipeSchema.safeParse(raw);
-    if (!parsed.success) {
-      const first = parsed.error.issues[0];
-      throw new Error(
-        `seed: recipe "${(raw as { id?: string }).id ?? '(unknown)'}" failed ` +
-          `validation at "${first.path.join('.')}" — ${first.message}`,
+  // Single transaction: the common case is 16 SELECTs and zero inserts (cheap),
+  // but when new seed recipes ship, batching their inserts into one commit keeps
+  // this fast on slow storage.
+  await db.withTransactionAsync(async () => {
+    for (const raw of SEED_RECIPES) {
+      const existing = await db.getFirstAsync<{ id: string }>(
+        'SELECT id FROM recipes WHERE id = ?',
+        [(raw as { id: string }).id],
       );
+      if (existing) continue;
+
+      const parsed = RecipeSchema.safeParse(raw);
+      if (!parsed.success) {
+        const first = parsed.error.issues[0];
+        throw new Error(
+          `seed: recipe "${(raw as { id?: string }).id ?? '(unknown)'}" failed ` +
+            `validation at "${first.path.join('.')}" — ${first.message}`,
+        );
+      }
+      await insertRecipe(db, parsed.data);
     }
-    await insertRecipe(db, parsed.data);
-  }
+  });
 }
 
 /**
@@ -83,6 +95,8 @@ export async function syncNewSeedRecipes(db: SQLiteDatabase): Promise<void> {
  * validation (safeParse) so a broken seed entry can't crash the launch.
  */
 export async function refreshSeedRecipeFields(db: SQLiteDatabase): Promise<void> {
+  // Batch the 16 UPDATEs into one commit (one disk flush, not 16) each launch.
+  await db.withTransactionAsync(async () => {
   for (const raw of SEED_RECIPES) {
     const recipeId = (raw as { id: string }).id;
 
@@ -142,6 +156,7 @@ export async function refreshSeedRecipeFields(db: SQLiteDatabase): Promise<void>
       ],
     );
   }
+  });
 }
 
 /**
@@ -153,16 +168,20 @@ export async function refreshSeedRecipeFields(db: SQLiteDatabase): Promise<void>
  * plan entries via cascade delete).
  */
 export async function updateSubstitutions(db: SQLiteDatabase): Promise<void> {
-  for (const recipe of SEED_RECIPES) {
-    for (const ing of recipe.ingredients) {
-      if (ing.substitutions && ing.substitutions.length > 0) {
-        await db.runAsync(
-          'UPDATE ingredients SET substitutions = ? WHERE id = ? AND recipe_id = ?',
-          [JSON.stringify(ing.substitutions), ing.id, recipe.id],
-        );
+  // Batch every substitution UPDATE into one commit each launch (these run on a
+  // per-ingredient loop, so without batching it is one disk flush per ingredient).
+  await db.withTransactionAsync(async () => {
+    for (const recipe of SEED_RECIPES) {
+      for (const ing of recipe.ingredients) {
+        if (ing.substitutions && ing.substitutions.length > 0) {
+          await db.runAsync(
+            'UPDATE ingredients SET substitutions = ? WHERE id = ? AND recipe_id = ?',
+            [JSON.stringify(ing.substitutions), ing.id, recipe.id],
+          );
+        }
       }
     }
-  }
+  });
 }
 
 

@@ -1,0 +1,30 @@
+appId: com.patricknasr.tuckerspice
+---
+# MANUAL verification only — NOT part of the automatic post-build smoke.
+#
+# The happy-path smoke (01-kitchen-loads.yaml) proves the app boots to Kitchen.
+# It does NOT prove the error path works — i.e. that when DB init fails the user
+# sees DbErrorScreen instead of an infinite amber splash (the exact failure that
+# shipped in build #156). This flow fills that gap.
+#
+# It requires a SPECIALLY-BUILT APK: patch setupDatabase() in
+# mobile/app/_layout.tsx to throw at the very top —
+#
+#     async function setupDatabase(db: SQLiteDatabase): Promise<void> {
+#       throw new Error('forced DB failure — manual error-screen test');
+#       // ...rest unchanged
+#     }
+#
+# Build that locally (`expo run:android` or a one-off APK), install it, then:
+#
+#     maestro test maestro/flows/00-db-error-screen-shows.yaml
+#
+# PASS = the error screen rendered (splash came down, error shown). Remove the
+# throw before committing. Keep this flow so the error path can be re-checked
+# after any future change to _layout.tsx's provider hierarchy or DB handling.
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible: "Couldn't open the recipe database"
+    timeout: 20000
+- assertVisible: "Try again"
