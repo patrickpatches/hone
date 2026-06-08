@@ -3769,7 +3769,7 @@ const BUTTER_CHICKEN: Recipe = {
         { ingredient: 'Mild paprika + pinch of cayenne', changes: 'Less vibrant colour but similar warmth. Use 1.5 tsp sweet paprika + ¼ tsp cayenne pepper.', quality: 'yellow', quantity_note: '1.5 tsp mild paprika + ¼ tsp cayenne per 2 tsp kashmiri chilli', hard_to_find: true, local_alternative: 'Indian grocers and some Woolworths stores carry Kashmiri chilli powder.' },
       ],
     },
-    { id: 'i7', name: 'Garam masala', amount: 2, unit: 'tsp', scales: 'fixed' },
+    { id: 'i7', name: 'Garam masala', amount: 2, unit: 'tsp', scales: 'fixed', prep: '1 tsp for the marinade, 1 tsp for the sauce' },
     { id: 'i8', name: 'Ground cumin', amount: 1, unit: 'tsp', scales: 'fixed' },
     { id: 'i9', name: 'Ground coriander', amount: 1, unit: 'tsp', scales: 'fixed' },
     { id: 'i10', name: 'Turmeric', amount: 0.5, unit: 'tsp', scales: 'fixed' },
@@ -3822,13 +3822,14 @@ const BUTTER_CHICKEN: Recipe = {
         { ingredient: 'Jaggery (grated)', changes: 'Unrefined cane sugar used throughout South Asian cooking. Earthy, complex sweetness. Very appropriate in this context.', quality: 'yellow', hard_to_find: true, local_alternative: 'Indian grocers. Widely used in Indian desserts and curries.' },
       ],
     },
+    { id: 'i21', name: 'Kasuri methi (dried fenugreek leaves)', amount: 1, unit: 'tbsp', scales: 'fixed', prep: 'Crush between your palms before adding — releases the aroma', hard_to_find: true, local_alternative: 'Indian grocers; some Woolworths/Coles spice aisles.' },
   ],
   steps: [
     { id: 's1', title: 'Marinate the chicken — minimum 4 hours', content: 'Combine all marinade ingredients into a paste — the yoghurt, lemon juice, crushed garlic, half the grated ginger, and all the marinade spices. Coat chicken thoroughly. Cover and refrigerate 4 hours minimum — overnight is better.', timer_seconds: 14400, why_note: 'The yoghurt marinade does two things: the lactic acid tenderises the surface proteins, and the fat in the yoghurt helps the spices penetrate. Four hours is the minimum for flavour to reach the centre of large chicken pieces. Under-marinated chicken tastes of sauce, not of spiced chicken.' },
     { id: 's2', title: 'Grill or roast the chicken hard', content: 'Set oven to 230°C grill/broil. Spread marinated chicken on a rack over a baking tray — the rack is important, it lets heat circulate underneath. Grill 15–18 minutes, turning once, until charred at the edges and cooked through (75°C internal). Some burning is correct — you want those slightly charred bits.', timer_seconds: 1080, stage_note: 'Charred edges, not raw pink centres. Some blackened spots on the edges are the goal — this is the tikka quality.', why_note: 'The char is not a mistake — it\'s the tandoor effect. Those blackened proteins add a smoky, complex note to the sauce that butter and cream alone can\'t provide. Missing this step is why restaurant butter chicken often tastes flat.' },
-    { id: 's3', title: 'Build the makhani sauce', content: 'In a heavy pot, melt butter with oil on medium. Add cardamom, cloves, and cinnamon — fry 30 seconds. Add onion and fry 10–12 minutes until deeply golden, stirring often. Add remaining garlic and ginger, fry 2 minutes. Add crushed tomatoes, remaining garam masala, and salt. Simmer 20 minutes until thick.', timer_seconds: 2040, why_note: 'The whole-spice blooming in butter-oil releases fat-soluble flavour compounds from the cardamom and cloves — this is what gives makhani sauce its complexity beyond just tomato and cream. The deep golden onion is also non-negotiable: pale onions give a raw, sharp flavour; deeply golden onions give sweetness and depth.' },
+    { id: 's3', title: 'Build the makhani sauce', content: 'In a heavy pot, melt butter with oil on medium. Add cardamom, cloves, and cinnamon — fry 30 seconds. Add onion and fry 10–12 minutes until deeply golden, stirring often. Add remaining garlic and ginger, fry 2 minutes. Add crushed tomatoes, 1 tsp garam masala, and salt. Simmer 20 minutes until thick.', timer_seconds: 2040, why_note: 'The whole-spice blooming in butter-oil releases fat-soluble flavour compounds from the cardamom and cloves — this is what gives makhani sauce its complexity beyond just tomato and cream. The deep golden onion is also non-negotiable: pale onions give a raw, sharp flavour; deeply golden onions give sweetness and depth.' },
     { id: 's4', title: 'Blend the sauce smooth', content: 'Remove the cinnamon stick. Carefully blend the sauce until completely smooth — use a stick blender in the pot or carefully transfer to a blender in batches. This silky-smooth sauce is the signature.', why_note: 'Blending transforms the onion and tomato into an emulsified, restaurant-quality sauce. Many home versions skip this and end up chunky. A chunk of onion in butter chicken sauce is jarring.' },
-    { id: 's5', title: 'Finish with cream, simmer with chicken', content: 'Return blended sauce to pot on low heat. Pour in cream and honey. Add the grilled chicken pieces — including any charred drips from the tray. Simmer gently 10 minutes. Taste and adjust salt. The sauce should be rich, slightly sweet, mildly spiced, and bright orange-red.', timer_seconds: 600, why_note: 'Cream goes in at the end — boiling after adding cream makes it split and grassy. The chicken simmers in the sauce to pick up flavour and soften the char, while the sauce picks up the smoky chicken drips. The honey balances the tomato\'s sharpness without making it noticeably sweet.' },
+    { id: 's5', title: 'Finish with cream, simmer with chicken', content: 'Return blended sauce to pot on low heat. Pour in cream and honey. Add the grilled chicken pieces — including any charred drips from the tray. Crush the kasuri methi between your palms and stir in — this is the ingredient that defines murgh makhani. Simmer gently 10 minutes. Taste and adjust salt. The sauce should be rich, slightly sweet, mildly spiced, and bright orange-red.', timer_seconds: 600, why_note: 'Cream goes in at the end — boiling after adding cream makes it split and grassy. The chicken simmers in the sauce to pick up flavour and soften the char, while the sauce picks up the smoky chicken drips. The honey balances the tomato\'s sharpness without making it noticeably sweet.' },
   ],
   total_time_minutes: 270,
   active_time_minutes: 45,
@@ -3845,7 +3846,7 @@ const BUTTER_CHICKEN: Recipe = {
     "Blend the sauce completely smooth. A stick blender in the pot is fine. The silk is non-negotiable — chunks of onion in butter chicken sauce are a different dish.",
   ],
   mise_en_place: [
-    "Combine all marinade ingredients into a paste — yoghurt, lemon, crushed garlic, half the grated ginger, Kashmiri chilli, garam masala, cumin, coriander, turmeric, salt",
+    "Combine all marinade ingredients into a paste — yoghurt, lemon, crushed garlic, half the grated ginger, Kashmiri chilli, 1 tsp garam masala, cumin, coriander, turmeric, salt",
     "Cut chicken thighs into large chunks (roughly 5–6cm), coat thoroughly in marinade, cover and refrigerate",
     "Take chicken out of the fridge to temper slightly — straight-from-fridge chicken won't char properly",
     "Dice the onion finely",
@@ -4374,13 +4375,13 @@ const PAVLOVA: Recipe = {
         { ingredient: 'Blitz regular white sugar in blender 30 seconds', changes: 'Creates a superfine sugar. No difference in result.', quality: 'yellow' },
       ],
     },
-    { id: 'i3', name: 'White wine vinegar', amount: 1, unit: 'tsp', scales: 'fixed', prep: 'Acid stabilises the meringue and contributes to the marshmallow centre',
+    { id: 'i3', name: 'White wine vinegar', amount: 1.5, unit: 'tsp', scales: 'fixed', prep: 'Acid stabilises the meringue and contributes to the marshmallow centre',
       substitutions: [
         { ingredient: 'Cream of tartar', changes: 'A more potent stabiliser — use less. Same marshmallow effect.', quality: 'yellow', quantity_note: 'use ¼ tsp cream of tartar per 1 tsp white wine vinegar' },
         { ingredient: 'Fresh lemon juice', changes: 'Works identically to white wine vinegar. Same amount.', quality: 'green' },
       ],
     },
-    { id: 'i4', name: 'Cornflour', amount: 2, unit: 'tsp', scales: 'fixed', prep: 'Creates the marshmallow interior — do not skip',
+    { id: 'i4', name: 'Cornflour', amount: 1, unit: 'tbsp', scales: 'fixed', prep: 'Creates the marshmallow interior — do not skip',
       substitutions: [
         { ingredient: 'Arrowroot powder', changes: 'Gluten-free alternative. Same marshmallow result. Use the same amount.', quality: 'green' },
       ],
@@ -5828,115 +5829,4 @@ const FALAFEL: Recipe = {
     },
     {
       id: 'step_4_oil', title: 'Heat the oil',
-      content: 'Pour the oil into a deep, heavy pot — never more than half full. Heat over medium-high to 175 °C. If you do not have a thermometer, drop a small pinch of the falafel mixture in: it should sink for a moment, then rise to the surface in a steady stream of bubbles.',
-      stage_note: 'Test pinch sinks briefly, then rises within 3 seconds with steady bubbles around it. No splattering or violent fizz.',
-      lookahead: 'While the oil heats, mix the bicarb and baking powder through and shape the falafel.',
-      why_note: '175 °C is the falafel sweet spot. Hotter and the outside burns before the inside cooks; cooler and the falafel absorbs oil and goes greasy. The half-full pot rule is non-negotiable — overfilled oil is the most common kitchen-fire cause for deep-frying.',
-    },
-    {
-      id: 'step_5_shape', title: 'Lift the mixture and shape',
-      content: 'Sprinkle the bicarb and baking powder over the rested mixture and mix through gently with a fork — do not compact it. Take a heaped tablespoon at a time and shape into balls or small patties. If you have a falafel scoop, use it. Press sesame seeds onto one side if using.',
-      stage_note: 'Falafel hold their shape on the bench without slumping. Surface is rough — not smoothed.',
-      lookahead: 'Fry in batches as you shape — falafel shaped and held on the bench start to weep.',
-      why_note: 'Bicarb and baking powder added at the last moment is the trick that makes home falafel light. Add them earlier and the leavening is wasted before the oil hits — the gas escapes through the rest. The rough surface is what gives the shattering crust; smoothing the falafel gives you a hard ball.',
-    },
-    {
-      id: 'step_6_fry', title: 'Deep-fry in batches',
-      content: 'Lower the falafel into the oil four or five at a time — never crowd. Fry for 3 to 4 minutes, turning once with a spider strainer halfway through. They\'re done when deep golden-brown all over.',
-      stage_note: 'Outside is deep golden, almost mahogany. Lift one out and break it open: the inside is bright green-yellow, fluffy, and steaming.',
-      lookahead: 'Drain on a wire rack — never paper towel — while you fry the rest.',
-      timer_seconds: 210,
-      why_note: 'Deep colour is the doneness signal — pale falafel is undercooked inside, mahogany falafel is overcooked. The bright-green interior is your check that the inside is hot through but not dried out.',
-    },
-    {
-      id: 'step_7_serve', title: 'Build and eat now',
-      content: "Warm the flatbread briefly. Spread with hummus, then pack with falafel, drizzle generously with tahini sauce, scatter the diced tomato and cucumber, add pickled turnips if you have them, and finish with a squeeze of lemon. Roll up tight or eat open.",
-      stage_note: 'Falafel is hot, crust is crisp, fillings are bright and fresh.',
-      why_note: "Falafel waits for nobody — five minutes on the bench and the crust softens. The classic Levantine sandwich is built in this exact order: hummus first as a moisture barrier on the bread, then falafel, then tahini, then salads, then pickles last for crunch and acid. Skip the order and the bread goes soggy from the bottom.",
-    },
-  ],
-  // DECISION-014 — placeholder defaults; cook to refine to "ball" + specific count if she wants per-piece scaling
-  output_unit: "serve",
-  output_default: 4,
-};
-
-// ────────────────────────────────────────────────────────────────────────────
-//  Export — the launch roster.
-//
-//  This array is the ONLY thing the seeder consumes. Recipes not in this
-//  array physically cannot reach SQLite. To promote a recipe from the
-//  holding list below to launch: move its name from SEED_RECIPES_HOLDING
-//  into SEED_RECIPES. That is the only step.
-//
-//  v1.0 launch = 16 recipes. The runtime smoke alarm in setupDatabase
-//  (db/seed.ts) screams in dev if the count drifts.
-// ────────────────────────────────────────────────────────────────────────────
-
-export const SEED_RECIPES: Recipe[] = [
-  SMASH_BURGER,
-  PASTA_CARBONARA,
-  ROAST_CHICKEN,
-  HUMMUS,
-  THAI_GREEN_CURRY,
-  PAD_THAI,
-  WEEKDAY_BOLOGNESE,
-  CHICKEN_SHAWARMA,
-  BUTTER_CHICKEN,
-  PAVLOVA,
-  FLOUR_TORTILLAS,
-  CHICKEN_SCHNITZEL,
-  BEEF_LASAGNE,
-  ROAST_LAMB,
-  FISH_AND_CHIPS,
-  FALAFEL,
-];
-
-// ────────────────────────────────────────────────────────────────────────────
-//  Holding pen — recipes ready in code but NOT user-visible in v1.0.
-//
-//  Defined here so the consts compile and tsc still validates them, but
-//  this array is NEVER inserted into SQLite. It is documentation + future
-//  promotion source.
-//
-//  When promoting one to launch: move its name into SEED_RECIPES above
-//  AND remove the `not_yet_shipping: true` field from its const for
-//  consistency with the rest of the launch roster.
-//
-//  Patrick's standing rule (2026-05-09): the 30 below DO NOT enter the
-//  build until they are explicitly promoted. Splitting the arrays
-//  removes the only mechanism by which they could re-appear after a
-//  refresh — the seeder no longer sees them.
-// ────────────────────────────────────────────────────────────────────────────
-
-export const SEED_RECIPES_HOLDING: Recipe[] = [
-  CHICKEN_ADOBO,
-  BEEF_STEW,
-  MUSAKHAN,
-  KAFTA,
-  FATTOUSH,
-  PRAWN_TACOS_PINEAPPLE,
-  SOURDOUGH_MAINTENANCE,
-  SOURDOUGH_LOAF,
-  RISOTTO,
-  FISH_TACOS,
-  FRENCH_ONION_SOUP,
-  BRAISED_SHORT_RIBS,
-  RAMEN,
-  BEEF_WELLINGTON,
-  DAL,
-  SCRAMBLED_EGGS,
-  AGLIO_E_OLIO,
-  MUJADARA,
-  SHEET_PAN_HARISSA_CHICKEN,
-  EGG_FRIED_RICE,
-  LAMB_SHAWARMA,
-  NASI_LEMAK,
-  BEEF_RENDANG,
-  CURRY_LAKSA,
-  CHAR_KWAY_TEOW,
-  SAAG_PANEER,
-  CHICKEN_KATSU,
-  TOM_YUM,
-  BARRAMUNDI,
-  CHICKEN_VEG_STIR_FRY,
-];
+      content: 'Pour the oil into a de
