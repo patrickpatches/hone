@@ -256,27 +256,15 @@ function AppShell() {
             <Stack.Screen name="(tabs)" />
           </Stack>
         </View>
-      ) : Platform.OS === 'web' ? (
-        // Web preview: hard-coded '#C20060' (hot magenta) fills every screen.
-        // tokens.bg is 'transparent' in lightTokens — works perfectly on native
-        // where ImageBackground sits behind everything. On web we can't compose
-        // ImageBackground through Expo Router's layers, so the outer View + Stack
-        // contentStyle carry the magenta directly. Silhouette cards float on it,
-        // same visual relationship as the bridge/trees on the illustration sky.
-        <View style={{ flex: 1, backgroundColor: '#C20060' }}>
-          <Stack
-            key={theme}
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: '#C20060' },
-            }}
-          >
-            <Stack.Screen name="(tabs)" />
-          </Stack>
-        </View>
       ) : (
-        // Native Android: the actual Sydney Harbour Bridge illustration.
-        // Transparent stack lets the image bleed behind every screen.
+        // Light mode — web AND native: Sydney Harbour Bridge illustration
+        // sits behind every screen. All intermediate containers are transparent:
+        //   • Stack contentStyle: transparent (below)
+        //   • Tabs contentStyle: transparent ((tabs)/_layout.tsx)
+        //   • tokens.bg: 'transparent' (lightTokens)
+        //   • html/body/#root: transparent (global.css)
+        // Web renders ImageBackground as a CSS background-image which composes
+        // correctly now that nothing opaque sits above it.
         <ImageBackground
           source={SYNTHWAVE_BG}
           style={{ flex: 1 }}
