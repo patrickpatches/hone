@@ -11,12 +11,18 @@
  * not behind a hard line.
  */
 import React from 'react';
+import { ImageBackground, Platform, Pressable, Text, View } from 'react-native';
 import { Tabs } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { tokens, fonts } from '../../src/theme/tokens';
+import { useTheme } from '../../src/theme/ThemeContext';
 import { Icon, type IconName } from '../../src/components/Icon';
+
+// The illustration lives here (not just in AppShell) so it's the DIRECT parent
+// of the Tabs component — no navigation container transparency chain needed.
+// AppShell's root ImageBackground still covers non-tab screens (Settings, etc.).
+const SYNTHWAVE_BG = require('../../assets/images/synthwave-bg.png');
 
 type TabSpec = {
   name: string;
@@ -34,15 +40,18 @@ const TABS: TabSpec[] = [
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
 
-  return (
+  // Only wrap in ImageBackground on native light mode — dark mode uses a solid
+  // dark View from AppShell, and web uses the CSS backgroundImage approach.
+  // This guarantees the illustration shows regardless of whether React Navigation's
+  // internal scene containers honour our sceneContainerStyle: transparent override.
+  const showIllustration = theme === 'light' && Platform.OS !== 'web';
+
+  const tabsNode = (
     <Tabs
       screenOptions={{
         headerShown: false,
-        // Both properties needed on Android — contentStyle covers the screen's
-        // own content view; sceneContainerStyle covers the container that React
-        // Navigation wraps around each screen (defaults to Android's activity
-        // windowBackground = white).  Without both, the white bleeds through.
         contentStyle: { backgroundColor: 'transparent' },
         sceneContainerStyle: { backgroundColor: 'transparent' },
       }}
@@ -141,5 +150,13 @@ export default function TabLayout() {
         <Tabs.Screen key={t.name} name={t.name} options={{ title: t.label }} />
       ))}
     </Tabs>
+  );
+
+  if (!showIllustration) return tabsNode;
+
+  return (
+    <ImageBackground source={SYNTHWAVE_BG} style={{ flex: 1 }} resizeMode="cover">
+      {tabsNode}
+    </ImageBackground>
   );
 }
