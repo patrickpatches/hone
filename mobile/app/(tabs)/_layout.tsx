@@ -39,10 +39,12 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        // Transparent so the ImageBackground illustration (native light mode)
-        // or the magenta View (web light mode) bleeds through every tab screen.
-        // Dark mode: the Stack-level '#141414' View behind the tabs shows through.
+        // Both properties needed on Android — contentStyle covers the screen's
+        // own content view; sceneContainerStyle covers the container that React
+        // Navigation wraps around each screen (defaults to Android's activity
+        // windowBackground = white).  Without both, the white bleeds through.
         contentStyle: { backgroundColor: 'transparent' },
+        sceneContainerStyle: { backgroundColor: 'transparent' },
       }}
       tabBar={({ state, navigation }) => (
         <View
