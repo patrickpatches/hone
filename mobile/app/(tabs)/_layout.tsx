@@ -10,8 +10,9 @@
  * Shadow lifts the bar off the content -- content scrolls under it,
  * not behind a hard line.
  */
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ImageBackground, Platform, Pressable, Text, View } from 'react-native';
+import { Asset } from 'expo-asset';
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -19,9 +20,9 @@ import { tokens, fonts } from '../../src/theme/tokens';
 import { useTheme } from '../../src/theme/ThemeContext';
 import { Icon, type IconName } from '../../src/components/Icon';
 
-// The illustration lives here (not just in AppShell) so it's the DIRECT parent
-// of the Tabs component — no navigation container transparency chain needed.
-// AppShell's root ImageBackground still covers non-tab screens (Settings, etc.).
+// Each tab scene paints its OWN illustration backdrop (via screenLayout below),
+// so the active scene is fully opaque and cannot be bled through by an inactive
+// sibling scene. AppShell's root ImageBackground still covers non-tab screens.
 const SYNTHWAVE_BG = require('../../assets/images/synthwave-bg.png');
 
 type TabSpec = {
@@ -41,19 +42,70 @@ const TABS: TabSpec[] = [
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const isLight = theme === 'light';
 
-  // Only wrap in ImageBackground on native light mode — dark mode uses a solid
-  // dark View from AppShell, and web uses the CSS backgroundImage approach.
-  // This guarantees the illustration shows regardless of whether React Navigation's
-  // internal scene containers honour our sceneContainerStyle: transparent override.
-  const showIllustration = theme === 'light' && Platform.OS !== 'web';
+  // Web-only: resolve the illustration URI for use as a CSS backgroundImage.
+  const [webBgUri, setWebBgUri] = useState<string>('');
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    Asset.fromModule(SYNTHWAVE_BG)
+      .downloadAsync()
+      .then(asset => { setWebBgUri(asset.localUri ?? asset.uri ?? ''); })
+      .catch(() => { setWebBgUri(''); });
+  }, []);
 
-  const tabsNode = (
+  // screenLayout wraps EVERY tab scene in its own opaque backdrop. This is the
+  // fix for the cross-tab bleed-through: React Navigation keeps inactive tab
+  // scenes mounted and PAINTED at z-index:-1, relying on the active scene being
+  // opaque to hide them. Our screens are transparent (so a shared illustration
+  // can show through), which let the inactive Kitchen scene show behind Pantry/
+  // Shop. Giving each scene its own opaque illustration backdrop restores the
+  // occlusion: the active scene fully covers the inactive one, and every screen
+  // still shows the illustration.
+  //   dark        → solid View (tokens.bg)
+  //   light native→ ImageBackground (illustration file)
+  //   light web   → View with CSS backgroundImage (RN Web passes it to the <div>)
+  const renderScreenLayout = useCallback(
+    ({ children }: { children: React.ReactNode }) => {
+      if (!isLight) {
+        return <View style={{ flex: 1, backgroundColor: tokens.bg }}>{children}</View>;
+      }
+      if (Platform.OS === 'web') {
+        return (
+          <View
+            style={[
+              { flex: 1 },
+              webBgUri
+                ? ({
+                    backgroundImage: `url("${webBgUri}")`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                  } as object)
+                : { backgroundColor: '#C20060' },
+            ]}
+          >
+            {children}
+          </View>
+        );
+      }
+      return (
+        <ImageBackground source={SYNTHWAVE_BG} style={{ flex: 1 }} resizeMode="cover">
+          {children}
+        </ImageBackground>
+      );
+    },
+    [isLight, webBgUri],
+  );
+
+  return (
     <Tabs
+      screenLayout={renderScreenLayout}
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: 'transparent' },
-        sceneContainerStyle: { backgroundColor: 'transparent' },
+        // bottom-tabs uses `sceneStyle` (not Stack's contentStyle/sceneContainerStyle).
+        // Transparent so the screenLayout backdrop above is what paints each scene.
+        sceneStyle: { backgroundColor: 'transparent' },
       }}
       tabBar={({ state, navigation }) => (
         <View
@@ -150,13 +202,5 @@ export default function TabLayout() {
         <Tabs.Screen key={t.name} name={t.name} options={{ title: t.label }} />
       ))}
     </Tabs>
-  );
-
-  if (!showIllustration) return tabsNode;
-
-  return (
-    <ImageBackground source={SYNTHWAVE_BG} style={{ flex: 1 }} resizeMode="cover">
-      {tabsNode}
-    </ImageBackground>
   );
 }

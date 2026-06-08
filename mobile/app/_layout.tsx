@@ -300,9 +300,9 @@ function AppShell() {
       ) : (
         // Native Android: ImageBackground works correctly — resizeMode="cover"
         // scales the illustration to fill the screen behind every screen.
-        // sceneContainerStyle + contentStyle both transparent: sceneContainerStyle
-        // kills Android's windowBackground (default white) on the scene wrapper;
-        // contentStyle kills it on the screen content view itself.
+        // contentStyle: transparent lets the illustration show through each
+        // native-stack screen (Settings, recipe detail, etc.). The (tabs) group
+        // paints its own per-scene backdrop via screenLayout — see (tabs)/_layout.
         <ImageBackground
           source={SYNTHWAVE_BG}
           style={{ flex: 1 }}
@@ -313,7 +313,6 @@ function AppShell() {
             screenOptions={{
               headerShown: false,
               contentStyle: { backgroundColor: 'transparent' },
-              sceneContainerStyle: { backgroundColor: 'transparent' },
             }}
           >
             <Stack.Screen name="(tabs)" />
