@@ -16,7 +16,7 @@
  */
 import '../global.css';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, Text, View } from 'react-native';
+import { ImageBackground, Platform, Pressable, Text, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -192,6 +192,10 @@ function DbErrorScreen({
 // captured a stale `ready=false`, then never re-rendered when `ready` flipped
 // true — blank splash forever. By owning the font state, AppShell's own re-renders
 // drive the gate, and it only mounts once the DB is ready anyway.
+// Synthwave background — Sydney Harbour Bridge illustration (Tucker & Spice asset).
+// Hot magenta sky, native Australian tree silhouettes, cooking icons. Australian-first.
+const SYNTHWAVE_BG = require('../assets/images/synthwave-bg.png');
+
 function AppShell() {
   const { theme } = useTheme();
 
@@ -221,23 +225,54 @@ function AppShell() {
     if (ready) SplashScreen.hideAsync().catch(() => {});
   }, [ready]);
 
-  if (!ready) return null;
-
-  // Dark theme → light status-bar glyphs; Light theme → dark glyphs.
   const isDark = theme === 'dark';
 
+  // Keep system UI background in sync with the active theme so the area
+  // behind the notch / gesture bar matches the correct colour.
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(isDark ? '#141414' : '#1A0530').catch(() => {});
+  }, [isDark]);
+
+  if (!ready) return null;
+
+  // Light mode: LinearGradient creates the synthwave sky (bright magenta top →
+  // near-black purple bottom). contentStyle is transparent so the gradient
+  // shows through every screen — tokens.bg is 'transparent' in lightTokens,
+  // so all screen container views also pass through to this gradient.
+  //
+  // Dark mode: plain View with the warm near-black bg — unchanged.
   return (
     <>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Stack
-        key={theme}
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: tokens.bg },
-        }}
-      >
-        <Stack.Screen name="(tabs)" />
-      </Stack>
+      <StatusBar style="light" />
+      {isDark ? (
+        <View style={{ flex: 1, backgroundColor: tokens.bg }}>
+          <Stack
+            key={theme}
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: tokens.bg },
+            }}
+          >
+            <Stack.Screen name="(tabs)" />
+          </Stack>
+        </View>
+      ) : (
+        <ImageBackground
+          source={SYNTHWAVE_BG}
+          style={{ flex: 1 }}
+          resizeMode="cover"
+        >
+          <Stack
+            key={theme}
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: 'transparent' },
+            }}
+          >
+            <Stack.Screen name="(tabs)" />
+          </Stack>
+        </ImageBackground>
+      )}
     </>
   );
 }

@@ -3,7 +3,7 @@
  *
  * Two named themes (v2):
  *   darkTokens  ("Dark")  — dark warm "cookbook on near-black paper" (original brand).
- *   lightTokens ("Light") — neon green canvas, hot-pink CTAs, magenta editorial accent.
+ *   lightTokens ("Light") — retro synthwave: deep violet canvas, hot-magenta neons, warm pink glow.
  *
  * The exported `tokens` object is MUTABLE — setActiveTheme() swaps values in
  * place so static importers see the new theme on next render after a remount.
@@ -78,70 +78,85 @@ export const darkTokens = {
   },
 };
 
-// ─── Light (bright green canvas) ───────────────────────────────────────────
+// ─── Light (Retro Synthwave) ────────────────────────────────────────────────
+// Reference: SF Golden Gate synthwave image.
+//
+// CORRECT colour distribution (the image):
+//   ~60% bright hot magenta  → bg (the SKY — dominant colour)
+//   ~30% near-black purple   → cream/cards (SILHOUETTES sitting on the sky)
+//   ~10% salmon-pink         → accent/glow (sun, neon text highlights)
+//
+// Wrong approach (previous): dark canvas + magenta accents = too purple.
+// Right approach: MAGENTA IS THE CANVAS. Dark cards are the silhouettes.
 export const lightTokens = {
-  bg:      '#00FF9A',
-  bgDeep:  '#00D482',
-  cream:   '#E8FFF5',   // mint-tinted cards — part of the green world, not cold white
-  dockBg:  '#0D1B2A',   // dark navy dock floats on neon green
+  // THE SKY — delivered as a LinearGradient in _layout.tsx AppShell.
+  // bg is 'transparent' so every screen container passes through to the gradient.
+  // The gradient colours live in SYNTHWAVE_GRADIENT in _layout.tsx:
+  //   #D0006A (top) → #9A0055 → #3D0860 → #1A0530 (bottom).
+  bg:     'transparent',
+  bgDeep: '#1A0530',   // bottom of the gradient — used for scrims / pressed states
 
-  // Ink inverted — dark navy on light surfaces.
-  ink:     '#0D1B2A',
-  inkSoft: '#1E3A4A',
-  muted:   '#4A7A8A',
+  // The SILHOUETTES. Cards sit on the gradient sky like the bridge & trees.
+  cream:  '#1E0535',   // near-black warm purple — recipe rows, settings cards
+  dockBg: '#120228',   // darkest — dock anchors hard at the bottom
 
-  // Hot pink — action accent.
-  primary:      '#FF2E88',
-  primaryDeep:  '#CC1A6A',
-  primaryInk:   '#CC0060',
-  primaryLight: 'rgba(255,46,136,0.12)',
-  onPrimary:    '#F6F7FF',
+  // Warm pink-white text. Works on both: magenta sky (~6.5:1) AND dark cards (~15:1).
+  ink:     '#FFCCE4',
+  inkSoft: 'rgba(255,204,228,0.70)',
+  muted:   'rgba(255,204,228,0.45)',
 
-  sage:      '#3A7050',
-  sageDeep:  '#1E4E2E',
-  sageLight: 'rgba(46,94,62,0.20)',
+  // PRIMARY: salmon-pink (swatch 1). On dark cards it glows bright.
+  // Lighter than the magenta sky — so CTAs contrast clearly against both surfaces.
+  primary:      '#FF7BAC',
+  primaryDeep:  '#E0508A',
+  primaryInk:   '#FFB0CE',
+  primaryLight: 'rgba(255,123,172,0.22)',
+  onPrimary:    '#1A0530',   // dark silhouette text on the salmon button
 
-  ochre:     '#C07038',
-  ochreDeep: '#A05C28',
+  sage:      '#E050A0',
+  sageDeep:  '#B03070',
+  sageLight: 'rgba(224,80,160,0.18)',
 
-  warmBrown: '#0D1B2A',
+  ochre:     '#FF7050',
+  ochreDeep: '#E05030',
 
-  amber:     '#D4FFF0',
-  amberLine: 'rgba(13,27,42,0.10)',
+  warmBrown: '#FFB0CE',
 
-  sky:      '#7AAABB',
-  skyDeep:  '#5A8A9B',
-  skyLight: 'rgba(122,170,187,0.20)',
+  amber:     '#2A0848',    // dark purple for info surfaces
+  amberLine: 'rgba(255,123,172,0.20)',
 
-  // Hot pink — editorial accent (cuisine tags, search border, wordmark period).
-  // Unified with primary — one accent, not two competing colours.
-  gold:       '#FF2E88',
-  goldDim:    'rgba(255,46,136,0.12)',
-  bronze:     '#FF2E88',
-  bronzeSoft: 'rgba(255,46,136,0.10)',
+  sky:      '#FF9EC5',     // softer salmon-pink for sky-tinted tones
+  skyDeep:  '#FF7BAC',
+  skyLight: 'rgba(255,158,197,0.20)',
 
-  // Recipe hero title — magenta in Neon (replaces the orphan gold).
-  recipeTitle: '#FF2E88',
+  // Editorial accent: salmon-pink (swatch 1) — wordmark dot, tags, search ring.
+  gold:       '#FF7BAC',
+  goldDim:    'rgba(255,123,172,0.18)',
+  bronze:     '#FF9EC5',
+  bronzeSoft: 'rgba(255,158,197,0.14)',
 
-  // Lines — dark-alpha on light surfaces (inverted from stealth).
-  line:     'rgba(13,27,42,0.08)',
-  lineDark: 'rgba(13,27,42,0.16)',
+  // Recipe hero title: warm pink-white glow on the dark silhouette card.
+  recipeTitle: '#FFCCE4',
 
-  // Inactive tab — near-white at 50% on dark navy dock.
-  tabInactive: 'rgba(246,247,255,0.50)',
+  // Lines on dark cards: faint salmon edge-lighting.
+  line:     'rgba(255,123,172,0.18)',
+  lineDark: 'rgba(255,123,172,0.32)',
+
+  // Inactive tabs on near-black dock.
+  tabInactive: 'rgba(255,172,218,0.40)',
 
   cookMode: {
     screenBg: '#000000',
-    cardBg:   '#0D0D0D',
-    bgDeep:   '#161616',
-    ink:      '#F5EFE8',
-    inkSoft:  '#C4B8A8',
-    muted:    '#8A7E72',
-    line:     'rgba(255,255,255,0.06)',
-    lineDark: 'rgba(255,255,255,0.12)',
-    primary:  '#00FF9A',   // neon green on OLED black
-    sage:     '#2E5E3E',
-    ochre:    '#A05C28',
+    cardBg:   '#0D0018',
+    bgDeep:   '#1A0030',
+    ink:      '#FFCCE4',
+    inkSoft:  'rgba(255,204,228,0.65)',
+    muted:    'rgba(255,204,228,0.38)',
+    line:     'rgba(255,123,172,0.10)',
+    lineDark: 'rgba(255,123,172,0.22)',
+    primary:  '#FF7BAC',   // salmon-pink on OLED black
+    sage:     '#E050A0',
+    ochre:    '#FF7050',
   },
 };
 
