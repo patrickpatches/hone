@@ -32,7 +32,7 @@
         "android.permission.SCHEDULE_EXACT_ALARM",
         "android.permission.POST_NOTIFICATIONS"
       ],
-      "versionCode": 56,
+      "versionCode": 57,
       "allowBackup": false
     },
     "web": {
