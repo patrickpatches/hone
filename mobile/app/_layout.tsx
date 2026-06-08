@@ -17,6 +17,7 @@
 import '../global.css';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ImageBackground, Platform, Pressable, Text, View } from 'react-native';
+import { Asset } from 'expo-asset';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -233,14 +234,25 @@ function AppShell() {
     SystemUI.setBackgroundColorAsync(isDark ? '#141414' : '#1A0530').catch(() => {});
   }, [isDark]);
 
+  // Web-only: resolve the illustration URI via expo-asset so we can apply it
+  // as a CSS backgroundImage on a plain View. ImageBackground on web renders
+  // at natural image dimensions (ignoring resizeMode="cover") — this approach
+  // uses RN Web's passthrough of arbitrary CSS props on View (→ <div>).
+  // Falls back to '#C20060' (hot magenta) while resolving or on error.
+  const [webBgUri, setWebBgUri] = useState<string>('');
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    Asset.fromModule(SYNTHWAVE_BG)
+      .downloadAsync()
+      .then(asset => { setWebBgUri(asset.localUri ?? asset.uri ?? ''); })
+      .catch(() => { setWebBgUri(''); });
+  }, []);
+
   if (!ready) return null;
 
-  // Light mode: LinearGradient creates the synthwave sky (bright magenta top →
-  // near-black purple bottom). contentStyle is transparent so the gradient
-  // shows through every screen — tokens.bg is 'transparent' in lightTokens,
-  // so all screen container views also pass through to this gradient.
-  //
   // Dark mode: plain View with the warm near-black bg — unchanged.
+  // Light mode web: View with CSS backgroundImage (cover) via RN Web style passthrough.
+  // Light mode native: ImageBackground with the illustration file.
   return (
     <>
       <StatusBar style="light" />
@@ -256,15 +268,38 @@ function AppShell() {
             <Stack.Screen name="(tabs)" />
           </Stack>
         </View>
+      ) : Platform.OS === 'web' ? (
+        // Web light mode: RN Web's ImageBackground renders at natural image
+        // dimensions with objectFit:fill — it ignores resizeMode="cover".
+        // Fix: pass backgroundImage + backgroundSize: cover as raw CSS props on a
+        // plain View (RN Web passes unknown style keys straight to the <div>).
+        // While webBgUri is resolving, '#C20060' (hot magenta) holds the space.
+        <View
+          style={[
+            { flex: 1 },
+            webBgUri
+              ? ({
+                  backgroundImage: `url("${webBgUri}")`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                } as object)
+              : { backgroundColor: '#C20060' },
+          ]}
+        >
+          <Stack
+            key={theme}
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: 'transparent' },
+            }}
+          >
+            <Stack.Screen name="(tabs)" />
+          </Stack>
+        </View>
       ) : (
-        // Light mode — web AND native: Sydney Harbour Bridge illustration
-        // sits behind every screen. All intermediate containers are transparent:
-        //   • Stack contentStyle: transparent (below)
-        //   • Tabs contentStyle: transparent ((tabs)/_layout.tsx)
-        //   • tokens.bg: 'transparent' (lightTokens)
-        //   • html/body/#root: transparent (global.css)
-        // Web renders ImageBackground as a CSS background-image which composes
-        // correctly now that nothing opaque sits above it.
+        // Native Android: ImageBackground works correctly — resizeMode="cover"
+        // scales the illustration to fill the screen behind every screen.
         <ImageBackground
           source={SYNTHWAVE_BG}
           style={{ flex: 1 }}

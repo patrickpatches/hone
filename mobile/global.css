@@ -6,3 +6,11 @@
 html, body, #root, [data-reactroot] {
   background-color: transparent !important;
 }
+
+/* Expo Router / React Navigation injects an opaque grey navigator container
+   on web via inline style (background-color: rgb(242, 242, 242)).
+   CSS !important beats inline styles — make it transparent so our
+   background illustration shows through all navigation layers. */
+div[style*="rgb(242, 242, 242)"] {
+  background-color: transparent !important;
+}
