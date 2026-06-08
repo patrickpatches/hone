@@ -89,12 +89,12 @@ export const darkTokens = {
 // Wrong approach (previous): dark canvas + magenta accents = too purple.
 // Right approach: MAGENTA IS THE CANVAS. Dark cards are the silhouettes.
 export const lightTokens = {
-  // THE SKY — delivered as a LinearGradient in _layout.tsx AppShell.
-  // bg is 'transparent' so every screen container passes through to the gradient.
-  // The gradient colours live in SYNTHWAVE_GRADIENT in _layout.tsx:
-  //   #D0006A (top) → #9A0055 → #3D0860 → #1A0530 (bottom).
+  // THE SKY. On native Android, 'transparent' lets the Sydney Harbour Bridge
+  // ImageBackground illustration show through every screen. On web, AppShell's
+  // web branch hard-codes '#C20060' on its outer View/Stack instead, so web
+  // doesn't need this token to carry the colour.
   bg:     'transparent',
-  bgDeep: '#1A0530',   // bottom of the gradient — used for scrims / pressed states
+  bgDeep: '#A00050',   // deeper magenta for scrims / pressed states
 
   // The SILHOUETTES. Cards sit on the gradient sky like the bridge & trees.
   cream:  '#1E0535',   // near-black warm purple — recipe rows, settings cards

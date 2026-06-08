@@ -37,7 +37,13 @@ export default function TabLayout() {
 
   return (
     <Tabs
-      screenOptions={{ headerShown: false }}
+      screenOptions={{
+        headerShown: false,
+        // Transparent so the ImageBackground illustration (native light mode)
+        // or the magenta View (web light mode) bleeds through every tab screen.
+        // Dark mode: the Stack-level '#141414' View behind the tabs shows through.
+        contentStyle: { backgroundColor: 'transparent' },
+      }}
       tabBar={({ state, navigation }) => (
         <View
           pointerEvents="box-none"

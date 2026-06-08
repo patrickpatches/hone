@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Kill Expo's default grey web background — app controls its own bg via tokens */
+html, body, #root, [data-reactroot] {
+  background-color: transparent !important;
+}
