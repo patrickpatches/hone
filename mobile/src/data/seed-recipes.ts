@@ -5829,4 +5829,115 @@ const FALAFEL: Recipe = {
     },
     {
       id: 'step_4_oil', title: 'Heat the oil',
-      content: 'Pour the oil into a de
+      content: 'Pour the oil into a deep, heavy pot — never more than half full. Heat over medium-high to 175 °C. If you do not have a thermometer, drop a small pinch of the falafel mixture in: it should sink for a moment, then rise to the surface in a steady stream of bubbles.',
+      stage_note: 'Test pinch sinks briefly, then rises within 3 seconds with steady bubbles around it. No splattering or violent fizz.',
+      lookahead: 'While the oil heats, mix the bicarb and baking powder through and shape the falafel.',
+      why_note: '175 °C is the falafel sweet spot. Hotter and the outside burns before the inside cooks; cooler and the falafel absorbs oil and goes greasy. The half-full pot rule is non-negotiable — overfilled oil is the most common kitchen-fire cause for deep-frying.',
+    },
+    {
+      id: 'step_5_shape', title: 'Lift the mixture and shape',
+      content: 'Sprinkle the bicarb and baking powder over the rested mixture and mix through gently with a fork — do not compact it. Take a heaped tablespoon at a time and shape into balls or small patties. If you have a falafel scoop, use it. Press sesame seeds onto one side if using.',
+      stage_note: 'Falafel hold their shape on the bench without slumping. Surface is rough — not smoothed.',
+      lookahead: 'Fry in batches as you shape — falafel shaped and held on the bench start to weep.',
+      why_note: 'Bicarb and baking powder added at the last moment is the trick that makes home falafel light. Add them earlier and the leavening is wasted before the oil hits — the gas escapes through the rest. The rough surface is what gives the shattering crust; smoothing the falafel gives you a hard ball.',
+    },
+    {
+      id: 'step_6_fry', title: 'Deep-fry in batches',
+      content: 'Lower the falafel into the oil four or five at a time — never crowd. Fry for 3 to 4 minutes, turning once with a spider strainer halfway through. They\'re done when deep golden-brown all over.',
+      stage_note: 'Outside is deep golden, almost mahogany. Lift one out and break it open: the inside is bright green-yellow, fluffy, and steaming.',
+      lookahead: 'Drain on a wire rack — never paper towel — while you fry the rest.',
+      timer_seconds: 210,
+      why_note: 'Deep colour is the doneness signal — pale falafel is undercooked inside, mahogany falafel is overcooked. The bright-green interior is your check that the inside is hot through but not dried out.',
+    },
+    {
+      id: 'step_7_serve', title: 'Build and eat now',
+      content: "Warm the flatbread briefly. Spread with hummus, then pack with falafel, drizzle generously with tahini sauce, scatter the diced tomato and cucumber, add pickled turnips if you have them, and finish with a squeeze of lemon. Roll up tight or eat open.",
+      stage_note: 'Falafel is hot, crust is crisp, fillings are bright and fresh.',
+      why_note: "Falafel waits for nobody — five minutes on the bench and the crust softens. The classic Levantine sandwich is built in this exact order: hummus first as a moisture barrier on the bread, then falafel, then tahini, then salads, then pickles last for crunch and acid. Skip the order and the bread goes soggy from the bottom.",
+    },
+  ],
+  // DECISION-014 — placeholder defaults; cook to refine to "ball" + specific count if she wants per-piece scaling
+  output_unit: "serve",
+  output_default: 4,
+};
+
+// ────────────────────────────────────────────────────────────────────────────
+//  Export — the launch roster.
+//
+//  This array is the ONLY thing the seeder consumes. Recipes not in this
+//  array physically cannot reach SQLite. To promote a recipe from the
+//  holding list below to launch: move its name from SEED_RECIPES_HOLDING
+//  into SEED_RECIPES. That is the only step.
+//
+//  v1.0 launch = 16 recipes. The runtime smoke alarm in setupDatabase
+//  (db/seed.ts) screams in dev if the count drifts.
+// ────────────────────────────────────────────────────────────────────────────
+
+export const SEED_RECIPES: Recipe[] = [
+  SMASH_BURGER,
+  PASTA_CARBONARA,
+  ROAST_CHICKEN,
+  HUMMUS,
+  THAI_GREEN_CURRY,
+  PAD_THAI,
+  WEEKDAY_BOLOGNESE,
+  CHICKEN_SHAWARMA,
+  BUTTER_CHICKEN,
+  PAVLOVA,
+  FLOUR_TORTILLAS,
+  CHICKEN_SCHNITZEL,
+  BEEF_LASAGNE,
+  ROAST_LAMB,
+  FISH_AND_CHIPS,
+  FALAFEL,
+];
+
+// ────────────────────────────────────────────────────────────────────────────
+//  Holding pen — recipes ready in code but NOT user-visible in v1.0.
+//
+//  Defined here so the consts compile and tsc still validates them, but
+//  this array is NEVER inserted into SQLite. It is documentation + future
+//  promotion source.
+//
+//  When promoting one to launch: move its name into SEED_RECIPES above
+//  AND remove the `not_yet_shipping: true` field from its const for
+//  consistency with the rest of the launch roster.
+//
+//  Patrick's standing rule (2026-05-09): the 30 below DO NOT enter the
+//  build until they are explicitly promoted. Splitting the arrays
+//  removes the only mechanism by which they could re-appear after a
+//  refresh — the seeder no longer sees them.
+// ────────────────────────────────────────────────────────────────────────────
+
+export const SEED_RECIPES_HOLDING: Recipe[] = [
+  CHICKEN_ADOBO,
+  BEEF_STEW,
+  MUSAKHAN,
+  KAFTA,
+  FATTOUSH,
+  PRAWN_TACOS_PINEAPPLE,
+  SOURDOUGH_MAINTENANCE,
+  SOURDOUGH_LOAF,
+  RISOTTO,
+  FISH_TACOS,
+  FRENCH_ONION_SOUP,
+  BRAISED_SHORT_RIBS,
+  RAMEN,
+  BEEF_WELLINGTON,
+  DAL,
+  SCRAMBLED_EGGS,
+  AGLIO_E_OLIO,
+  MUJADARA,
+  SHEET_PAN_HARISSA_CHICKEN,
+  EGG_FRIED_RICE,
+  LAMB_SHAWARMA,
+  NASI_LEMAK,
+  BEEF_RENDANG,
+  CURRY_LAKSA,
+  CHAR_KWAY_TEOW,
+  SAAG_PANEER,
+  CHICKEN_KATSU,
+  TOM_YUM,
+  BARRAMUNDI,
+  CHICKEN_VEG_STIR_FRY,
+];

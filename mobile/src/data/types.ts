@@ -220,6 +220,19 @@ export const Ingredient = z.object({
    */
   scaling_note: z.string().optional(),
   /**
+   * True if THIS ingredient is hard to source outside major Australian cities
+   * (Sydney, Melbourne, Brisbane, Perth). Signals the app to show a sourcing
+   * note on the ingredient line. (Golden Rule #3 — honest about availability.)
+   * Note: Substitution carries the same field for flagging a swap's sourcing;
+   * here it flags the primary ingredient itself.
+   */
+  hard_to_find: z.boolean().optional(),
+  /**
+   * Where to find this ingredient locally, or what brand/grocer to ask for.
+   * E.g. "Indian grocers; some Woolworths/Coles spice aisles."
+   */
+  local_alternative: z.string().optional(),
+  /**
    * Swap options for this ingredient.
    * Optional field — absence means swaps haven't been researched yet,
    * not that no swaps exist. Phase 5 renders this as a tap-to-expand
