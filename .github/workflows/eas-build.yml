@@ -13,8 +13,41 @@ on:
           - production
 
 jobs:
+  # Fast pre-build gate. A truncated / unparseable source file used to reach
+  # the 8-minute native build and fail inside Hermes bundling (BundleHermesCTask).
+  # R-014 detected it on push, but the build is dispatched manually and never
+  # depended on that check — so a known-bad commit could still be built.
+  # This job makes validation a HARD prerequisite: the APK job `needs: validate`,
+  # so a file that won't parse aborts the run in ~1 min instead of ~8, and no
+  # build slot is wasted. Catches the whole truncation/syntax-error class.
+  validate:
+    name: Validate source (truncation + parse)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install Node dependencies
+        working-directory: mobile
+        run: npm ci
+
+      - name: R-014 truncation tripwire (last-token heuristic, fast)
+        run: bash scripts/check-ts-truncation.sh
+
+      - name: R-014 parse guard (real Babel/TS parse — the bundler's own check)
+        working-directory: mobile
+        run: npm run check:parse
+
   build:
     name: Build Android APK
+    needs: validate
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
