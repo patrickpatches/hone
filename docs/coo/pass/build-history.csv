@@ -1,0 +1,20 @@
+build,date,bugs_opened,bugs_re_test_passed,bugs_re_test_failed,p0_open,p1_open,p2_open,p3_open,notes
+113,2026-05-15,3,0,0,0,3,0,0,three DB pipeline bugs from #112 caught
+114,2026-05-17,3,0,0,0,3,0,0,swap-trigger redesign + two on-device bugs from #113
+115,2026-05-17,2,0,0,0,2,0,0,swap sheet still re-opens (persistent)
+116,2026-05-18,0,2,0,0,0,0,0,SubstitutionSheet RN-modal rewrite — sheet bug closed
+117,2026-05-18,2,0,0,0,1,1,0,cook-mode v2 shipped + HUMMUS chocolate-milkshake hero caught
+118,2026-05-22,1,1,0,0,0,1,0,hero URL fixes; chocolate-milkshake bug closed
+119,2026-05-22,0,1,0,0,0,1,0,HUMMUS hero validated by Patrick
+120,2026-05-22,4,0,0,0,2,2,0,Kitchen polish bundle — 4 small bugs found in validation
+121,2026-05-24,0,4,0,0,0,0,0,Kitchen hero slideshow + 4 polish bugs cleared
+122,2026-05-25,0,0,0,0,0,0,0,pantry haves redesign
+123,2026-05-25,1,0,0,0,0,1,0,step-number badge invisible on cream circle (still open)
+124,2026-05-25,1,0,0,1,0,0,0,Recipe Detail v5 crash on open — P0 launch blocker
+125,2026-05-26,0,0,1,1,0,0,0,attempted Fabric driver fix did NOT resolve the crash
+126,2026-05-26,0,1,0,0,0,1,0,rollback to pre-v5; v5 crash bug closed by removal
+127,2026-05-28,0,0,0,0,0,1,0,Fraunces font swap (Commit A)
+128,2026-05-28,0,0,0,0,0,1,0,package-lock hotfix
+129,2026-05-29,0,0,0,0,0,1,0,Commit B browse restyle (partial); Plate-time bug flagged in closeout
+130,2026-05-29,0,0,0,0,0,1,0,RecipeErrorBoundary added
+131,2026-05-30,0,0,0,0,0,1,0,Rules of Hooks hoist fix — recipes open again

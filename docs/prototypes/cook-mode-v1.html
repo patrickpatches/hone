@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hone — Cook Mode Step Design</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ── v0.7 dark sage tokens — cook mode extends to true black ── */
+  :root {
+    --bg:          #000000;
+    --surface:     #0F140F;
+    --surface2:    #161C16;
+    --surface3:    #1E261E;
+    --ink:         #F5F2EC;
+    --ink2:        rgba(245,242,236,0.58);
+    --ink3:        rgba(245,242,236,0.30);
+    --rust:        #B84030;
+    --rust-dim:    rgba(184,64,48,0.18);
+    --sage:        #4A7C59;
+    --sage-light:  #6DB87A;
+    --sage-dim:    rgba(74,124,89,0.18);
+    --gold:        #F2CC2A;
+    --gold-dim:    rgba(242,204,42,0.14);
+    --line:        rgba(245,242,236,0.07);
+    --line2:       rgba(245,242,236,0.12);
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-sans:    'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #060a06;
+    font-family: var(--font-sans);
+    padding: 48px 24px 80px;
+    color: var(--ink);
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .page-header h1 {
+    font-family: var(--font-display);
+    font-size: 26px; color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .page-header p {
+    font-size: 13px; color: var(--ink2);
+    max-width: 520px; margin: 0 auto; line-height: 1.6;
+  }
+
+  /* ── frames layout ── */
+  .frames {
+    display: flex;
+    gap: 36px;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .frame-col {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 14px;
+  }
+  .frame-col h3 {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.8px;
+    text-transform: uppercase; color: var(--ink3);
+    text-align: center;
+  }
+
+  /* ── phone shell ── */
+  .phone {
+    width: 284px;
+    height: 608px;
+    background: var(--bg);
+    border-radius: 44px;
+    overflow: hidden;
+    border: 1.5px solid rgba(255,255,255,0.06);
+    box-shadow:
+      0 32px 80px rgba(0,0,0,0.8),
+      0 0 0 1px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .status {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 20px 0; flex-shrink: 0;
+    font-size: 11px; font-weight: 600; color: rgba(245,242,236,0.7);
+  }
+
+  .scroll {
+    flex: 1; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+
+  /* ── TOP PROGRESS BAR ── */
+  .progress-bar {
+    padding: 10px 20px 0;
+    flex-shrink: 0;
+  }
+  .progress-row {
+    display: flex; gap: 5px; align-items: center;
+  }
+  .progress-seg {
+    flex: 1; height: 2px;
+    background: var(--line2);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .progress-seg .fill {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 1px;
+  }
+  .progress-label {
+    font-size: 9px; color: var(--ink3);
+    margin-top: 5px; text-align: right;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── RECIPE TITLE BAR ── */
+  .recipe-bar {
+    display: flex; align-items: center;
+    padding: 8px 20px 0;
+    gap: 10px; flex-shrink: 0;
+  }
+  .recipe-bar-back {
+    font-size: 20px; color: var(--ink3);
+    line-height: 1;
+  }
+  .recipe-bar-title {
+    font-family: var(--font-display);
+    font-size: 13px; font-weight: 700;
+    color: var(--ink2); flex: 1;
+  }
+  .recipe-bar-chef {
+    font-family: var(--font-display);
+    font-size: 11px; font-style: italic;
+    color: var(--ink3);
+  }
+
+  /* ── STEP GIANT NUMBER ── */
+  .step-giant-wrap {
+    position: relative;
+    padding: 0 20px;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .step-giant {
+    font-family: var(--font-display);
+    font-size: 108px;
+    font-weight: 900;
+    color: var(--surface2);
+    line-height: 1;
+    letter-spacing: -4px;
+    user-select: none;
+    margin-left: -4px;
+  }
+  .step-of {
+    position: absolute;
+    top: 18px; left: 78px;
+    font-size: 11px; font-weight: 500;
+    color: var(--ink3); letter-spacing: 0.3px;
+  }
+
+  /* ── STEP TITLE ── */
+  .step-title {
+    font-family: var(--font-display);
+    font-size: 22px; font-weight: 700;
+    color: var(--ink);
+    padding: 0 20px;
+    line-height: 1.2;
+    flex-shrink: 0;
+    margin-top: -8px;
+  }
+
+  /* ── STEP BODY ── */
+  .step-body {
+    padding: 12px 20px 0;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--ink2);
+    flex-shrink: 0;
+  }
+
+  /* ── DONENESS CUE ── */
+  .doneness-cue {
+    margin: 14px 20px 0;
+    background: var(--gold-dim);
+    border: 1px solid rgba(242,204,42,0.28);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 10px 10px 0;
+    padding: 9px 12px;
+    flex-shrink: 0;
+  }
+  .doneness-label {
+    font-size: 9px; font-weight: 600;
+    color: var(--gold); letter-spacing: 0.6px;
+    text-transform: uppercase; margin-bottom: 3px;
+  }
+  .doneness-text {
+    font-size: 12px; color: rgba(242,204,42,0.85);
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  /* ── WHY NOTE ── */
+  .why-note {
+    margin: 12px 20px 0;
+    padding: 10px 0 0;
+    border-top: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .why-label {
+    font-size: 9px; font-weight: 600;
+    color: var(--ink3); letter-spacing: 0.5px;
+    text-transform: uppercase; margin-bottom: 4px;
+  }
+  .why-text {
+    font-family: var(--font-display);
+    font-size: 12px; font-style: italic;
+    color: var(--ink3); line-height: 1.55;
+  }
+
+  /* ── TIMER ── */
+  .timer-wrap {
+    margin: 14px 20px 0;
+    display: flex; align-items: center; gap: 14px;
+    flex-shrink: 0;
+  }
+  .timer-ring {
+    width: 52px; height: 52px;
+    position: relative; flex-shrink: 0;
+  }
+  .timer-ring svg {
+    width: 52px; height: 52px;
+    transform: rotate(-90deg);
+  }
+  .timer-ring-track { fill: none; stroke: var(--surface3); stroke-width: 3; }
+  .timer-ring-fill { fill: none; stroke: var(--gold); stroke-width: 3; stroke-linecap: round;
+    stroke-dasharray: 138; stroke-dashoffset: 55; }
+  .timer-num {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: var(--ink);
+  }
+  .timer-body {}
+  .timer-title { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+  .timer-sub { font-size: 11px; color: var(--ink3); }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px 20px;
+    flex-shrink: 0;
+    margin-top: auto;
+  }
+  .nav-prev, .nav-next {
+    display: flex; flex-direction: column;
+    align-items: flex-start; gap: 1px;
+  }
+  .nav-next { align-items: flex-end; }
+  .nav-dir { font-size: 9px; color: var(--ink3); font-weight: 500; letter-spacing: 0.4px; text-transform: uppercase; }
+  .nav-step-name { font-size: 12px; font-weight: 600; color: var(--ink); }
+  .nav-btn {
+    width: 44px; height: 44px;
+    background: var(--rust);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: white;
+  }
+  .nav-btn.secondary {
+    background: var(--surface2);
+    color: var(--ink2);
+  }
+
+  /* ── STEP VARIANTS — PURE TEXT (no timer) ── */
+  .step-action-row {
+    margin: 16px 20px 0;
+    display: flex; gap: 8px;
+    flex-shrink: 0;
+  }
+  .action-pill {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--line2);
+    border-radius: 22px;
+    padding: 10px 14px;
+    display: flex; align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px; font-weight: 600; color: var(--ink2);
+  }
+  .action-pill.primary {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: white;
+  }
+  .action-pill-icon { font-size: 14px; }
+
+  /* ── INGREDIENT CALLOUT ── */
+  .ing-callout {
+    margin: 12px 20px 0;
+    display: flex; gap: 7px; flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .ing-tag {
+    background: var(--surface2);
+    border: 1px solid var(--line2);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 10px; color: var(--ink2);
+    font-weight: 500;
+  }
+
+  /* ── design notes ── */
+  .notes-section {
+    max-width: 880px;
+    margin: 64px auto 0;
+    padding: 0 16px;
+  }
+  .notes-section h2 {
+    font-family: var(--font-display);
+    font-size: 20px; color: var(--ink);
+    text-align: center; margin-bottom: 28px;
+  }
+  .notes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+  .note-card {
+    background: #0F140F;
+    border-radius: 14px;
+    padding: 18px;
+    border: 1px solid var(--line);
+  }
+  .note-card h4 {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.7px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 8px;
+  }
+  .note-card p {
+    font-size: 12px; color: var(--ink2); line-height: 1.65;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Cook Mode — Step Screen</h1>
+  <p>Three steps from the same Carbonara recipe. Each state shows how the layout adapts — step with timer, step with doneness cue only, final step with primary action.</p>
+</div>
+
+<div class="frames">
+
+  <!-- ═══ STEP 1 — with timer + ingredients ═══ -->
+  <div class="frame-col">
+    <h3>Step with timer</h3>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span style="opacity:0.6;font-size:10px">●●● 88%</span></div>
+      <div class="scroll">
+
+        <div class="progress-bar">
+          <div class="progress-row">
+            <div class="progress-seg"><div class="fill" style="width:100%"></div></div>
+            <div class="progress-seg"><div class="fill" style="width:100%"></div></div>
+            <div class="progress-seg"><div class="fill" style="width:60%"></div></div>
+            <div class="progress-seg"><div class="fill" style="width:0%"></div></div>
+            <div class="progress-seg"><div class="fill" style="width:0%"></div></div>
+          </div>
+          <div class="progress-label">Step 3 of 5</div>
+        </div>
+
+        <div class="recipe-bar">
+          <span class="recipe-bar-back">‹</span>
+          <span class="recipe-bar-title">Pasta Carbonara</span>
+          <span class="recipe-bar-chef">Lucio Galletto</span>
+        </div>
+
+        <div class="step-giant-wrap">
+          <div class="step-giant">3</div>
+          <div class="step-of">of 5</div>
+        </div>
+
+        <div class="step-title">Render the guanciale</div>
+
+        <div class="step-body">
+          Get the pan over medium heat. Add the guanciale and let it render slowly — you want the fat pooling in the pan, not evaporating.
+        </div>
+
+        <div class="ing-callout">
+          <span class="ing-tag">150g guanciale</span>
+          <span class="ing-tag">Frying pan</span>
+        </div>
+
+        <div class="doneness-cue">
+          <div class="doneness-label">Look for this</div>
+          <div class="doneness-text">Golden at the edges, fat pooled and clear. The edges should be starting to crisp — not dark, not still translucent.</div>
+        </div>
+
+        <div class="timer-wrap">
+          <div class="timer-ring">
+            <svg viewBox="0 0 52 52">
+              <circle class="timer-ring-track" cx="26" cy="26" r="22"/>
+              <circle class="timer-ring-fill" cx="26" cy="26" r="22"/>
+            </svg>
+            <div class="timer-num">4:22</div>
+          </div>
+          <div class="timer-body">
+            <div class="timer-title">6 min timer running</div>
+            <div class="timer-sub">Tap to pause</div>
+          </div>
+        </div>
+
+        <div class="why-note">
+          <div class="why-label">Why this matters</div>
+          <div class="why-text">Guanciale is the flavour base. The rendered fat is what coats the pasta — don't drain it.</div>
+        </div>
+
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-prev">
+          <span class="nav-dir">← Back</span>
+          <span class="nav-step-name">Make the paste</span>
+        </div>
+        <div class="nav-btn secondary">‹</div>
+        <div class="nav-btn">›</div>
+        <div class="nav-next">
+          <span class="nav-dir">Next →</span>
+          <span class="nav-step-name">Cook the pasta</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 2 — doneness only, no timer ═══ -->
+  <div class="frame-col">
+    <h3>Step with doneness cue</h3>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span style="opacity:0.6;font-size:10px">●●● 88%</span></div>
+      <div class="scroll">
+
+        <div class="progress-bar">
+          <div class="progress-row">
+            <div class="progress-seg"><div class="fill" style="width:100%"></div></div>
+            <div class="progress-seg"><div class="fill" style="width:100%"></div></div>
+            <div class="progress-seg"><div class="fill" style="width:100%"></div></div>
+            <div class="progress-seg"><div class="fill" style="width:80%"></div></div>
+            <div class="progress-seg"><div class="fill" style="width:0%"></div></div>
+          </div>
+          <div class="progress-label">Step 4 of 5</div>
+        </div>
+
+        <div class="recipe-bar">
+          <span class="recipe-bar-back">‹</span>
+          <span class="recipe-bar-title">Pasta Carbonara</span>
+          <span class="recipe-bar-chef">Lucio Galletto</span>
+        </div>
+
+        <div class="step-giant-wrap">
+          <div class="step-giant">4</div>
+          <div class="step-of">of 5</div>
+        </div>
+
+        <div class="step-title">Combine off the heat</div>
+
+        <div class="step-body">
+          Pull the pan off the heat. Wait 30 seconds — let it cool just enough. Add the hot pasta and toss hard. Pour in the egg paste gradually, tossing continuously. The steam from the pasta does the cooking.
+        </div>
+
+        <div class="doneness-cue">
+          <div class="doneness-label">Look for this</div>
+          <div class="doneness-text">The sauce should coat every strand and look glossy and pale golden. If it looks scrambled or grainy, the pan was too hot. If it looks wet and loose, keep tossing.</div>
+        </div>
+
+        <div class="why-note">
+          <div class="why-label">Why this matters</div>
+          <div class="why-text">Eggs scramble at 70°C. Off-heat is the only safe way to emulsify — the residual warmth is your cooking medium.</div>
+        </div>
+
+        <div class="step-action-row">
+          <div class="action-pill">
+            <span class="action-pill-icon">📸</span>
+            Photo cue
+          </div>
+          <div class="action-pill primary">
+            <span class="action-pill-icon">✓</span>
+            Step done
+          </div>
+        </div>
+
+      </div>
+
+      <div class="bottom-nav">
+        <div class="nav-prev">
+          <span class="nav-dir">← Back</span>
+          <span class="nav-step-name">Render guanciale</span>
+        </div>
+        <div class="nav-btn secondary">‹</div>
+        <div class="nav-btn">›</div>
+        <div class="nav-next">
+          <span class="nav-dir">Next →</span>
+          <span class="nav-step-name">Plate and serve</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 5 — final step, finish CTA ═══ -->
+  <div class="frame-col">
+    <h3>Final step — plate and serve</h3>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span style="opacity:0.6;font-size:10px">●●● 88%</span></div>
+      <div class="scroll">
+
+        <div class="progress-bar">
+          <div class="progress-row">
+            <div class="progress-seg"><div class="fill" style="width:100%"></div></div>
+            <div class="progress-seg"><div class="fill" style="width:100%"></div></div>
+            <div class="progress-seg"><div class="fill" style="width:100%"></div></div>
+            <div class="progress-seg"><div class="fill" style="width:100%"></div></div>
+            <div class="progress-seg"><div class="fill" style="width:100%"></div></div>
+          </div>
+          <div class="progress-label">Step 5 of 5</div>
+        </div>
+
+        <div class="recipe-bar">
+          <span class="recipe-bar-back">‹</span>
+          <span class="recipe-bar-title">Pasta Carbonara</span>
+          <span class="recipe-bar-chef">Lucio Galletto</span>
+        </div>
+
+        <div class="step-giant-wrap">
+          <div class="step-giant" style="color:rgba(242,204,42,0.12)">5</div>
+          <div class="step-of">of 5</div>
+        </div>
+
+        <div class="step-title">Plate and serve now</div>
+
+        <div class="step-body">
+          Move fast — carbonara doesn't wait. Twist into a nest using tongs. Lay a few guanciale pieces on top. Grate Pecorino generously over the surface. Crack black pepper — a lot of it.
+        </div>
+
+        <div class="doneness-cue">
+          <div class="doneness-label">Serve immediately</div>
+          <div class="doneness-text">Pasta absorbs sauce as it sits. On the plate in under 60 seconds from the pan.</div>
+        </div>
+
+        <div class="why-note">
+          <div class="why-label">The finish</div>
+          <div class="why-text">The pepper isn't decoration — it's essential. Carbonara means "of the coal," and the pepper is the coal. Be generous.</div>
+        </div>
+
+        <div style="padding: 16px 20px 0; flex-shrink: 0;">
+          <div class="action-pill primary" style="border-radius:16px;padding:14px;font-size:14px;background:var(--sage);border-color:var(--sage)">
+            <span class="action-pill-icon">🍽️</span>
+            Finished — great work
+          </div>
+        </div>
+
+      </div>
+
+      <div class="bottom-nav" style="justify-content:flex-start;gap:12px">
+        <div class="nav-btn secondary" style="width:36px;height:36px;font-size:14px">‹</div>
+        <div class="nav-prev">
+          <span class="nav-dir">← Back</span>
+          <span class="nav-step-name">Combine off heat</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Design rationale ── -->
+<div class="notes-section">
+  <h2>What this changes and why</h2>
+  <div class="notes-grid">
+
+    <div class="note-card">
+      <h4>The giant step number</h4>
+      <p>108sp Playfair Display in near-black — it's a typographic element, not a UI label. Borrowed from editorial magazine chapter numbers. The "of 5" label in ink3 next to it gives context without visual weight. Your eye goes: big number → title → body. That's exactly the read order you want when your hands smell like guanciale.</p>
+    </div>
+
+    <div class="note-card">
+      <h4>Doneness cue in gold</h4>
+      <p>Gold left-border card, italic text. This is the single most important sentence on the screen — more important than the instruction. The timer tells you when to check; this tells you what to look for when you do. Every other recipe app buries this in the step body. Pulling it out and colouring it gold means a user who's half-watching the pan can find the cue in one glance.</p>
+    </div>
+
+    <div class="note-card">
+      <h4>The "why" note in italic</h4>
+      <p>Playfair italic, ink3. Visually it reads like a chef's aside — quieter than the instruction, but present if you want it. This is the pedagogical layer of the app: not just what to do, but why. The italic treatment is borrowed directly from cookbook sidebars. It answers the question without interrupting the flow.</p>
+    </div>
+
+    <div class="note-card">
+      <h4>True black OLED background</h4>
+      <p>Cook mode uses <code>#000000</code> not the dark sage background. The spec already calls for this (CLAUDE.md: "Dark mode default in cook mode. OLED-friendly true blacks"). In a kitchen at night, a black screen is invisible as ambient light. The surface cards sit on black rather than on the sage-tinted dark, making the content areas pop with more contrast.</p>
+    </div>
+
+    <div class="note-card">
+      <h4>Ingredient callout chips</h4>
+      <p>Small pills listing the ingredients used in this step. Removes the need to scroll back to the ingredients list mid-cook. Clicking one could show the substitution sheet — an interaction the engineer can wire after the visual ships.</p>
+    </div>
+
+    <div class="note-card">
+      <h4>Progress segments, not a bar</h4>
+      <p>Five individual segments fill left-to-right in gold as you progress. Gives a stronger sense of position than a continuous bar — you know exactly how many steps remain. The label "Step 3 of 5" below reinforces it in text for accessibility. The final step shows all five segments filled before you tap "Finished."</p>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

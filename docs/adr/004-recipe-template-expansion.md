@@ -1,4 +1,5 @@
-# ADR-002 — Recipe template expansion (DECISION-009)
+# ADR-004 — Recipe template expansion (DECISION-009)
+> Renumbered from ADR 002 on 2026-06-11 — the number collided with 002-delivery-targets.md.
 
 **Date:** 2026-05-04  
 **Status:** Accepted  

@@ -1,6 +1,6 @@
 # FILE_MAP.md — Canonical File & Folder Index
 
-> Last updated: 2026-05-25. This is the authoritative map of what lives where in the Tucker & Spice repo.
+> Last updated: 2026-06-11 (post-audit refresh). This is the authoritative map of what lives where in the Tucker & Spice repo.
 > If you create a new file and aren't sure where it goes, this doc has the answer.
 > If something is missing from this map, add it here when you create it.
 
@@ -17,8 +17,11 @@
 | `index.html` | The deployed PWA — web export of the Tucker & Spice app. Copied to `_site/` by the Pages workflow. Do not move. |
 | `mobile/` | The entire Expo / React Native app. All app code lives here. |
 | `docs/` | All project documentation. See below. |
-| `scripts/` | Developer utility scripts (bat, sh). Not app code. |
-| `.github/workflows/` | CI/CD: Android APK build + GitHub Pages deploy. |
+| `scripts/` | Developer utility scripts (bat, sh, validation guards). Not app code. |
+| `workers/` | Cloudflare Workers: `tracker/` (Bug Lord ↔ GitHub Issues bridge) and `bug-lord/`. |
+| `maestro/` | Maestro E2E flows (`flows/*.yaml`) run by the startup-smoke and e2e workflows. |
+| `package.json` | Workspace root manifest (worker tooling). The app's own manifest is `mobile/package.json`. |
+| `.github/workflows/` | CI/CD: eas-build (validate → APK), startup-smoke, maestro-e2e, ts-truncation-check, Pages deploy. |
 
 ---
 
@@ -38,8 +41,21 @@
 | `docs/adr/` | Architecture Decision Records. One file per major decision. |
 | `docs/adr/001-stack.md` | Why Expo + TypeScript + expo-router. |
 | `docs/adr/002-delivery-targets.md` | Why Android-first, iOS post-launch. |
+| `docs/adr/003-bundle-id-rename.md` | Bundle ID rename simmerfresh → hone (renumbered from 001, 2026-06-11). |
+| `docs/adr/004-recipe-template-expansion.md` | Recipe template expansion / DECISION-009 (renumbered from 002, 2026-06-11). |
 | `docs/sessions/` | Per-session reports. Filename: `Hone_Session_Report_DD_Month_YYYY.md`. |
+| `docs/dev-emulator-setup.md` | Local Android emulator setup guide for on-device checks. |
+| `docs/regression-checklist.md` | Manual regression checklist run before release candidates. |
 | `docs/coo/` | COO operating system — cadence, handoffs, command centre, launch plan, specialist briefs. |
+| `docs/coo/COO_START_BRIEF.md` | COO session-start brief — what the COO reads first each day. |
+| `docs/coo/handoffs.md` | Live specialist handoff log (current cycle). Older cycles archive to `docs/archive/handoffs-*.md`. |
+| `docs/coo/command-centre.md` | COO command centre — current priorities and sequencing. |
+| `docs/coo/culinary-audit.md` | Cook's running culinary review log (recipe accuracy issues). |
+| `docs/coo/visual-assets-ledger.md` | Ledger of every recipe image: source, licence, status. |
+| `docs/coo/specialist-starter-prompts.md` | Copy-paste starter prompts for each specialist chat. |
+| `docs/coo/decision-log.md` | DECISION-NNN log (one file, newest at top). |
+| `docs/coo/risk-register.md` | R-NNN risk register (one file). |
+| `docs/coo/pass/` | "The Pass" build-cycle protocol: PROTOCOL.md, _TEMPLATE.md, build-history.csv. |
 | `docs/coo/tickets/` | Engineer build tickets — focused work orders with acceptance criteria + Definition of Done. |
 | `docs/coo/tickets/recipe-detail-v5-build.md` | Recipe detail v5 build ticket. **SUPERSEDED** — v5 crashed on Fabric scroll, reverted in #126. Issue #5 closed. |
 | `docs/coo/tickets/recipe-detail-v7-build.md` | Recipe detail v7 "Mise" Phase 1 build ticket — styling + IA only, no schema. ✅ READY TO BUILD. |
@@ -67,7 +83,9 @@
 | `docs/prototypes/recipe-detail-v5.html` | Recipe detail "The Pass" (latest) — v4 + origin flag, sticky CTA, collapsing app bar. APPROVED for engineer build. |
 | `docs/prototypes/recipe-detail-v6.html` | Aesthetic-only restyle of the working build-#126 recipe page — safe rebuild after the v5 crash (no scroll-driven chrome). |
 | `docs/prototypes/recipe-detail-v7.html` | **Vision concept** — kitchen-first redesign: warm-paper browse + OLED cook flow, Fraunces+Inter type, pantry signal up top, ergonomic cook step. For Patrick's direction call. |
+| `docs/prototypes/` (others) | ~11 further exploration mockups (kitchen-*, pantry-*, cook-mode-v1, recipe-card-v2, recipe-detail-v2*, substitution-sheet-v2, app-flow-v2, Recipe Page Design). Read-only design history — list not itemised; the rows above are the shipped/approved ones. |
 | `docs/archive/` | Completed checklists, old backups, superseded documents. Nothing here is current. |
+| `docs/archive/handoffs-2026-05.md` | May 2026 handoff log (archived from docs/coo/handoffs.md). |
 | `docs/archive/sessions/` | Numbered session backup folders (11–14, README). |
 | `docs/archive/backup-*/` | Point-in-time snapshot backups created during risky refactors. |
 | `docs/archive/simmer-fresh-rename-leftovers/` | Artefacts from the Simmer Fresh → Hone rename. |
@@ -81,22 +99,30 @@
 | Path | Purpose |
 |---|---|
 | `mobile/app/` | Expo Router screens. One file = one route. |
-| `mobile/app/(tabs)/` | Tab bar screens: index (home), pantry, shop, add. |
-| `mobile/app/(tabs)/index.tsx` | Home / recipe browser screen. |
+| `mobile/app/(tabs)/` | Tab bar screens: index (Kitchen), pantry, plan, shop, add. |
+| `mobile/app/(tabs)/index.tsx` | Kitchen — home / recipe browser screen. |
 | `mobile/app/(tabs)/pantry.tsx` | Pantry management screen. |
+| `mobile/app/(tabs)/plan.tsx` | Weekly meal planner screen. |
 | `mobile/app/(tabs)/shop.tsx` | Shopping list screen. |
-| `mobile/app/(tabs)/add.tsx` | Add a recipe screen. |
+| `mobile/app/(tabs)/add.tsx` | Add a recipe screen (placeholder until the form ships). |
 | `mobile/app/recipe/[id].tsx` | Recipe detail + cook mode screen. |
-| `mobile/app/_layout.tsx` | Root layout: fonts, SQLite provider, navigation shell. |
-| `mobile/src/components/` | Shared React Native components. |
+| `mobile/app/settings.tsx` | Settings: theme toggle, default servings, °C/°F + ml/cups. |
+| `mobile/app/_layout.tsx` | Root layout: providers, fonts, DB watchdog, theme background shells. |
+| `mobile/global.css` | Tailwind base + web-only background overrides. |
+| `mobile/src/components/` | Shared React Native components (RecipeCard, SearchOverlay, Icon, …). |
+| `mobile/src/state/PreferencesContext.tsx` | User preferences (servings, units) persisted to SQLite. |
+| `mobile/src/theme/ThemeContext.tsx` | Light/Dark theme state; remounts Stack on toggle. |
 | `mobile/src/data/` | Business logic: types, scaling, seed recipes, pantry helpers. |
 | `mobile/src/data/types.ts` | Zod schemas and TypeScript types for recipes, ingredients, substitutions. |
 | `mobile/src/data/allergens.ts` | Australian PEAL allergen taxonomy + name-based inference. Derives each recipe's allergen declaration. |
 | `mobile/src/data/seed-recipes.ts` | All seeded recipe data. The recipe library. |
 | `mobile/src/data/scale.ts` | Ingredient scaling logic (linear / fixed / custom). |
+| `mobile/src/data/units.ts` | Honest unit conversion (°C/°F, ml/cups) + duration & difficulty display formatting. |
+| `mobile/src/data/measure.ts` | Quantity formatting/stepping helpers for pantry amounts. |
 | `mobile/src/data/pantry-helpers.ts` | Pantry-to-recipe matching and scoring. |
 | `mobile/src/data/shopping-helpers.ts` | Shopping list aggregation and aisle grouping. |
-| `mobile/src/theme/tokens.ts` | Design tokens: colours (terracotta/olive/gold), fonts (Playfair Display / Source Sans 3). |
+| `mobile/src/theme/tokens.ts` | Design tokens — two themes: Dark (warm near-black + gold) and Light (retro synthwave); fonts Fraunces / Inter / Poppins. |
+| `mobile/scripts/check-parse.mjs` | R-014 parse guard — Babel-parses every .ts/.tsx; run by the eas-build validate job (`npm run check:parse`). |
 | `mobile/db/` | SQLite schema, migrations, and seed runner. |
 | `mobile/db/schema.ts` | Table definitions (expo-sqlite). |
 | `mobile/db/database.ts` | DB connection, initialisation, and query helpers. |
@@ -115,6 +141,7 @@
 | File | Purpose |
 |---|---|
 | `scripts/run-android.bat` | Windows helper: runs `npx expo start` targeting a connected Android device. |
+| `scripts/check-ts-truncation.sh` | R-014 fast tripwire — flags .ts/.tsx files ending mid-token. Runs on every push and in the eas-build validate job. |
 
 ---
 

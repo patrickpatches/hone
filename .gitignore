@@ -31,9 +31,14 @@ mobile/*.aab
 !mobile/android/app/debug.keystore
 
 # Claude Code transient state — should never be committed
+.claude/worktrees/
 mobile/.claude/worktrees/
 mobile/.validate-tmp*/
 mobile/.validate-seed.js
+
+# Scratch/test detritus patterns (R-014 incidents left these behind)
+mobile/_test/
+**/_truncated_test.*
 
 # ATO / financial — local only
 *.xlsx

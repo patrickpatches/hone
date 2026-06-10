@@ -1,4 +1,5 @@
-# ADR 001 — Bundle ID rename: com.patricknasr.simmerfresh → com.patricknasr.hone
+# ADR 003 — Bundle ID rename: com.patricknasr.simmerfresh → com.patricknasr.hone
+> Renumbered from ADR 001 on 2026-06-11 — the number collided with 001-stack.md.
 
 **Date:** 2026-04-30
 **Status:** Accepted
