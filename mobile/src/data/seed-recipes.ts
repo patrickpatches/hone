@@ -584,7 +584,7 @@ const ROAST_CHICKEN: Recipe = {
   tagline: 'Crisp skin, juicy thighs, every time',
   base_servings: 4,
   time_min: 1530,
-  difficulty: 'Easy',
+  difficulty: 'beginner',
   tags: ['chicken', 'roast', 'sunday', 'classic'],
   user_added: false,
   generated_by_claude: false,

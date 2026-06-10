@@ -61,7 +61,7 @@ import {
 } from '../../src/data/pantry-helpers';
 import { FoodIcon, ingredientIconName, categoryIconName } from '../../src/components/PantryIcons';
 import { scaleIngredient } from '../../src/data/scale';
-import { convertRecipeTemperature, formatMeasure } from '../../src/data/units';
+import { convertRecipeTemperature, formatMeasure, formatDuration, formatDifficulty } from '../../src/data/units';
 
 // Configure notifications to show while the app is foregrounded.
 Notifications.setNotificationHandler({
@@ -527,10 +527,9 @@ function RecipeDetailScreenInner() {
   const progress     = cooking ? stepsDoneCount / recipe.steps.length : 0;
   const gradient     = recipe.hero_fallback ?? [tokens.ink, tokens.warmBrown, tokens.bgDeep];
 
-  // DECISION-008 derived display values
-  const difficultyLabel = recipe.difficulty
-    ? recipe.difficulty.charAt(0).toUpperCase() + recipe.difficulty.slice(1)
-    : null;
+  // DECISION-008 derived display values. Difficulty mapping is centralised in
+  // units.ts (formatDifficulty) — handles legacy 'Easy'/'Involved' values too.
+  const difficultyLabel = formatDifficulty(recipe.difficulty) || null;
 
   // Cook-mode surface palette. CLAUDE.md: dark, OLED-friendly true blacks.
   // The same surface names are used in both modes so JSX can read `c.X`
@@ -954,7 +953,7 @@ function RecipeDetailScreenInner() {
 
             {/* Meta row */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18, marginTop: 14 }}>
-              <MetaPill icon="clock" label={`${recipe.time_min} min`} color={c.inkSoft} />
+              <MetaPill icon="clock" label={formatDuration(recipe.time_min)} color={c.inkSoft} />
               {difficultyLabel ? <MetaPill icon="flame" label={difficultyLabel} color={c.inkSoft} /> : null}
             </View>
 
@@ -1089,7 +1088,7 @@ function RecipeDetailScreenInner() {
               // segment is conditional, dots only render between present ones.
               const segs: React.ReactNode[] = [];
               if (difficultyLabel) segs.push(<Text key="diff" style={metaText}>{difficultyLabel}</Text>);
-              if (recipe.time_min) segs.push(<Text key="time" style={metaText}>{recipe.time_min} min</Text>);
+              if (recipe.time_min) segs.push(<Text key="time" style={metaText}>{formatDuration(recipe.time_min)}</Text>);
               segs.push(
                 origin.kind === 'country' ? (
                   <Flag key="origin" code={origin.code} width={22} />

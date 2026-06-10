@@ -43,6 +43,7 @@ import { Icon } from './Icon';
 import type { Recipe } from '../data/types';
 import type { PantryItem } from '../../db/database';
 import { normalizeForMatch, scoreRecipeAgainstPantry } from '../data/pantry-helpers';
+import { formatDuration } from '../data/units';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -701,7 +702,7 @@ function RecipeRow({ r, query, onPress }: { r: RecipeResult; query: string; onPr
           style={{ fontFamily: fonts.sans, fontSize: 11, color: tokens.muted, marginTop: 2 }}
           numberOfLines={1}
         >
-          {r.recipe.time_min} min
+          {formatDuration(r.recipe.time_min)}
           {r.recipe.source ? ` · ${r.recipe.source.chef}` : ''}
           {r.matchOn === 'ingredient' ? ' · matched ingredient' : ''}
           {r.matchOn === 'chef' ? ' · matched chef' : ''}

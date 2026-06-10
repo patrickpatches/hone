@@ -143,3 +143,74 @@ export function formatMeasure(
   const tsp = ml / ML_PER.tsp;
   return `${formatAmount(tsp)} tsp`;
 }
+
+// ── Duration ────────────────────────────────────────────────────────────────
+//
+// Recipes store one number (time_min) and several run very long because the
+// honest total includes brines, soaks and overnight rests — Perfect Roast
+// Chicken is 1530 min. Raw minutes past an hour read like a data error
+// ("1530 min"), so we render the way a cookbook speaks:
+//
+//   45        → "45 min"
+//   90        → "1½ hr"
+//   85        → "1 hr 25 min"   (under 3 hr, real minutes are worth showing)
+//   210       → "3½ hr"
+//   330       → "5½ hr"         (3 hr+, rounded to the nearest ½ hr — at that
+//   1530      → "25½ hr"         length ±15 min is noise, and pretending
+//                                 minute precision would be false accuracy)
+
+/** Cookbook-style duration. Input is total minutes. */
+export function formatDuration(totalMin: number | null | undefined): string {
+  if (totalMin == null || !isFinite(totalMin) || totalMin <= 0) return '';
+  const m = Math.round(totalMin);
+  if (m < 60) return `${m} min`;
+
+  // Under 3 hr: exact hours + minutes ("1 hr", "1½ hr", "2 hr 20 min").
+  if (m < 180) {
+    const h = Math.floor(m / 60);
+    const rem = m % 60;
+    if (rem === 0) return `${h} hr`;
+    if (rem === 30) return `${h}½ hr`;
+    return `${h} hr ${rem} min`;
+  }
+
+  // 3 hr and up: nearest half hour.
+  const halfHours = Math.round(m / 30);
+  const h = Math.floor(halfHours / 2);
+  return halfHours % 2 === 0 ? `${h} hr` : `${h}½ hr`;
+}
+
+/**
+ * Spoken form for accessibility labels — TalkBack reads "25½ hr" badly.
+ * Mirrors formatDuration's rounding so eyes and ears agree.
+ */
+export function formatDurationSpoken(totalMin: number | null | undefined): string {
+  if (totalMin == null || !isFinite(totalMin) || totalMin <= 0) return '';
+  const short = formatDuration(totalMin);
+  return short
+    .replace('½ hr', ' and a half hours')
+    .replace(/\b1 hr\b/, '1 hour')
+    .replace(' hr', ' hours')
+    .replace(' min', ' minutes');
+}
+
+// ── Difficulty ──────────────────────────────────────────────────────────────
+//
+// One canonical scale (DECISION-009): beginner / intermediate / advanced,
+// stored lowercase. Legacy capitalised values ('Easy', 'Involved') may still
+// exist in user-added DB rows, so the mapper normalises rather than trusts.
+// This is THE display mapping — screens must not title-case by hand.
+
+const DIFFICULTY_LABEL: Record<string, string> = {
+  beginner: 'Beginner',
+  intermediate: 'Intermediate',
+  advanced: 'Advanced',
+  easy: 'Beginner',      // legacy pre-DECISION-009
+  involved: 'Advanced',  // legacy pre-DECISION-009
+};
+
+/** Canonical display label for a difficulty value, '' for unknown/missing. */
+export function formatDifficulty(difficulty: string | null | undefined): string {
+  if (!difficulty) return '';
+  return DIFFICULTY_LABEL[difficulty.trim().toLowerCase()] ?? '';
+}

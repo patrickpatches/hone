@@ -40,6 +40,7 @@ import { router } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { Image } from 'expo-image';
 import type { Recipe, CuisineId } from '../../src/data/types';
+import { formatDuration, formatDurationSpoken, formatDifficulty } from '../../src/data/units';
 import {
   getActiveRecipes,
   getFavoriteIds,
@@ -489,9 +490,9 @@ export default function KitchenHome() {
                     <Text style={metaDot}>·</Text>
                   </>
                 ) : null}
-                <Text style={metaText}>{heroRecipe.time_min} min</Text>
+                <Text style={metaText}>{formatDuration(heroRecipe.time_min)}</Text>
                 <Text style={metaDot}>·</Text>
-                <Text style={metaText}>{heroRecipe.difficulty}</Text>
+                <Text style={metaText}>{formatDifficulty(heroRecipe.difficulty)}</Text>
               </View>
               <View
                 style={{
@@ -746,7 +747,7 @@ function RecipeRow({
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${recipe.title}. ${recipe.time_min} minutes. ${recipe.difficulty}.`}
+      accessibilityLabel={`${recipe.title}. ${formatDurationSpoken(recipe.time_min)}. ${formatDifficulty(recipe.difficulty)}.`}
       style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -836,9 +837,9 @@ function RecipeRow({
               <Text style={metaSmallDot}>·</Text>
             </>
           ) : null}
-          <Text style={metaSmall}>{recipe.time_min} min</Text>
+          <Text style={metaSmall}>{formatDuration(recipe.time_min)}</Text>
           <Text style={metaSmallDot}>·</Text>
-          <Text style={metaSmall}>{recipe.difficulty}</Text>
+          <Text style={metaSmall}>{formatDifficulty(recipe.difficulty)}</Text>
           {isPlanned ? (
             <View
               style={{

@@ -14,6 +14,7 @@ import { Pressable, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import type { Recipe } from '../data/types';
+import { formatDuration, formatDurationSpoken, formatDifficulty } from '../data/units';
 import { tokens, fonts, shadows } from '../theme/tokens';
 import { Icon } from './Icon';
 
@@ -51,7 +52,7 @@ export function RecipeCard({
     <Pressable
       onPress={handlePress}
       accessibilityRole="button"
-      accessibilityLabel={`${recipe.title}. ${recipe.tagline}. ${recipe.time_min} minutes. ${recipe.difficulty}.`}
+      accessibilityLabel={`${recipe.title}. ${recipe.tagline}. ${formatDurationSpoken(recipe.time_min)}. ${formatDifficulty(recipe.difficulty)}.`}
       android_ripple={{ color: 'rgba(255,255,255,0.06)', borderless: false }}
       style={{ borderRadius: 20, ...shadows.card }}
     >
@@ -172,7 +173,7 @@ export function RecipeCard({
               textTransform: 'uppercase',
             }}
           >
-            {recipe.difficulty}
+            {formatDifficulty(recipe.difficulty)}
           </Text>
         </View>
 
@@ -244,7 +245,7 @@ export function RecipeCard({
             marginTop: 12,
           }}
         >
-          <MetaChip icon="clock" label={`${recipe.time_min} min`} />
+          <MetaChip icon="clock" label={formatDuration(recipe.time_min)} />
           <MetaChip
             icon="users"
             label={(() => {

@@ -32,6 +32,7 @@ import {
 } from '../../db/database';
 import type { Recipe } from '../../src/data/types';
 import type { WeeklyPlanEntry } from '../../db/database';
+import { formatDuration, formatDifficulty } from '../../src/data/units';
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
 
@@ -260,7 +261,7 @@ export default function PlanScreen() {
                         {recipe.title}
                       </Text>
                       <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: tokens.muted, marginTop: 1 }}>
-                        {entry.servings} serves · {recipe.time_min} min
+                        {entry.servings} serves · {formatDuration(recipe.time_min)}
                       </Text>
                     </View>
                     <Pressable
@@ -277,6 +278,38 @@ export default function PlanScreen() {
             </View>
           );
         })}
+
+        {/* Empty week — say what to do next instead of leaving dead air.
+            Chef-guide voice: invite, don't instruct. */}
+        {entries.length === 0 && (
+          <View style={{ alignItems: 'center', paddingTop: 28, paddingHorizontal: 28 }}>
+            <Icon name="calendar" size={22} color={tokens.muted} />
+            <Text
+              style={{
+                fontFamily: fonts.sansBold,
+                fontSize: 14,
+                color: tokens.inkSoft,
+                marginTop: 10,
+                textAlign: 'center',
+              }}
+            >
+              Nothing planned yet
+            </Text>
+            <Text
+              style={{
+                fontFamily: fonts.sans,
+                fontSize: 12,
+                color: tokens.muted,
+                marginTop: 4,
+                textAlign: 'center',
+                lineHeight: 18,
+              }}
+            >
+              Tap + Meal on a day, or hit Plan + on any recipe in the Kitchen.
+              Planned meals build your shopping list automatically.
+            </Text>
+          </View>
+        )}
       </ScrollView>
 
       {/* Recipe picker modal */}
@@ -348,7 +381,7 @@ export default function PlanScreen() {
                     </Text>
                     <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: tokens.muted, marginTop: 2 }}
                       numberOfLines={1}>
-                      {item.time_min} min · {item.difficulty}
+                      {formatDuration(item.time_min)} · {formatDifficulty(item.difficulty)}
                     </Text>
                   </View>
                 </Pressable>
