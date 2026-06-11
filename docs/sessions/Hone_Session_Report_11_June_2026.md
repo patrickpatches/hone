@@ -69,3 +69,45 @@ that actually *uses* the app and can be annoyed by it.
 1. Patrick: add the `ANTHROPIC_API_KEY` secret, then dispatch the workflow once to shake it down.
 2. After 2–3 clean weekly runs: consider growing the Maestro suite toward the 10-flow bar so the deterministic e2e layer (currently a stub) can also go live per-build.
 3. Before launch: 3–5 real humans on real phones. The agent is the pre-filter, not the finish line.
+
+---
+
+## Part 2 (same session) — The Bread Bench prototype
+
+Patrick parked the usability tester (needs the API-key secret) and asked for "the
+world's greatest interactive sourdough, tortillas and fluffy pita guide" — Perfect
+Loaf depth, Australian terminology, metric, with equipment/flour swaps producing
+unique instructions.
+
+**Built:** `docs/prototypes/bread-guide-v1.html` — a fully working interactive
+prototype (prototypes over specs, per CLAUDE.md), single self-contained file.
+
+### What makes it different from every existing bread app
+
+The recipe is **computed, not written**. Inputs: flour (bakers/plain/wholemeal/
+spelt), equipment (dutch oven, camp oven over coals, tray + steam, loaf tin; comal
+equivalents and BBQ flatplate for the flatbreads), kitchen temperature (16–32°C
+slider), quantity, schedule (overnight cold proof vs same-day; yeast vs sourdough
+starter for pita). Outputs: hydration, formula in baker's percentages, fermentation
+hours (temperature model: rate ~doubles per 8°C), the actual instruction sentences,
+and a timeline that back-calculates from "I want bread by Friday 4pm" to "build
+your levain Thursday 3:21pm". Every step carries a doneness cue ("The dough tells
+you"), a why-note, and pre-emptive rescue advice. Honest-swap notes state what each
+choice costs (house voice: honest about limits). Inline SVG line-art teaches
+technique (stretch-and-fold, batard shaping, scoring angle, windowpane, rolling
+thickness gauges, the puff sequence); photo slots carry inline briefs for the
+Photography Director.
+
+### Verified
+
+Headless Chromium (Playwright) walkthrough: 9/9 functional checks pass — flour
+swap changes hydration + notes, temp slider rewrites bulk time and warnings, gear
+swap rewrites the bake step, count scaling, pita yeast↔starter timeline re-plan,
+target-time back-calculation. No JS errors (Google Fonts falls back to system
+fonts offline). Screenshots reviewed against brand tokens.
+
+### Follow-ups (part 2)
+
+1. Patrick: open `docs/prototypes/bread-guide-v1.html` in a browser, play with the bench, make the direction call.
+2. If approved: engineer ticket to port the adaptive engine into the app — the recipe schema needs a `variants`/`computed` concept (ingredients + step text as functions of config), which is a schema decision worth an ADR.
+3. Cook to validate the baking content (formulas, temps, times) per the culinary-audit process; Photography Director to pick up the four inline photo briefs.

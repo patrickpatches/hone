@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Bread Bench — Tucker &amp; Spice</title>
+<!--
+  THE BREAD BENCH v1 — interactive baking guide prototype.
+
+  What this is: a working prototype of the adaptive bread guide for Tucker & Spice.
+  Three breads (sourdough, flour tortillas, pita pockets) written to Perfect-Loaf
+  depth, Australian English, metric, in the chef-guide voice.
+
+  The point of difference vs every existing bread app: the recipe is COMPUTED, not
+  written. Your flour, your equipment, your kitchen temperature, your headcount and
+  your schedule are inputs — the formula, every timing, and the actual instruction
+  sentences are outputs. Change flour and the hydration changes AND the guide tells
+  you honestly what you're trading away. Change kitchen temp and the whole timeline
+  re-plans itself around your "I want bread at 7pm Saturday".
+
+  Diagrams are inline SVG (line art teaches technique better than photos).
+  Photo slots are marked with dashed briefs for the Photography Director.
+
+  No external dependencies except Google Fonts (degrades to system fonts offline).
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#141414; --bg-deep:#0F0F0F; --card:#1E1E1E;
+  --ink:#F5EFE8; --ink-soft:#C4B8A8; --muted:#8A7E72;
+  --gold:#F2CC2A; --gold-deep:#D4A91A; --gold-dim:rgba(242,204,42,0.15);
+  --on-gold:#1A1206; --bronze:#C2A15A;
+  --sage:#3A7050; --sage-light:rgba(46,94,62,0.25);
+  --ochre:#C07038; --sky:#7AAABB;
+  --line:rgba(255,255,255,0.09); --line-dark:rgba(255,255,255,0.16);
+  --title:rgb(255,202,89);
+  --serif:'Fraunces',Georgia,serif; --sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px 120px}
+header.masthead{padding:42px 0 10px;text-align:center}
+.brand{font-family:var(--serif);font-size:15px;color:var(--bronze);letter-spacing:.14em;text-transform:uppercase}
+.brand b{color:var(--gold)}
+h1{font-family:var(--serif);font-size:44px;font-weight:700;color:var(--title);line-height:1.1;margin:10px 0 8px}
+.standfirst{color:var(--ink-soft);font-size:17px;max-width:560px;margin:0 auto;font-style:italic;font-family:var(--serif)}
+/* bread tabs */
+nav.breads{display:flex;gap:10px;justify-content:center;margin:30px 0 6px;position:sticky;top:0;background:linear-gradient(var(--bg) 85%,transparent);padding:14px 0;z-index:50}
+nav.breads button{font-family:var(--serif);font-size:17px;font-weight:600;padding:10px 22px;border-radius:999px;border:1px solid var(--line-dark);background:var(--card);color:var(--ink-soft);cursor:pointer;transition:.15s}
+nav.breads button.on{background:var(--gold);color:var(--on-gold);border-color:var(--gold)}
+section.bread{display:none}
+section.bread.on{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.lede{font-family:var(--serif);font-size:19px;color:var(--ink);margin:18px 0 6px;line-height:1.55}
+.lede em{color:var(--gold)}
+/* config bench */
+.bench{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;margin:26px 0}
+.bench h3{font-family:var(--serif);color:var(--gold);font-size:14px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px}
+.crow{margin-bottom:18px}
+.crow:last-child{margin-bottom:0}
+.crow label.t{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.segs{display:flex;flex-wrap:wrap;gap:8px}
+.segs button{padding:8px 14px;border-radius:10px;border:1px solid var(--line-dark);background:var(--bg);color:var(--ink-soft);font-size:14px;cursor:pointer;font-family:var(--sans)}
+.segs button.on{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+input[type=range]{width:100%;accent-color:var(--gold)}
+.tempval{font-family:var(--serif);font-size:18px;color:var(--gold);min-width:120px}
+.swapnote{margin-top:10px;padding:12px 14px;border-left:3px solid var(--ochre);background:rgba(192,112,56,.08);border-radius:0 10px 10px 0;font-size:14.5px;color:var(--ink-soft)}
+.swapnote b{color:var(--ink)}
+/* formula */
+table.formula{width:100%;border-collapse:collapse;margin:8px 0 4px}
+table.formula th{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line-dark)}
+table.formula td{padding:9px 8px;border-bottom:1px solid var(--line);font-size:15.5px}
+table.formula td.g{font-family:var(--serif);font-size:18px;color:var(--gold);white-space:nowrap}
+table.formula td.pc{color:var(--muted);font-size:13.5px;white-space:nowrap}
+.formula-foot{font-size:13px;color:var(--muted);margin-top:8px}
+/* schedule */
+.sched-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.sched-controls input[type=datetime-local]{background:var(--bg);border:1px solid var(--line-dark);color:var(--ink);border-radius:10px;padding:8px 10px;font-family:var(--sans);font-size:14px;color-scheme:dark}
+.timeline{border-left:2px solid var(--gold-dim);margin-left:8px;padding-left:0}
+.tl-item{position:relative;padding:0 0 14px 22px}
+.tl-item::before{content:'';position:absolute;left:-7px;top:7px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--gold)}
+.tl-when{font-family:var(--serif);color:var(--gold);font-size:15.5px}
+.tl-what{font-size:14.5px;color:var(--ink-soft)}
+.tl-item.sleep::before{border-color:var(--sky)}
+.tl-item.sleep .tl-when{color:var(--sky)}
+/* steps */
+h2.sect{font-family:var(--serif);font-size:30px;color:var(--title);margin:44px 0 4px}
+.sect-sub{color:var(--muted);font-size:14.5px;margin-bottom:18px}
+.step{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin:0 0 18px}
+.step .num{display:inline-flex;align-items:center;gap:10px;margin-bottom:8px}
+.step .num i{font-style:normal;font-family:var(--serif);background:var(--gold);color:var(--on-gold);width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:15px}
+.step h4{font-family:var(--serif);font-size:21px;color:var(--ink)}
+.step .dur{margin-left:auto;font-size:13px;color:var(--muted);white-space:nowrap}
+.step p{color:var(--ink-soft);font-size:15.5px;margin:10px 0}
+.step p b{color:var(--ink)}
+.cue{margin-top:14px;padding:14px 16px;background:var(--sage-light);border:1px solid rgba(58,112,80,.5);border-radius:12px}
+.cue .ct{font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7FBF9A;margin-bottom:4px}
+.cue p{color:var(--ink);margin:0;font-size:15px}
+.why{margin-top:12px;padding:12px 16px;border-left:3px solid var(--bronze);background:rgba(194,161,90,.07);border-radius:0 10px 10px 0}
+.why .wt{font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--bronze);margin-bottom:4px}
+.why p{font-size:14.5px;color:var(--ink-soft);margin:0}
+.rescue{margin-top:12px;padding:12px 16px;border-left:3px solid var(--ochre);background:rgba(192,112,56,.08);border-radius:0 10px 10px 0}
+.rescue .rt{font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ochre);margin-bottom:4px}
+.rescue p{font-size:14.5px;color:var(--ink-soft);margin:0}
+figure.diagram{margin:16px 0 4px;text-align:center}
+figure.diagram svg{max-width:100%;height:auto}
+figure.diagram figcaption{font-size:13px;color:var(--muted);margin-top:6px;font-style:italic}
+figure.photo{margin:16px 0 4px;border:1.5px dashed var(--line-dark);border-radius:12px;padding:26px 18px;text-align:center;color:var(--muted);font-size:13.5px}
+figure.photo b{color:var(--bronze);display:block;margin-bottom:4px;font-size:13px;letter-spacing:.06em}
+/* troubleshooter */
+details.tr{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden}
+details.tr summary{cursor:pointer;padding:16px 20px;font-family:var(--serif);font-size:17px;color:var(--ink);list-style:none;display:flex;gap:10px;align-items:center}
+details.tr summary::before{content:'＋';color:var(--gold);font-weight:700}
+details.tr[open] summary::before{content:'－'}
+details.tr .body{padding:0 20px 18px;color:var(--ink-soft);font-size:15px}
+details.tr .body ol{margin:8px 0 0 20px}
+details.tr .body li{margin-bottom:8px}
+details.tr .body b{color:var(--ink)}
+.foot{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);text-align:center}
+@media (max-width:520px){h1{font-size:34px}.step{padding:18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <div class="brand">Tucker &amp; Spice<b>.</b> · Prototype</div>
+  <h1>The Bread Bench</h1>
+  <p class="standfirst">Tell the bench your flour, your gear, your kitchen and your deadline — and it writes <em>your</em> recipe. The dough tells you when it's ready; the clock is just a suggestion.</p>
+</header>
+
+<nav class="breads" id="breadnav">
+  <button data-bread="sour" class="on">Sourdough</button>
+  <button data-bread="tort">Tortillas</button>
+  <button data-bread="pita">Pita pockets</button>
+</nav>
+
+<!-- ════════════════════════ SOURDOUGH ════════════════════════ -->
+<section class="bread on" id="bread-sour">
+  <p class="lede">A proper sourdough loaf is one decision repeated honestly: <em>watch the dough, not the clock.</em> Everything below — hydration, fold count, fermentation hours, even the sentences — re-writes itself around the four choices on this bench. Bread is a number, not "serves 4": one loaf is one loaf.</p>
+
+  <div class="bench">
+    <h3>Your bench</h3>
+    <div class="crow">
+      <label class="t">Flour</label>
+      <div class="segs" data-cfg="sour.flour">
+        <button data-v="bakers" class="on">Bakers flour</button>
+        <button data-v="plain">Plain flour</button>
+        <button data-v="wholemeal">⅓ wholemeal</button>
+        <button data-v="spelt">⅓ spelt</button>
+      </div>
+      <div class="swapnote" id="sour-flournote"></div>
+    </div>
+    <div class="crow">
+      <label class="t">Bake in</label>
+      <div class="segs" data-cfg="sour.gear">
+        <button data-v="dutch" class="on">Dutch oven</button>
+        <button data-v="camp">Camp oven (coals)</button>
+        <button data-v="tray">Tray + steam</button>
+        <button data-v="tin">Loaf tin</button>
+      </div>
+      <div class="swapnote" id="sour-gearnote"></div>
+    </div>
+    <div class="crow">
+      <label class="t">Kitchen temperature <span style="color:var(--muted);text-transform:none;letter-spacing:0">(the benchtop, not the weather app)</span></label>
+      <div style="display:flex;gap:14px;align-items:center">
+        <input type="range" min="16" max="32" value="24" data-cfg="sour.temp">
+        <span class="tempval" id="sour-tempval">24°C</span>
+      </div>
+      <div class="swapnote" id="sour-tempnote"></div>
+    </div>
+    <div class="crow">
+      <label class="t">Loaves</label>
+      <div class="segs" data-cfg="sour.loaves">
+        <button data-v="1" class="on">1</button><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button>
+      </div>
+    </div>
+    <div class="crow">
+      <label class="t">Schedule</label>
+      <div class="segs" data-cfg="sour.sched">
+        <button data-v="overnight" class="on">Overnight cold proof (recommended)</button>
+        <button data-v="sameday">Same-day bake</button>
+      </div>
+      <div class="swapnote" id="sour-schednote"></div>
+    </div>
+  </div>
+
+  <h2 class="sect">Your formula</h2>
+  <p class="sect-sub">Baker's percentages — everything is a fraction of the flour. Scale fearlessly.</p>
+  <div class="bench" style="padding-top:16px"><div id="sour-formula"></div></div>
+
+  <h2 class="sect">Your timeline</h2>
+  <p class="sect-sub">Pick when you want to pull the loaf out, and the bench works backwards — fridge sleep included.</p>
+  <div class="bench">
+    <div class="sched-controls">
+      <div class="segs" data-cfg="sour.tmode">
+        <button data-v="now" class="on">Starting now</button>
+        <button data-v="target">I want bread by…</button>
+      </div>
+      <input type="datetime-local" data-cfg="sour.ttarget" style="display:none">
+    </div>
+    <div class="timeline" id="sour-timeline"></div>
+  </div>
+
+  <h2 class="sect">The bake, step by step</h2>
+  <p class="sect-sub" id="sour-stepsub"></p>
+  <div id="sour-steps"></div>
+
+  <h2 class="sect">When it goes sideways</h2>
+  <p class="sect-sub">Every baker's loaf fails the same six ways. Diagnose, don't despair.</p>
+  <div id="sour-trouble"></div>
+</section>
+
+<!-- ════════════════════════ TORTILLAS ════════════════════════ -->
+<section class="bread" id="bread-tort">
+  <p class="lede">Flour tortillas are the opposite of sourdough: here you're <em>avoiding</em> gluten strength, not building it. Cheap plain flour genuinely beats the fancy stuff — one of the few times in baking that's true, and this guide will tell you when it isn't.</p>
+
+  <div class="bench">
+    <h3>Your bench</h3>
+    <div class="crow">
+      <label class="t">Flour</label>
+      <div class="segs" data-cfg="tort.flour">
+        <button data-v="plain" class="on">Plain flour</button>
+        <button data-v="bakers">Bakers flour</button>
+        <button data-v="wholemeal">½ wholemeal</button>
+      </div>
+      <div class="swapnote" id="tort-flournote"></div>
+    </div>
+    <div class="crow">
+      <label class="t">Fat</label>
+      <div class="segs" data-cfg="tort.fat">
+        <button data-v="lard" class="on">Lard</button>
+        <button data-v="butter">Butter</button>
+        <button data-v="oil">Olive oil</button>
+      </div>
+      <div class="swapnote" id="tort-fatnote"></div>
+    </div>
+    <div class="crow">
+      <label class="t">Cook on</label>
+      <div class="segs" data-cfg="tort.gear">
+        <button data-v="castiron" class="on">Cast-iron pan</button>
+        <button data-v="frypan">Heavy frypan</button>
+        <button data-v="bbq">BBQ flatplate</button>
+      </div>
+      <div class="swapnote" id="tort-gearnote"></div>
+    </div>
+    <div class="crow">
+      <label class="t">How many</label>
+      <div class="segs" data-cfg="tort.count">
+        <button data-v="8">8</button><button data-v="12" class="on">12</button><button data-v="16">16</button><button data-v="24">24</button>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="sect">Your formula</h2>
+  <p class="sect-sub">~45 g balls → 18 cm tortillas. Doubles and halves without drama.</p>
+  <div class="bench" style="padding-top:16px"><div id="tort-formula"></div></div>
+
+  <h2 class="sect">Your timeline</h2>
+  <div class="bench">
+    <div class="sched-controls">
+      <div class="segs" data-cfg="tort.tmode">
+        <button data-v="now" class="on">Starting now</button>
+        <button data-v="target">Tortillas by…</button>
+      </div>
+      <input type="datetime-local" data-cfg="tort.ttarget" style="display:none">
+    </div>
+    <div class="timeline" id="tort-timeline"></div>
+  </div>
+
+  <h2 class="sect">The make, step by step</h2>
+  <p class="sect-sub" id="tort-stepsub"></p>
+  <div id="tort-steps"></div>
+
+  <h2 class="sect">When it goes sideways</h2>
+  <div id="tort-trouble"></div>
+</section>
+
+<!-- ════════════════════════ PITA ════════════════════════ -->
+<section class="bread" id="bread-pita">
+  <p class="lede">A pita puffs for one reason: trapped steam meets ferocious heat and the bread becomes a balloon. Every choice below either protects that steam pocket or sabotages it — <em>and the bench tells you which.</em></p>
+
+  <div class="bench">
+    <h3>Your bench</h3>
+    <div class="crow">
+      <label class="t">Leavening</label>
+      <div class="segs" data-cfg="pita.leaven">
+        <button data-v="yeast" class="on">Instant yeast</button>
+        <button data-v="sour">Sourdough starter</button>
+      </div>
+      <div class="swapnote" id="pita-leavennote"></div>
+    </div>
+    <div class="crow">
+      <label class="t">Flour</label>
+      <div class="segs" data-cfg="pita.flour">
+        <button data-v="bakers" class="on">Bakers flour</button>
+        <button data-v="plain">Plain flour</button>
+        <button data-v="wholemeal">⅓ wholemeal</button>
+      </div>
+      <div class="swapnote" id="pita-flournote"></div>
+    </div>
+    <div class="crow">
+      <label class="t">Bake on</label>
+      <div class="segs" data-cfg="pita.gear">
+        <button data-v="stone" class="on">Pizza stone / steel</button>
+        <button data-v="tray">Upturned oven tray</button>
+        <button data-v="stove">Stovetop cast iron</button>
+      </div>
+      <div class="swapnote" id="pita-gearnote"></div>
+    </div>
+    <div class="crow">
+      <label class="t">Kitchen temperature</label>
+      <div style="display:flex;gap:14px;align-items:center">
+        <input type="range" min="16" max="32" value="24" data-cfg="pita.temp">
+        <span class="tempval" id="pita-tempval">24°C</span>
+      </div>
+      <div class="swapnote" id="pita-tempnote"></div>
+    </div>
+    <div class="crow">
+      <label class="t">How many pockets</label>
+      <div class="segs" data-cfg="pita.count">
+        <button data-v="6">6</button><button data-v="8" class="on">8</button><button data-v="10">10</button><button data-v="12">12</button>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="sect">Your formula</h2>
+  <p class="sect-sub">~105 g balls → 16–17 cm pockets.</p>
+  <div class="bench" style="padding-top:16px"><div id="pita-formula"></div></div>
+
+  <h2 class="sect">Your timeline</h2>
+  <div class="bench">
+    <div class="sched-controls">
+      <div class="segs" data-cfg="pita.tmode">
+        <button data-v="now" class="on">Starting now</button>
+        <button data-v="target">Pita by…</button>
+      </div>
+      <input type="datetime-local" data-cfg="pita.ttarget" style="display:none">
+    </div>
+    <div class="timeline" id="pita-timeline"></div>
+  </div>
+
+  <h2 class="sect">The bake, step by step</h2>
+  <p class="sect-sub" id="pita-stepsub"></p>
+  <div id="pita-steps"></div>
+
+  <h2 class="sect">When it goes sideways</h2>
+  <div id="pita-trouble"></div>
+</section>
+
+<div class="foot">
+  The Bread Bench v1 · Tucker &amp; Spice prototype · All quantities metric, all ovens in °C (conventional — drop 20°C for fan-forced, the guide reminds you when it matters).<br>
+  Photo briefs marked inline are for the Photography Director; diagrams are final line art.
+</div>
+</div>
+
+<script>
+/* ═══════════════ shared engine ═══════════════ */
+const $ = (s) => document.querySelector(s);
+const round5 = (n) => Math.round(n / 5) * 5;
+const cfg = {
+  sour:{flour:'bakers',gear:'dutch',temp:24,loaves:1,sched:'overnight',tmode:'now',ttarget:null},
+  tort:{flour:'plain',fat:'lard',gear:'castiron',count:12,tmode:'now',ttarget:null},
+  pita:{leaven:'yeast',flour:'bakers',gear:'stone',temp:24,count:8,tmode:'now',ttarget:null},
+};
+
+/* fermentation speed: roughly doubles every ~8°C. 24°C is the reference kitchen. */
+const tempFactor = (t) => Math.pow(2, (24 - t) / 8);
+const hrs = (h) => h >= 1 ? (Math.round(h*2)/2) + ' h' : Math.round(h*60) + ' min';
+
+function fmtClock(d){
+  return d.toLocaleString('en-AU',{weekday:'short',hour:'numeric',minute:'2-digit'}).replace(',','');
+}
+
+/* timeline renderer: items = [{label, durMin, sleep?}] ending at "done" */
+function renderTimeline(elId, items, mode, target){
+  const total = items.reduce((a,i)=>a+i.durMin,0);
+  let t = mode==='target' && target ? new Date(target.getTime() - total*60000) : new Date();
+  const el = $(elId); el.innerHTML='';
+  for(const it of items){
+    const div=document.createElement('div');
+    div.className='tl-item'+(it.sleep?' sleep':'');
+    div.innerHTML=`<div class="tl-when">${fmtClock(t)}</div><div class="tl-what">${it.label}</div>`;
+    el.appendChild(div);
+    t = new Date(t.getTime()+it.durMin*60000);
+  }
+  const done=document.createElement('div');
+  done.className='tl-item';
+  done.innerHTML=`<div class="tl-when">${fmtClock(t)}</div><div class="tl-what"><b style="color:var(--gold)">Ready.</b></div>`;
+  el.appendChild(done);
+}
+
+function stepHTML(s,i){
+  return `<div class="step">
+    <div class="num"><i>${i+1}</i><h4>${s.t}</h4><span class="dur">${s.dur??''}</span></div>
+    ${s.body}
+    ${s.cue?`<div class="cue"><div class="ct">The dough tells you</div><p>${s.cue}</p></div>`:''}
+    ${s.why?`<div class="why"><div class="wt">Why this matters</div><p>${s.why}</p></div>`:''}
+    ${s.rescue?`<div class="rescue"><div class="rt">Before it goes wrong</div><p>${s.rescue}</p></div>`:''}
+  </div>`;
+}
+function troubleHTML(list){
+  return list.map(t=>`<details class="tr"><summary>${t.q}</summary><div class="body">${t.a}</div></details>`).join('');
+}
+function formulaTable(rows, foot){
+  return `<table class="formula"><tr><th>Ingredient</th><th>Amount</th><th>Baker's %</th></tr>
+  ${rows.map(r=>`<tr><td>${r[0]}</td><td class="g">${r[1]}</td><td class="pc">${r[2]}</td></tr>`).join('')}
+  </table><div class="formula-foot">${foot}</div>`;
+}
+
+/* ═══════════════ SVG diagrams (gold line art) ═══════════════ */
+const G='#F2CC2A', S='#C4B8A8', K='#8A7E72';
+const svgFold = `<svg viewBox="0 0 640 150" width="640"><g fill="none" stroke="${G}" stroke-width="2.5" stroke-linecap="round">
+<ellipse cx="75" cy="95" rx="52" ry="30"/><path d="M75 65 V25 M75 25 l-9 11 M75 25 l9 11" stroke="${S}"/>
+<ellipse cx="235" cy="95" rx="52" ry="30"/><path d="M235 65 C235 38 200 38 192 70" stroke="${S}"/>
+<ellipse cx="395" cy="95" rx="52" ry="30"/><path d="M362 78 C390 60 412 60 428 80" />
+<ellipse cx="555" cy="95" rx="48" ry="32"/><path d="M527 86 q28 -22 56 0 M531 102 q24 14 48 0"/>
+</g><g fill="${K}" font-family="Inter,sans-serif" font-size="12" text-anchor="middle">
+<text x="75" y="142">1 · wet hand, grab the far edge</text><text x="235" y="142">2 · stretch up — no tearing</text>
+<text x="395" y="142">3 · fold over to the near side</text><text x="555" y="142">4 · quarter-turn the bowl, repeat ×4</text></g></svg>`;
+const svgShape = `<svg viewBox="0 0 640 150" width="640"><g fill="none" stroke="${G}" stroke-width="2.5" stroke-linecap="round">
+<circle cx="75" cy="85" r="38"/><path d="M47 85 h56" stroke="${S}" stroke-dasharray="4 4"/>
+<path d="M195 60 a40 32 0 1 0 80 0" /><path d="M195 60 q40 -26 80 0"/><path d="M212 48 l16 18 M252 48 l-16 18" stroke="${S}"/>
+<ellipse cx="395" cy="85" rx="50" ry="26"/><path d="M350 85 q45 -38 90 0" stroke="${S}" stroke-dasharray="4 4"/>
+<ellipse cx="555" cy="88" rx="55" ry="24"/><path d="M505 88 q50 18 100 0" stroke="${S}"/>
+</g><g fill="${K}" font-family="Inter,sans-serif" font-size="12" text-anchor="middle">
+<text x="75" y="142">1 · flip, flatten gently</text><text x="235" y="142">2 · fold sides into the middle</text>
+<text x="395" y="142">3 · roll top edge down to you</text><text x="555" y="142">4 · seal the seam, tension the skin</text></g></svg>`;
+const svgScore = `<svg viewBox="0 0 360 130" width="360"><g fill="none" stroke="${G}" stroke-width="2.5" stroke-linecap="round">
+<ellipse cx="180" cy="95" rx="120" ry="28"/><path d="M95 88 q85 -26 170 0" stroke="${S}"/>
+<path d="M150 50 l60 22" stroke-width="3"/><path d="M150 50 l28 -16" stroke="${S}"/>
+<path d="M196 36 a30 30 0 0 1 8 22" stroke="${K}" stroke-dasharray="3 3"/></g>
+<g fill="${K}" font-family="Inter,sans-serif" font-size="12"><text x="226" y="38">blade at ~30° — shallow,</text><text x="226" y="54">one confident stroke</text></g></svg>`;
+const svgWindow = `<svg viewBox="0 0 360 130" width="360"><g fill="none" stroke="${G}" stroke-width="2.5" stroke-linecap="round">
+<path d="M70 100 q-18 -34 14 -48 q4 -18 28 -14 q20 -12 34 6 q26 2 18 30 q10 26 -20 30 q-22 16 -42 2 q-26 4 -32 -6 Z"/>
+<rect x="225" y="35" width="80" height="62" rx="10" stroke="${S}"/>
+<circle cx="265" cy="66" r="16" stroke="${K}" stroke-dasharray="3 3"/></g>
+<g fill="${K}" font-family="Inter,sans-serif" font-size="12" text-anchor="middle">
+<text x="115" y="122">stretch a knob of dough…</text><text x="265" y="122">…light glows through, no tear</text></g></svg>`;
+const svgGauge = (mm, label, warn) => `<svg viewBox="0 0 360 110" width="360"><g fill="none" stroke="${G}" stroke-width="2.5" stroke-linecap="round">
+<path d="M40 70 h280" stroke="${K}"/><ellipse cx="180" cy="${70-mm*3}" rx="120" ry="${mm*3}" fill="rgba(242,204,42,.08)"/>
+<path d="M330 70 v-${mm*6} M322 70 h16 M322 ${70-mm*6} h16" stroke="${S}"/></g>
+<g fill="${K}" font-family="Inter,sans-serif" font-size="12"><text x="338" y="${70-mm*3+4}" >${mm} mm</text>
+<text x="180" y="98" text-anchor="middle">${label}${warn?` — <tspan fill="${'#C07038'}">${warn}</tspan>`:''}</text></g></svg>`;
+const svgPuff = `<svg viewBox="0 0 640 140" width="640"><g fill="none" stroke="${G}" stroke-width="2.5" stroke-linecap="round">
+<path d="M40 95 h130" /><ellipse cx="105" cy="92" rx="55" ry="7"/>
+<path d="M250 95 h130"/><path d="M250 92 q65 -26 130 0"/><path d="M250 92 q65 10 130 0"/>
+<path d="M460 95 h130"/><path d="M460 90 q65 -58 130 0"/><path d="M460 90 q65 14 130 0"/>
+<circle cx="525" cy="56" r="2.5" fill="${S}"/><circle cx="545" cy="48" r="2.5" fill="${S}"/><circle cx="505" cy="50" r="2.5" fill="${S}"/>
+</g><g fill="${K}" font-family="Inter,sans-serif" font-size="12" text-anchor="middle">
+<text x="105" y="128">0:00 · lands flat</text><text x="315" y="128">~0:40 · blisters join up</text><text x="525" y="128">~1:30 · full balloon — steam at work</text></g></svg>`;
+
+const photoBrief = (txt)=>`<figure class="photo"><b>📷 STAGE PHOTO — brief for Photography Director</b>${txt}</figure>`;
+
+/* ═══════════════ SOURDOUGH content engine ═══════════════ */
+const SOUR_FLOUR = {
+  bakers:   {hyd:.75, note:`<b>Bakers flour (11.5–13% protein)</b> — the loaf this guide was written around. Strong gluten carries 75% hydration: open crumb, big oven spring. Woolies/Coles both stock it; a bag from a local mill is even better.`,
+             expect:'open, glossy crumb and a bold ear'},
+  plain:    {hyd:.66, note:`<b>Plain flour (~10% protein)</b> — completely workable, and the bench has already lowered your water to 66% to match its weaker gluten. Be honest with yourself: expect a slightly flatter loaf and a tighter, more even crumb — closer to a great sandwich bread than an Instagram batard. Handle it more gently in the folds; it tears sooner.`,
+             expect:'a tighter, tender crumb — gorgeous toast, modest ear'},
+  wholemeal:{hyd:.78, note:`<b>⅓ wholemeal</b> — bran drinks more water (you're at 78% now) and its sharp edges snip gluten strands, so the bench adds a fold and shortens bulk: wholemeal ferments noticeably faster. Nutty, darker, honest bread.`,
+             expect:'a deeper flavour, denser-but-moist crumb, faster fermentation'},
+  spelt:    {hyd:.72, note:`<b>⅓ spelt</b> — spelt's gluten is extensible but fragile: it stretches beautifully then gives up without warning. The bench drops you to 72% water and tells you to fold gently. Sweet, almost honeyed flavour.`,
+             expect:'silky extensible dough — shape with a light touch or it spreads'},
+};
+const SOUR_GEAR = {
+  dutch:{note:`<b>Dutch oven</b> — the gold standard at home: the lid traps the loaf's own steam for the spring, then comes off for colour. Any heavy lidded pot ≥ 4 L works, enamel or raw cast iron.`,},
+  camp: {note:`<b>Camp oven over coals</b> — the original Australian dutch oven. Heat is honest but uneven: you'll rotate the oven a quarter-turn twice during the bake and run a shovel of coals on the lid. Expect a thicker, smokier crust — a feature, not a bug.`},
+  tray: {note:`<b>Tray + steam</b> — no special pot needed: a preheated upturned oven tray as the baking surface, plus a second tray on the oven floor that you'll pour boiling water into. Spring is a touch smaller than a dutch oven; the crust is thinner and crisper.`},
+  tin:  {note:`<b>Loaf tin</b> — the forgiving option and the right call for sandwich bread. The tin holds the shape, so hydration and shaping mistakes are nearly invisible. No banneton needed; proof straight in the tin.`},
+};
+
+function sourBulkHours(){ // base 5h at 24°C for white flours; wholemeal runs ~20% faster
+  let h = 5 * tempFactor(cfg.sour.temp);
+  if (cfg.sour.flour==='wholemeal') h *= 0.8;
+  return Math.min(10, Math.max(2.5, h));
+}
+function sourLevainHours(){ return Math.min(12, Math.max(3, 5 * tempFactor(cfg.sour.temp))); }
+
+function renderSour(){
+  const c = cfg.sour, F = SOUR_FLOUR[c.flour], n = +c.loaves;
+  $('#sour-flournote').innerHTML = F.note;
+  $('#sour-gearnote').innerHTML  = SOUR_GEAR[c.gear].note;
+  $('#sour-tempval').textContent = c.temp + '°C';
+  const bulkH = sourBulkHours(), levH = sourLevainHours();
+  $('#sour-tempnote').innerHTML = c.temp<=19
+    ? `<b>${c.temp}°C is a cold kitchen</b> (hello, southern winter). Fermentation crawls — bulk stretches to ~${hrs(bulkH)}. Park the dough in the oven with just the light on, or on top of the fridge, and you'll claw most of that back.`
+    : c.temp>=29
+    ? `<b>${c.temp}°C is a hot kitchen</b> (Brisbane in January). Bulk shrinks to ~${hrs(bulkH)} and the line between ripe and over-fermented is thin — check the dough every 30 minutes and use water from the fridge when you mix.`
+    : `At ${c.temp}°C, bulk fermentation runs about <b>${hrs(bulkH)}</b> and your levain ripens in ~${hrs(levH)}. Every timing below has already been adjusted.`;
+  $('#sour-schednote').innerHTML = c.sched==='overnight'
+    ? `The fridge is your best ingredient: 12–16 hours cold builds flavour and makes the dough easy to score. Mix in the afternoon, bake before breakfast.`
+    : `Same-day is doable but less forgiving — a warm proof has a 30-minute window between "ready" and "over", where the fridge gives you four hours of grace. Flavour will be milder.`;
+
+  // formula — per loaf: 500g flour total
+  const flour = 500*n;
+  const water = Math.round(flour*F.hyd);
+  const salt  = Math.round(flour*0.02);
+  const lev   = Math.round(flour*0.20);
+  const comps = {
+    bakers:[['Bakers flour', round5(flour)+' g','100%']],
+    plain: [['Plain flour', round5(flour)+' g','100%']],
+    wholemeal:[['Bakers flour', round5(flour*2/3)+' g','67%'],['Wholemeal flour', round5(flour/3)+' g','33%']],
+    spelt: [['Bakers flour', round5(flour*2/3)+' g','67%'],['Spelt flour', round5(flour/3)+' g','33%']],
+  };
+  $('#sour-formula').innerHTML = formulaTable([
+    ...comps[c.flour],
+    [`Water (${c.temp>=29?'fridge-cold':'about 26°C'})`, round5(water)+' g', Math.round(F.hyd*100)+'%'],
+    ['Fine salt', salt+' g','2%'],
+    ['Ripe levain (100% hydration)', lev+' g','20%'],
+  ], `${n} loaf${n>1?'s':''} · ~${round5((flour+water+salt+lev)/n)} g of dough each · levain = ${Math.round(lev/5)} g starter + ${Math.round(lev*2/5)} g flour + ${Math.round(lev*2/5)} g water, built ${hrs(levH)} before you mix.`);
+
+  // timeline
+  const target = c.tmode==='target' && c.ttarget ? new Date(c.ttarget) : null;
+  const items = [
+    {label:'Build the levain', durMin: levH*60},
+    {label:'Autolyse — flour + water rest', durMin: 60},
+    {label:'Mix in levain and salt', durMin: 15},
+    {label:`Bulk fermentation with folds (~${hrs(bulkH)} at ${c.temp}°C)`, durMin: bulkH*60},
+    {label:'Preshape + bench rest', durMin: 30},
+    {label:'Final shape', durMin: 10},
+  ];
+  if (c.sched==='overnight'){
+    items.push({label:'Cold proof in the fridge (12–16 h — the bench plans on 14)', durMin: 14*60, sleep:true});
+  } else {
+    items.push({label:`Warm final proof (~${hrs(Math.min(4,2.5*tempFactor(c.temp)))})`, durMin: Math.min(4,2.5*tempFactor(c.temp))*60});
+  }
+  items.push({label:'Oven preheat overlaps the last hour — bake', durMin: 45*Math.min(n,2) + (n>2?45:0)});
+  items.push({label:'Cool — the bake finishes on the rack, not in the oven', durMin: 120, sleep:true});
+  renderTimeline('#sour-timeline', items, c.tmode, target);
+
+  // steps
+  const gentle = (c.flour==='spelt'||c.flour==='plain');
+  const foldCount = c.flour==='wholemeal' ? 4 : 3;
+  const bakeSteps = {
+    dutch: {pre:`Put the dutch oven in, lid on, and preheat to <b>250°C conventional</b> (230°C fan-forced) for a full 45–60 minutes. The pot must be brutally hot — this is where your oven spring comes from, and a half-hearted preheat is the most common cause of a flat loaf.`,
+            bake:`Lower the loaf in on its baking paper sling. Lid on, <b>20 minutes at 250°C</b>. Then lid off, drop to <b>230°C, another 20–25 minutes</b> until the crust is deep mahogany — darker than feels polite. Pale crust is undercooked flavour.`},
+    camp:  {pre:`Burn your fire down to a wide bed of coals — you want steady radiant heat, no flame. Preheat the camp oven 20 minutes sitting in the coals with a shovelful on the lid. A drop of water flicked inside should dance and vanish instantly.`,
+            bake:`Loaf in on baking paper, lid on, two-thirds of your coals <b>on the lid</b>, one-third underneath — bread burns from the bottom long before the top colours. Rotate the whole oven and the lid a quarter-turn (opposite directions) at 15 minutes. It's done around <b>40–50 minutes</b> when the crust is deep brown and the base knocks hollow. Trust the knock, not the clock — coals don't read recipes.`},
+    tray:  {pre:`Set one oven tray upside-down on the middle shelf (your baking surface) and a second, deep tray on the oven floor. Preheat to <b>250°C conventional</b> for 45 minutes. Boil the kettle near the end.`,
+            bake:`Slide the loaf (on its paper) onto the hot upturned tray, pour <b>one cup of boiling water</b> into the floor tray, and shut the door fast — that steam is your missing lid. After <b>20 minutes</b>, pull the water tray out, drop to <b>230°C</b> and bake another <b>20–25 minutes</b> to a deep mahogany. Keep your face back when you open the door; steam burns before you feel it.`},
+    tin:   {pre:`Grease the tin (~22 × 12 cm for one loaf) and preheat to <b>230°C conventional</b> (210°C fan-forced) — no pot, no stone, nothing fancy.`,
+            bake:`Slash one long cut down the centre and bake <b>35–40 minutes</b> until deep golden and 96–99°C inside (or the base knocks hollow when you tip it out). For a soft sandwich crust, brush the top with butter the moment it comes out.`},
+  }[c.gear];
+
+  const steps = [
+    {t:'Build the levain', dur:`~${hrs(levH)} at ${c.temp}°C`,
+     body:`<p>In a jar: <b>${Math.round(lev/5)} g of your starter, ${Math.round(lev*2/5)} g flour, ${Math.round(lev*2/5)} g water</b>. Stir, mark the level with a rubber band, lid on loosely. You're building the engine for the whole bake, so start it ${hrs(levH)} before you want to mix — at ${c.temp}°C that's the number the bench has planned around.</p>`,
+     cue:`Ripe levain has <b>doubled past your rubber band</b>, the surface is a domed crowd of bubbles, and it smells like green apple and yoghurt — sharp but not nail-polish. A spoonful floats in water, mostly: the float test flatters wet levains and slanders stiff ones, so treat it as a second opinion, never the verdict.`,
+     why:`20% levain is the sweet spot: enough power for a predictable bulk, not so much that the loaf turns sour before it turns light.`},
+    {t:'Autolyse', dur:'1 h',
+     body:`<p>Mix <b>just the flour and water</b> — no salt, no levain — until there's no dry flour left. It will look shaggy and unpromising. Cover and walk away for an hour.</p>`,
+     why:`Flour hydrating on its own starts building gluten with zero effort from you. An hour of doing nothing replaces ten minutes of kneading${c.flour==='wholemeal'?' — and gives the bran time to soften so it cuts fewer gluten strands':''}.`,
+     cue:`After the rest the shag has relaxed into one smooth, extensible mass — tug a corner and it stretches instead of snapping.`},
+    {t:'Mix in levain and salt', dur:'10–15 min',
+     body:`<p>Spread the levain over the dough, sprinkle the salt, then wet a hand and <b>pinch and fold</b> the lot through — squeeze the dough between thumb and fingers like cutting it, fold it over, turn the bowl, repeat. Two or three minutes until you can't find streaks.</p><p>Check the dough temperature if you have a probe: you're aiming for <b>25–26°C</b>. ${c.temp>=29?'Your kitchen is hot — that fridge-cold water in the formula is doing the correcting.':'Warmer water fixes a cold dough; you can\'t easily fix a hot one.'}</p>`,
+     cue:`The dough feels alive again — slightly tacky, cohesive, and it resists you gently when you pull.`},
+    {t:`Bulk fermentation — ${foldCount} sets of folds`, dur:`~${hrs(bulkH)} at ${c.temp}°C`,
+     body:`<p>This is the whole game. For the first ${foldCount===4?'two hours':'90 minutes'}, give the dough a <b>set of stretch-and-folds every 30 minutes</b> (${foldCount} sets total): wet hand, grab the far side, stretch it up ${gentle?'<b>gently — this flour tears before it warns you</b>':'until it resists'}, fold it over itself, quarter-turn the bowl, four folds per set. Then leave it alone for the remaining time.</p>
+     <figure class="diagram">${svgFold}<figcaption>One set = four folds. The dough gets stronger each time you do this.</figcaption></figure>`,
+     cue:`Bulk is done when the dough has grown by <b>half to three-quarters</b>, the surface is domed and glossy with a few fat bubbles, the edge where dough meets bowl is convex, and a sharp jiggle moves the whole mass as one — like a set panna cotta. ${c.flour==='wholemeal'?'Wholemeal hides its bubbles; trust the rise and the jiggle more than the surface.':''} If you only learn one judgement in bread, learn this one.`,
+     rescue:`At ${c.temp>=29?'your kitchen temperature this can run away inside half an hour — set a timer to check at the early end':'cooler temperatures the dough is slow, not stuck — give it another 45 minutes before worrying'}. Over-fermented dough (slack, soupy, smells boozy) won't preshape — bake it in a tin and you'll still have excellent bread. Never bin it.`},
+    {t:'Preshape and bench rest', dur:'30 min',
+     body:`<p>Tip the dough onto an unfloured patch of benchtop. ${n>1?`Divide into ${n} equal pieces (a scale beats your eye — ~${round5((flour+water+salt+lev)/n)} g each). `:''}With a dough scraper and a cupped hand, drag ${n>1?'each piece':'it'} in tight circles toward you so the surface stretches into a taut ball. Dust the top lightly with flour, cover with the upturned bowl, rest <b>20–30 minutes</b>.</p>`,
+     why:`Preshaping organises a slack blob into something with structure; the rest re-relaxes the gluten so the final shape doesn't fight you.`,
+     cue:`Ready when the ball has slumped slightly and lost its bounce — poke it and the dent stays.`},
+    {t:'Final shape', dur:'10 min',
+     body:`<p>${c.gear==='tin'
+        ?`Flip the ball floured-side down, pat to a rough rectangle, fold the two short sides in, then roll it firmly away from you into a log the length of your tin. Seam down into the greased tin.`
+        :`Flip floured-side down and pat gently flat. Fold the sides into the middle, then roll the top edge down toward you, sealing with your thumbs as you go, until you have a tight torpedo. Pinch the seam.`}</p>
+     <figure class="diagram">${svgShape}<figcaption>The batard: you're wrapping a tight skin around a soft middle.</figcaption></figure>
+     <p>${c.gear==='tin'?'':`Seam-side <b>up</b> into a banneton — or the great Australian banneton: a mixing bowl lined with a clean tea towel, rubbed generously with rice flour (plain flour glues; rice flour releases).`}</p>
+     ${photoBrief('Hands mid-shape, dough surface tension visible, flour dust in raking side light. The money shot of the whole guide.')}`,
+     cue:`A well-shaped loaf has a skin you can see — smooth and slightly taut, like the surface of a balloon a breath short of full. ${gentle?'If it tears, stop tightening: a tear costs more than slack skin.':''}`},
+    c.sched==='overnight'
+    ? {t:'Cold proof — the fridge does the night shift', dur:'12–16 h',
+       body:`<p>Bag the ${c.gear==='tin'?'tin':'banneton'} (a reused bread bag or shower cap over the top) and into the fridge. Anywhere from <b>12 to 16 hours</b> is excellent; even 20 is fine. This is the step that makes weekday sourdough possible — and the cold, firm dough scores like a dream tomorrow.</p>`,
+       why:`Cold slows yeast far more than it slows the flavour-building bacteria — overnight in the fridge is where the loaf earns its tang.`,
+       cue:`Straight from the fridge the dough should look gently inflated with a few small bubbles under the skin. The poke test: a floured finger pressed 1 cm in should spring back slowly, leaving a shallow dimple.`}
+    : {t:'Warm final proof', dur:`~${hrs(Math.min(4,2.5*tempFactor(c.temp)))}`,
+       body:`<p>Cover the ${c.gear==='tin'?'tin':'banneton'} and leave it on the bench. At ${c.temp}°C expect about <b>${hrs(Math.min(4,2.5*tempFactor(c.temp)))}</b> — but the poke decides, not the clock.</p>`,
+       cue:`A floured finger pressed 1 cm in springs back <b>slowly and incompletely</b>. Springs back fast = underproofed, give it 30 more minutes. Doesn't spring back at all = it's at the edge — bake immediately, score shallow.`,
+       rescue:`Warm proofs end suddenly. Start the oven preheat when the dough is close, not when it's ready — a ready loaf can't wait 45 minutes for a cold pot.`},
+    {t:'Preheat', dur:'45–60 min',
+     body:`<p>${bakeSteps.pre}</p>`},
+    {t:'Score', dur:'1 min',
+     body:`<p>Turn the loaf out onto baking paper. One <b>confident, shallow slash</b> down the length, blade held at ~30° — a razor blade, the corner of a serrated knife, or an actual lame. Decisive beats deep: hesitation drags, a single stroke glides.</p>
+     <figure class="diagram">${svgScore}<figcaption>The shallow angle peels an "ear"; a vertical cut just splits.</figcaption></figure>`,
+     why:`The loaf is going to burst somewhere in the first ten minutes of the bake. Scoring chooses where — your cut is a controlled demolition.`},
+    {t:'Bake', dur:c.gear==='camp'?'40–50 min':'~45 min',
+     body:`<p>${bakeSteps.bake}</p>${n>1?`<p>Baking ${n} loaves: ${c.gear==='dutch'||c.gear==='camp'?'one at a time — keep the rest in the fridge, where they\'ll happily wait their turn (cold dough holds; warm dough doesn\'t)':'two fit per tray; rotate the tray front-to-back when the steam comes out'}.</p>`:''}
+     ${photoBrief('Finished loaf 3/4 angle on a rack, ear prominent, steam if we can catch it. Pair with a crumb shot after the cool — backlit to show the gloss on the alveoli.')}`,
+     cue:`Done means <b>96–99°C in the centre</b> on a probe, or a base that sounds hollow when knocked — and a crust the colour of dark caramel, not honey.`},
+    {t:'Cool — yes, really', dur:'2 h',
+     body:`<p>Onto a rack, untouched, for <b>two hours</b>. The crumb is still setting: cut early and the knife smears it into gumminess you'll wrongly blame on the recipe. Put the kettle on. Listen to the crust crackle as it cools — bakers call it singing, and you've earned it.</p>`,
+     why:`Starch keeps gelling as the loaf drops below ~60°C inside. Cutting early interrupts it — the single most common "my crumb is gummy" cause, ahead of underbaking.`},
+  ];
+  $('#sour-stepsub').textContent = `Written for your bench: ${ {bakers:'bakers flour',plain:'plain flour',wholemeal:'wholemeal blend',spelt:'spelt blend'}[c.flour] }, ${ {dutch:'dutch oven',camp:'camp oven',tray:'tray + steam',tin:'loaf tin'}[c.gear] }, ${c.temp}°C kitchen, ${c.sched==='overnight'?'overnight cold proof':'same-day bake'}. Expect ${F.expect}.`;
+  $('#sour-steps').innerHTML = steps.map(stepHTML).join('');
+
+  $('#sour-trouble').innerHTML = troubleHTML([
+    {q:'Flat loaf, no oven spring', a:`Work down this list in order — it's sorted by likelihood:<ol><li><b>Underproofed or over-fermented bulk</b> — re-read the bulk cue. Most flat loaves died in the bowl, hours before the oven.</li><li><b>Pot or surface not hot enough</b> — a full 45–60 minute preheat is non-negotiable.</li><li><b>Weak shaping</b> — no skin tension means nothing to hold the rise. Practise the drag-preshape.</li><li><b>Tired starter</b> — if it doesn't double between feeds, the loaf can't either. Feed it twice daily on the bench for three days before blaming anything else.</li></ol>`},
+    {q:'Gummy, wet crumb', a:`<ol><li><b>Cut too early</b> — the two-hour cool is part of the bake.</li><li><b>Underbaked</b> — go to 96–99°C internal and a darker crust than feels safe.</li><li><b>Hydration too high for your flour</b> — if you're on plain flour at bakers-flour water levels, the bench's 66% exists for a reason.</li></ol>`},
+    {q:'So sour it tastes like vinegar', a:`Long, cold, or hungry fermentation favours acetic bacteria. <b>Shorten the cold proof toward 12 h</b>, use the levain younger (just doubled, not collapsing), and keep a stiffer ratio in your starter between bakes.`},
+    {q:'Dough too slack to shape', a:`Either over-fermented (see bulk rescue — bake it in a tin, it'll still be great) or the hydration is past your flour. Next bake, drop water by 25 g and earn it back gradually.`},
+    {q:'Crust like armour', a:`Usually a camp-oven or long-uncovered bake. Trim 5 minutes off the uncovered stage, and store the cooled loaf cut-side down on a board — never the fridge, which staling loves.`},
+    {q:'My starter looks dead', a:`A grey liquid layer (hooch) means hungry, not dead. Pour it off, feed 1:5:5 (starter:flour:water) twice a day somewhere warm. Sourdough starters survive weeks of neglect; almost none are truly dead. Pink or orange streaks are the one real eviction notice.`},
+  ]);
+}
+
+/* ═══════════════ TORTILLA content engine ═══════════════ */
+const TORT_FLOUR = {
+  plain: {water:.58, rest:30, note:`<b>Plain flour is the right choice here</b> — its weak gluten is exactly what a tender, pliable tortilla wants. The cheapest bag on the shelf makes the best tortilla in this whole guide.`},
+  bakers:{water:.60, rest:50, note:`<b>Bakers flour</b> works, but its strong gluten fights the rolling pin — the bench has added water and stretched the rest to ${50} minutes so the dough relaxes enough to stay rolled. Expect a chewier, slightly puffier tortilla. If they keep shrinking back, rest longer; never fight dough, outwait it.`},
+  wholemeal:{water:.64, rest:40, note:`<b>½ wholemeal</b> — nutty and more nutritious; the bran drinks extra water (you're at 64%) and the tortillas will be a little less pliable and crack sooner when folded. Stack them under the tea towel the second they leave the pan; that steam is what keeps them foldable.`},
+};
+const TORT_FAT = {
+  lard:  {note:`<b>Lard is traditional and unbeatable</b> — supermarket lard is near the butter, or ask your butcher. Tender, faintly savoury, rolls thinnest.`},
+  butter:{note:`<b>Butter</b> — a whisper less tender than lard, with a flavour everyone loves. Soften it first; cold butter won't rub in.`},
+  oil:   {note:`<b>Olive oil</b> — the vegan option, and an honest swap: the texture is a touch breadier and less flaky because liquid fat coats flour differently than solid fat. Still a very good tortilla.`},
+};
+const TORT_GEAR = {
+  castiron:{note:`<b>Cast-iron pan</b> — the home comal. Holds ferocious, even heat; this is the gear the timings were written on.`},
+  frypan:{note:`<b>Heavy frypan</b> (stainless or thick non-stick) — works well; it recovers heat slower than cast iron, so give it 30 seconds between tortillas and expect spots a shade lighter.`},
+  bbq:{note:`<b>BBQ flatplate</b> — the Australian comal, and brilliant for a crowd: four tortillas at once and the kitchen stays cool. Run it hot, lid up, and oil the plate once with a paper towel — then never again.`},
+};
+function renderTort(){
+  const c = cfg.tort, F = TORT_FLOUR[c.flour], n=+c.count;
+  $('#tort-flournote').innerHTML=F.note;
+  $('#tort-fatnote').innerHTML=TORT_FAT[c.fat].note;
+  $('#tort-gearnote').innerHTML=TORT_GEAR[c.gear].note;
+  const flour = Math.round(n*25); // 25g flour per tortilla → ~45g ball
+  const water = Math.round(flour*F.water), fat = Math.round(flour*0.20), salt=Math.max(2,Math.round(flour*0.015));
+  const comps = c.flour==='wholemeal'
+    ? [['Plain flour', round5(flour/2)+' g','50%'],['Wholemeal flour', round5(flour/2)+' g','50%']]
+    : [[c.flour==='plain'?'Plain flour':'Bakers flour', round5(flour)+' g','100%']];
+  $('#tort-formula').innerHTML = formulaTable([
+    ...comps,
+    [`Hot tap water (~60°C)`, round5(water)+' g', Math.round(F.water*100)+'%'],
+    [{lard:'Lard',butter:'Soft butter',oil:'Olive oil'}[c.fat], fat+' g','20%'],
+    ['Fine salt', salt+' g','1.5%'],
+  ], `${n} tortillas · ~45 g balls → 18 cm rounds. Hot water is the secret: it part-cooks the starch and relaxes gluten, which is why these roll out so thin.`);
+
+  const target = c.tmode==='target' && c.ttarget ? new Date(c.ttarget) : null;
+  renderTimeline('#tort-timeline', [
+    {label:'Rub fat into flour, add hot water, knead 3 min', durMin:10},
+    {label:`Rest the dough (${F.rest} min — gluten relaxing, not rising)`, durMin:F.rest},
+    {label:'Divide and ball', durMin:10},
+    {label:'Rest the balls', durMin:15},
+    {label:`Roll and cook in rhythm (~1 min each${c.gear==='bbq'?', 4 at a time on the plate':''})`, durMin: c.gear==='bbq'?Math.ceil(n/4)*4:n*1.2},
+  ], c.tmode, target);
+
+  const steps = [
+    {t:'Rub the fat in', dur:'3 min',
+     body:`<p>Flour and salt in a wide bowl. Add the ${ {lard:'lard',butter:'soft butter',oil:'oil'}[c.fat] } and rub it through with your fingertips ${c.fat==='oil'?'(with oil, just stir it through until evenly damp)':'until the mix looks like damp sand with no lumps bigger than a rice grain'}.</p>`,
+     why:`Fat coating the flour <b>before</b> the water arrives is what blocks long gluten chains forming — that's the entire tenderness trick, and why this step comes first.`},
+    {t:'Hot water in, brief knead', dur:'5 min',
+     body:`<p>Pour in the hot water (hot tap hot, ~60°C — not boiling) and stir with a knife, then your hand, into a shaggy ball. Knead on the bench just <b>2–3 minutes</b> until smooth-ish. Stop there: this is the rare dough you can over-knead into toughness.</p>`,
+     cue:`The dough should feel like a soft earlobe — warm, supple, barely tacky. It will not be silky yet; the rest does that, not your hands.`},
+    {t:'The rest that does the work', dur:`${F.rest} min`,
+     body:`<p>Cover with the upturned bowl and rest <b>${F.rest} minutes</b>. ${c.flour==='bakers'?'Your bakers flour is why this is longer than most recipes — strong gluten needs more time to stand down.':'Nothing is rising — there\'s no yeast. The gluten is simply letting go.'}</p>`,
+     cue:`Ready when a finger pressed in leaves a dent that stays. If the dough fights the pin later, it's telling you this rest was too short — give the balls ten more minutes and they'll surrender.`},
+    {t:'Divide, ball, rest again', dur:'25 min',
+     body:`<p>Divide into <b>${n} pieces (~45 g — use the scale)</b>, roll each into a tight little ball between a cupped palm and the bench, and rest them under a tea towel <b>15 minutes</b>.</p>`,
+     why:`Two short rests beat one long one: the first relaxes the dough for dividing, the second undoes the tension that balling just created. Skip the second and every round shrinks on the pan.`},
+    {t:'Roll thin — properly thin', dur:'~30 s each',
+     body:`<p>Lightly flour the bench. Roll from the centre outwards, <b>quarter-turning the round between strokes</b> to keep it circular. Target: <b>2 mm, about 18 cm across</b> — thin enough to read the bench's shadow through.</p>
+     <figure class="diagram">${svgGauge(2,'tortilla target: 2 mm — translucent','thicker = crackers, not tortillas')}<figcaption>If you can't see light through it, keep rolling.</figcaption></figure>`,
+     rescue:`Find a rhythm: roll one while the previous one cooks. Rolled rounds waiting in a stack glue themselves together — keep them in a single floured layer, or just don't get ahead of the pan.`},
+    {t:'Cook — 30, 30, 10', dur:'~70 s each',
+     body:`<p>${c.gear==='bbq'?'Flatplate on high, lid up, plate lightly oiled once.':'Pan on high, bone dry — no oil. It\'s ready when a flick of water skitters and vanishes inside two seconds.'} Lay the round down flat.</p>
+     <p><b>~30 seconds:</b> bubbles rise across the surface. Flip (fingers and nerve, or an egg flip).<br><b>~30 seconds:</b> leopard spots underneath. Flip back.<br><b>~10 seconds:</b> with luck it balloons. Off and straight into a tea-towel stack.</p>
+     <figure class="diagram">${svgPuff}<figcaption>The puff means layers — steam splitting the tortilla from inside.</figcaption></figure>
+     ${photoBrief('Overhead of the pan at the leopard-spot flip, second tortilla mid-roll beside it — the rhythm is the story. Plus the folded stack in a striped tea towel.')}`,
+     cue:`<b>The pan speaks:</b> spots in ~30 seconds means the heat is right. Spots in 15 means turn it down a notch; no spots by 45 means crank it — a slow pan dries tortillas into frisbees before it browns them.`},
+    {t:'Steam the stack', dur:'10 min',
+     body:`<p>Every tortilla goes straight from pan to a stack wrapped in a clean tea towel. Their own steam finishes them — this is what makes them soft enough to fold without cracking. Eat warm; the stack holds an hour. Freeze extras flat with baking paper between, and revive in a hot dry pan from frozen, 20 seconds a side.</p>`},
+  ];
+  $('#tort-stepsub').textContent = `Written for your bench: ${ {plain:'plain flour',bakers:'bakers flour',wholemeal:'wholemeal blend'}[c.flour] }, ${ {lard:'lard',butter:'butter',oil:'olive oil'}[c.fat] }, ${ {castiron:'cast iron',frypan:'heavy frypan',bbq:'BBQ flatplate'}[c.gear] }, ${n} tortillas.`;
+  $('#tort-steps').innerHTML = steps.map(stepHTML).join('');
+  $('#tort-trouble').innerHTML = troubleHTML([
+    {q:'They shrink back when I roll', a:`Gluten is still tense. <b>Rest the balls another 10–15 minutes</b> and they'll roll like silk. ${c.flour==='bakers'?'Bakers flour makes this twice as likely — it\'s the trade for the chew.':''} Never fight dough; outwait it.`},
+    {q:'Stiff and crackery, not soft', a:`In order: <ol><li><b>Rolled too thick</b> — 2 mm, translucent.</li><li><b>Pan too cool</b> — slow cooking dries them out. Spots should appear by 30 seconds.</li><li><b>Skipped the tea-towel stack</b> — the steam finish is not optional.</li></ol>`},
+    {q:'No puff at all', a:`Puff is a bonus, not a requirement — flat ones taste the same. But if you want it: roll evenly (thin patches vent the steam), make sure the first side gets its full 30 seconds, and press gently on the surface with the egg flip after the second flip — you can often push the steam into a balloon.`},
+    {q:'Burnt spots before 20 seconds', a:`Pan's too hot — ${c.gear==='castiron'?'cast iron overshoots; lift it off the heat for 30 seconds':'drop the burner a notch'}. You want leopard, not panther.`},
+    {q:'They crack when folded next day', a:`They're stale, and wholemeal accelerates it. Twenty seconds a side in a hot dry pan brings them all the way back — better than any microwave.`},
+  ]);
+}
+
+/* ═══════════════ PITA content engine ═══════════════ */
+const PITA_FLOUR = {
+  bakers:{hyd:.65,note:`<b>Bakers flour</b> — the benchmark pocket: strong enough to hold a big steam balloon, chewy in the best way.`},
+  plain: {hyd:.62,note:`<b>Plain flour</b> — softer and a little less chewy, and it still pockets reliably; the bench has trimmed the water to 62% so the weaker dough holds its steam seal. Roll a touch thicker than you would with bakers flour.`},
+  wholemeal:{hyd:.68,note:`<b>⅓ wholemeal</b> — earthier, with extra water for the bran. Pockets form a little less dramatically because bran pierces the steam seal — roll gently and don't go under 5 mm.`},
+};
+const PITA_GEAR = {
+  stone:{note:`<b>Pizza stone or steel</b> — the closest thing to a real pita oven floor. Maximum thermal whack, most dramatic balloons.`},
+  tray:{note:`<b>Upturned oven tray</b> — no stone needed: an upside-down tray preheated until it's furious does 90% of the job. Spring is a touch gentler; pockets still form.`},
+  stove:{note:`<b>Stovetop cast iron + lid</b> — no oven at all: a screaming pan and a lid to trap the heat over the dough. Pitas come out slightly chewier with charred freckles — the wood-fire look, off a gas burner.`},
+};
+function pitaBulkHours(){
+  const base = cfg.pita.leaven==='yeast' ? 1.25 : 4.5;
+  return Math.min(cfg.pita.leaven==='yeast'?3:9, Math.max(0.75, base*tempFactor(cfg.pita.temp)));
+}
+function renderPita(){
+  const c=cfg.pita, F=PITA_FLOUR[c.flour], n=+c.count;
+  $('#pita-leavennote').innerHTML = c.leaven==='yeast'
+    ? `<b>Instant yeast</b> — same-day pita, totally reliable. No need to bloom it; straight in with the flour.`
+    : `<b>Sourdough starter</b> — your sourdough jar moonlighting. Deeper flavour, longer timeline, and the pockets puff just as hard. The bench swaps the yeast for 100 g of ripe starter and re-plans every timing below.`;
+  $('#pita-flournote').innerHTML=F.note;
+  $('#pita-gearnote').innerHTML=PITA_GEAR[c.gear].note;
+  $('#pita-tempval').textContent=c.temp+'°C';
+  const bulkH=pitaBulkHours();
+  $('#pita-tempnote').innerHTML=`At ${c.temp}°C with ${c.leaven==='yeast'?'yeast':'starter'}, the first rise runs about <b>${hrs(bulkH)}</b>. ${c.temp>=29?'Hot kitchen: check early — an over-risen pita dough blows weak, patchy pockets.':''}`;
+
+  const flour=Math.round(n*62.5); // 62.5 g flour per pocket ≈ 105g ball
+  const water=Math.round(flour*F.hyd), salt=Math.round(flour*0.02), oil=Math.round(flour*0.03);
+  const comps = c.flour==='wholemeal'
+    ? [['Bakers flour', round5(flour*2/3)+' g','67%'],['Wholemeal flour', round5(flour/3)+' g','33%']]
+    : [[c.flour==='plain'?'Plain flour':'Bakers flour', round5(flour)+' g','100%']];
+  const leavenRow = c.leaven==='yeast'
+    ? ['Instant dried yeast', Math.max(2,Math.round(flour*0.012))+' g','1.2%']
+    : ['Ripe sourdough starter (100% hydration)', round5(flour*0.2)+' g','20%'];
+  $('#pita-formula').innerHTML = formulaTable([
+    ...comps,
+    ['Water (lukewarm)', round5(water)+' g', Math.round(F.hyd*100)+'%'],
+    leavenRow,
+    ['Fine salt', salt+' g','2%'],
+    ['Olive oil', oil+' g','3%'],
+    ['Honey or sugar (optional)', Math.round(flour*0.02)+' g','2%'],
+  ], `${n} pockets · ~105 g balls → 16–17 cm pitas. ${c.leaven==='sour'?'Starter counts toward flour and water — the bench has already done that arithmetic for you.':''}`);
+
+  const target = c.tmode==='target'&&c.ttarget?new Date(c.ttarget):null;
+  renderTimeline('#pita-timeline',[
+    {label:'Mix and knead to windowpane', durMin:15},
+    {label:`First rise (~${hrs(bulkH)} at ${c.temp}°C)`, durMin:bulkH*60},
+    {label:'Divide and ball — tight skins', durMin:12},
+    {label:'Rest the balls', durMin:20},
+    {label:'Roll, rest 10, bake in rounds', durMin:25+Math.ceil(n/(c.gear==='stove'?1:3))*3},
+  ], c.tmode, target);
+
+  const bake = {
+    stone:`Oven at <b>260°C conventional</b> (or as high as it goes), stone on the middle shelf, preheated a full <b>45 minutes</b> — the stone lags the air by half an hour and a lukewarm stone is the #1 pocket-killer. Flip each round onto your palm, then onto a floured peel or stiff cardboard, and slide onto the stone ${'2–3 at a time'}. <b>They balloon in 60–90 seconds.</b> Out at 2–3 minutes, before they take real colour — a browned pita is a crisped pita.`,
+    tray:`Oven at <b>260°C conventional</b> (or its angriest), an upturned heavy tray on the middle shelf, preheated <b>40 minutes</b>. Open the door, slide the rounds on fast (2–3 at a time), door shut. <b>Balloons at 60–90 seconds</b>, out by 3 minutes, pale gold only.`,
+    stove:`Cast-iron pan on high until water dances off it, with a lid standing by. One round on, <b>20 seconds</b>, flip, then <b>lid on</b>: the trapped heat blasts the top and the balloon comes up under the lid, 40–60 seconds. Quick flip for ten more seconds if you want freckles. No oil at any point.`,
+  }[c.gear];
+
+  const steps=[
+    {t:'Mix and knead', dur:'15 min',
+     body:`<p>Everything into the bowl${c.leaven==='yeast'?' — instant yeast needs no blooming':''}. Mix to a shaggy mass, tip out, and knead <b>8–10 minutes</b> by hand (or 5 in a mixer on low) until genuinely smooth.</p>
+     <figure class="diagram">${svgWindow}<figcaption>The windowpane: pita needs this; sourdough builds it with time, you're building it with your hands.</figcaption></figure>`,
+     cue:`Pinch off a knob and stretch it slowly between four fingertips: it should thin to a <b>translucent pane before it tears</b>. Tears straight away? Knead three more minutes and test again. This skin is what will hold the steam balloon.`},
+    {t:'First rise', dur:`~${hrs(bulkH)} at ${c.temp}°C`,
+     body:`<p>Ball the dough, oiled bowl, cover. At ${c.temp}°C give it about <b>${hrs(bulkH)}</b>.</p>`,
+     cue:`<b>Doubled</b>, and a floured finger poked 2 cm in leaves a hole that fills back slowly. ${c.leaven==='sour'?'Starter is slower and stealthier than yeast — judge by the doubling, not the hours.':''}`},
+    {t:'Divide and ball — this is where pockets are won', dur:'12 min',
+     body:`<p>Divide into <b>${n} pieces (~105 g)</b>. Ball each one properly: fold the edges into the centre, flip, then drag in tight circles against the bench until the skin is <b>tight and seamless</b>. A sloppy ball bakes into a one-sided pocket.</p>`,
+     why:`The pocket forms where the steam splits the bread along its weakest plane. A tight, even skin makes the middle the weak plane — exactly where you want the split.`},
+    {t:'Rest, then roll even', dur:'30 min',
+     body:`<p>Rest the balls under a tea towel <b>20 minutes</b>. Then roll each to <b>16–17 cm and a 5 mm even thickness</b> — even is the whole word. Thick patches stay doughy; thin patches vent the steam and the balloon never inflates.</p>
+     <figure class="diagram">${svgGauge(5,'pita target: 5 mm, even edge to edge','thin spots leak the steam')}<figcaption>Roll from the centre out, quarter-turn each stroke, no pressing the edges.</figcaption></figure>
+     <p>Rest the rolled rounds <b>10 minutes under the towel</b> before they meet the heat${c.gear!=='stove'?' — and keep them covered: a dried skin is a cracked pocket':''}.</p>`,
+     rescue:`If a round tears while rolling, don't patch it — re-ball it, rest it 10 minutes at the back of the queue, and roll again. A patched tear always leaks.`},
+    {t:'Bake — the balloon', dur:'2–3 min each round',
+     body:`<p>${bake}</p>
+     <figure class="diagram">${svgPuff}<figcaption>Flat → blistered → balloon, inside 90 seconds. The drama never gets old.</figcaption></figure>
+     ${photoBrief('Through the oven door: one pita mid-balloon, two flat behind it — shoot a burst, the inflation takes 4 seconds. Plus the torn-open pocket with steam escaping.')}`,
+     cue:`A pita is done the moment it's <b>fully ballooned and barely blonde</b>. Colour costs softness — if they're browning before they puff, your surface isn't hot enough yet; wait ten more minutes of preheat.`},
+    {t:'Trap the softness', dur:'5 min',
+     body:`<p>Straight from the oven into a tea-towel bundle. They'll deflate — that's fine, the pocket survives. The steam they share in the bundle keeps them cloud-soft. Cut in half, open the pocket while warm, and fill. Freeze spares the day you bake them; ten seconds in the toaster brings a frozen pita all the way back.</p>`},
+  ];
+  $('#pita-stepsub').textContent=`Written for your bench: ${c.leaven==='yeast'?'instant yeast':'sourdough starter'}, ${ {bakers:'bakers flour',plain:'plain flour',wholemeal:'wholemeal blend'}[c.flour] }, ${ {stone:'pizza stone',tray:'upturned tray',stove:'stovetop cast iron'}[c.gear] }, ${c.temp}°C kitchen, ${n} pockets.`;
+  $('#pita-steps').innerHTML=steps.map(stepHTML).join('');
+  $('#pita-trouble').innerHTML=troubleHTML([
+    {q:'No pocket — they bake flat', a:`Ranked by likelihood:<ol><li><b>Surface not hot enough</b> — preheat the stone/tray 40–45 min at max. The balloon needs an instant violence of heat.</li><li><b>Uneven rolling</b> — one thin patch vents everything. 5 mm, edge to edge.</li><li><b>Dried skin</b> — rounds left uncovered seal badly. Towel over everything, always.</li><li><b>Torn or patched surface</b> — re-ball, rest, re-roll. No patches.</li></ol>`},
+    {q:'Pockets but stiff, crackery pita', a:`Overbaked. Out at "ballooned and blonde" — 2–3 minutes, no more — and into the tea-towel bundle immediately. Colour is for the toaster later.`},
+    {q:'Puffed in the oven, pocket sealed shut when cut', a:`Underproofed dough or a rushed final rest — the balloon split shallow instead of centre. Give the first rise its full double and the rolled rounds their 10 minutes.`},
+    {q:'One side of the pocket is paper-thin', a:`The split wandered off-centre: usually a slack ball (re-read the balling step) or uneven rolling. Still delicious — call it rustic and fill it gently.`},
+    {q:'Stovetop: burnt freckles, raw middle', a:`Pan's past its window. Cast iron keeps climbing — lift it off the heat for 45 seconds every three pitas, and keep the rounds at 5 mm; thicker needs gentler heat.`},
+  ]);
+}
+
+/* ═══════════════ wiring ═══════════════ */
+const RENDER = {sour:renderSour, tort:renderTort, pita:renderPita};
+
+document.querySelectorAll('nav.breads button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('nav.breads button').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('section.bread').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    $('#bread-'+b.dataset.bread).classList.add('on');
+  });
+});
+
+document.querySelectorAll('.segs[data-cfg]').forEach(group=>{
+  const [bread,key]=group.dataset.cfg.split('.');
+  group.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      group.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      cfg[bread][key]=b.dataset.v;
+      if(key==='tmode'){
+        const dt=document.querySelector(`input[type=datetime-local][data-cfg="${bread}.ttarget"]`);
+        dt.style.display = b.dataset.v==='target'?'inline-block':'none';
+        if(b.dataset.v==='target' && !dt.value){
+          const d=new Date(Date.now()+26*3600000); d.setMinutes(0);
+          dt.value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+          cfg[bread].ttarget=dt.value;
+        }
+      }
+      RENDER[bread]();
+    });
+  });
+});
+document.querySelectorAll('input[type=range][data-cfg]').forEach(r=>{
+  const [bread,key]=r.dataset.cfg.split('.');
+  r.addEventListener('input',()=>{ cfg[bread][key]=+r.value; RENDER[bread](); });
+});
+document.querySelectorAll('input[type=datetime-local][data-cfg]').forEach(d=>{
+  const [bread,key]=d.dataset.cfg.split('.');
+  d.addEventListener('change',()=>{ cfg[bread][key]=d.value; RENDER[bread](); });
+});
+
+renderSour(); renderTort(); renderPita();
+</script>
+</body>
+</html>
