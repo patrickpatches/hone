@@ -126,9 +126,19 @@ export function formatMeasure(
     return `${formatAmount(amount)}${u}`;
   }
 
-  const ml = amount * VOLUME_TO_ML[normUnit(unit as string)];
+  const normU = normUnit(unit as string);
+  const ml = amount * VOLUME_TO_ML[normU];
 
   if (system === 'metric') {
+    // Spoon measures (tsp / tbsp) are already practical in Australian metric
+    // cooking — keep them as-is. Converting "½ tsp salt" to "2.5 ml" is
+    // technically correct but reads like a mistake (nobody measures salt in ml).
+    if (normU === 'tsp' || normU === 'teaspoon' || normU === 'teaspoons') {
+      return `${formatAmount(amount)} tsp`;
+    }
+    if (normU === 'tbsp' || normU === 'tablespoon' || normU === 'tablespoons') {
+      return `${formatAmount(amount)} tbsp`;
+    }
     if (ml >= 1000) return `${formatAmount(ml / 1000)} L`;
     return `${formatAmount(ml)} ml`;
   }

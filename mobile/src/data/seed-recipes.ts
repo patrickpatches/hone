@@ -1539,7 +1539,7 @@ const THAI_GREEN_CURRY: Recipe = {
   source: {
     chef: 'Andy Cooks (Inspired by)',
     video_url: 'https://www.instagram.com/reel/Cn9LBoOrErL/',
-    notes: 'Recipe adapted for home kitchens. Original uses scratch paste, Thai aubergine, and stock — see the linked reel for Andy\'s full method.',
+    notes: 'Recipe adapted for home kitchens. Original uses scratch paste, Thai eggplant, and stock — see the linked reel for Andy\'s full method.',
   },
   emoji: '🍛',
   hero_url: 'https://images.unsplash.com/photo-1716959669858-11d415bdead6?w=1200&q=80',
@@ -1576,7 +1576,7 @@ const THAI_GREEN_CURRY: Recipe = {
         { ingredient: 'Yellow curry paste', changes: 'Milder and more turmeric-forward. Same technique but a gentler, more aromatic result.', quality: 'yellow' },
       ],
     },
-    { id: 'i4', name: 'Thai aubergine', amount: 200, unit: 'g', scales: 'linear',
+    { id: 'i4', name: 'Thai eggplant', amount: 200, unit: 'g', scales: 'linear',
       substitutions: [
         { ingredient: 'Zucchini (courgette), cut in rounds', changes: 'Already in the recipe as an alternative — same technique, milder flavour. Widely available. Cooks slightly faster than eggplant.', quality: 'green' },
         { ingredient: 'Broccolini, cut into florets', changes: 'More assertive, slightly bitter. Add in the last 5 minutes — broccolini overcooks fast. Holds its colour well.', quality: 'yellow', quantity_note: 'add in the last 5 minutes of simmering' },

@@ -950,3 +950,12 @@ OPEN. Awaiting your reply in this file (a CLOSEOUT block below this one, or a co
 3. **Attribution:** `source.chef`, `source.video_url`, `source.notes` — the chef credit line in the hero and the "Watch original ↗" ghost link both pull from these fields. `source.video_url` controls whether "Watch original" is shown at all (hide if null).
 4. **Time fields:** `total_time_mins`, `active_time_mins` — the stat chips show total time. If `active_time_mins` is significantly lower than `total_time_mins` (e.g. 20 active vs 90 total for a braise), render both ("20 min active · 90 min total"). If they're the same, show just the one.
 5. **Step
+---
+
+### BUILD LOG · Build #170 · versionCode 58 · 2026-06-12
+**Triggered by:** Bug Tester (automated run)
+**Profile:** preview
+**Fixes:**
+- **#59** (Tidy-up) `formatMeasure`: tsp/tbsp no longer convert to ml in metric mode — "½ tsp Salt" was showing as "2.5 ml Salt" (root cause: `tsp` is a volume unit and was being normalised to ml). Spoon measures now stay as tsp/tbsp in all display contexts.
+- **Terminology** (green curry): "Thai aubergine" → "Thai eggplant" throughout seed-recipes.ts (Australian English; flagged in culinary research file).
+**Status:** FIX ATTEMPTED — Patrick to validate on-device.
