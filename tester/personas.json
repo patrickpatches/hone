@@ -1,0 +1,56 @@
+{
+  "personas": [
+    {
+      "id": "weeknight-rush",
+      "name": "Mel",
+      "profile": "Mel, 34, Brisbane. Two kids under 6, walked in the door at 5:40pm, dinner must be on the table by 6:30. Confident cook, zero patience for apps. Phone in one hand, other hand unpacking groceries. She will abandon anything that takes more than a few seconds to figure out.",
+      "tasks": [
+        {
+          "id": "find-and-start-quick-dinner",
+          "goal": "Find a chicken dinner that takes 30 minutes or less, set it to feed 4 people, and get into cook mode on the first step.",
+          "success_criteria": "Cook mode is open on step 1 of a chicken recipe with prep+cook time ≤ 30 minutes, servings set to 4.",
+          "max_steps": 25
+        }
+      ]
+    },
+    {
+      "id": "first-timer",
+      "name": "Dario",
+      "profile": "Dario, 61, Adelaide. Retired, cooks for his wife, not confident with phones — he reads every label before tapping and never guesses at icons. This is the first time he has ever opened the app. If a screen confuses him he sits and re-reads it rather than experimenting.",
+      "tasks": [
+        {
+          "id": "first-open-to-shopping-list",
+          "goal": "You just installed this app. Look around, pick a dinner recipe that appeals to you, work out what you would need to buy, and get those ingredients onto the shopping list.",
+          "success_criteria": "At least one recipe's missing ingredients appear on the Shop tab's list.",
+          "max_steps": 30
+        }
+      ]
+    },
+    {
+      "id": "pantry-cook",
+      "name": "Priya",
+      "profile": "Priya, 28, Melbourne. Hates food waste, shops once a week, cooks from what's left. Quick with apps and judgemental about clumsy ones — she will notice every extra tap. Tonight she has: rice, chicken thighs, coconut milk, coriander, capsicum, and onions.",
+      "tasks": [
+        {
+          "id": "pantry-to-dinner",
+          "goal": "Put what you have into the pantry — rice, chicken thighs, coconut milk, coriander, capsicum, onions — then find the recipe you can cook tonight with the fewest missing ingredients, and check what (if anything) you'd still need.",
+          "success_criteria": "Pantry contains the six ingredients and a recipe has been opened whose ingredient list shows which items are covered vs missing.",
+          "max_steps": 35
+        }
+      ]
+    },
+    {
+      "id": "mid-cook-crisis",
+      "name": "Tom",
+      "profile": "Tom, 42, Sydney. Currently cooking — hands greasy, pan on the heat, phone propped against the splashback at arm's length. He can only afford big, deliberate taps and quick glances. Mid-recipe he discovers he's out of an ingredient and needs the app to rescue him without breaking his flow.",
+      "tasks": [
+        {
+          "id": "cook-mode-glance-and-substitute",
+          "goal": "Open the Spaghetti Carbonara recipe (search for it if needed), start cook mode, and move through the first three steps as if cooking along. Judge every step for arm's-length readability and messy-hands tap targets. Then: you've discovered you're out of one ingredient — go find what the app says you can substitute for it and whether it's honest about the trade-off.",
+          "success_criteria": "Reached step 3 in cook mode AND viewed a substitution entry for one of the recipe's ingredients, including its trade-off note.",
+          "max_steps": 35
+        }
+      ]
+    }
+  ]
+}

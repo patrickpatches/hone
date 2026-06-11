@@ -8,6 +8,18 @@ These block June launch regardless of code velocity. Every week they slip pushes
 
 ## This week — hard deadlines on your end
 
+### 0. Add the ANTHROPIC_API_KEY repo secret (5 minutes — unblocks the usability tester)
+   - The new agentic usability tester (`tester/`, runs weekly via the
+     "Usability test (agentic)" workflow) needs a Claude API key to drive
+     the app on the CI emulator.
+   - Create a key at https://platform.claude.com → API Keys (use a key
+     dedicated to CI, not your personal one — Secrets rule: separate
+     tokens for separate jobs).
+   - GitHub → tucker-spice → Settings → Secrets and variables → Actions →
+     New repository secret → name `ANTHROPIC_API_KEY`, paste the key.
+   - Cost: roughly US$5–15 per full run, once a week. You can also trigger
+     it manually from the Actions tab against any build.
+
 ### 1. Install the dev toolchain and see the app on your phone (tonight)
    - Install Node.js 18 or newer: https://nodejs.org
    - Run: `cd mobile && npm install && npx expo start --web`

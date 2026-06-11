@@ -20,8 +20,9 @@
 | `scripts/` | Developer utility scripts (bat, sh, validation guards). Not app code. |
 | `workers/` | Cloudflare Workers: `tracker/` (Bug Lord ↔ GitHub Issues bridge) and `bug-lord/`. |
 | `maestro/` | Maestro E2E flows (`flows/*.yaml`) run by the startup-smoke and e2e workflows. |
+| `tester/` | Agentic usability tester — Claude drives the APK on an emulator as personas and reports friction. See `tester/README.md`. |
 | `package.json` | Workspace root manifest (worker tooling). The app's own manifest is `mobile/package.json`. |
-| `.github/workflows/` | CI/CD: eas-build (validate → APK), startup-smoke, maestro-e2e, ts-truncation-check, Pages deploy. |
+| `.github/workflows/` | CI/CD: eas-build (validate → APK), startup-smoke, maestro-e2e, usability-test (agentic, weekly), ts-truncation-check, Pages deploy. |
 
 ---
 
@@ -133,6 +134,18 @@
 | `mobile/tailwind.config.js` | NativeWind / Tailwind config. |
 | `mobile/android/` | Generated Android native project (from expo prebuild). Do not hand-edit. |
 | `mobile/assets/` | App icons and splash screen images. |
+
+---
+
+## tester/ — agentic usability tester
+
+| File | Purpose |
+|---|---|
+| `tester/README.md` | Design doc + how to run. The "is it actually good?" layer above startup-smoke and Maestro. |
+| `tester/agent.mjs` | The harness: screenshot + accessibility tree → Claude picks an action → adb executes → repeat. |
+| `tester/personas.json` | Persona × task matrix (weeknight rush, first-timer, pantry cook, mid-cook crisis). Edit here to add tests. |
+| `tester/heuristics.md` | Usability rubric: Nielsen floor + kitchen-context heuristics + the 3 Golden Rules + accessibility. |
+| `tester/output/` | Gitignored run output: usability-report.md, findings.json, per-step screenshots. CI uploads it as an artifact. |
 
 ---
 
