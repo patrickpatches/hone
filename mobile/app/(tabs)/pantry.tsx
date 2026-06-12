@@ -276,15 +276,19 @@ export default function PantryTab() {
     let cancelled = false;
     (async () => {
       try {
-        const [items, recs, shop] = await Promise.all([
+        // Promise.allSettled so one failed query doesn't blank all three datasets.
+        const [itemsResult, recsResult, shopResult] = await Promise.allSettled([
           getPantryItems(db),
           getActiveRecipes(db),
           getShoppingItems(db),
         ]);
         if (!cancelled) {
-          setPantryItems(items);
-          setRecipes(recs);
-          setShoppingItems(shop);
+          if (itemsResult.status === 'fulfilled') setPantryItems(itemsResult.value);
+          else console.error('Pantry items load failed', itemsResult.reason);
+          if (recsResult.status === 'fulfilled') setRecipes(recsResult.value);
+          else console.error('Recipes load failed', recsResult.reason);
+          if (shopResult.status === 'fulfilled') setShoppingItems(shopResult.value);
+          else console.error('Shopping items load failed', shopResult.reason);
         }
       } catch (e) {
         console.error('Pantry load failed', e);
@@ -1638,11 +1642,11 @@ export default function PantryTab() {
             {/* Destructive action */}
             <Pressable
               onPress={clearAll}
-              android_ripple={{ color: '#C04040', borderless: false }}
+              android_ripple={{ color: tokens.dangerDeep, borderless: false }}
               style={{ borderRadius: 12, marginBottom: 10 }}
             >
               <View style={{
-                backgroundColor: '#E05252',
+                backgroundColor: tokens.danger,
                 borderRadius: 12,
                 paddingVertical: 14,
                 alignItems: 'center',
@@ -1651,7 +1655,7 @@ export default function PantryTab() {
                   style={{
                     fontFamily: fonts.sansBold,
                     fontSize: 15,
-                    color: '#FFF',
+                    color: tokens.ink,
                   }}
                 >
                   Clear {haveCount} ingredient{haveCount === 1 ? '' : 's'}
@@ -1713,7 +1717,7 @@ export default function PantryTab() {
               flex: 1,
               fontFamily: fonts.sans,
               fontSize: 13,
-              color: '#FFF',
+              color: tokens.ink,
             }}
           >
             {undoSnapshot.label}
@@ -1805,7 +1809,7 @@ export default function PantryTab() {
             ...shadows.toast,
           }}
         >
-          <Text style={{ flex: 1, fontFamily: fonts.sans, fontSize: 13, color: '#FFF' }}>
+          <Text style={{ flex: 1, fontFamily: fonts.sans, fontSize: 13, color: tokens.ink }}>
             {itemUndo.label}
           </Text>
           <Pressable onPress={undoItemRemove} hitSlop={8}>
@@ -2037,7 +2041,7 @@ function RecipeMatchCard({
                 fontSize: 10,
                 letterSpacing: 1,
                 textTransform: 'uppercase',
-                color: '#FFF',
+                color: tokens.ink,
               }}
             >
               {match.haveCount} of {match.totalCount} matched
