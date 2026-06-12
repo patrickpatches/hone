@@ -10,6 +10,12 @@ name: Fetch bread guide image candidates
 
 on:
   workflow_dispatch:
+  # Dispatch requires the workflow to exist on main; this branch-local trigger
+  # fires whenever this file itself is pushed (bump the nonce below to re-run).
+  push:
+    paths: ['.github/workflows/fetch-bread-assets.yml']
+
+# trigger-nonce: 1
 
 permissions:
   contents: write
