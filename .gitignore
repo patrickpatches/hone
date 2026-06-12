@@ -56,3 +56,6 @@ coverage/
 mobile-helpers-test/
 /db/
 .icon-gen/
+
+# Agentic usability tester output (reports + screenshots)
+tester/output/

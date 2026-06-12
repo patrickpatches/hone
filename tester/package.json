@@ -1,0 +1,16 @@
+{
+  "name": "tuckerspice-usability-tester",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Agentic usability tester — Claude drives the real app on an Android emulator as a persona and reports friction.",
+  "type": "module",
+  "scripts": {
+    "test:usability": "node agent.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.88.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

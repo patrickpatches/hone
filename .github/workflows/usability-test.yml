@@ -1,0 +1,130 @@
+# Agentic usability test — Claude uses the app like a human and reports friction.
+#
+# What it does: boots an emulator, installs the latest built APK, then runs
+# tester/agent.mjs — a Claude-driven agent that works through persona tasks
+# (weeknight rush, first-time user, pantry cook, mid-cook crisis), judging every
+# screen against tester/heuristics.md. Output: usability-report.md + findings.json
+# + every screenshot, uploaded as an artifact.
+#
+# This is the judgement layer on top of the deterministic layers:
+#   startup-smoke  → "does it boot?"        (every build, free)
+#   maestro flows  → "do the flows work?"   (deterministic, free)
+#   this workflow  → "is it actually good?" (agentic, costs API tokens)
+#
+# Cost & cadence: each run makes ~60-120 Claude API calls with screenshots.
+# That's why it runs weekly + on demand, NOT on every push. Requires the
+# ANTHROPIC_API_KEY repository secret (Patrick's action list has the steps).
+#
+# The job fails only on BLOCKER findings or harness errors — major/minor
+# findings land in the report for triage, they don't redden the commit.
+
+name: Usability test (agentic)
+
+on:
+  schedule:
+    # Sunday 20:00 UTC = Monday 6am AEST — report ready at the start of the week.
+    - cron: '0 20 * * 0'
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'eas-build run id to pull the APK from (blank = latest successful build)'
+        required: false
+      personas:
+        description: 'Comma-separated persona ids to run (blank = all). Ids: weeknight-rush, first-timer, pantry-cook, mid-cook-crisis'
+        required: false
+
+jobs:
+  usability:
+    name: Persona walkthroughs on emulator
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install tester dependencies
+        run: cd tester && npm install
+
+      - name: Download APK from a specific build
+        if: ${{ github.event.inputs.run_id != '' && github.event_name == 'workflow_dispatch' }}
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          run_id: ${{ github.event.inputs.run_id }}
+          name: tuckerspice-v.*
+          name_is_regexp: true
+          path: apk/
+
+      - name: Download APK from the latest successful build
+        if: ${{ github.event.inputs.run_id == '' || github.event_name == 'schedule' }}
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: eas-build.yml
+          workflow_conclusion: success
+          name: tuckerspice-v.*
+          name_is_regexp: true
+          path: apk/
+
+      - name: Locate APK
+        id: apk
+        run: |
+          APK=$(find apk/ -name "*.apk" | head -1)
+          if [ -z "$APK" ]; then echo "::error::No APK found in artifact"; exit 1; fi
+          echo "path=$APK" >> "$GITHUB_OUTPUT"
+          echo "Found APK: $APK"
+
+      - name: Enable KVM (hardware acceleration for the emulator)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Boot emulator, install APK, run the usability agent
+        uses: reactivecircus/android-emulator-runner@v2
+        # Same pattern as startup-smoke: this action can return a flaky non-zero
+        # on its own teardown even when the run passed. The real result is
+        # enforced by the next step from /tmp/usability_exit.
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PERSONAS: ${{ github.event.inputs.personas }}
+          BUILD_INFO: eas-build run ${{ github.event.inputs.run_id || 'latest' }}
+          RUN_LABEL: 'run-${{ github.run_number }}'
+        with:
+          api-level: 26
+          arch: x86_64
+          profile: pixel_6
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: true
+          script: |
+            adb install -r "${{ steps.apk.outputs.path }}"
+            set +e
+            node tester/agent.mjs
+            echo $? > /tmp/usability_exit
+            exit 0
+
+      - name: Enforce result
+        if: always()
+        run: |
+          RC=$(cat /tmp/usability_exit 2>/dev/null || echo 1)
+          echo "agent exit code: $RC (non-zero = blocker findings or harness error — read the report artifact)"
+          if [ -f tester/output/run-${{ github.run_number }}/usability-report.md ]; then
+            echo "===== REPORT ====="
+            cat "tester/output/run-${{ github.run_number }}/usability-report.md"
+          fi
+          [ "$RC" = "0" ] || exit 1
+
+      - name: Upload report + screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: usability-report-${{ github.run_number }}
+          path: tester/output/
+          retention-days: 30
+          if-no-files-found: warn

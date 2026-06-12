@@ -20,8 +20,9 @@
 | `scripts/` | Developer utility scripts (bat, sh, validation guards). Not app code. |
 | `workers/` | Cloudflare Workers: `tracker/` (Bug Lord ↔ GitHub Issues bridge) and `bug-lord/`. |
 | `maestro/` | Maestro E2E flows (`flows/*.yaml`) run by the startup-smoke and e2e workflows. |
+| `tester/` | Agentic usability tester — Claude drives the APK on an emulator as personas and reports friction. See `tester/README.md`. |
 | `package.json` | Workspace root manifest (worker tooling). The app's own manifest is `mobile/package.json`. |
-| `.github/workflows/` | CI/CD: eas-build (validate → APK), startup-smoke, maestro-e2e, ts-truncation-check, Pages deploy. |
+| `.github/workflows/` | CI/CD: eas-build (validate → APK), startup-smoke, maestro-e2e, usability-test (agentic, weekly), ts-truncation-check, Pages deploy. |
 
 ---
 
@@ -83,6 +84,9 @@
 | `docs/prototypes/recipe-detail-v5.html` | Recipe detail "The Pass" (latest) — v4 + origin flag, sticky CTA, collapsing app bar. APPROVED for engineer build. |
 | `docs/prototypes/recipe-detail-v6.html` | Aesthetic-only restyle of the working build-#126 recipe page — safe rebuild after the v5 crash (no scroll-driven chrome). |
 | `docs/prototypes/recipe-detail-v7.html` | **Vision concept** — kitchen-first redesign: warm-paper browse + OLED cook flow, Fraunces+Inter type, pantry signal up top, ergonomic cook step. For Patrick's direction call. |
+| `docs/prototypes/bread-guide-v1.html` | The Bread Bench v1 — first working adaptive baking guide. **Superseded by v2** (single-page document layout). |
+| `docs/prototypes/bread-guide-v2.html` | **The Bread Bench v2** — full UX redesign of the adaptive baking guide. Two-context design: warm-paper planning surface (home → setup → plan) and true-black Oven Mode (one step per screen, doneness-cue hero, built-in step timers, wake-lock, mid-bake "Something's wrong?" rescue sheet). Computed-recipe engine + Bake Log lite: two-tap post-bake debrief calibrates future fermentation times to the user's kitchen (localStorage); fan-forced toggle converts every oven temp; choices persist. For Patrick's direction call. |
+| `docs/prototypes/assets/bread/` | Stage photos for the Bread Bench (5 × jpg, Pexels free licence, fetched via CI and visually verified for accuracy). Local files → guide works fully offline. |
 | `docs/prototypes/` (others) | ~11 further exploration mockups (kitchen-*, pantry-*, cook-mode-v1, recipe-card-v2, recipe-detail-v2*, substitution-sheet-v2, app-flow-v2, Recipe Page Design). Read-only design history — list not itemised; the rows above are the shipped/approved ones. |
 | `docs/archive/` | Completed checklists, old backups, superseded documents. Nothing here is current. |
 | `docs/archive/handoffs-2026-05.md` | May 2026 handoff log (archived from docs/coo/handoffs.md). |
@@ -133,6 +137,18 @@
 | `mobile/tailwind.config.js` | NativeWind / Tailwind config. |
 | `mobile/android/` | Generated Android native project (from expo prebuild). Do not hand-edit. |
 | `mobile/assets/` | App icons and splash screen images. |
+
+---
+
+## tester/ — agentic usability tester
+
+| File | Purpose |
+|---|---|
+| `tester/README.md` | Design doc + how to run. The "is it actually good?" layer above startup-smoke and Maestro. |
+| `tester/agent.mjs` | The harness: screenshot + accessibility tree → Claude picks an action → adb executes → repeat. |
+| `tester/personas.json` | Persona × task matrix (weeknight rush, first-timer, pantry cook, mid-cook crisis). Edit here to add tests. |
+| `tester/heuristics.md` | Usability rubric: Nielsen floor + kitchen-context heuristics + the 3 Golden Rules + accessibility. |
+| `tester/output/` | Gitignored run output: usability-report.md, findings.json, per-step screenshots. CI uploads it as an artifact. |
 
 ---
 
