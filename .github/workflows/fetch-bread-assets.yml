@@ -15,7 +15,7 @@ on:
   push:
     paths: ['.github/workflows/fetch-bread-assets.yml']
 
-# trigger-nonce: 1
+# trigger-nonce: 2
 
 permissions:
   contents: write
@@ -31,12 +31,10 @@ jobs:
           mkdir -p docs/prototypes/assets/bread-candidates
           cd docs/prototypes/assets/bread-candidates
           # slot prefix = what the image is a candidate for
+          # Round 2: tortilla rolling candidates (round-1 tortilla picks were all
+          # filled tacos — rejected on visual review).
           declare -A CANDS=(
-            [shape-10009355]=10009355  [shape-5903446]=5903446  [shape-3218467]=3218467  [shape-6287246]=6287246
-            [loaf-4267969]=4267969     [loaf-6605201]=6605201   [loaf-7541727]=7541727   [loaf-1571075]=1571075
-            [loaf-6605211]=6605211     [loaf-10202998]=10202998
-            [tort-7613562]=7613562     [tort-26967707]=26967707 [tort-5837188]=5837188
-            [pita-6419753]=6419753     [pita-1618898]=1618898   [pita-6054114]=6054114   [pita-6275158]=6275158
+            [tort2-1251179]=1251179  [tort2-6061704]=6061704  [tort2-10048680]=10048680  [tort2-7966476]=7966476
           )
           ok=0; fail=0
           for name in "${!CANDS[@]}"; do
