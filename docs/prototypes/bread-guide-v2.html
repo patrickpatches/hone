@@ -352,19 +352,20 @@ puff:`<svg viewBox="0 0 640 140" width="640"><g fill="none" stroke="${inkA}" str
 const diaOven=dia('#FF9233','#B9A88E','#8C7A60');
 const diaPaper=dia('#9C3F12','#5C4A33','#8C7A60');
 const photoBrief=t=>`<figure class="photo"><b>📷 STAGE PHOTO — brief for Photography Director</b>${t}</figure>`;
-/* Temporary stock placeholders per DECISION-014 — CC/Pexels-licensed, logged in
-   docs/coo/visual-assets-ledger.md, cook to validate accuracy, Patrick's real
-   photography replaces them. If an image fails to load (offline kitchen!), the
-   figure falls back to the photography brief — never a broken-image icon. */
+/* Stage photos: local repo assets (docs/prototypes/assets/bread/), each one
+   visually verified for accuracy against the step it teaches. Sourced from
+   Pexels (free licence) via a CI fetch; works fully offline. If an image is
+   ever missing, the figure falls back to the photography brief — never a
+   broken-image icon. Patrick's own photography replaces these over time. */
 const PHOTOS={
- shape:{id:10009355,credit:'Skyler Ewing',alt:'Hands shaping a round of bread dough on the bench'},
- loaf:{id:4267969,credit:'Magda Ehlers',alt:'Close-up of a rustic artisan loaf — the crust colour you are aiming for'},
- tort:{id:7613562,credit:'photographer credited on the Pexels page',alt:'A plate of fresh homemade tortillas'},
- pita:{id:6419753,credit:'Polina Tankilevitch',alt:'Fresh pita breads, puffed and soft'},
+ shape:{src:'assets/bread/sourdough-shaping.jpg',page:'https://www.pexels.com/photo/10009355/',credit:'Skyler Ewing · Pexels',alt:'Cupped hands dragging a round tight — this is the surface tension you want',note:''},
+ loaf:{src:'assets/bread/sourdough-loaf-ear.jpg',page:'https://www.pexels.com/photo/6605201/',credit:'Geraud Pfeiffer · Pexels',alt:'The finish line: deep mahogany crust, a proud ear, banneton resting behind',note:' Yes, that dark — “darker than feels polite” is exactly this.'},
+ tort:{src:'assets/bread/tortilla-rolling.jpg',page:'https://www.pexels.com/photo/7966476/',credit:'Pexels (photographer on linked page)',alt:'Rolling a round thin from the centre out, quarter-turn by quarter-turn',note:' (Ignore the eggs — they\'re the photographer\'s, not the dough\'s.)'},
+ pita:{src:'assets/bread/pita-fresh.jpg',page:'https://www.pexels.com/photo/6419753/',credit:'Polina Tankilevitch · Pexels',alt:'Fresh pitas, barely blonde with char freckles — deflated, pockets intact',note:''},
 };
 const photoFig=(brief,p)=>`<figure class="photo-real">
- <img src="https://images.pexels.com/photos/${p.id}/pexels-photo-${p.id}.jpeg?auto=compress&cs=tinysrgb&w=900" alt="${p.alt}" loading="lazy" onerror="this.closest('figure').classList.add('failed')">
- <figcaption>${p.alt} — photo: ${p.credit}, <a href="https://www.pexels.com/photo/${p.id}/" target="_blank" rel="noopener">Pexels</a> (free licence; temporary placeholder per DECISION-014).<i>Our shot, when we shoot it: ${brief}</i></figcaption>
+ <img src="${p.src}" alt="${p.alt}" loading="lazy" onerror="this.closest('figure').classList.add('failed')">
+ <figcaption>${p.alt}.${p.note} — photo: <a href="${p.page}" target="_blank" rel="noopener">${p.credit}</a>.<i>Our shot, when we shoot it: ${brief}</i></figcaption>
  <div class="brief"><b>📷 STAGE PHOTO — brief for Photography Director</b>${brief}</div>
 </figure>`;
 
@@ -537,13 +538,14 @@ function buildTort(){
     why:`Two short rests beat one long one: the first relaxes for dividing, the second undoes the tension balling just created. Skip it and every round shrinks on the pan.`},
    {k:'Roll',t:'Roll thin — properly thin',dur:'~30 s each',
     body:`<p>Light flour. Roll centre-outwards, <b>quarter-turning between strokes</b>. Target: <b>2 mm, 18 cm across</b> — thin enough to read the bench's shadow through.</p>
-    <figure class="diagram">${d.gauge(2,'tortilla target: 2 mm — translucent','thicker bakes crackers')}<figcaption>If you can't see light through it, keep rolling.</figcaption></figure>`,
+    <figure class="diagram">${d.gauge(2,'tortilla target: 2 mm — translucent','thicker bakes crackers')}<figcaption>If you can't see light through it, keep rolling.</figcaption></figure>
+    ${photoFig('Overhead of the rolling rhythm: one round mid-roll, the 2 mm translucency visible against the bench.',PHOTOS.tort)}`,
     rescue:`Find the rhythm: roll one while the last one cooks. Rolled rounds waiting in a stack glue together — one floured layer only, or don't get ahead of the pan.`},
    {k:'Cook',t:'Cook — 30, 30, 10',dur:'~70 s each',
     body:`<p>${c.gear==='bbq'?'Flatplate high, lid up, plate oiled once.':'Pan on high, bone dry — no oil. Ready when a flick of water skitters and vanishes inside two seconds.'} Lay the round flat.</p>
     <p><b>~30 s:</b> bubbles rise — flip.<br><b>~30 s:</b> leopard spots underneath — flip back.<br><b>~10 s:</b> with luck, a balloon. Off, straight into the tea-towel stack.</p>
     <figure class="diagram">${d.puff}<figcaption>The puff means layers — steam splitting it from inside.</figcaption></figure>
-    ${photoFig('Overhead of the pan at the leopard-spot flip, next tortilla mid-roll beside it — the rhythm is the story.',PHOTOS.tort)}`,
+    ${photoBrief('Overhead of the pan at the leopard-spot flip, next tortilla mid-roll beside it — the rhythm is the story.')}`,
     cue:`<b>The pan speaks:</b> spots at ~30 s = heat is right. Spots at 15 = down a notch. None by 45 = crank it — a slow pan dries tortillas into frisbees before it browns them.`},
    {k:'Steam',t:'Steam the stack',dur:'10 min',
     body:`<p>Every tortilla goes pan → tea-towel stack. Their shared steam finishes them soft enough to fold without cracking. The stack holds an hour. Freeze extras flat, paper between; revive from frozen in a hot dry pan, 20 seconds a side.</p>`},

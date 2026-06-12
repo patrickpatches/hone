@@ -160,3 +160,37 @@ affordance on the rescue sheet (plus Escape-to-close).
    app's current dark theme — if approved, decide whether bread-guide ships as
    its own visual world (like cook mode already does) or the palette feeds the
    broader recipe-detail-v7 direction call.
+
+---
+
+## Part 4 (12 June) — real stage photos in the Bread Bench
+
+Patrick asked for accurate images in the placeholders (personal project — golden
+rules relaxed for this prototype by his instruction).
+
+**How:** the remote sandbox can't reach image CDNs, so a disposable CI workflow
+downloaded a 21-image candidate pool from Pexels to a temp branch; every
+candidate was then **visually inspected** and picked or rejected on accuracy.
+Rejected: 3 "tortilla" shots that were actually filled tacos (one corn, not
+flour), a pasta-machine shot, red novelty dough, a pale honey-crust loaf (the
+exact colour the guide warns against), a challah mislabelled as pita. Kept 4:
+
+| Slot | File | Why it won |
+|---|---|---|
+| Sourdough · Shape | `assets/bread/sourdough-shaping.jpg` | Cupped hands, taut round, floured bench — textbook preshape tension (Skyler Ewing) |
+| Sourdough · Bake | `assets/bread/sourdough-loaf-ear.jpg` | Deep mahogany boule with a proud ear + banneton — literally illustrates "darker than feels polite" (Geraud Pfeiffer) |
+| Tortillas · Roll | `assets/bread/tortilla-rolling.jpg` | Pale round rolled centre-out — moved the figure from Cook to Roll to match |
+| Pita · Bake | `assets/bread/pita-fresh.jpg` | Barely blonde, char freckles — the guide's exact doneness cue (Polina Tankilevitch) |
+
+Images are **local repo assets** (offline-first; the kitchen has no wifi
+guarantee) with credit-linked captions, the Photography Director's brief kept
+inline ("our shot, when we shoot it"), and an onerror fallback to the brief —
+a broken-image icon can never appear. The Cook-step pan shot remains brief-only
+(no accurate candidate found). Verified: images render in headless Chromium,
+fallback engages on a missing file, full journey suite still passes.
+
+**Housekeeping:** fetch workflow deleted after use; candidate pool removed.
+The git proxy refused remote deletion of `claude/bread-assets-tmp` — **Patrick:
+one-click delete it in GitHub UI** (branch rule: max 2 open claude/* branches).
+Also noted: `usability-test.yml` is dispatch-only and GitHub registers those
+from `main` — it becomes triggerable once this branch merges.
