@@ -111,3 +111,52 @@ fonts offline). Screenshots reviewed against brand tokens.
 1. Patrick: open `docs/prototypes/bread-guide-v1.html` in a browser, play with the bench, make the direction call.
 2. If approved: engineer ticket to port the adaptive engine into the app — the recipe schema needs a `variants`/`computed` concept (ingredients + step text as functions of config), which is a schema decision worth an ADR.
 3. Cook to validate the baking content (formulas, temps, times) per the culinary-audit process; Photography Director to pick up the four inline photo briefs.
+
+---
+
+## Part 3 (same session) — Bread Bench v2: full design & UX overhaul
+
+Patrick asked for a complete design/UX rebuild with full creative licence.
+**Built:** `docs/prototypes/bread-guide-v2.html`, superseding v1's
+single-document layout.
+
+### Design thesis
+
+Baking has two contexts that deserve two designs:
+
+- **Planning** (couch, daylight, reading): warm flour-paper editorial surface —
+  Fraunces display, Newsreader body, Archivo UI — progressive disclosure
+  home → setup → plan, one decision per group with "whisper" honesty notes at
+  the moment of choice, a live CTA that previews consequences (hydration, bulk
+  time) before committing, and a visual mass bar for the formula.
+- **Executing** (kitchen, floury hands, arm's length): **Oven Mode** — true
+  black, one step per screen, 40px serif step titles, the doneness cue as the
+  hero element, why/rescue folded behind disclosure, "while you're here"
+  anticipation hints, built-in step timers (fold intervals, proofs, the cool),
+  screen wake-lock, giant thumb-zone Back/Next, and a persistent
+  **"Something's wrong?"** rescue button opening contextual troubleshooting as
+  a bottom sheet — mid-bake, where it's actually needed.
+
+### Research applied
+
+Progressive disclosure · thumb-zone primary actions · glanceability type scale
+for distance reading · recognition-over-recall (the computed plan travels into
+oven mode) · anticipation two steps ahead (house voice) · honest-swap notes at
+decision time. Same computed-recipe engine as v1 (no content regression).
+
+### Verified
+
+Headless Chromium full-journey walkthrough: 14/14 checks pass (setup whispers,
+live CTA, computed plan summary, mass bar, ready-by back-calc, oven step flow,
+running timer, rescue sheet open/close, finish-exits-to-plan, pita
+starter cross-over). Zero JS errors. Visual review surfaced and fixed two
+issues: rescue FAB overlapping the timer button, and a missing explicit close
+affordance on the rescue sheet (plus Escape-to-close).
+
+### Follow-ups (part 3)
+
+1. Patrick: direction call on v2 vs v1 — v2 is the recommendation.
+2. The light "morning bakery" planning palette intentionally diverges from the
+   app's current dark theme — if approved, decide whether bread-guide ships as
+   its own visual world (like cook mode already does) or the palette feeds the
+   broader recipe-detail-v7 direction call.

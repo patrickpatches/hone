@@ -84,7 +84,8 @@
 | `docs/prototypes/recipe-detail-v5.html` | Recipe detail "The Pass" (latest) — v4 + origin flag, sticky CTA, collapsing app bar. APPROVED for engineer build. |
 | `docs/prototypes/recipe-detail-v6.html` | Aesthetic-only restyle of the working build-#126 recipe page — safe rebuild after the v5 crash (no scroll-driven chrome). |
 | `docs/prototypes/recipe-detail-v7.html` | **Vision concept** — kitchen-first redesign: warm-paper browse + OLED cook flow, Fraunces+Inter type, pantry signal up top, ergonomic cook step. For Patrick's direction call. |
-| `docs/prototypes/bread-guide-v1.html` | **The Bread Bench** — working interactive baking guide (sourdough, tortillas, pita). Adaptive engine: flour/equipment/kitchen-temp/schedule inputs recompute the formula, timings, and instruction text; back-calculating "ready by" timeline; SVG technique diagrams; photo briefs inline. For Patrick's direction call before in-app build. |
+| `docs/prototypes/bread-guide-v1.html` | The Bread Bench v1 — first working adaptive baking guide. **Superseded by v2** (single-page document layout). |
+| `docs/prototypes/bread-guide-v2.html` | **The Bread Bench v2** — full UX redesign of the adaptive baking guide. Two-context design: warm-paper planning surface (home → setup → plan) and true-black Oven Mode (one step per screen, doneness-cue hero, built-in step timers, wake-lock, mid-bake "Something's wrong?" rescue sheet). Same computed-recipe engine as v1. For Patrick's direction call. |
 | `docs/prototypes/` (others) | ~11 further exploration mockups (kitchen-*, pantry-*, cook-mode-v1, recipe-card-v2, recipe-detail-v2*, substitution-sheet-v2, app-flow-v2, Recipe Page Design). Read-only design history — list not itemised; the rows above are the shipped/approved ones. |
 | `docs/archive/` | Completed checklists, old backups, superseded documents. Nothing here is current. |
 | `docs/archive/handoffs-2026-05.md` | May 2026 handoff log (archived from docs/coo/handoffs.md). |
