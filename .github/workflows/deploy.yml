@@ -58,6 +58,14 @@ jobs:
           mkdir -p dist/bug-tracker
           cp ../docs/dashboard/index.html dist/bug-tracker/index.html
 
+      # Bread Bench prototype — interactive guide with local image assets.
+      # Public URL: https://<user>.github.io/tucker-spice/bread/
+      - name: Add bread guide prototype
+        run: |
+          mkdir -p dist/bread
+          cp ../docs/prototypes/bread-guide-v2.html dist/bread/index.html
+          cp -r ../docs/prototypes/assets dist/bread/assets
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
