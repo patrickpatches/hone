@@ -885,7 +885,7 @@ export default function ShopTab() {
               flex: 1,
               fontFamily: fonts.sans,
               fontSize: 13,
-              color: '#FFF',
+              color: tokens.ink,
             }}
           >
             {undoSnapshot.label}
