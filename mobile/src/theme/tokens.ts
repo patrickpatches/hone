@@ -39,6 +39,10 @@ export const darkTokens = {
   ochre:     '#C07038',
   ochreDeep: '#A05C28',
 
+  // Destructive actions — delete, clear-all, undo bars.
+  danger:     '#E05252',  // button background (matches previous hardcoded value)
+  dangerDeep: '#C04040',  // ripple / pressed-state overlay
+
   warmBrown: '#B08060',
 
   amber:     '#1E1408',
@@ -119,6 +123,10 @@ export const lightTokens = {
 
   ochre:     '#FF7050',
   ochreDeep: '#E05030',
+
+  // Destructive actions — hot coral-red fits the synthwave palette.
+  danger:     '#FF4D6D',  // button background
+  dangerDeep: '#E02D50',  // ripple / pressed-state
 
   warmBrown: '#FFB0CE',
 
