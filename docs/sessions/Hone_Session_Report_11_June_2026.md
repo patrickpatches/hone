@@ -194,3 +194,37 @@ The git proxy refused remote deletion of `claude/bread-assets-tmp` — **Patrick
 one-click delete it in GitHub UI** (branch rule: max 2 open claude/* branches).
 Also noted: `usability-test.yml` is dispatch-only and GitHub registers those
 from `main` — it becomes triggerable once this branch merges.
+
+---
+
+## Part 5 (12 June) — every slot sourced + the bench learns your kitchen
+
+Patrick: source all images myself (no photographer-pending placeholders) and
+make the app better — thoughtful, no overload.
+
+**Images:** added the fifth verified photo — a cut loaf showing crumb on a
+near-black background (Marcel Fiedler), placed in the Cool step as the payoff
+shot. Photographer-brief machinery removed entirely; captions are now one line
+with a credit link. Deliberate non-additions: the tortilla-pan and pita-balloon
+moments keep their sequence diagrams instead of photos — no accurate candidate
+existed across three fetch rounds, and the line art teaches those moments
+better than a static photo would. A photo must out-teach the diagram to earn a
+slot. (Round-3 scraper note: Pexels bot-blocks even Actions runners' page
+scrapes; only direct CDN image URLs by known ID work.)
+
+**Three upgrades, all invisible until needed:**
+1. **Bake Log lite — the bench learns your kitchen.** Finishing a bake asks two
+   taps (rise vs plan: faster/spot-on/slower · result: dense/right/over). Each
+   answer nudges a per-bread calibration factor (×0.9 / drift-to-1 / ×1.15,
+   clamped 0.7–1.5) applied to every fermentation model. Setup then whispers:
+   "Your kitchen note: past bakes ran slower than planned here, so every time
+   below is already nudged +15%." Home shows a one-line log count.
+2. **Fan-forced toggle** (sourdough + pita): every oven temperature in the
+   steps states the number for *your* oven — no mid-bake mental arithmetic.
+3. **Choices persist** (localStorage) — reopen the guide, your bench is as you
+   left it.
+
+**Verified:** 10/10 new-feature checks (fan conversion 260→"240°C fan-forced",
+debrief flow, log + cfg persistence across reload, +15% kitchen note after a
+"slower" answer, crumb photo renders, zero brief boxes left) and the original
+14-check journey suite re-passes. Fetch workflow + candidate pool removed again.

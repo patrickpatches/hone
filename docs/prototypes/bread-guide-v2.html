@@ -184,6 +184,8 @@ figure.photo-real.failed .brief b{color:var(--ember);display:block;margin-bottom
 .oven-nav .prev{background:var(--oven-card);color:var(--oven-ink2);border:1.5px solid var(--oven-rule);flex:0 0 30%}
 .oven-nav .next{background:var(--ember);color:#1A0E02}
 .oven-nav .next.finish{background:var(--oven-proof);color:#06150A}
+#debrief .opts button{font-family:var(--ui);font-size:14.5px;font-weight:600;padding:11px 17px;border-radius:999px;border:1.5px solid var(--oven-rule);background:var(--oven-card);color:var(--oven-ink2);cursor:pointer}
+#debrief .opts button.on{background:rgba(143,203,159,.14);border-color:var(--oven-proof);color:var(--oven-proof)}
 /* rescue */
 .rescue-fab{position:fixed;right:calc(50% - 235px + 16px);bottom:calc(104px + env(safe-area-inset-bottom));z-index:60;font-family:var(--ui);font-size:12.5px;font-weight:700;letter-spacing:.08em;color:var(--oven-ink);background:rgba(18,12,6,.92);border:1.5px solid var(--oven-rule);padding:11px 18px;border-radius:999px;backdrop-filter:blur(6px);display:none;box-shadow:0 6px 18px rgba(0,0,0,.5)}
 @media(max-width:470px){.rescue-fab{right:16px}}
@@ -292,6 +294,27 @@ details.tr .body b{color:var(--oven-ink)}
   </div>
 </div>
 
+<div class="sheet-wrap" id="debrief">
+  <div class="sheet-dim"></div>
+  <div class="sheet">
+    <div class="grab" style="cursor:default"></div>
+    <h3>How did it go?</h3>
+    <p class="ssub">Two taps. The bench uses this to learn your kitchen — next bake's timings adjust themselves.</p>
+    <div style="font-family:var(--ui);font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--oven-ink2);margin:10px 0 8px">The main rise, against the plan</div>
+    <div class="opts" id="db-ferment" style="display:flex;gap:9px;flex-wrap:wrap">
+      <button data-v="faster">Ran faster</button><button data-v="spot" class="on">Spot on</button><button data-v="slower">Ran slower</button>
+    </div>
+    <div style="font-family:var(--ui);font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--oven-ink2);margin:18px 0 8px">The result</div>
+    <div class="opts" id="db-result" style="display:flex;gap:9px;flex-wrap:wrap">
+      <button data-v="dense">Dense</button><button data-v="right" class="on">Just right</button><button data-v="over">Over-done</button>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:22px">
+      <button id="db-skip" style="flex:0 0 30%;font-family:var(--ui);font-weight:700;padding:16px;border-radius:14px;background:var(--oven-card);color:var(--oven-ink2);border:1.5px solid var(--oven-rule)">Skip</button>
+      <button id="db-save" style="flex:1;font-family:var(--ui);font-weight:700;padding:16px;border-radius:14px;background:var(--oven-proof);color:#06150A">Save to my bake log</button>
+    </div>
+  </div>
+</div>
+
 </div>
 <script>
 /* ═══════════════ engine (computed recipes — same maths as v1) ═══════════════ */
@@ -302,10 +325,39 @@ const hrs=h=>h>=1?(Math.round(h*2)/2)+' h':Math.round(h*60)+' min';
 const fmtClock=d=>d.toLocaleString('en-AU',{weekday:'short',hour:'numeric',minute:'2-digit'}).replace(',','');
 
 const cfg={
-  sour:{flour:'bakers',gear:'dutch',temp:24,loaves:1,sched:'overnight',tmode:'now',ttarget:null},
+  sour:{flour:'bakers',gear:'dutch',temp:24,loaves:1,sched:'overnight',fan:'no',tmode:'now',ttarget:null},
   tort:{flour:'plain',fat:'lard',gear:'castiron',count:12,tmode:'now',ttarget:null},
-  pita:{leaven:'yeast',flour:'bakers',gear:'stone',temp:24,count:8,tmode:'now',ttarget:null},
+  pita:{leaven:'yeast',flour:'bakers',gear:'stone',temp:24,count:8,fan:'no',tmode:'now',ttarget:null},
 };
+
+/* ─── the bench remembers: persisted choices + bake log + kitchen calibration ───
+   Every bake ends with a two-tap debrief. "Slower than planned" nudges this
+   kitchen's fermentation model up; "faster" nudges it down; "spot on" lets it
+   relax back toward neutral. The whole feature is two taps and one sentence —
+   the user never sees a settings screen. */
+const store={
+  get(k,d){try{const v=localStorage.getItem('bench-'+k);return v?JSON.parse(v):d}catch{return d}},
+  set(k,v){try{localStorage.setItem('bench-'+k,JSON.stringify(v))}catch{}},
+};
+(()=>{const saved=store.get('cfg',null);if(saved)for(const b in cfg)Object.assign(cfg[b],saved[b]??{});})();
+const saveCfg=()=>store.set('cfg',cfg);
+const bakeLog=store.get('log',[]);
+function calib(bread){
+  let f=1.0;
+  for(const e of bakeLog)if(e.bread===bread){
+    if(e.ferment==='slower')f*=1.15; else if(e.ferment==='faster')f*=0.9; else f=1+(f-1)*0.5;
+  }
+  return Math.min(1.5,Math.max(0.7,f));
+}
+function kitchenNote(bread){
+  const f=calib(bread);
+  if(Math.abs(f-1)<0.05)return '';
+  const dir=f>1?'slower':'faster';
+  const pct=Math.round(Math.abs(f-1)*100);
+  return ` <b>Your kitchen note:</b> past bakes ran ${dir} than planned here, so every time below is already nudged ${f>1?'+':'−'}${pct}%.`;
+}
+/* oven temps: state the number for YOUR oven, not a conversion exercise */
+const ovenT=(bread,t)=>cfg[bread].fan==='yes'?`${t-20}°C fan-forced`:`${t}°C conventional`;
 
 /* ─── SVG diagrams (recoloured per surface at render time via currentColor-ish swap) ─── */
 const dia=(inkA,inkB,inkC)=>({
@@ -351,22 +403,21 @@ puff:`<svg viewBox="0 0 640 140" width="640"><g fill="none" stroke="${inkA}" str
 });
 const diaOven=dia('#FF9233','#B9A88E','#8C7A60');
 const diaPaper=dia('#9C3F12','#5C4A33','#8C7A60');
-const photoBrief=t=>`<figure class="photo"><b>📷 STAGE PHOTO — brief for Photography Director</b>${t}</figure>`;
 /* Stage photos: local repo assets (docs/prototypes/assets/bread/), each one
-   visually verified for accuracy against the step it teaches. Sourced from
-   Pexels (free licence) via a CI fetch; works fully offline. If an image is
-   ever missing, the figure falls back to the photography brief — never a
-   broken-image icon. Patrick's own photography replaces these over time. */
+   visually verified for accuracy against the step it teaches. Works fully
+   offline. A photo only earns a slot when it teaches better than the line-art
+   diagram — no filler. If a file is ever missing, the figure disappears
+   quietly; a broken-image icon can never appear. */
 const PHOTOS={
- shape:{src:'assets/bread/sourdough-shaping.jpg',page:'https://www.pexels.com/photo/10009355/',credit:'Skyler Ewing · Pexels',alt:'Cupped hands dragging a round tight — this is the surface tension you want',note:''},
- loaf:{src:'assets/bread/sourdough-loaf-ear.jpg',page:'https://www.pexels.com/photo/6605201/',credit:'Geraud Pfeiffer · Pexels',alt:'The finish line: deep mahogany crust, a proud ear, banneton resting behind',note:' Yes, that dark — “darker than feels polite” is exactly this.'},
- tort:{src:'assets/bread/tortilla-rolling.jpg',page:'https://www.pexels.com/photo/7966476/',credit:'Pexels (photographer on linked page)',alt:'Rolling a round thin from the centre out, quarter-turn by quarter-turn',note:' (Ignore the eggs — they\'re the photographer\'s, not the dough\'s.)'},
- pita:{src:'assets/bread/pita-fresh.jpg',page:'https://www.pexels.com/photo/6419753/',credit:'Polina Tankilevitch · Pexels',alt:'Fresh pitas, barely blonde with char freckles — deflated, pockets intact',note:''},
+ shape:{src:'assets/bread/sourdough-shaping.jpg',page:'https://www.pexels.com/photo/10009355/',credit:'Skyler Ewing',alt:'Cupped hands dragging a round tight — this is the surface tension you want',note:''},
+ loaf:{src:'assets/bread/sourdough-loaf-ear.jpg',page:'https://www.pexels.com/photo/6605201/',credit:'Geraud Pfeiffer',alt:'The finish line: deep mahogany crust, a proud ear, banneton resting behind',note:' Yes, that dark — “darker than feels polite” is exactly this.'},
+ crumb:{src:'assets/bread/sourdough-crumb.jpg',page:'https://www.pexels.com/photo/1079020/',credit:'Marcel Fiedler',alt:'Two hours later: the reward for not cutting early',note:''},
+ tort:{src:'assets/bread/tortilla-rolling.jpg',page:'https://www.pexels.com/photo/7966476/',credit:'Pexels',alt:'Rolling a round thin from the centre out, quarter-turn by quarter-turn',note:' (Ignore the eggs — they\'re the photographer\'s, not the dough\'s.)'},
+ pita:{src:'assets/bread/pita-fresh.jpg',page:'https://www.pexels.com/photo/6419753/',credit:'Polina Tankilevitch',alt:'Fresh pitas, barely blonde with char freckles — deflated, pockets intact',note:''},
 };
-const photoFig=(brief,p)=>`<figure class="photo-real">
- <img src="${p.src}" alt="${p.alt}" loading="lazy" onerror="this.closest('figure').classList.add('failed')">
- <figcaption>${p.alt}.${p.note} — photo: <a href="${p.page}" target="_blank" rel="noopener">${p.credit}</a>.<i>Our shot, when we shoot it: ${brief}</i></figcaption>
- <div class="brief"><b>📷 STAGE PHOTO — brief for Photography Director</b>${brief}</div>
+const photoFig=p=>`<figure class="photo-real">
+ <img src="${p.src}" alt="${p.alt}" loading="lazy" onerror="this.closest('figure').style.display='none'">
+ <figcaption>${p.alt}.${p.note} <a href="${p.page}" target="_blank" rel="noopener">photo: ${p.credit}</a></figcaption>
 </figure>`;
 
 /* ─── content dictionaries ─── */
@@ -382,8 +433,8 @@ const SOUR_GEAR={
  tray:{note:`<b>Tray + steam</b> — no special pot: a preheated upturned tray to bake on, a second tray on the oven floor for boiling water. Slightly smaller spring, thinner crisper crust.`},
  tin:{note:`<b>Loaf tin</b> — the forgiving option and the right call for sandwich bread. The tin holds the shape, so shaping mistakes vanish. No banneton needed.`},
 };
-const sourBulkHours=()=>{let h=5*tempFactor(cfg.sour.temp);if(cfg.sour.flour==='wholemeal')h*=.8;return Math.min(10,Math.max(2.5,h))};
-const sourLevainHours=()=>Math.min(12,Math.max(3,5*tempFactor(cfg.sour.temp)));
+const sourBulkHours=()=>{let h=5*tempFactor(cfg.sour.temp)*calib('sour');if(cfg.sour.flour==='wholemeal')h*=.8;return Math.min(10,Math.max(2.5,h))};
+const sourLevainHours=()=>Math.min(12,Math.max(3,5*tempFactor(cfg.sour.temp)*calib('sour')));
 
 const TORT_FLOUR={
  plain:{water:.58,rest:30,note:`<b>Plain flour is the right choice here</b> — weak gluten is exactly what a tender, foldable tortilla wants. The cheapest bag on the shelf makes the best tortilla in this whole guide.`},
@@ -411,7 +462,7 @@ const PITA_GEAR={
  tray:{note:`<b>Upturned oven tray</b> — no stone needed: an upside-down tray preheated until it's furious does 90% of the job.`},
  stove:{note:`<b>Stovetop cast iron + lid</b> — no oven at all: a screaming pan, a lid to trap heat over the dough. Chewier, charred freckles — the wood-fire look off a gas burner.`},
 };
-const pitaBulkHours=()=>{const b=cfg.pita.leaven==='yeast'?1.25:4.5;return Math.min(cfg.pita.leaven==='yeast'?3:9,Math.max(.75,b*tempFactor(cfg.pita.temp)))};
+const pitaBulkHours=()=>{const b=cfg.pita.leaven==='yeast'?1.25:4.5;return Math.min(cfg.pita.leaven==='yeast'?3:9,Math.max(.75,b*tempFactor(cfg.pita.temp)*calib('pita')))};
 
 /* ═══════════════ per-bread builders → {summary, mass[], formula[], foot, timeline[], steps[], trouble[]} ═══════════════ */
 function buildSour(){
@@ -425,13 +476,13 @@ function buildSour(){
   const foldCount=c.flour==='wholemeal'?4:3;
   const warmProofH=Math.min(4,2.5*tempFactor(c.temp));
   const bake={
-   dutch:{pre:`Put the dutch oven in, lid on, and preheat to <b>250°C conventional</b> (230°C fan-forced) for a full 45–60 minutes. The pot must be brutally hot — a half-hearted preheat is the most common cause of a flat loaf.`,
-          bake:`Lower the loaf in on its baking-paper sling. Lid on, <b>20 minutes at 250°C</b>. Lid off, down to <b>230°C, another 20–25 minutes</b>, until the crust is deep mahogany — darker than feels polite. Pale crust is undercooked flavour.`},
+   dutch:{pre:`Put the dutch oven in, lid on, and preheat to <b>${ovenT('sour',250)}</b> for a full 45–60 minutes. The pot must be brutally hot — a half-hearted preheat is the most common cause of a flat loaf.`,
+          bake:`Lower the loaf in on its baking-paper sling. Lid on, <b>20 minutes at ${ovenT('sour',250).split(' ')[0]}</b>. Lid off, down to <b>${ovenT('sour',230).split(' ')[0]}, another 20–25 minutes</b>, until the crust is deep mahogany — darker than feels polite. Pale crust is undercooked flavour.`},
    camp:{pre:`Burn the fire down to a wide bed of coals — steady radiant heat, no flame. Preheat the camp oven 20 minutes in the coals with a shovelful on the lid. A flicked drop of water should dance and vanish instantly.`,
          bake:`Loaf in on paper, lid on, two-thirds of the coals <b>on the lid</b>, one-third underneath — bread burns from the bottom long before the top colours. Rotate oven and lid a quarter-turn (opposite ways) at 15 minutes. Done around <b>40–50 minutes</b>: deep brown crust, hollow knock on the base. Trust the knock, not the clock — coals don't read recipes.`},
-   tray:{pre:`One oven tray upside-down on the middle shelf (your baking surface), a second deep tray on the oven floor. Preheat to <b>250°C conventional</b> for 45 minutes. Boil the kettle near the end.`,
-         bake:`Slide the loaf (on paper) onto the hot tray, pour <b>a cup of boiling water</b> into the floor tray, shut the door fast — that steam is your missing lid. At <b>20 minutes</b> pull the water tray, drop to <b>230°C</b>, bake <b>20–25 minutes</b> more to deep mahogany. Face back when you open the door; steam burns before you feel it.`},
-   tin:{pre:`Grease the tin (~22 × 12 cm per loaf) and preheat to <b>230°C conventional</b> (210°C fan-forced) — no pot, no stone, nothing fancy.`,
+   tray:{pre:`One oven tray upside-down on the middle shelf (your baking surface), a second deep tray on the oven floor. Preheat to <b>${ovenT('sour',250)}</b> for 45 minutes. Boil the kettle near the end.`,
+         bake:`Slide the loaf (on paper) onto the hot tray, pour <b>a cup of boiling water</b> into the floor tray, shut the door fast — that steam is your missing lid. At <b>20 minutes</b> pull the water tray, drop to <b>${ovenT('sour',230).split(' ')[0]}</b>, bake <b>20–25 minutes</b> more to deep mahogany. Face back when you open the door; steam burns before you feel it.`},
+   tin:{pre:`Grease the tin (~22 × 12 cm per loaf) and preheat to <b>${ovenT('sour',230)}</b> — no pot, no stone, nothing fancy.`,
         bake:`One long slash down the centre, then <b>35–40 minutes</b> to deep golden and 96–99°C inside (or a hollow knock on the tipped-out base). For a soft sandwich crust, brush the top with butter the moment it's out.`},
   }[c.gear];
 
@@ -462,7 +513,7 @@ function buildSour(){
     body:`<p>${c.gear==='tin'?`Flip floured-side down, pat to a rectangle, fold the short sides in, then roll firmly away from you into a log the length of your tin. Seam down into the greased tin.`:`Flip floured-side down, pat gently flat. Fold the sides into the middle, roll the top edge down toward you, sealing with your thumbs, into a tight torpedo. Pinch the seam.`}</p>
     <figure class="diagram">${d.shape}<figcaption>You're wrapping a tight skin around a soft middle.</figcaption></figure>
     <p>${c.gear==='tin'?'':`Seam-side <b>up</b> into a banneton — or the great Australian banneton: a mixing bowl, a clean tea towel, a generous rub of rice flour (plain flour glues; rice flour releases).`}</p>
-    ${photoFig('Hands mid-shape, surface tension visible, flour dust in raking side light. The money shot of the guide.',PHOTOS.shape)}`,
+    ${photoFig(PHOTOS.shape)}`,
     cue:`A well-shaped loaf has a skin you can see — taut like a balloon one breath short of full. ${gentle?'If it tears, stop tightening: a tear costs more than slack skin.':''}`},
    c.sched==='overnight'
    ?{k:'Proof',t:'Cold proof — the night shift',dur:'12–16 h',
@@ -482,10 +533,11 @@ function buildSour(){
     why:`The loaf will burst somewhere in the first ten minutes. Scoring chooses where — a controlled demolition.`},
    {k:'Bake',t:'Bake',dur:c.gear==='camp'?'40–50 min':'~45 min',timer:c.gear==='tin'?37:20,
     body:`<p>${bake.bake}</p>${n>1?`<p>Baking ${n}: ${c.gear==='dutch'||c.gear==='camp'?'one at a time — the rest wait happily in the fridge (cold dough holds; warm dough doesn\'t).':'two per tray; rotate front-to-back when the steam comes out.'}</p>`:''}
-    ${photoFig('Finished loaf ¾ angle on a rack, ear prominent. Pair with a backlit crumb shot after the cool.',PHOTOS.loaf)}`,
+    ${photoFig(PHOTOS.loaf)}`,
     cue:`Done = <b>96–99°C in the centre</b>, or a hollow knock on the base — and a crust the colour of dark caramel, not honey.`},
    {k:'Cool',t:'Cool — yes, really',dur:'2 h',timer:120,
-    body:`<p>Onto a rack, untouched, <b>two hours</b>. The crumb is still setting: cut early and the knife smears it into gumminess you'll wrongly blame on the recipe. Put the kettle on. Listen — bakers call that crackle <i>singing</i>, and you've earned it.</p>`,
+    body:`<p>Onto a rack, untouched, <b>two hours</b>. The crumb is still setting: cut early and the knife smears it into gumminess you'll wrongly blame on the recipe. Put the kettle on. Listen — bakers call that crackle <i>singing</i>, and you've earned it.</p>
+    ${photoFig(PHOTOS.crumb)}`,
     why:`Starch keeps gelling below ~60°C inside. Cutting early interrupts it — the #1 "gummy crumb" cause, ahead of underbaking.`},
   ];
   const items=[
@@ -539,13 +591,12 @@ function buildTort(){
    {k:'Roll',t:'Roll thin — properly thin',dur:'~30 s each',
     body:`<p>Light flour. Roll centre-outwards, <b>quarter-turning between strokes</b>. Target: <b>2 mm, 18 cm across</b> — thin enough to read the bench's shadow through.</p>
     <figure class="diagram">${d.gauge(2,'tortilla target: 2 mm — translucent','thicker bakes crackers')}<figcaption>If you can't see light through it, keep rolling.</figcaption></figure>
-    ${photoFig('Overhead of the rolling rhythm: one round mid-roll, the 2 mm translucency visible against the bench.',PHOTOS.tort)}`,
+    ${photoFig(PHOTOS.tort)}`,
     rescue:`Find the rhythm: roll one while the last one cooks. Rolled rounds waiting in a stack glue together — one floured layer only, or don't get ahead of the pan.`},
    {k:'Cook',t:'Cook — 30, 30, 10',dur:'~70 s each',
     body:`<p>${c.gear==='bbq'?'Flatplate high, lid up, plate oiled once.':'Pan on high, bone dry — no oil. Ready when a flick of water skitters and vanishes inside two seconds.'} Lay the round flat.</p>
     <p><b>~30 s:</b> bubbles rise — flip.<br><b>~30 s:</b> leopard spots underneath — flip back.<br><b>~10 s:</b> with luck, a balloon. Off, straight into the tea-towel stack.</p>
-    <figure class="diagram">${d.puff}<figcaption>The puff means layers — steam splitting it from inside.</figcaption></figure>
-    ${photoBrief('Overhead of the pan at the leopard-spot flip, next tortilla mid-roll beside it — the rhythm is the story.')}`,
+    <figure class="diagram">${d.puff}<figcaption>The puff means layers — steam splitting it from inside.</figcaption></figure>`,
     cue:`<b>The pan speaks:</b> spots at ~30 s = heat is right. Spots at 15 = down a notch. None by 45 = crank it — a slow pan dries tortillas into frisbees before it browns them.`},
    {k:'Steam',t:'Steam the stack',dur:'10 min',
     body:`<p>Every tortilla goes pan → tea-towel stack. Their shared steam finishes them soft enough to fold without cracking. The stack holds an hour. Freeze extras flat, paper between; revive from frozen in a hot dry pan, 20 seconds a side.</p>`},
@@ -581,8 +632,8 @@ function buildPita(){
   const leavenRow=c.leaven==='yeast'?['Instant dried yeast',Math.max(2,Math.round(flour*.012))+' g','1.2%']
    :['Ripe sourdough starter (100%)',round5(flour*.2)+' g','20%'];
   const bake={
-   stone:`Oven at <b>260°C conventional</b> (or its maximum), stone on the middle shelf, preheated a full <b>45 minutes</b> — the stone lags the air by half an hour, and a lukewarm stone is the #1 pocket-killer. Flip each round onto your palm, onto a floured peel or stiff cardboard, slide onto the stone 2–3 at a time. <b>They balloon at 60–90 seconds.</b> Out by 2–3 minutes, before real colour — a browned pita is a crisped pita.`,
-   tray:`Oven at <b>260°C conventional</b> (its angriest), an upturned heavy tray on the middle shelf, preheated <b>40 minutes</b>. Door open, rounds on fast (2–3 at a time), door shut. <b>Balloons at 60–90 seconds</b>, out by 3 minutes, pale gold only.`,
+   stone:`Oven at <b>${ovenT('pita',260)}</b> (or its maximum), stone on the middle shelf, preheated a full <b>45 minutes</b> — the stone lags the air by half an hour, and a lukewarm stone is the #1 pocket-killer. Flip each round onto your palm, onto a floured peel or stiff cardboard, slide onto the stone 2–3 at a time. <b>They balloon at 60–90 seconds.</b> Out by 2–3 minutes, before real colour — a browned pita is a crisped pita.`,
+   tray:`Oven at <b>${ovenT('pita',260)}</b> (its angriest), an upturned heavy tray on the middle shelf, preheated <b>40 minutes</b>. Door open, rounds on fast (2–3 at a time), door shut. <b>Balloons at 60–90 seconds</b>, out by 3 minutes, pale gold only.`,
    stove:`Cast iron on high until water dances, lid standing by. One round on, <b>20 seconds</b>, flip, then <b>lid on</b>: the trapped heat blasts the top and the balloon rises under the lid, 40–60 seconds. A last 10-second flip for freckles if you like. No oil at any point.`,
   }[c.gear];
   const steps=[
@@ -605,7 +656,7 @@ function buildPita(){
    {k:'Bake',t:'Bake — the balloon',dur:'2–3 min each round',
     body:`<p>${bake}</p>
     <figure class="diagram">${d.puff}<figcaption>Flat → blistered → balloon, inside 90 seconds. It never gets old.</figcaption></figure>
-    ${photoFig('Through the oven door: one pita mid-balloon, two flat behind. Shoot a burst — inflation takes 4 seconds. Plus the torn-open pocket, steam escaping.',PHOTOS.pita)}`,
+    ${photoFig(PHOTOS.pita)}`,
     cue:`Done the moment it's <b>fully ballooned and barely blonde</b>. Colour costs softness — browning before puffing means the surface isn't hot enough; give it ten more minutes of preheat.`},
    {k:'Bundle',t:'Trap the softness',dur:'5 min',
     body:`<p>Oven → tea-towel bundle, immediately. They deflate; the pocket survives. The shared steam keeps them cloud-soft. Cut in half, open while warm, fill. Freeze spares the day you bake; ten seconds in the toaster resurrects a frozen pita completely.</p>`},
@@ -655,6 +706,7 @@ function renderSetup(bread){
    sour:[
     optGroup('sour','flour','Flour',[['bakers','Bakers flour'],['plain','Plain flour'],['wholemeal','⅓ wholemeal'],['spelt','⅓ spelt']]),
     optGroup('sour','gear','Bake in',[['dutch','Dutch oven'],['camp','Camp oven'],['tray','Tray + steam'],['tin','Loaf tin']]),
+    optGroup('sour','fan','Your oven',[['no','Conventional'],['yes','Fan-forced']]),
     tempGroup('sour'),
     optGroup('sour','loaves','Loaves',[['1','1'],['2','2'],['3','3'],['4','4']]),
     optGroup('sour','sched','Schedule',[['overnight','Overnight cold proof'],['sameday','Same-day bake']]),
@@ -669,6 +721,7 @@ function renderSetup(bread){
     optGroup('pita','leaven','Leavening',[['yeast','Instant yeast'],['sour','Sourdough starter']]),
     optGroup('pita','flour','Flour',[['bakers','Bakers flour'],['plain','Plain flour'],['wholemeal','⅓ wholemeal']]),
     optGroup('pita','gear','Bake on',[['stone','Pizza stone / steel'],['tray','Upturned tray'],['stove','Stovetop + lid']]),
+    optGroup('pita','fan','Your oven',[['no','Conventional'],['yes','Fan-forced']]),
     tempGroup('pita'),
     optGroup('pita','count','How many pockets',[['6','6'],['8','8'],['10','10'],['12','12']]),
    ],
@@ -695,7 +748,8 @@ function refreshNotes(bread){
     set('gear',SOUR_GEAR[c.gear].note);
     set('temp',c.temp<=19?`<b>${c.temp}°C is a cold kitchen</b> (hello, southern winter). Bulk stretches to ~${hrs(bulkH)} — park the dough in the oven with just the light on and claw most of it back.`
       :c.temp>=29?`<b>${c.temp}°C is a hot kitchen</b> (Brisbane in January). Bulk shrinks to ~${hrs(bulkH)} and the ripe/over line is thin — check every 30 minutes; mix with fridge-cold water.`
-      :`At ${c.temp}°C, bulk runs about <b>${hrs(bulkH)}</b> and the levain ripens in ~${hrs(levH)}. Every timing ahead is already adjusted.`);
+      :`At ${c.temp}°C, bulk runs about <b>${hrs(bulkH)}</b> and the levain ripens in ~${hrs(levH)}. Every timing ahead is already adjusted.`+kitchenNote('sour'));
+    set('fan',c.fan==='yes'?`Every oven temperature in your steps is already converted for <b>fan-forced</b> — no mental arithmetic with floury hands.`:`Temps below are for a <b>conventional</b> oven. Got fan-forced? Flip this and every number converts itself.`);
     set('sched',c.sched==='overnight'?`The fridge is your best ingredient: 12–16 hours cold builds the tang and makes scoring easy. Mix in the afternoon, bake before breakfast.`
       :`Doable, less forgiving — a warm proof gives you a 30-minute window where the fridge gives you four hours. Milder flavour.`);
     const sub=document.querySelector(`[data-ctasub="sour"]`);
@@ -713,7 +767,8 @@ function refreshNotes(bread){
       :`<b>Sourdough starter</b> — your jar moonlighting. Deeper flavour, longer timeline, pockets puff just as hard. The bench swaps the yeast for starter and re-plans every timing.`);
     set('flour',PITA_FLOUR[c.flour].note);
     set('gear',PITA_GEAR[c.gear].note);
-    set('temp',`At ${c.temp}°C with ${c.leaven==='yeast'?'yeast':'starter'}, the first rise runs about <b>${hrs(bulkH)}</b>. ${c.temp>=29?'Hot kitchen: check early — over-risen pita dough blows weak, patchy pockets.':''}`);
+    set('fan',c.fan==='yes'?`Every oven temperature in your steps is already converted for <b>fan-forced</b> — no mental arithmetic with floury hands.`:`Temps below are for a <b>conventional</b> oven. Got fan-forced? Flip this and every number converts itself.`);
+    set('temp',`At ${c.temp}°C with ${c.leaven==='yeast'?'yeast':'starter'}, the first rise runs about <b>${hrs(bulkH)}</b>. ${c.temp>=29?'Hot kitchen: check early — over-risen pita dough blows weak, patchy pockets.':''}`+kitchenNote('pita'));
     const sub=document.querySelector(`[data-ctasub="pita"]`);
     if(sub)sub.textContent=`${c.count} pockets · ${Math.round(PITA_FLOUR[c.flour].hyd*100)}% hydration · rise ≈ ${hrs(bulkH)}`;
     const tr=document.querySelector(`[data-tempread="pita"]`);if(tr)tr.textContent=c.temp;
@@ -821,8 +876,29 @@ function startTimer(min){
 $('#oven-prev').addEventListener('click',()=>{if(oven.i>0){oven.i--;renderOvenStep()}});
 $('#oven-next').addEventListener('click',()=>{
   if(oven.i<oven.steps.length-1){oven.i++;renderOvenStep()}
-  else exitOven();
+  else $('#debrief').classList.add('show');
 });
+['db-ferment','db-result'].forEach(id=>$('#'+id).querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+  $('#'+id).querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+})));
+$('#db-skip').addEventListener('click',()=>{$('#debrief').classList.remove('show');exitOven()});
+$('#db-save').addEventListener('click',()=>{
+  bakeLog.push({bread:oven.bread,ts:Date.now(),
+    ferment:$('#db-ferment .on').dataset.v,result:$('#db-result .on').dataset.v,
+    temp:cfg[oven.bread].temp??null});
+  store.set('log',bakeLog);
+  $('#debrief').classList.remove('show');
+  homeLogLine();
+  exitOven();
+});
+function homeLogLine(){
+  let el=document.getElementById('loglines');
+  if(!el){el=document.createElement('p');el.id='loglines';
+    el.style.cssText='font-family:var(--ui);font-size:13px;font-weight:600;color:var(--proof);margin-top:10px';
+    document.querySelector('.masth').appendChild(el)}
+  el.textContent=bakeLog.length?`📓 ${bakeLog.length} bake${bakeLog.length>1?'s':''} logged — the bench is learning your kitchen.`:'';
+}
+homeLogLine();
 $('#oven-exit').addEventListener('click',exitOven);
 $('#rescue-fab').addEventListener('click',()=>{
   $('#sheet-body').innerHTML=BUILD[oven.bread]().trouble.map(t=>`<details class="tr"><summary>${t.q}</summary><div class="body">${t.a}</div></details>`).join('');
@@ -850,7 +926,7 @@ function wire(root){
     const [bread,key]=group.dataset.cfg.split('.');
     group.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
       group.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
-      b.classList.add('on');cfg[bread][key]=b.dataset.v;
+      b.classList.add('on');cfg[bread][key]=b.dataset.v;saveCfg();
       if(key==='tmode'){
         const dt=group.querySelector('input[type=datetime-local]')||document.querySelector(`input[data-cfg="${bread}.ttarget"]`);
         if(dt){dt.style.display=b.dataset.v==='target'?'inline-block':'none';
@@ -864,11 +940,11 @@ function wire(root){
   });
   root.querySelectorAll('input[type=range][data-cfg]').forEach(r=>{
     const [bread,key]=r.dataset.cfg.split('.');
-    r.addEventListener('input',()=>{cfg[bread][key]=+r.value;refreshNotes(bread)});
+    r.addEventListener('input',()=>{cfg[bread][key]=+r.value;saveCfg();refreshNotes(bread)});
   });
   root.querySelectorAll('input[type=datetime-local][data-cfg]').forEach(d=>{
     const [bread,key]=d.dataset.cfg.split('.');
-    d.addEventListener('change',()=>{cfg[bread][key]=d.value;renderPlan(bread);show('plan-'+bread)});
+    d.addEventListener('change',()=>{cfg[bread][key]=d.value;saveCfg();renderPlan(bread);show('plan-'+bread)});
   });
 }
 wire(document.querySelector('[data-view="home"]'));
