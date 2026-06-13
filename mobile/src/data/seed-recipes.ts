@@ -61,6 +61,7 @@ const SMASH_BURGER: Recipe = {
     {
       id: 'i1', name: 'Beef mince (80/20 fat)', amount: 200, unit: 'g', scales: 'linear',
       prep: 'The fat percentage is the single most important variable. 80/20 means 20% fat — this is what renders into the lacey, crisped edges. Ask your butcher to confirm the ratio, or check the label carefully.',
+      scaling_note: '100g per patty. For a double patty (smash-stack), use 2x100g balls per bun — don\'t increase to 200g per ball or you lose the smash technique.',
       substitutions: [
         {
           ingredient: 'Coles or Woolworths homebrand beef mince',
@@ -124,6 +125,7 @@ const SMASH_BURGER: Recipe = {
     },
     {
       id: 'i4', name: 'White onion, finely diced', amount: 30, unit: 'g', scales: 'linear',
+      scaling_note: 'Dice as fine as you can — raw onion on a burger needs to be small enough to eat without biting through a large chunk.',
       substitutions: [
         {
           ingredient: 'Brown onion',
