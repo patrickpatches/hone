@@ -133,6 +133,17 @@ figure.plan-hero figcaption a{color:var(--crust)}
 /* ───────── plan ───────── */
 .plansum{margin:6px 22px 18px;padding:16px 18px;background:var(--paper-hi);border:1.5px solid var(--rule);border-radius:18px;font-family:var(--body);font-style:italic;font-size:16.5px;color:var(--ink-2)}
 .plansum b{font-style:normal;color:var(--ink)}
+/* at-a-glance stat row (research: metadata row high on a recipe screen) */
+.plan-stats{display:flex;gap:10px;margin:2px 22px 18px}
+.plan-stats .stat{flex:1;background:var(--paper-hi);border:1.5px solid var(--rule);border-radius:var(--r-md);padding:12px 8px;text-align:center;min-width:0}
+.plan-stats .stat svg{width:22px;height:22px;display:block;margin:0 auto 6px;stroke:var(--crust);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.plan-stats .v{font-family:var(--disp);font-weight:700;font-size:19px;line-height:1.05;color:var(--ink);font-variant-numeric:tabular-nums}
+.plan-stats .l{font-family:var(--ui);font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-top:3px}
+/* formula colour swatches (tie the table to the proportion bar) */
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:9px;vertical-align:baseline}
+.sw-flour{background:var(--butter)}.sw-water{background:var(--water)}.sw-lev{background:var(--crust-hi)}.sw-fat{background:var(--proof)}.sw-salt{background:var(--ink)}
+/* long-wait duration chip on the timeline */
+.tl-dur{display:inline-block;font-family:var(--ui);font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--water);background:rgba(57,101,127,.12);border-radius:999px;padding:1px 9px;margin-left:6px;vertical-align:middle}
 h3.plansect{font-family:var(--disp);font-weight:700;font-size:24px;margin:26px 22px 4px}
 .plansub{font-size:14.5px;color:var(--ink-3);margin:0 22px 12px;font-style:italic}
 .massbar{display:flex;height:46px;border-radius:12px;overflow:hidden;margin:0 22px 10px;border:1.5px solid var(--rule)}
@@ -144,8 +155,8 @@ h3.plansect{font-family:var(--disp);font-weight:700;font-size:24px;margin:26px 2
 .massbar .m-salt{background:var(--ink);min-width:14px}
 table.formula{width:calc(100% - 44px);margin:4px 22px;border-collapse:collapse}
 table.formula td{padding:10px 2px;border-bottom:1px solid var(--rule-soft);font-size:16.5px}
-table.formula td.g{font-family:var(--disp);font-weight:700;font-size:20px;text-align:right;white-space:nowrap}
-table.formula td.pc{color:var(--ink-3);font-family:var(--ui);font-size:12px;text-align:right;white-space:nowrap;width:54px}
+table.formula td.g{font-family:var(--disp);font-weight:700;font-size:20px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+table.formula td.pc{color:var(--ink-3);font-family:var(--ui);font-size:12px;text-align:right;white-space:nowrap;width:54px;font-variant-numeric:tabular-nums}
 .formula-foot{font-size:14px;color:var(--ink-3);margin:8px 22px 0;font-style:italic}
 .schedrow{display:flex;flex-wrap:wrap;gap:9px;margin:0 22px 14px}
 .schedrow button{font-size:14px;font-weight:600;padding:12px 18px;min-height:44px;border-radius:999px;border:1.5px solid var(--rule);background:var(--paper-hi);color:var(--ink-2);transition:transform .12s,border-color .12s}
@@ -157,7 +168,7 @@ table.formula td.pc{color:var(--ink-3);font-family:var(--ui);font-size:12px;text
 .tl-item::before{content:'';position:absolute;left:-7px;top:6px;width:13px;height:13px;border-radius:50%;background:var(--paper);border:3px solid var(--crust);box-sizing:border-box}
 .tl-item.sleep::before{border-color:var(--water)}
 .tl-item.sleep{background:rgba(57,101,127,.06);border-radius:0 10px 10px 0;padding-right:12px}
-.tl-when{font-family:var(--disp);font-weight:700;font-size:17px;color:var(--crust)}
+.tl-when{font-family:var(--disp);font-weight:700;font-size:17px;color:var(--crust);font-variant-numeric:tabular-nums}
 .tl-item.sleep .tl-when{color:var(--water)}
 .tl-what{font-size:15px;color:var(--ink-2);line-height:1.45}
 .tl-item.ready::before{background:var(--proof);border-color:var(--proof);width:15px;height:15px;left:-8px}
@@ -893,6 +904,18 @@ function refreshNotes(bread){
   }
 }
 
+const swatchFor=n=>{n=(n||'').toLowerCase();
+  if(n.includes('salt'))return'sw-salt';
+  if(n.includes('water'))return'sw-water';
+  if(n.includes('levain')||n.includes('starter')||n.includes('yeast'))return'sw-lev';
+  if(/lard|butter|oil|honey|sugar|\bfat\b/.test(n))return'sw-fat';
+  if(n.includes('flour')||n.includes('wholemeal')||n.includes('spelt')||n.includes('semolina'))return'sw-flour';
+  return'';};
+const ICON={
+  clock:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 1.8"/></svg>',
+  yield:'<svg viewBox="0 0 24 24"><path d="M4 14a8 5 0 0 1 16 0v3.5H4z"/><path d="M9 14c0-2.4.6-4.4 1.8-5.6"/></svg>',
+  drop:'<svg viewBox="0 0 24 24"><path d="M12 3.5c3.8 4.8 5.6 7.6 5.6 10.4a5.6 5.6 0 0 1-11.2 0c0-2.8 1.8-5.6 5.6-10.4z"/></svg>',
+  steps:'<svg viewBox="0 0 24 24"><path d="M5 18h4v-4M10 14h4v-4M15 10h4V6"/></svg>'};
 function renderPlan(bread){
   const view=$(`[data-view="plan-${bread}"]`);
   const B=BUILD[bread]();
@@ -901,16 +924,28 @@ function renderPlan(bread){
     const pct=m[1]/totalMass*100;
     return `<div class="${m[2]}" style="flex:${Math.max(pct,3)} 0 0">${pct>13?m[0]+' '+m[1]+'g':''}</div>`;
   }).join('');
+  const totalMin=B.timeline.reduce((a,i)=>a+i.durMin,0);
+  const totalTxt=totalMin>=120?`≈${Math.round(totalMin/60)} h`:`${totalMin} min`;
+  const c=cfg[bread];
+  const yieldTxt=bread==='sour'?`${c.loaves} loaf${+c.loaves>1?'s':''}`:bread==='tort'?`${c.count}`:`${c.count}`;
+  const yieldLbl=bread==='sour'?'will bake':bread==='tort'?'tortillas':'pockets';
+  const hyd=bread==='sour'?SOUR_FLOUR[c.flour].hyd:bread==='pita'?PITA_FLOUR[c.flour].hyd:TORT_FLOUR[c.flour].water;
+  const statsRow=`<div class="plan-stats">
+    <div class="stat">${ICON.clock}<div class="v">${totalTxt}</div><div class="l">start to finish</div></div>
+    <div class="stat">${ICON.yield}<div class="v">${yieldTxt}</div><div class="l">${yieldLbl}</div></div>
+    <div class="stat">${ICON.drop}<div class="v">${Math.round(hyd*100)}%</div><div class="l">hydration</div></div>
+  </div>`;
   view.innerHTML=`
    <div class="bar"><button class="back" data-go="setup-${bread}">←</button><span class="crumb">${NAMES[bread]} · the plan</span></div>
    <div class="pad"><h1 class="disp">The plan.</h1></div>
    ${planHero(bread)}
    <div class="plansum">${B.summary}</div>
+   ${statsRow}
 
    <h3 class="plansect">Formula</h3>
    <p class="plansub">Baker's percentages — everything is a fraction of the flour. Scale fearlessly.</p>
    <div class="massbar">${massbar}</div>
-   <table class="formula">${B.formula.map(r=>`<tr><td>${r[0]}</td><td class="g">${r[1]}</td><td class="pc">${r[2]}</td></tr>`).join('')}</table>
+   <table class="formula">${B.formula.map(r=>`<tr><td><span class="sw ${swatchFor(r[0])}"></span>${r[0]}</td><td class="g">${r[1]}</td><td class="pc">${r[2]}</td></tr>`).join('')}</table>
    <div class="formula-foot">${B.foot}</div>
 
    <h3 class="plansect">Timeline</h3>
@@ -924,7 +959,7 @@ function renderPlan(bread){
      const total=B.timeline.reduce((a,i)=>a+i.durMin,0);
      let t=cfg[bread].tmode==='target'&&cfg[bread].ttarget?new Date(new Date(cfg[bread].ttarget).getTime()-total*60000):new Date();
      let out='';
-     for(const it of B.timeline){out+=`<div class="tl-item${it.sleep?' sleep':''}"><div class="tl-when">${fmtClock(t)}</div><div class="tl-what">${it.label}</div></div>`;t=new Date(t.getTime()+it.durMin*60000)}
+     for(const it of B.timeline){const durChip=it.durMin>=120?` <span class="tl-dur">${Math.round(it.durMin/60)} h</span>`:'';out+=`<div class="tl-item${it.sleep?' sleep':''}"><div class="tl-when">${fmtClock(t)}</div><div class="tl-what">${it.label}${durChip}</div></div>`;t=new Date(t.getTime()+it.durMin*60000)}
      return out+`<div class="tl-item ready"><div class="tl-when">${fmtClock(t)}</div><div class="tl-what"><b>Ready.</b></div></div>`;
    })()}</div>
 
