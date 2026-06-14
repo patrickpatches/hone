@@ -185,6 +185,15 @@ figure.photo-real .brief{display:none}
 figure.photo-real.failed img,figure.photo-real.failed figcaption{display:none}
 figure.photo-real.failed .brief{display:block;border:1.5px dashed var(--oven-rule);border-radius:14px;padding:20px 16px;text-align:center;color:var(--oven-ink2);font-size:13px;font-family:var(--ui)}
 figure.photo-real.failed .brief b{color:var(--ember);display:block;margin-bottom:4px}
+/* technique video demo */
+figure.video-demo{margin:18px 0 6px;text-align:center}
+figure.video-demo video{width:100%;max-width:260px;margin:0 auto;border-radius:18px;display:block;background:var(--oven-card);aspect-ratio:480/854;object-fit:cover;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+figure.video-demo figcaption{font-size:13px;color:var(--oven-ink2);margin-top:10px;line-height:1.5;font-family:var(--ui)}
+figure.video-demo .src{opacity:.7}
+figure.video-demo .brief{display:none}
+figure.video-demo.failed video,figure.video-demo.failed figcaption{display:none}
+figure.video-demo.failed .brief{display:block;border:1.5px dashed var(--oven-rule);border-radius:14px;padding:20px 16px;text-align:center;color:var(--oven-ink2);font-size:13px;font-family:var(--ui)}
+figure.video-demo.failed .brief b{color:var(--ember);display:block;margin-bottom:4px}
 /* timer */
 .timerbox{margin:18px 0;text-align:center}
 .timerbox button.tstart{font-family:var(--ui);font-weight:700;font-size:15px;letter-spacing:.06em;color:var(--oven);background:var(--ember);border-radius:999px;padding:14px 26px}
@@ -477,6 +486,18 @@ const photoFig=p=>`<figure class="photo-real">
  <figcaption>${p.alt}.${p.note} <a href="${p.page}" target="_blank" rel="noopener">photo: ${p.credit}</a></figcaption>
  <div class="brief"><b>Photo unavailable offline</b>${p.alt}.</div>
 </figure>`;
+/* Technique video demos — local, offline-first clips that show the motion the
+   line-art can't. Autoplay muted+loop (Android needs muted+playsinline). The
+   poster paints instantly and is the offline / reduced-motion still (see the
+   reduced-motion guard in renderOvenStep). Falls back to .brief if it can't load. */
+const VIDEOS={
+ fold:{src:'assets/bread/fold-demo.mp4',poster:'assets/bread/fold-demo.jpg',alt:'Wet hand stretches the dough up and folds it over — one of four folds in a set',credit:'AI-generated demonstration'},
+};
+const videoFig=v=>`<figure class="video-demo">
+ <video src="${v.src}${AV}" poster="${v.poster}${AV}" autoplay loop muted playsinline preload="metadata" onerror="this.closest('figure').classList.add('failed')"></video>
+ <figcaption>${v.alt}. <span class="src">${v.credit}</span></figcaption>
+ <div class="brief"><b>Demo unavailable offline</b>${v.alt}.</div>
+</figure>`;
 /* Plan-view "finish line" hero — the payoff shot up front, in the planning
    (paper) theme, so you see the goal before committing to a bake. */
 const PLAN_HERO={sour:'loaf',tort:'tort',pita:'pita'};
@@ -566,7 +587,7 @@ function buildSour(){
     cue:`The dough feels alive again — slightly tacky, cohesive, gently resisting when you pull.`},
    {k:'Bulk',t:`Bulk — ${foldCount} sets of folds`,dur:`~${hrs(bulkH)} at ${c.temp}°C`,timer:30,
     body:`<p><b>This is the whole game.</b> For the first ${foldCount===4?'two hours':'90 minutes'}, a set of stretch-and-folds every 30 minutes (${foldCount} sets): wet hand, grab the far side, stretch up ${gentle?'<b>gently — this flour tears before it warns you</b>':'until it resists'}, fold over, quarter-turn, four folds a set. Then leave it alone for the rest of the time.</p>
-    <figure class="diagram">${d.fold}<figcaption>One set = four folds. The dough gets stronger every time.</figcaption></figure>`,
+    ${videoFig(VIDEOS.fold)}`,
     cue:`Grown by <b>half to three-quarters</b>, domed and glossy with fat bubbles, a convex edge where dough meets bowl — and a sharp jiggle moves the whole mass as one, like set panna cotta. ${c.flour==='wholemeal'?'Wholemeal hides its bubbles: trust the rise and the jiggle.':''} If you learn one judgement in bread, learn this one.`,
     rescue:`${cfg.sour.temp>=29?'At your temperature this can run away in half an hour — check at the early end.':'In a cool kitchen the dough is slow, not stuck — give it 45 more minutes before worrying.'} Over-fermented (slack, soupy, boozy)? It won't preshape — bake it in a tin and it's still excellent bread. Never bin it.`,
     ahead:`The 30-min timer below is for your fold intervals. While you wait, clear the bench and find your tea towel — preshape needs open space.`},
@@ -921,6 +942,10 @@ function renderOvenStep(){
    ${s.rescue?`<details class="fold"><summary>Before it goes wrong</summary><div class="fbody">${s.rescue}</div></details>`:''}
    ${s.ahead?`<div class="ahead"><b>While you're here</b>${s.ahead}</div>`:''}`;
   $('#oven-body').scrollTop=0;
+  // Honour reduced-motion: pause demo clips so only the still poster shows.
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){
+    $('#oven-body').querySelectorAll('video').forEach(v=>{v.removeAttribute('autoplay');try{v.pause()}catch{}});
+  }
   const prev=$('#oven-prev'),next=$('#oven-next');
   prev.style.visibility=oven.i===0?'hidden':'visible';
   next.textContent=oven.i===N-1?'Finish — eat it':'Next step';
