@@ -187,7 +187,7 @@ figure.photo-real.failed .brief{display:block;border:1.5px dashed var(--oven-rul
 figure.photo-real.failed .brief b{color:var(--ember);display:block;margin-bottom:4px}
 /* technique video demo */
 figure.video-demo{margin:18px 0 6px;text-align:center}
-figure.video-demo video{width:100%;max-width:260px;margin:0 auto;border-radius:18px;display:block;background:var(--oven-card);aspect-ratio:480/854;object-fit:cover;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+figure.video-demo video{width:100%;max-width:280px;margin:0 auto;border-radius:18px;display:block;background:var(--oven-card);aspect-ratio:480/758;object-fit:cover;box-shadow:0 8px 24px rgba(0,0,0,.45)}
 figure.video-demo figcaption{font-size:13px;color:var(--oven-ink2);margin-top:10px;line-height:1.5;font-family:var(--ui)}
 figure.video-demo .src{opacity:.7}
 figure.video-demo .brief{display:none}
@@ -480,7 +480,7 @@ const PHOTOS={
 };
 /* ?v= cache-bust: a fresh deploy must never serve a browser's stale 404 for
    an image that's since landed. Bump the number whenever the assets change. */
-const AV='?v=3';
+const AV='?v=4';
 const photoFig=p=>`<figure class="photo-real">
  <img src="${p.src}${AV}" alt="${p.alt}" loading="lazy" decoding="async" onerror="this.closest('figure').classList.add('failed')">
  <figcaption>${p.alt}.${p.note} <a href="${p.page}" target="_blank" rel="noopener">photo: ${p.credit}</a></figcaption>
@@ -491,11 +491,11 @@ const photoFig=p=>`<figure class="photo-real">
    poster paints instantly and is the offline / reduced-motion still (see the
    reduced-motion guard in renderOvenStep). Falls back to .brief if it can't load. */
 const VIDEOS={
- fold:{src:'assets/bread/fold-demo.mp4',poster:'assets/bread/fold-demo.jpg',alt:'Wet hand stretches the dough up and folds it over — one of four folds in a set',credit:'AI-generated demonstration'},
+ fold:{src:'assets/bread/fold-demo.mp4',poster:'assets/bread/fold-demo.jpg',alt:'Wet hand stretches the dough up and folds it over — one of four folds in a set'},
 };
 const videoFig=v=>`<figure class="video-demo">
  <video src="${v.src}${AV}" poster="${v.poster}${AV}" autoplay loop muted playsinline preload="metadata" onerror="this.closest('figure').classList.add('failed')"></video>
- <figcaption>${v.alt}. <span class="src">${v.credit}</span></figcaption>
+ <figcaption>${v.alt}.</figcaption>
  <div class="brief"><b>Demo unavailable offline</b>${v.alt}.</div>
 </figure>`;
 /* Plan-view "finish line" hero — the payoff shot up front, in the planning
