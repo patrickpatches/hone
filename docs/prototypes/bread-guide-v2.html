@@ -2,7 +2,7 @@
 <html lang="en-AU">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The Bread Bench — Tucker &amp; Spice</title>
 <!--
   THE BREAD BENCH v2 — full design & UX overhaul.
@@ -229,6 +229,35 @@ details.tr .body b{color:var(--oven-ink)}
 .plan-tr details.tr .body b{color:var(--ink)}
 .foot{padding:36px 22px 30px;font-family:var(--ui);font-size:12px;color:var(--ink-3);text-align:center;line-height:1.7}
 @media(max-width:390px){h1.disp{font-size:36px}.oven-body h2{font-size:34px}}
+
+/* ═══════════ display upgrades ═══════════ */
+html{font-optical-sizing:auto}
+/* balance headlines, tidy body rags (degrades gracefully on older browsers) */
+h1.disp,.bread-card h2,.oven-body h2,h3.plansect{text-wrap:balance}
+.dek,.bread-card p,.plansum,.oven-body p,.plansub,.tl-what{text-wrap:pretty}
+/* card depth + press feedback — the box-shadow transition finally has something to animate */
+.bread-card{box-shadow:0 2px 10px rgba(38,25,11,.07)}
+.bread-card:active{box-shadow:0 1px 5px rgba(38,25,11,.10)}
+.bread-card .card-photo img{transition:transform .25s ease}
+.bread-card:active .card-photo img{transform:scale(1.04)}
+/* images: reserve space (no layout shift) + gentle fade-in over the warm placeholder */
+@keyframes imgIn{from{opacity:0}to{opacity:1}}
+figure.plan-hero img{height:208px;max-height:none}
+figure.photo-real img{aspect-ratio:4/3;min-height:0}
+.card-photo img,figure.plan-hero img,figure.photo-real img{animation:imgIn .5s ease both}
+/* safe-area insets — now active thanks to viewport-fit=cover */
+.masth{padding-top:calc(54px + env(safe-area-inset-top))}
+.bar{padding-top:calc(18px + env(safe-area-inset-top))}
+.cta-dock{padding-bottom:calc(22px + env(safe-area-inset-bottom))}
+/* restore the keyboard focus ring removed by button{border:none} */
+.bread-card:focus-visible,.cta:focus-visible{outline:3px solid var(--crust);outline-offset:3px}
+.opts button:focus-visible,.schedrow button:focus-visible{outline:2.5px solid var(--crust);outline-offset:2px}
+.oven-nav button:focus-visible,#debrief .opts button:focus-visible{outline:2.5px solid var(--ember);outline-offset:2px}
+/* respect the OS reduced-motion setting */
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important}
+  html{scroll-behavior:auto}
+}
 </style>
 </head>
 <body>
@@ -244,7 +273,7 @@ details.tr .body b{color:var(--oven-ink)}
 
   <button class="bread-card" data-go="setup-sour">
     <div class="card-photo">
-      <img src="assets/bread/sourdough-loaf-ear.jpg?v=3" alt="A finished sourdough loaf — deep mahogany crust with a proud ear" loading="lazy" onerror="this.closest('.card-photo').classList.add('noimg')">
+      <img src="assets/bread/sourdough-loaf-ear.jpg?v=3" alt="A finished sourdough loaf — deep mahogany crust with a proud ear" loading="lazy" decoding="async" onerror="this.closest('.card-photo').classList.add('noimg')">
       <svg class="hero" viewBox="0 0 140 110" fill="none" stroke="#9C3F12" stroke-width="2.6" stroke-linecap="round"><ellipse cx="70" cy="72" rx="52" ry="26"/><path d="M30 60 Q70 18 110 60" /><path d="M48 46 q26 -14 50 2" stroke="#C2581F" stroke-dasharray="1 7" stroke-width="3.4"/><path d="M44 58 l54 -16" stroke-width="3"/></svg>
       <div class="bigno">01</div>
     </div>
@@ -258,7 +287,7 @@ details.tr .body b{color:var(--oven-ink)}
 
   <button class="bread-card" data-go="setup-tort">
     <div class="card-photo">
-      <img src="assets/bread/tortilla-rolling.jpg?v=3" alt="Rolling a tortilla thin from the centre out" loading="lazy" onerror="this.closest('.card-photo').classList.add('noimg')">
+      <img src="assets/bread/tortilla-rolling.jpg?v=3" alt="Rolling a tortilla thin from the centre out" loading="lazy" decoding="async" onerror="this.closest('.card-photo').classList.add('noimg')">
       <svg class="hero" viewBox="0 0 140 110" fill="none" stroke="#9C3F12" stroke-width="2.6" stroke-linecap="round"><ellipse cx="70" cy="84" rx="54" ry="11"/><ellipse cx="70" cy="72" rx="54" ry="11"/><ellipse cx="70" cy="60" rx="54" ry="11"/><circle cx="52" cy="56" r="2.4" fill="#C2581F" stroke="none"/><circle cx="84" cy="54" r="3" fill="#C2581F" stroke="none"/><circle cx="68" cy="58" r="2" fill="#C2581F" stroke="none"/></svg>
       <div class="bigno">02</div>
     </div>
@@ -272,7 +301,7 @@ details.tr .body b{color:var(--oven-ink)}
 
   <button class="bread-card" data-go="setup-pita">
     <div class="card-photo">
-      <img src="assets/bread/pita-fresh.jpg?v=3" alt="Fresh pitas, barely blonde with char freckles, pockets intact" loading="lazy" onerror="this.closest('.card-photo').classList.add('noimg')">
+      <img src="assets/bread/pita-fresh.jpg?v=3" alt="Fresh pitas, barely blonde with char freckles, pockets intact" loading="lazy" decoding="async" onerror="this.closest('.card-photo').classList.add('noimg')">
       <svg class="hero" viewBox="0 0 140 110" fill="none" stroke="#9C3F12" stroke-width="2.6" stroke-linecap="round"><path d="M18 84 h104"/><path d="M22 80 q48 -52 96 0"/><path d="M22 80 q48 14 96 0"/><circle cx="58" cy="52" r="2.2" fill="#C2581F" stroke="none"/><circle cx="78" cy="46" r="2.6" fill="#C2581F" stroke="none"/><circle cx="94" cy="58" r="2" fill="#C2581F" stroke="none"/></svg>
       <div class="bigno">03</div>
     </div>
@@ -449,7 +478,7 @@ const PHOTOS={
    an image that's since landed. Bump the number whenever the assets change. */
 const AV='?v=3';
 const photoFig=p=>`<figure class="photo-real">
- <img src="${p.src}${AV}" alt="${p.alt}" loading="lazy" onerror="this.closest('figure').classList.add('failed')">
+ <img src="${p.src}${AV}" alt="${p.alt}" loading="lazy" decoding="async" onerror="this.closest('figure').classList.add('failed')">
  <figcaption>${p.alt}.${p.note} <a href="${p.page}" target="_blank" rel="noopener">photo: ${p.credit}</a></figcaption>
  <div class="brief"><b>Photo unavailable offline</b>${p.alt}.</div>
 </figure>`;
@@ -457,7 +486,7 @@ const photoFig=p=>`<figure class="photo-real">
    (paper) theme, so you see the goal before committing to a bake. */
 const PLAN_HERO={sour:'loaf',tort:'tort',pita:'pita'};
 const planHero=bread=>{const p=PHOTOS[PLAN_HERO[bread]];return `<figure class="plan-hero">
- <img src="${p.src}${AV}" alt="${p.alt}" loading="lazy" onerror="this.closest('figure').remove()">
+ <img src="${p.src}${AV}" alt="${p.alt}" loading="lazy" decoding="async" onerror="this.closest('figure').remove()">
  <figcaption>${p.alt}. <a href="${p.page}" target="_blank" rel="noopener">photo: ${p.credit}</a></figcaption>
 </figure>`;};
 
