@@ -42,6 +42,11 @@
   --disp:'Fraunces',Georgia,serif;
   --body:'Newsreader',Georgia,serif;
   --ui:'Archivo',system-ui,sans-serif;
+  /* ── design tokens (spacing / radius / elevation) ── */
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px; --s-6:32px;
+  --r-sm:12px; --r-md:16px; --r-lg:18px; --r-xl:24px; --r-pill:999px;
+  --tap:48px; /* minimum comfortable touch target */
+  --e-1:0 2px 10px rgba(38,25,11,.07); --e-2:0 8px 24px rgba(38,25,11,.16); --e-3:0 12px 30px rgba(38,25,11,.22);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -54,7 +59,9 @@ button{font-family:var(--ui);cursor:pointer;border:none;background:none;color:in
 
 /* ───────── shared planning chrome ───────── */
 .bar{display:flex;align-items:center;gap:12px;padding:18px 22px 6px;font-family:var(--ui)}
-.bar .back{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--rule);display:flex;align-items:center;justify-content:center;font-size:19px;background:var(--paper-hi)}
+.bar .back{width:48px;height:48px;border-radius:50%;border:1.5px solid var(--rule);display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--paper-hi);transition:transform .12s,border-color .12s}
+.bar .back:hover{border-color:var(--ink-3)}
+.bar .back:active{transform:scale(.94)}
 .bar .crumb{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
 .pad{padding:0 22px}
 h1.disp{font-family:var(--disp);font-weight:900;font-size:42px;line-height:1.02;letter-spacing:-.01em;margin:14px 0 10px}
@@ -96,18 +103,26 @@ figure.plan-hero figcaption a{color:var(--crust)}
 .qgroup:first-of-type{border-top:none}
 .qlabel{font-family:var(--ui);font-size:12px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;display:flex;align-items:baseline;gap:8px}
 .qlabel .soft{letter-spacing:0;text-transform:none;font-weight:500;color:var(--ink-3);font-size:12px}
-.opts{display:flex;flex-wrap:wrap;gap:9px}
-.opts button{font-size:14.5px;font-weight:600;padding:11px 17px;border-radius:999px;border:1.5px solid var(--rule);background:var(--paper-hi);color:var(--ink-2);transition:.12s}
-.opts button.on{background:var(--ink);border-color:var(--ink);color:var(--paper-hi)}
+.opts{display:flex;flex-wrap:wrap;gap:10px}
+.opts button{display:inline-flex;align-items:center;gap:7px;font-size:15px;font-weight:600;padding:13px 18px;min-height:var(--tap);border-radius:var(--r-pill);border:1.5px solid var(--rule);background:var(--paper-hi);color:var(--ink-2);transition:transform .12s, background .12s, border-color .12s, box-shadow .12s}
+.opts button:hover{border-color:var(--ink-3)}
+.opts button:active{transform:scale(.96)}
+.opts button.on{background:var(--ink);border-color:var(--ink);color:var(--paper-hi);box-shadow:var(--e-1)}
+.opts button.on::before{content:'✓';font-size:12px;font-weight:800;opacity:.85}
 .whisper{margin:14px 0 8px;padding:2px 0 2px 16px;border-left:2.5px solid var(--butter);font-family:var(--body);font-style:italic;font-size:16px;line-height:1.55;color:var(--ink-2)}
 .whisper b{font-style:normal;color:var(--ink)}
 /* temperature dial */
-.dial{display:flex;align-items:center;gap:18px;margin:4px 0 10px}
-.dial input[type=range]{flex:1;appearance:none;height:34px;background:transparent}
-.dial input::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--water),var(--butter) 55%,var(--crust-hi))}
-.dial input::-webkit-slider-thumb{appearance:none;width:30px;height:30px;border-radius:50%;background:var(--paper-hi);border:3px solid var(--ink);margin-top:-12px;box-shadow:0 2px 6px rgba(38,25,11,.25)}
-.dial .read{font-family:var(--disp);font-weight:700;font-size:34px;min-width:86px;text-align:right}
-.dial .read small{font-size:16px;font-weight:400;color:var(--ink-3)}
+.dial{display:flex;align-items:center;gap:18px;margin:8px 0 2px}
+.dial input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:var(--tap);background:transparent;cursor:pointer}
+.dial input[type=range]::-webkit-slider-runnable-track{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--water),var(--butter) 55%,var(--crust-hi))}
+.dial input[type=range]::-moz-range-track{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--water),var(--butter) 55%,var(--crust-hi))}
+.dial input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:34px;height:34px;border-radius:50%;background:var(--paper-hi);border:3px solid var(--ink);margin-top:-12px;box-shadow:var(--e-2)}
+.dial input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:var(--paper-hi);border:3px solid var(--ink);box-shadow:var(--e-2)}
+.dial .read{font-family:var(--disp);font-weight:700;font-size:38px;min-width:92px;text-align:right;line-height:1}
+.dial .read small{font-size:18px;font-weight:600;color:var(--ink-3)}
+.dial-cue{font-family:var(--body);font-style:italic;font-size:15px;color:var(--ink-2);margin:0 0 10px;min-height:1.3em}
+.dial-cue b{font-style:normal;color:var(--ink)}
+.dial-cue .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle}
 /* sticky CTA */
 .cta-dock{position:sticky;bottom:0;padding:14px 22px 22px;background:linear-gradient(transparent,var(--paper) 38%)}
 .cta{display:flex;align-items:center;justify-content:space-between;width:100%;background:var(--crust);color:#FFF6EA;border-radius:18px;padding:18px 22px;font-family:var(--ui);font-weight:700;font-size:17px;box-shadow:0 10px 26px rgba(156,63,18,.32);transition:transform .12s}
@@ -133,16 +148,20 @@ table.formula td.g{font-family:var(--disp);font-weight:700;font-size:20px;text-a
 table.formula td.pc{color:var(--ink-3);font-family:var(--ui);font-size:12px;text-align:right;white-space:nowrap;width:54px}
 .formula-foot{font-size:14px;color:var(--ink-3);margin:8px 22px 0;font-style:italic}
 .schedrow{display:flex;flex-wrap:wrap;gap:9px;margin:0 22px 14px}
-.schedrow button{font-size:13.5px;font-weight:600;padding:10px 15px;border-radius:999px;border:1.5px solid var(--rule);background:var(--paper-hi);color:var(--ink-2)}
+.schedrow button{font-size:14px;font-weight:600;padding:12px 18px;min-height:44px;border-radius:999px;border:1.5px solid var(--rule);background:var(--paper-hi);color:var(--ink-2);transition:transform .12s,border-color .12s}
+.schedrow button:active{transform:scale(.96)}
 .schedrow button.on{background:var(--ink);color:var(--paper-hi);border-color:var(--ink)}
 .schedrow input[type=datetime-local]{font-family:var(--ui);font-size:13.5px;padding:9px 12px;border-radius:12px;border:1.5px solid var(--rule);background:var(--paper-hi);color:var(--ink)}
 .timeline{margin:6px 22px 0;border-left:2px solid var(--paper-lo);padding-bottom:6px}
-.tl-item{position:relative;padding:0 0 16px 20px}
-.tl-item::before{content:'';position:absolute;left:-6.5px;top:7px;width:11px;height:11px;border-radius:50%;background:var(--paper);border:2.5px solid var(--crust)}
+.tl-item{position:relative;padding:2px 0 16px 22px}
+.tl-item::before{content:'';position:absolute;left:-7px;top:6px;width:13px;height:13px;border-radius:50%;background:var(--paper);border:3px solid var(--crust);box-sizing:border-box}
 .tl-item.sleep::before{border-color:var(--water)}
+.tl-item.sleep{background:rgba(57,101,127,.06);border-radius:0 10px 10px 0;padding-right:12px}
 .tl-when{font-family:var(--disp);font-weight:700;font-size:17px;color:var(--crust)}
 .tl-item.sleep .tl-when{color:var(--water)}
 .tl-what{font-size:15px;color:var(--ink-2);line-height:1.45}
+.tl-item.ready::before{background:var(--proof);border-color:var(--proof);width:15px;height:15px;left:-8px}
+.tl-item.ready .tl-when{font-size:21px}
 .tl-item.ready .tl-when{color:var(--proof)}
 
 /* ───────── oven mode ───────── */
@@ -196,22 +215,23 @@ figure.video-demo.failed .brief{display:block;border:1.5px dashed var(--oven-rul
 figure.video-demo.failed .brief b{color:var(--ember);display:block;margin-bottom:4px}
 /* timer */
 .timerbox{margin:18px 0;text-align:center}
-.timerbox button.tstart{font-family:var(--ui);font-weight:700;font-size:15px;letter-spacing:.06em;color:var(--oven);background:var(--ember);border-radius:999px;padding:14px 26px}
+.timerbox button.tstart{font-family:var(--ui);font-weight:700;font-size:15.5px;letter-spacing:.06em;color:var(--oven);background:var(--ember);border-radius:999px;padding:16px 30px;min-height:var(--tap);box-shadow:0 6px 18px rgba(255,146,51,.28)}
+.timerbox button.tstart:active{transform:scale(.97)}
 .timerbox .tdisp{font-family:var(--disp);font-weight:900;font-size:64px;color:var(--ember);letter-spacing:.02em;font-variant-numeric:tabular-nums}
 .timerbox .tdisp.done{color:var(--oven-proof);animation:pulse 1s infinite}
 @keyframes pulse{50%{opacity:.45}}
 .timerbox .tstop{font-family:var(--ui);font-size:12.5px;color:var(--oven-ink2);text-decoration:underline;margin-top:4px}
 /* oven nav (thumb zone) */
-.oven-nav{display:flex;gap:12px;padding:14px 20px calc(20px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--oven) 40%)}
-.oven-nav button{flex:1;font-family:var(--ui);font-weight:700;font-size:17px;padding:20px;border-radius:18px;transition:transform .1s}
+.oven-nav{display:flex;gap:16px;padding:14px 20px calc(20px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--oven) 40%)}
+.oven-nav button{flex:1;font-family:var(--ui);font-weight:700;font-size:17px;padding:18px 20px;min-height:56px;border-radius:var(--r-lg);transition:transform .1s}
 .oven-nav button:active{transform:scale(.97)}
-.oven-nav .prev{background:var(--oven-card);color:var(--oven-ink2);border:1.5px solid var(--oven-rule);flex:0 0 30%}
-.oven-nav .next{background:var(--ember);color:#1A0E02}
+.oven-nav .prev{background:var(--oven-card);color:var(--oven-ink);border:1.5px solid var(--oven-rule);flex:0 0 96px}
+.oven-nav .next{background:var(--ember);color:#1A0E02;box-shadow:0 6px 20px rgba(255,146,51,.30)}
 .oven-nav .next.finish{background:var(--oven-proof);color:#06150A}
 #debrief .opts button{font-family:var(--ui);font-size:14.5px;font-weight:600;padding:11px 17px;border-radius:999px;border:1.5px solid var(--oven-rule);background:var(--oven-card);color:var(--oven-ink2);cursor:pointer}
 #debrief .opts button.on{background:rgba(143,203,159,.14);border-color:var(--oven-proof);color:var(--oven-proof)}
 /* rescue */
-.rescue-fab{position:fixed;right:calc(50% - 235px + 16px);bottom:calc(104px + env(safe-area-inset-bottom));z-index:60;font-family:var(--ui);font-size:12.5px;font-weight:700;letter-spacing:.08em;color:var(--oven-ink);background:rgba(18,12,6,.92);border:1.5px solid var(--oven-rule);padding:11px 18px;border-radius:999px;backdrop-filter:blur(6px);display:none;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.rescue-fab{position:fixed;right:calc(50% - 235px + 16px);bottom:calc(104px + env(safe-area-inset-bottom));z-index:60;font-family:var(--ui);font-size:12.5px;font-weight:700;letter-spacing:.08em;color:var(--oven-ink);background:rgba(18,12,6,.92);border:1.5px solid var(--oven-rule);padding:13px 20px;min-height:44px;border-radius:999px;backdrop-filter:blur(6px);display:none;box-shadow:0 6px 18px rgba(0,0,0,.5)}
 @media(max-width:470px){.rescue-fab{right:16px}}
 .rescue-fab.show{display:block}
 .sheet-wrap{position:fixed;inset:0;z-index:100;display:none}
@@ -774,6 +794,15 @@ const NAMES={sour:'Sourdough',tort:'Tortillas',pita:'Pita pockets'};
 
 /* ═══════════════ view templates ═══════════════ */
 function whisper(html){return `<div class="whisper">${html}</div>`}
+/* live "your kitchen" read on the temperature dial — calibration in plain words */
+function tempCue(t){
+  let dot,txt;
+  if(t<=18){dot='var(--water)';txt=`<b>Cool kitchen.</b> The rise takes its time — trust the dough cues over the clock.`;}
+  else if(t<=23){dot='var(--proof)';txt=`<b>Mild.</b> The timings below sit right in their comfort zone.`;}
+  else if(t<=27){dot='var(--butter)';txt=`<b>Warm.</b> Things move along — check at the early end of each window.`;}
+  else{dot='var(--crust-hi)';txt=`<b>Hot.</b> Fast and a little wild — keep an eye on it so it can't run away.`;}
+  return `<span class="dot" style="background:${dot}"></span>${txt}`;
+}
 function optGroup(bread,key,label,opts,soft){
   return `<div class="qgroup"><div class="qlabel">${label}${soft?` <span class="soft">${soft}</span>`:''}</div>
   <div class="opts" data-cfg="${bread}.${key}">${opts.map(o=>`<button data-v="${o[0]}" class="${cfg[bread][key]==o[0]?'on':''}">${o[1]}</button>`).join('')}</div>
@@ -781,8 +810,9 @@ function optGroup(bread,key,label,opts,soft){
 }
 function tempGroup(bread){
   return `<div class="qgroup"><div class="qlabel">Kitchen temperature <span class="soft">the benchtop, not the weather app</span></div>
-  <div class="dial"><input type="range" min="16" max="32" value="${cfg[bread].temp}" data-cfg="${bread}.temp">
+  <div class="dial"><input type="range" min="16" max="32" value="${cfg[bread].temp}" data-cfg="${bread}.temp" aria-label="Kitchen temperature in degrees Celsius">
   <div class="read"><span data-tempread="${bread}">${cfg[bread].temp}</span><small>°C</small></div></div>
+  <div class="dial-cue" data-tempcue="${bread}"></div>
   <div data-note="${bread}.temp"></div></div>`;
 }
 
@@ -841,6 +871,7 @@ function refreshNotes(bread){
     const sub=document.querySelector(`[data-ctasub="sour"]`);
     if(sub)sub.textContent=`${Math.round(SOUR_FLOUR[c.flour].hyd*100)}% hydration · bulk ≈ ${hrs(bulkH)} · ${c.loaves} loaf${+c.loaves>1?'s':''}`;
     const tr=document.querySelector(`[data-tempread="sour"]`);if(tr)tr.textContent=c.temp;
+    const tc=document.querySelector(`[data-tempcue="sour"]`);if(tc)tc.innerHTML=tempCue(c.temp);
   }
   if(bread==='tort'){
     set('flour',TORT_FLOUR[c.flour].note);set('fat',TORT_FAT[c.fat].note);set('gear',TORT_GEAR[c.gear].note);
@@ -858,6 +889,7 @@ function refreshNotes(bread){
     const sub=document.querySelector(`[data-ctasub="pita"]`);
     if(sub)sub.textContent=`${c.count} pockets · ${Math.round(PITA_FLOUR[c.flour].hyd*100)}% hydration · rise ≈ ${hrs(bulkH)}`;
     const tr=document.querySelector(`[data-tempread="pita"]`);if(tr)tr.textContent=c.temp;
+    const tc=document.querySelector(`[data-tempcue="pita"]`);if(tc)tc.innerHTML=tempCue(c.temp);
   }
 }
 
