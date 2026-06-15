@@ -373,16 +373,46 @@ figure.photo-real img{aspect-ratio:4/3;min-height:0}
     </div>
   </button>
 
-  <div class="foot">A Tucker &amp; Spice prototype · metric, °C, Australian flour names throughout.<br>Conventional oven temps — drop 20°C for fan-forced; the steps remind you when it matters.</div>
+  <button class="bread-card" data-go="setup-focaccia">
+    <div class="card-photo noimg">
+      <svg class="hero" viewBox="0 0 140 110" fill="none" stroke="#9C3F12" stroke-width="2.6" stroke-linecap="round"><rect x="20" y="40" width="100" height="46" rx="9"/><circle cx="42" cy="57" r="2.6" fill="#C2581F" stroke="none"/><circle cx="66" cy="63" r="2.6" fill="#C2581F" stroke="none"/><circle cx="92" cy="55" r="2.6" fill="#C2581F" stroke="none"/><circle cx="54" cy="72" r="2.6" fill="#C2581F" stroke="none"/><circle cx="84" cy="73" r="2.6" fill="#C2581F" stroke="none"/></svg>
+      <div class="bigno">04</div>
+    </div>
+    <div class="card-body">
+      <h2>Focaccia</h2>
+      <div class="meta">same-day, no shaping · <b>dimple &amp; drown in oil</b></div>
+      <p>The forgiving one — pour, dimple, bake. Golden, oily, gloriously simple.</p>
+      <span class="go">Set up →</span>
+    </div>
+  </button>
+
+  <button class="bread-card" data-go="setup-pizza">
+    <div class="card-photo noimg">
+      <svg class="hero" viewBox="0 0 140 110" fill="none" stroke="#9C3F12" stroke-width="2.6" stroke-linecap="round"><circle cx="70" cy="58" r="40"/><circle cx="70" cy="58" r="31" stroke-dasharray="1 7"/><circle cx="58" cy="48" r="3.6" fill="#C2581F" stroke="none"/><circle cx="84" cy="54" r="3.6" fill="#C2581F" stroke="none"/><circle cx="66" cy="72" r="3.6" fill="#C2581F" stroke="none"/></svg>
+      <div class="bigno">05</div>
+    </div>
+    <div class="card-body">
+      <h2>Sourdough pizza</h2>
+      <div class="meta">overnight cold proof · <b>blistered, charred</b></div>
+      <p>Friday-night dough that out-bakes the local — if your oven runs hot.</p>
+      <span class="go">Set up →</span>
+    </div>
+  </button>
+
+  <div class="foot">A Tucker &amp; Spice prototype · metric, °C, Australian flour names throughout.<br>Conventional oven temps — drop 20°C for fan-forced; the steps remind you when it matters.<br>Timings &amp; baker's percentages follow <em>The Perfect Loaf</em> (Maurizio Leo).</div>
 </section>
 
 <!-- ═══════════ SETUP / PLAN / shells (filled by JS) ═══════════ -->
 <section data-view="setup-sour"></section>
 <section data-view="setup-tort"></section>
 <section data-view="setup-pita"></section>
+<section data-view="setup-focaccia"></section>
+<section data-view="setup-pizza"></section>
 <section data-view="plan-sour"></section>
 <section data-view="plan-tort"></section>
 <section data-view="plan-pita"></section>
+<section data-view="plan-focaccia"></section>
+<section data-view="plan-pizza"></section>
 
 <!-- ═══════════ OVEN MODE ═══════════ -->
 <section data-view="oven">
@@ -447,6 +477,8 @@ const cfg={
   sour:{flour:'bakers',gear:'dutch',temp:24,loaves:1,sched:'overnight',fan:'no',tmode:'now',ttarget:null},
   tort:{flour:'plain',fat:'lard',gear:'castiron',count:12,tmode:'now',ttarget:null},
   pita:{leaven:'yeast',flour:'bakers',gear:'stone',temp:24,count:8,fan:'no',tmode:'now',ttarget:null},
+  focaccia:{flour:'blend',pan:'tray',sched:'sameday',temp:24,fan:'no',tmode:'now',ttarget:null},
+  pizza:{flour:'00',gear:'steel',count:4,sched:'overnight',temp:24,fan:'no',tmode:'now',ttarget:null},
 };
 
 /* ─── the bench remembers: persisted choices + bake log + kitchen calibration ───
@@ -552,7 +584,7 @@ const videoFig=v=>`<figure class="video-demo">
 /* Plan-view "finish line" hero — the payoff shot up front, in the planning
    (paper) theme, so you see the goal before committing to a bake. */
 const PLAN_HERO={sour:'loaf',tort:'tort',pita:'pita'};
-const planHero=bread=>{const p=PHOTOS[PLAN_HERO[bread]];return `<figure class="plan-hero">
+const planHero=bread=>{const p=PHOTOS[PLAN_HERO[bread]];if(!p)return'';return `<figure class="plan-hero">
  <img src="${p.src}${AV}" alt="${p.alt}" loading="lazy" decoding="async" onerror="this.closest('figure').remove()">
  <figcaption>${p.alt}. <a href="${p.page}" target="_blank" rel="noopener">photo: ${p.credit}</a></figcaption>
 </figure>`;};
@@ -570,8 +602,8 @@ const SOUR_GEAR={
  tray:{note:`<b>Tray + steam</b> — no special pot: a preheated upturned tray to bake on, a second tray on the oven floor for boiling water. Slightly smaller spring, thinner crisper crust.`},
  tin:{note:`<b>Loaf tin</b> — the forgiving option and the right call for sandwich bread. The tin holds the shape, so shaping mistakes vanish. No banneton needed.`},
 };
-const sourBulkHours=()=>{let h=5*tempFactor(cfg.sour.temp)*calib('sour');if(cfg.sour.flour==='wholemeal')h*=.8;return Math.min(10,Math.max(2.5,h))};
-const sourLevainHours=()=>Math.min(12,Math.max(3,5*tempFactor(cfg.sour.temp)*calib('sour')));
+const sourBulkHours=()=>{let h=4*tempFactor(cfg.sour.temp)*calib('sour');if(cfg.sour.flour==='wholemeal')h*=.8;return Math.min(9,Math.max(2.5,h))};
+const sourLevainHours=()=>Math.min(12,Math.max(3,4*tempFactor(cfg.sour.temp)*calib('sour')));
 
 const TORT_FLOUR={
  plain:{water:.58,rest:30,note:`<b>Plain flour is the right choice here</b> — weak gluten is exactly what a tender, foldable tortilla wants. The cheapest bag on the shelf makes the best tortilla in this whole guide.`},
@@ -820,8 +852,144 @@ function buildPita(){
    ]};
 }
 
-const BUILD={sour:buildSour,tort:buildTort,pita:buildPita};
-const NAMES={sour:'Sourdough',tort:'Tortillas',pita:'Pita pockets'};
+/* ── Focaccia & Sourdough pizza — formulas + timings matched to The Perfect Loaf ── */
+const FOCACCIA_FLOUR={
+ blend:{hyd:.80,expect:'a tall, open, olive-oil-rich crumb'},
+ strong:{hyd:.82,expect:'extra chew and an even bigger rise'},
+};
+const focacciaBulkH=()=>Math.min(3.5,Math.max(1.25,2*tempFactor(cfg.focaccia.temp)*calib('focaccia')));
+const focacciaProofH=()=>Math.min(6,Math.max(2,4*tempFactor(cfg.focaccia.temp)*calib('focaccia')));
+function buildFocaccia(){
+  const c=cfg.focaccia,F=FOCACCIA_FLOUR[c.flour];
+  const flour=c.pan==='tray'?500:400,water=Math.round(flour*F.hyd),salt=Math.round(flour*.02),lev=Math.round(flour*.2),oil=Math.round(flour*.05);
+  const bulkH=focacciaBulkH(),proofH=c.sched==='overnight'?14:focacciaProofH(),levH=sourLevainHours();
+  const panName=c.pan==='tray'?'a 23 × 33 cm (9 × 13″) tray':'two 20 cm round tins';
+  const steps=[
+   {k:'Build',t:'Build the levain',dur:`~${hrs(levH)} at ${c.temp}°C`,timer:Math.round(levH*60),
+    body:`<p>In a jar: <b>${Math.round(lev/5)} g starter, ${Math.round(lev*2/5)} g flour, ${Math.round(lev*2/5)} g water</b>. Mark the level, lid loose. Or skip the jar and use a ripe starter at its peak — focaccia is forgiving.</p>`,
+    cue:`Doubled, domed and bubbly, smelling of yoghurt and green apple. A spoonful floats.`,
+    ahead:`Pick your tray and find the olive oil — the good stuff, this is where it shines.`},
+   {k:'Mix',t:'Mix the dough',dur:'10 min',
+    body:`<p>Combine flour, water, levain and salt to a shaggy mass. Then drizzle in the <b>${oil} g olive oil</b> a little at a time, squelching it through with a wet hand until the dough drinks it up and comes back together. It will be <b>very wet and loose</b> — that's right; high hydration is the whole point.</p>`,
+    cue:`Slack, shiny, stretchy — more batter than dough. Resist adding flour.`},
+   {k:'Bulk',t:'Bulk — 4 sets of folds',dur:`~${hrs(bulkH)} at ${c.temp}°C`,timer:30,
+    body:`<p>In the bowl, <b>4 sets of stretch-and-folds, every 30 minutes</b> — wet hand, lift the far edge up and over, quarter-turn, four folds a set. Between sets it just sits.</p>
+    ${videoFig(VIDEOS.fold)}`,
+    cue:`Smoother and puffier each set; by the last it's billowy and holds a soft dome. Risen by about half.`,
+    why:`Folds are all the strength this wet dough gets — there's no shaping later to build it.`},
+   {k:'Pan',t:'Into the pan',dur:'5 min',
+    body:`<p>Pour <b>2–3 tbsp olive oil</b> into ${panName} and spread it up the sides — be generous, oil is how focaccia gets its fried-bottom crust and how it lets go of the pan. Tip the dough in, turn it once to coat, and gently coax it toward the corners. It won't reach yet — that's fine.</p>`},
+   c.sched==='overnight'
+   ?{k:'Proof',t:'Cold proof overnight',dur:'12–16 h',
+     body:`<p>Cover the pan and into the fridge, <b>12–16 hours</b>. Tomorrow, pull it out and let it warm and finish rising on the bench for <b>1–2 hours</b> until pillowy before dimpling.</p>`,
+     cue:`Puffy, wobbly, edges creeping toward the corners, bubbles under the surface.`,
+     ahead:`Switch the oven to ${ovenT('focaccia',230)} an hour before you want to bake.`}
+   :{k:'Proof',t:'Proof in the pan',dur:`~${hrs(proofH)}`,timer:Math.round(proofH*60),
+     body:`<p>Cover and proof at ${c.temp}°C, about <b>${hrs(proofH)}</b>. For the first hour, every 30 minutes wet your hands and gently stretch the dough toward the corners — it relaxes a little more each time.</p>`,
+     cue:`Filled the pan, jiggly and full of bubbles, doubled and proud.`},
+   {k:'Dimple',t:'Dimple and top',dur:'5 min',
+    body:`<p>Heat the oven to <b>${ovenT('focaccia',230)}</b>. Drizzle the top with more olive oil, then drive <b>all ten fingers straight down</b> to the pan, all over — bold dimples, almost rough. Scatter <b>flaky salt</b> and rosemary (cherry tomatoes, olives, thinly-sliced onion all welcome). A light brush of water over the top keeps it from drying.</p>`,
+    cue:`Deep dimples that hold little pools of oil — those become the crisp, salty craters everyone fights over.`},
+   {k:'Bake',t:'Bake',dur:'25–30 min',timer:25,
+    body:`<p><b>${ovenT('focaccia',230)}</b> on a middle-to-upper shelf, <b>25–30 minutes</b>, until deep gold all over and the edges have pulled from the pan. Lift a corner with a spatula to check the base is browned and crisp.</p>`,
+    cue:`Burnished gold top, audibly crisp underside, the kitchen smelling of fried olive oil.`,
+    why:`Out of the pan and onto a rack straightaway — left in the hot tin the bottom steams and softens.`},
+  ];
+  const items=[
+   {label:'Build the levain',durMin:levH*60},
+   {label:'Mix — work in the olive oil',durMin:10},
+   {label:`Bulk with 4 folds (~${hrs(bulkH)} at ${c.temp}°C)`,durMin:bulkH*60},
+   {label:'Into the oiled pan',durMin:5},
+   c.sched==='overnight'?{label:'Cold proof overnight (12–16 h), then 1–2 h warm-up',durMin:14*60,sleep:true}
+                        :{label:`Proof in the pan (~${hrs(proofH)})`,durMin:proofH*60},
+   {label:'Dimple, oil and top',durMin:10},
+   {label:'Bake',durMin:28},
+   {label:'Cool on a rack',durMin:20,sleep:true},
+  ];
+  return {
+   summary:`<b>${c.pan==='tray'?'One 23 × 33 cm slab':'two rounds'}</b> · ${c.flour==='blend'?'strong + plain blend':'all strong flour'} at <b>${Math.round(F.hyd*100)}% hydration</b> · ${oil} g olive oil in the dough · ${c.sched==='overnight'?'overnight cold proof':'same-day'}. Expect ${F.expect}.`,
+   mass:[['flour',flour,'m-flour'],['water',water,'m-water'],['levain',lev,'m-lev'],['oil',oil,'m-fat'],['salt',salt,'m-salt']],
+   formula:[['Bakers / strong flour',round5(flour),'100%'],[`Water`,round5(water)+' g',Math.round(F.hyd*100)+'%'],['Ripe levain (100% hydration)',lev+' g','20%'],['Extra-virgin olive oil',oil+' g','5%'],['Fine salt',salt+' g','2%']],
+   foot:`Plus olive oil for the pan and the top — be generous. Levain = ${Math.round(lev/5)} g starter + ${Math.round(lev*2/5)} g flour + ${Math.round(lev*2/5)} g water, built ${hrs(levH)} ahead.`,
+   timeline:items,steps,
+   trouble:[
+    {q:'Dense, not airy',a:`Under-proofed, almost always. High-hydration dough needs to look genuinely <b>jiggly and bubbly</b> before it bakes — give it more time on the bench (warmer is faster). A weak or sluggish starter is the next suspect.`},
+    {q:'Stuck to the pan',a:`Not enough oil. Focaccia wants far more than feels reasonable — a 2–3 mm pool in the base. Next time oil the pan, then oil it again.`},
+    {q:'Pale, soft bottom',a:`Bake longer and lower in the oven — the base needs direct heat to fry crisp in the oil. Out of the tin onto a rack the moment it's done.`},
+   ]};
+}
+
+const PIZZA_FLOUR={
+ '00':{hyd:.68,expect:'a tender, blistered Neapolitan-style base'},
+ bakers:{hyd:.70,expect:'a chewier, sturdier crust that carries toppings'},
+ wholemeal:{hyd:.72,expect:'a nuttier, rustic base'},
+};
+const PIZZA_GEAR={
+ steel:{t:290,note:'Baking steel'},
+ stone:{t:285,note:'Pizza stone'},
+ tray:{t:260,note:'Upturned tray'},
+};
+const pizzaBulkH=()=>Math.min(4,Math.max(1.5,2.5*tempFactor(cfg.pizza.temp)*calib('pizza')));
+function buildPizza(){
+  const c=cfg.pizza,F=PIZZA_FLOUR[c.flour],G=PIZZA_GEAR[c.gear],n=+c.count;
+  const flour=round5(n*129),water=Math.round(flour*F.hyd),salt=Math.round(flour*.02),lev=Math.round(flour*.2),oil=Math.round(flour*.02);
+  const bulkH=pizzaBulkH(),levH=sourLevainHours();
+  const steps=[
+   {k:'Build',t:'Build the levain',dur:`~${hrs(levH)} at ${c.temp}°C`,timer:Math.round(levH*60),
+    body:`<p>In a jar: <b>${Math.round(lev/5)} g starter, ${Math.round(lev*2/5)} g flour, ${Math.round(lev*2/5)} g water</b>. Mark it, lid loose, until doubled and bubbly.</p>`,
+    cue:`Doubled, domed, smells of yoghurt — floats in water.`,
+    ahead:`This dough wants an overnight in the fridge, so build the levain the morning before you want pizza.`},
+   {k:'Mix',t:'Mix the dough',dur:'10 min',
+    body:`<p>Combine flour, water, levain and salt until no dry flour remains, then work in the <b>${oil} g olive oil</b>. Mix or pinch-and-fold two minutes until smooth-ish. Cover.</p>`,
+    cue:`Cohesive and a little tacky — not as wet as bread dough.`},
+   {k:'Bulk',t:`Bulk — 3 sets of folds`,dur:`~${hrs(bulkH)} at ${c.temp}°C`,timer:30,
+    body:`<p><b>3 sets of stretch-and-folds, every 30 minutes</b>, then leave it to finish the bulk. The Perfect Loaf runs this short and warm — about <b>${hrs(bulkH)}</b> total.</p>
+    ${videoFig(VIDEOS.fold)}`,
+    cue:`Smooth, risen by a third, springy and strong.`},
+   {k:'Ball',t:`Divide into ${n} balls`,dur:'10 min',
+    body:`<p>Tip out and divide into <b>${n} × ~250 g</b> pieces. Cup each against the bench and drag into a tight, smooth ball. Space them in an oiled container or tray, well apart.</p>`,
+    cue:`Taut, round, seam pinched underneath — a smooth skin with no tears.`},
+   c.sched==='overnight'
+   ?{k:'Proof',t:'Cold proof overnight',dur:'24–72 h',
+     body:`<p>Lid on, into the fridge — <b>at least overnight, up to 3 days</b>. The long cold proof is where sourdough pizza earns its flavour and digestibility. Take the balls out <b>1–2 hours</b> before baking to warm up.</p>`,
+     cue:`Relaxed, puffed, slack but not collapsed; a few bubbles under the skin.`,
+     ahead:`An hour before baking, slide the ${G.note.toLowerCase()} onto the top shelf and crank the oven to ${ovenT('pizza',G.t)}.`}
+   :{k:'Proof',t:'Bench proof',dur:'2–3 h',timer:150,
+     body:`<p>Cover and leave at ${c.temp}°C for <b>2–3 hours</b> until relaxed and puffy. (Same-day is quicker; the overnight cold proof tastes better.)</p>`,
+     cue:`Puffed and jiggly, spreading slightly when nudged.`},
+   {k:'Preheat',t:'Preheat — hot as it goes',dur:'45–60 min',timer:50,
+    body:`<p>Put the <b>${G.note.toLowerCase()}</b> on the top shelf and preheat to <b>${ovenT('pizza',G.t)}</b> for a full <b>45–60 minutes</b>. Home ovens cap out long below a real pizza oven, so the stored heat in the ${c.gear==='steel'?'steel':c.gear==='stone'?'stone':'tray'} is everything — don't rush it.</p>`,
+    ahead:`Set up a peel or an upturned tray with semolina or flour so the pizza slides.`},
+   {k:'Stretch',t:'Stretch, top and bake',dur:'8–10 min each',timer:8,
+    body:`<p>Gently stretch a ball to ~30 cm on a floured bench — <b>press from the centre out, leave the rim</b>, never use a rolling pin (it knocks the air out). Top <b>lightly</b> — a heavy pizza steams instead of crisps. Launch onto the hot ${c.gear}, bake <b>${c.gear==='tray'?'8–10':'6–8'} minutes</b> until the crust is puffed and charred in spots.</p>`,
+    cue:`A blistered, leopard-spotted rim, the base set and crisp enough to hold a slice flat.`,
+    why:`Grill/broiler on for the last minute chars the top like a real oven. One pizza at a time; let the ${c.gear} recover its heat between.`},
+  ];
+  const items=[
+   {label:'Build the levain',durMin:levH*60},
+   {label:'Mix the dough',durMin:10},
+   {label:`Bulk with 3 folds (~${hrs(bulkH)} at ${c.temp}°C)`,durMin:bulkH*60},
+   {label:`Divide into ${n} balls`,durMin:10},
+   c.sched==='overnight'?{label:'Cold proof overnight (or up to 3 days), then 1–2 h warm-up',durMin:14*60,sleep:true}
+                        :{label:'Bench proof (2–3 h)',durMin:150},
+   {label:'Preheat the steel/stone, screaming hot',durMin:55},
+   {label:`Stretch, top and bake (~${c.gear==='tray'?9:7} min each)`,durMin:(c.gear==='tray'?9:7)*n},
+  ];
+  return {
+   summary:`<b>${n} × 250 g balls</b> · ${ {'00':'00 flour',bakers:'bakers flour',wholemeal:'wholemeal blend'}[c.flour] } at <b>${Math.round(F.hyd*100)}% hydration</b> · ${G.note.toLowerCase()} at ${ovenT('pizza',G.t).split(' ')[0]} · ${c.sched==='overnight'?'overnight cold proof':'same-day'}. Expect ${F.expect}.`,
+   mass:[['flour',flour,'m-flour'],['water',water,'m-water'],['levain',lev,'m-lev'],['oil',oil,'m-fat'],['salt',salt,'m-salt']],
+   formula:[[ {'00':'00 flour',bakers:'Bakers flour',wholemeal:'Wholemeal blend'}[c.flour],round5(flour),'100%'],['Water',round5(water)+' g',Math.round(F.hyd*100)+'%'],['Ripe levain (100% hydration)',lev+' g','20%'],['Olive oil',oil+' g','2%'],['Fine salt',salt+' g','2%']],
+   foot:`~250 g per ball → one ~30 cm pizza each. Levain = ${Math.round(lev/5)} g starter + ${Math.round(lev*2/5)} g flour + ${Math.round(lev*2/5)} g water.`,
+   timeline:items,steps,
+   trouble:[
+    {q:'Base won\'t crisp / pale and floppy',a:`Not hot enough, or under-preheated. The ${G.note.toLowerCase()} needs a full hour to load up; bake on the top shelf so the rim chars. A lighter hand with toppings helps too.`},
+    {q:'Dough tears or won\'t stretch',a:`Cold or under-rested — let the balls warm 1–2 hours out of the fridge. If it springs back, walk away 15 minutes and try again. Never fight it with a rolling pin.`},
+    {q:'No bubbles, dense rim',a:`Under-proofed balls, or a tired starter. Give them longer in the cold (even 2–3 days) and make sure the levain doubles reliably first.`},
+   ]};
+}
+
+const BUILD={sour:buildSour,tort:buildTort,pita:buildPita,focaccia:buildFocaccia,pizza:buildPizza};
+const NAMES={sour:'Sourdough',tort:'Tortillas',pita:'Pita pockets',focaccia:'Focaccia',pizza:'Sourdough pizza'};
 
 /* ═══════════════ view templates ═══════════════ */
 function whisper(html){return `<div class="whisper">${html}</div>`}
@@ -879,11 +1047,28 @@ function renderSetup(bread){
     tempGroup('pita'),
     segGroup('pita','count','How many pockets',[['6','6'],['8','8'],['10','10'],['12','12']]),
    ],
+   focaccia:[
+    cardGroup('focaccia','flour','Flour',[['blend','Strong + plain blend','30% strong / 70% plain — tall, open, classic.'],['strong','All strong flour','More chew and an even bigger rise.']]),
+    cardGroup('focaccia','pan','Pan',[['tray','23 × 33 cm tray','One generous slab — the crowd-pleaser.'],['round','Two 20 cm rounds','Thicker, taller, pull-apart wedges.']]),
+    cardGroup('focaccia','sched','Schedule',[['sameday','Same day','Mix in the morning, bake before dinner.'],['overnight','Overnight cold proof','Deeper flavour — fridge tonight, bake tomorrow.']]),
+    segGroup('focaccia','fan','Your oven',[['no','Conventional'],['yes','Fan-forced']]),
+    tempGroup('focaccia'),
+   ],
+   pizza:[
+    cardGroup('pizza','flour','Flour',[['00','00 flour','Fine Italian flour — tender, blistered Neapolitan base.'],['bakers','Bakers flour','Chewier, sturdier — carries heavy toppings.'],['wholemeal','⅓ wholemeal','Nuttier and rustic.']]),
+    cardGroup('pizza','gear','Bake on',[['steel','Baking steel','Stores the most heat — the crispest, fastest base.'],['stone','Pizza stone','The classic — great char, a touch slower than steel.'],['tray','Upturned tray','No stone needed — slightly longer bake.']]),
+    cardGroup('pizza','sched','Schedule',[['overnight','Cold proof (1–3 days)','The flavour move — and easier to stretch.'],['sameday','Same day','Pizza tonight — quicker, milder.']]),
+    segGroup('pizza','fan','Your oven',[['no','Conventional'],['yes','Fan-forced']]),
+    tempGroup('pizza'),
+    segGroup('pizza','count','How many bases',[['2','2'],['4','4'],['6','6'],['8','8']]),
+   ],
   }[bread];
   const intro={
    sour:`Watch the dough, not the clock — everything below rewrites itself around four choices.`,
    tort:`Here you're <em>avoiding</em> gluten strength, not building it. The cheap flour wins.`,
    pita:`Everything below either protects the steam pocket or sabotages it — and the bench tells you which.`,
+   focaccia:`The forgiving one — no shaping, no scoring. Pour, dimple, drown it in good oil.`,
+   pizza:`Built around an overnight cold proof — the move that makes sourdough pizza worth it.`,
   }[bread];
   view.innerHTML=`
    <div class="bar"><button class="back" data-go="home">←</button><span class="crumb">${NAMES[bread]} · set up</span></div>
@@ -928,6 +1113,20 @@ function refreshNotes(bread){
     if(sub)sub.textContent=`${c.count} pockets · ${Math.round(PITA_FLOUR[c.flour].hyd*100)}% hydration · rise ≈ ${hrs(bulkH)}`;
     const tr=document.querySelector(`[data-tempread="pita"]`);if(tr)tr.textContent=c.temp;
     const tc=document.querySelector(`[data-tempcue="pita"]`);if(tc)tc.innerHTML=tempCue(c.temp);
+  }
+  if(bread==='focaccia'){
+    const bulkH=focacciaBulkH();
+    const sub=document.querySelector(`[data-ctasub="focaccia"]`);
+    if(sub)sub.textContent=`${Math.round(FOCACCIA_FLOUR[c.flour].hyd*100)}% hydration · bulk ≈ ${hrs(bulkH)} · ${c.sched==='overnight'?'overnight':'same-day'}`;
+    const tr=document.querySelector(`[data-tempread="focaccia"]`);if(tr)tr.textContent=c.temp;
+    const tc=document.querySelector(`[data-tempcue="focaccia"]`);if(tc)tc.innerHTML=tempCue(c.temp);
+  }
+  if(bread==='pizza'){
+    const bulkH=pizzaBulkH();
+    const sub=document.querySelector(`[data-ctasub="pizza"]`);
+    if(sub)sub.textContent=`${c.count} bases · ${Math.round(PIZZA_FLOUR[c.flour].hyd*100)}% hydration · ${c.sched==='overnight'?'cold-proofed':'same-day'}`;
+    const tr=document.querySelector(`[data-tempread="pizza"]`);if(tr)tr.textContent=c.temp;
+    const tc=document.querySelector(`[data-tempcue="pizza"]`);if(tc)tc.innerHTML=tempCue(c.temp);
   }
 }
 
