@@ -1168,9 +1168,10 @@ function renderPlan(bread){
   const totalMin=B.timeline.reduce((a,i)=>a+i.durMin,0);
   const totalTxt=totalMin>=120?`≈${Math.round(totalMin/60)} h`:`${totalMin} min`;
   const c=cfg[bread];
-  const yieldTxt=bread==='sour'?`${c.loaves} loaf${+c.loaves>1?'s':''}`:bread==='tort'?`${c.count}`:`${c.count}`;
-  const yieldLbl=bread==='sour'?'will bake':bread==='tort'?'tortillas':'pockets';
-  const hyd=bread==='sour'?SOUR_FLOUR[c.flour].hyd:bread==='pita'?PITA_FLOUR[c.flour].hyd:TORT_FLOUR[c.flour].water;
+  const YIELD={sour:[`${c.loaves}`,'loaf'+(+c.loaves>1?'s':'')],tort:[`${c.count}`,'tortillas'],pita:[`${c.count}`,'pockets'],focaccia:[c.pan==='tray'?'1':'2',c.pan==='tray'?'slab':'rounds'],pizza:[`${c.count}`,'bases']}[bread];
+  const yieldTxt=YIELD[0],yieldLbl=YIELD[1];
+  const hydFn={sour:()=>SOUR_FLOUR[c.flour].hyd,pita:()=>PITA_FLOUR[c.flour].hyd,tort:()=>TORT_FLOUR[c.flour].water,focaccia:()=>FOCACCIA_FLOUR[c.flour].hyd,pizza:()=>PIZZA_FLOUR[c.flour].hyd}[bread];
+  const hyd=hydFn?hydFn():0;
   const statsRow=`<div class="plan-stats">
     <div class="stat">${ICON.clock}<div class="v">${totalTxt}</div><div class="l">start to finish</div></div>
     <div class="stat">${ICON.yield}<div class="v">${yieldTxt}</div><div class="l">${yieldLbl}</div></div>
