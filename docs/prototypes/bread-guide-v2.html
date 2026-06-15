@@ -178,6 +178,13 @@ table.formula td{padding:10px 2px;border-bottom:1px solid var(--rule-soft);font-
 table.formula td.g{font-family:var(--disp);font-weight:700;font-size:20px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 table.formula td.pc{color:var(--ink-3);font-family:var(--ui);font-size:12px;text-align:right;white-space:nowrap;width:54px;font-variant-numeric:tabular-nums}
 .formula-foot{font-size:14px;color:var(--ink-3);margin:8px 22px 0;font-style:italic}
+/* source attribution card — credit + link the original chef */
+.plan-credit{display:block;margin:24px 22px 0;padding:14px 16px;background:var(--paper-hi);border:1.5px solid var(--rule);border-radius:var(--r-md);text-decoration:none;transition:transform .12s,border-color .12s}
+.plan-credit:hover{border-color:var(--ink-3)}
+.plan-credit:active{transform:scale(.99)}
+.plan-credit .pc-k{display:block;font-family:var(--ui);font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+.plan-credit .pc-r{display:block;font-family:var(--disp);font-weight:700;font-size:18px;color:var(--ink);margin-top:3px}
+.plan-credit .pc-c{display:block;font-family:var(--ui);font-size:12.5px;font-weight:600;color:var(--crust);margin-top:2px}
 .schedrow{display:flex;flex-wrap:wrap;gap:9px;margin:0 22px 14px}
 .schedrow button{font-size:14px;font-weight:600;padding:12px 18px;min-height:44px;border-radius:999px;border:1.5px solid var(--rule);background:var(--paper-hi);color:var(--ink-2);transition:transform .12s,border-color .12s}
 .schedrow button:active{transform:scale(.96)}
@@ -990,6 +997,14 @@ function buildPizza(){
 
 const BUILD={sour:buildSour,tort:buildTort,pita:buildPita,focaccia:buildFocaccia,pizza:buildPizza};
 const NAMES={sour:'Sourdough',tort:'Tortillas',pita:'Pita pockets',focaccia:'Focaccia',pizza:'Sourdough pizza'};
+/* Source attribution — credit + link the chef whose method each recipe is built on
+   (Golden Rule #1). We link to the original rather than copy their photos or words. */
+const SOURCES={
+ sour:{chef:'Maurizio Leo · The Perfect Loaf',recipe:'Beginner’s Sourdough Bread',url:'https://www.theperfectloaf.com/beginners-sourdough-bread/'},
+ focaccia:{chef:'Maurizio Leo · The Perfect Loaf',recipe:'A Simple Focaccia',url:'https://www.theperfectloaf.com/a-simple-focaccia/'},
+ pizza:{chef:'Maurizio Leo · The Perfect Loaf',recipe:'Sourdough Pizza Dough',url:'https://www.theperfectloaf.com/sourdough-pizza-dough-and-recipes/'},
+};
+const sourceCredit=bread=>{const s=SOURCES[bread];if(!s)return'';return `<a class="plan-credit" href="${s.url}" target="_blank" rel="noopener"><span class="pc-k">Method adapted from</span><span class="pc-r">${s.recipe}</span><span class="pc-c">${s.chef} ↗</span></a>`;};
 
 /* ═══════════════ view templates ═══════════════ */
 function whisper(html){return `<div class="whisper">${html}</div>`}
@@ -1192,6 +1207,7 @@ function renderPlan(bread){
    <h3 class="plansect">When it goes sideways</h3>
    <p class="plansub">Also one tap away mid-bake — look for <b>Something's wrong?</b> in Oven Mode.</p>
    <div class="plan-tr" style="padding:0 22px">${B.trouble.map(t=>`<details class="tr"><summary>${t.q}</summary><div class="body">${t.a}</div></details>`).join('')}</div>
+   ${sourceCredit(bread)}
 
    <div class="cta-dock"><button class="cta" data-oven="${bread}"><span>Start baking<span class="sub">Oven Mode — one step at a time, ${B.steps.length} steps</span></span><span class="arrow">→</span></button></div>`;
   wire(view);
