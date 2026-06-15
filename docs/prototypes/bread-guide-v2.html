@@ -109,6 +109,19 @@ figure.plan-hero figcaption a{color:var(--crust)}
 .opts button:active{transform:scale(.96)}
 .opts button.on{background:var(--ink);border-color:var(--ink);color:var(--paper-hi);box-shadow:var(--e-1)}
 .opts button.on::before{content:'✓';font-size:12px;font-weight:800;opacity:.85}
+/* selectable cards — for the high-consequence choice (flour): trade-off visible before you tap */
+.cards{display:block}
+.ocard{position:relative;display:block;width:100%;text-align:left;background:var(--paper-hi);border:1.5px solid var(--rule);border-radius:var(--r-md);padding:14px 46px 14px 16px;margin-bottom:10px;transition:transform .12s,border-color .12s,background .12s,box-shadow .12s;cursor:pointer}
+.ocard:hover{border-color:var(--ink-3)}
+.ocard:active{transform:scale(.99)}
+.ocard .ocard-t{display:block;font-family:var(--ui);font-weight:700;font-size:16px;color:var(--ink)}
+.ocard .ocard-d{display:block;font-family:var(--body);font-style:italic;font-size:14.5px;color:var(--ink-2);margin-top:3px;line-height:1.4}
+.ocard .ocard-tick{position:absolute;top:15px;right:15px;width:22px;height:22px;border-radius:50%;border:2px solid var(--rule);box-sizing:border-box}
+.ocard.on{border-color:var(--crust);background:var(--crust-soft);box-shadow:var(--e-1)}
+.ocard.on .ocard-t{color:var(--crust)}
+.ocard.on .ocard-tick{background:var(--crust);border-color:var(--crust)}
+.ocard.on .ocard-tick::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#FFF6EA;font-size:13px;font-weight:800}
+.ocard:focus-visible{outline:2.5px solid var(--crust);outline-offset:2px}
 .whisper{margin:14px 0 8px;padding:2px 0 2px 16px;border-left:2.5px solid var(--butter);font-family:var(--body);font-style:italic;font-size:16px;line-height:1.55;color:var(--ink-2)}
 .whisper b{font-style:normal;color:var(--ink)}
 /* temperature dial */
@@ -819,6 +832,12 @@ function optGroup(bread,key,label,opts,soft){
   <div class="opts" data-cfg="${bread}.${key}">${opts.map(o=>`<button data-v="${o[0]}" class="${cfg[bread][key]==o[0]?'on':''}">${o[1]}</button>`).join('')}</div>
   <div data-note="${bread}.${key}"></div></div>`;
 }
+/* like optGroup, but each option is a card carrying a one-line "what you'll get" — for the choice that most rewards foresight. opts: [value,label,tagline] */
+function cardGroup(bread,key,label,opts){
+  return `<div class="qgroup"><div class="qlabel">${label}</div>
+  <div class="cards" data-cfg="${bread}.${key}">${opts.map(o=>`<button class="ocard ${cfg[bread][key]==o[0]?'on':''}" data-v="${o[0]}"><span class="ocard-t">${o[1]}</span><span class="ocard-d">${o[2]}</span><span class="ocard-tick"></span></button>`).join('')}</div>
+  <div data-note="${bread}.${key}"></div></div>`;
+}
 function tempGroup(bread){
   return `<div class="qgroup"><div class="qlabel">Kitchen temperature <span class="soft">the benchtop, not the weather app</span></div>
   <div class="dial"><input type="range" min="16" max="32" value="${cfg[bread].temp}" data-cfg="${bread}.temp" aria-label="Kitchen temperature in degrees Celsius">
@@ -831,7 +850,7 @@ function renderSetup(bread){
   const view=$(`[data-view="setup-${bread}"]`);
   const groups={
    sour:[
-    optGroup('sour','flour','Flour',[['bakers','Bakers flour'],['plain','Plain flour'],['wholemeal','⅓ wholemeal'],['spelt','⅓ spelt']]),
+    cardGroup('sour','flour','Flour',[['bakers','Bakers flour','An open, glossy crumb and a bold ear — the benchmark.'],['plain','Plain flour','Tighter, tender crumb. Superb toast, a modest ear.'],['wholemeal','⅓ wholemeal','Deeper, nuttier flavour; ferments faster.'],['spelt','⅓ spelt','Silky, sweet and extensible — shape it lightly.']]),
     optGroup('sour','gear','Bake in',[['dutch','Dutch oven'],['camp','Camp oven'],['tray','Tray + steam'],['tin','Loaf tin']]),
     optGroup('sour','fan','Your oven',[['no','Conventional'],['yes','Fan-forced']]),
     tempGroup('sour'),
@@ -839,14 +858,14 @@ function renderSetup(bread){
     optGroup('sour','sched','Schedule',[['overnight','Overnight cold proof'],['sameday','Same-day bake']]),
    ],
    tort:[
-    optGroup('tort','flour','Flour',[['plain','Plain flour'],['bakers','Bakers flour'],['wholemeal','½ wholemeal']]),
+    cardGroup('tort','flour','Flour',[['plain','Plain flour','The right call — tender and foldable. Cheapest wins.'],['bakers','Bakers flour','Chewier; needs a longer rest before it rolls thin.'],['wholemeal','½ wholemeal','Nuttier; fold while warm or it cracks.']]),
     optGroup('tort','fat','Fat',[['lard','Lard'],['butter','Butter'],['oil','Olive oil']]),
     optGroup('tort','gear','Cook on',[['castiron','Cast-iron pan'],['frypan','Heavy frypan'],['bbq','BBQ flatplate']]),
     optGroup('tort','count','How many',[['8','8'],['12','12'],['16','16'],['24','24']]),
    ],
    pita:[
     optGroup('pita','leaven','Leavening',[['yeast','Instant yeast'],['sour','Sourdough starter']]),
-    optGroup('pita','flour','Flour',[['bakers','Bakers flour'],['plain','Plain flour'],['wholemeal','⅓ wholemeal']]),
+    cardGroup('pita','flour','Flour',[['bakers','Bakers flour','The benchmark pocket — big, chewy puff.'],['plain','Plain flour','Softer, a little less chewy; still pockets reliably.'],['wholemeal','⅓ wholemeal','Earthier; puffs a little less dramatically.']]),
     optGroup('pita','gear','Bake on',[['stone','Pizza stone / steel'],['tray','Upturned tray'],['stove','Stovetop + lid']]),
     optGroup('pita','fan','Your oven',[['no','Conventional'],['yes','Fan-forced']]),
     tempGroup('pita'),
@@ -1080,7 +1099,7 @@ function go(v){
 function wire(root){
   root.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
   root.querySelectorAll('[data-oven]').forEach(b=>b.addEventListener('click',()=>enterOven(b.dataset.oven)));
-  root.querySelectorAll('.opts[data-cfg],.schedrow[data-cfg]').forEach(group=>{
+  root.querySelectorAll('.opts[data-cfg],.schedrow[data-cfg],.cards[data-cfg]').forEach(group=>{
     const [bread,key]=group.dataset.cfg.split('.');
     group.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
       group.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
