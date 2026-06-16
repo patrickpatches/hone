@@ -58,13 +58,22 @@ jobs:
           mkdir -p dist/bug-tracker
           cp ../docs/dashboard/index.html dist/bug-tracker/index.html
 
-      # Bread Bench prototype — interactive guide with local image assets.
-      # Public URL: https://<user>.github.io/tucker-spice/bread/
+      # Bread guide prototype — the full interactive guide with local image
+      # assets. Public URL: https://<user>.github.io/tucker-spice/bread/
       - name: Add bread guide prototype
         run: |
           mkdir -p dist/bread
           cp ../docs/prototypes/bread-guide-v2.html dist/bread/index.html
           cp -r ../docs/prototypes/assets dist/bread/assets
+
+      # The Bread Bench — "living spec" redesign (concept 02 from the Claude
+      # Design board). A standalone warm-paper page; lives at its own sibling
+      # path so it sits beside the full guide rather than replacing it.
+      # Public URL: https://<user>.github.io/tucker-spice/bread-bench/
+      - name: Add Bread Bench living-spec prototype
+        run: |
+          mkdir -p dist/bread-bench
+          cp ../docs/prototypes/bread-bench-living-spec.html dist/bread-bench/index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

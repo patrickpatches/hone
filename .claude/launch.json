@@ -24,6 +24,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8910", "--directory", "docs/dashboard"],
       "port": 8910
+    },
+    {
+      "name": "prototypes",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8920", "--directory", "docs/prototypes"],
+      "port": 8920
     }
   ]
 }
