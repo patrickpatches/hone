@@ -281,6 +281,62 @@ figure.video-demo.failed .brief b{color:var(--ember);display:block;margin-bottom
 .sheet .grab::after{content:'';position:absolute;left:50%;top:12px;transform:translateX(-50%);width:44px;height:4.5px;border-radius:3px;background:var(--oven-rule)}
 .sheet h3{font-family:var(--disp);font-size:26px;font-weight:700;margin-bottom:4px}
 .sheet .ssub{font-style:italic;color:var(--oven-ink2);font-size:15.5px;margin-bottom:14px}
+/* ── living-spec screen ── */
+.live-lede{font-family:var(--body);font-style:italic;font-size:15px;color:var(--ink-3);line-height:1.5;padding:2px 22px 14px}
+.specgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 22px 14px}
+.spec{position:relative;text-align:left;padding:13px 38px 13px 15px;border-radius:var(--r-md);border:1.5px solid var(--rule);background:var(--paper-hi);cursor:pointer;min-height:66px;transition:transform .12s,border-color .12s}
+.spec:hover{border-color:var(--ink-3)}
+.spec:active{transform:scale(.99)}
+.spec.wide{grid-column:1 / -1;min-height:58px}
+.spec .k{display:block;font-family:var(--ui);font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3)}
+.spec .v{display:block;font-family:var(--disp);font-weight:700;font-size:17px;color:var(--ink);line-height:1.15;margin-top:4px}
+.spec .pen{position:absolute;top:13px;right:13px;color:var(--crust);width:13px;height:13px}
+.live-step{display:flex;align-items:center;justify-content:space-between;margin:0 22px 14px;padding:12px 16px;background:var(--paper-hi);border:1.5px solid var(--rule);border-radius:var(--r-md)}
+.live-step .lbl{font-family:var(--ui);font-weight:600;font-size:14px;color:var(--ink)}
+.live-step .ctrls{display:flex;align-items:center;gap:14px}
+.live-step .rnd{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--rule);background:var(--paper);font-size:20px;color:var(--ink);cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center}
+.live-step .rnd:disabled{opacity:.35;cursor:default}
+.live-step .num{font-family:var(--disp);font-weight:700;font-size:20px;min-width:18px;text-align:center;color:var(--ink)}
+.readytile{position:relative;cursor:pointer;border:1.5px solid var(--crust)!important;background:var(--crust-soft)!important}
+.readytile .v{color:var(--crust)!important}
+.readytile .clk{position:absolute;top:10px;right:11px;color:var(--crust);width:12px;height:12px}
+/* warm edit sheet (overrides the dark oven sheet styling for #edit) */
+.edit-wrap .edit-sheet{background:var(--paper);color:var(--ink)}
+.edit-wrap .grab::after{background:var(--rule)}
+.edit-eyebrow{font-family:var(--ui);font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px}
+.edit-note{margin:12px 0 2px;padding:12px 14px;background:var(--paper-hi);border:1px solid var(--rule);border-left:2.5px solid var(--butter);border-radius:0 12px 12px 0;font-family:var(--body);font-style:italic;font-size:14px;line-height:1.5;color:var(--ink-2)}
+.edit-note b{font-style:normal;color:var(--ink)}
+.edit-dial input[type=range]{width:100%;accent-color:var(--crust);height:34px;cursor:pointer}
+.edit-dial .read{display:flex;justify-content:flex-end;font-family:var(--disp);font-weight:700;font-size:36px;color:var(--ink)}
+.edit-dial .read small{font-size:17px;color:var(--ink-3)}
+.edit-dial .dial-cue{font-family:var(--body);font-style:italic;font-size:14px;color:var(--ink-2);margin:4px 0 2px}
+.edit-dial .dial-cue .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle}
+.rdseg{display:flex;border:1.5px solid var(--rule);border-radius:14px;overflow:hidden;background:var(--paper-hi);margin-bottom:18px}
+.rdseg button{flex:1;padding:13px 6px;font-family:var(--ui);font-weight:700;font-size:14px;border:none;background:transparent;color:var(--ink-2);cursor:pointer}
+.rdseg button.on{background:var(--ink);color:var(--paper-hi)}
+.rd-h{font-family:var(--ui);font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);margin-bottom:9px}
+.rdchips{display:flex;gap:8px;margin-bottom:18px}
+.rdchips button{flex:1;padding:11px 5px;border-radius:999px;font-family:var(--ui);font-weight:600;font-size:12.5px;cursor:pointer;background:var(--paper-hi);color:var(--ink-2);border:1.5px solid var(--rule)}
+.rdchips button.on{background:var(--ink);color:var(--paper-hi);border-color:var(--ink)}
+.rdtimes{display:flex;gap:8px;margin-bottom:18px}
+.rdtimes button{flex:1;text-align:center;padding:12px 6px;border-radius:14px;cursor:pointer;background:var(--paper-hi);border:1.5px solid var(--rule)}
+.rdtimes button.on{border-color:var(--crust);background:var(--crust-soft)}
+.rdtimes .nm{display:block;font-family:var(--ui);font-weight:700;font-size:13.5px;color:var(--ink)}
+.rdtimes button.on .nm{color:var(--crust)}
+.rdtimes .sub{display:block;font-family:var(--ui);font-size:11px;color:var(--ink-3);margin-top:2px}
+.rdresult{background:var(--ink);border-radius:16px;padding:16px 18px;color:var(--paper-hi)}
+.rdresult .rk{font-family:var(--ui);font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--butter);margin-bottom:8px}
+.rdresult .rb{font-family:var(--body);font-size:15.5px;line-height:1.5}
+.rdresult .rb b{color:#fff}
+.rdresult .rt{font-family:var(--ui);font-size:11px;color:rgba(245,239,232,.55);margin-top:8px}
+.edit-done{width:100%;margin-top:14px;background:var(--crust);color:#FFF6EA;border:none;border-radius:14px;padding:15px;font-family:var(--ui);font-weight:700;font-size:15.5px;cursor:pointer}
+.edit-opt{display:block;width:100%;text-align:left;padding:14px 16px;border-radius:15px;cursor:pointer;border:1.5px solid var(--rule);background:var(--paper-hi);margin-bottom:9px}
+.edit-opt.on{border-color:var(--crust);background:var(--crust-soft)}
+.edit-opt .orow{display:flex;align-items:center;justify-content:space-between}
+.edit-opt .nm{font-family:var(--ui);font-weight:700;font-size:15.5px;color:var(--ink)}
+.edit-opt.on .nm{color:var(--crust)}
+.edit-opt .tick{color:var(--crust);font-weight:800}
+.edit-opt .tag{display:block;font-family:var(--body);font-style:italic;font-size:13.5px;color:var(--ink-2);margin-top:3px;line-height:1.4}
 details.tr{border:1px solid var(--oven-rule);border-radius:14px;margin-bottom:10px;overflow:hidden}
 details.tr summary{list-style:none;cursor:pointer;padding:15px 18px;font-family:var(--disp);font-size:17.5px;display:flex;gap:10px;align-items:center;color:var(--oven-ink)}
 details.tr summary::before{content:'＋';color:var(--ember);font-weight:700}
@@ -338,7 +394,7 @@ figure.photo-real img{aspect-ratio:4/3;min-height:0}
     <p class="dek">Tell the bench your flour, your gear and your deadline — it writes a recipe that exists only for you. The dough decides when it's ready; the clock just takes notes.</p>
   </div>
 
-  <button class="bread-card" data-go="setup-sour">
+  <button class="bread-card" data-go="living-sour">
     <div class="card-photo">
       <img src="assets/bread/sourdough-loaf-ear.jpg?v=3" alt="A finished sourdough loaf — deep mahogany crust with a proud ear" loading="lazy" decoding="async" onerror="this.closest('.card-photo').classList.add('noimg')">
       <svg class="hero" viewBox="0 0 140 110" fill="none" stroke="#9C3F12" stroke-width="2.6" stroke-linecap="round"><ellipse cx="70" cy="72" rx="52" ry="26"/><path d="M30 60 Q70 18 110 60" /><path d="M48 46 q26 -14 50 2" stroke="#C2581F" stroke-dasharray="1 7" stroke-width="3.4"/><path d="M44 58 l54 -16" stroke-width="3"/></svg>
@@ -352,7 +408,7 @@ figure.photo-real img{aspect-ratio:4/3;min-height:0}
     </div>
   </button>
 
-  <button class="bread-card" data-go="setup-tort">
+  <button class="bread-card" data-go="living-tort">
     <div class="card-photo">
       <img src="assets/bread/tortilla-rolling.jpg?v=3" alt="Rolling a tortilla thin from the centre out" loading="lazy" decoding="async" onerror="this.closest('.card-photo').classList.add('noimg')">
       <svg class="hero" viewBox="0 0 140 110" fill="none" stroke="#9C3F12" stroke-width="2.6" stroke-linecap="round"><ellipse cx="70" cy="84" rx="54" ry="11"/><ellipse cx="70" cy="72" rx="54" ry="11"/><ellipse cx="70" cy="60" rx="54" ry="11"/><circle cx="52" cy="56" r="2.4" fill="#C2581F" stroke="none"/><circle cx="84" cy="54" r="3" fill="#C2581F" stroke="none"/><circle cx="68" cy="58" r="2" fill="#C2581F" stroke="none"/></svg>
@@ -366,7 +422,7 @@ figure.photo-real img{aspect-ratio:4/3;min-height:0}
     </div>
   </button>
 
-  <button class="bread-card" data-go="setup-pita">
+  <button class="bread-card" data-go="living-pita">
     <div class="card-photo">
       <img src="assets/bread/pita-fresh.jpg?v=3" alt="Fresh pitas, barely blonde with char freckles, pockets intact" loading="lazy" decoding="async" onerror="this.closest('.card-photo').classList.add('noimg')">
       <svg class="hero" viewBox="0 0 140 110" fill="none" stroke="#9C3F12" stroke-width="2.6" stroke-linecap="round"><path d="M18 84 h104"/><path d="M22 80 q48 -52 96 0"/><path d="M22 80 q48 14 96 0"/><circle cx="58" cy="52" r="2.2" fill="#C2581F" stroke="none"/><circle cx="78" cy="46" r="2.6" fill="#C2581F" stroke="none"/><circle cx="94" cy="58" r="2" fill="#C2581F" stroke="none"/></svg>
@@ -380,7 +436,7 @@ figure.photo-real img{aspect-ratio:4/3;min-height:0}
     </div>
   </button>
 
-  <button class="bread-card" data-go="setup-focaccia">
+  <button class="bread-card" data-go="living-focaccia">
     <div class="card-photo noimg">
       <svg class="hero" viewBox="0 0 140 110" fill="none" stroke="#9C3F12" stroke-width="2.6" stroke-linecap="round"><rect x="20" y="40" width="100" height="46" rx="9"/><circle cx="42" cy="57" r="2.6" fill="#C2581F" stroke="none"/><circle cx="66" cy="63" r="2.6" fill="#C2581F" stroke="none"/><circle cx="92" cy="55" r="2.6" fill="#C2581F" stroke="none"/><circle cx="54" cy="72" r="2.6" fill="#C2581F" stroke="none"/><circle cx="84" cy="73" r="2.6" fill="#C2581F" stroke="none"/></svg>
       <div class="bigno">04</div>
@@ -393,7 +449,7 @@ figure.photo-real img{aspect-ratio:4/3;min-height:0}
     </div>
   </button>
 
-  <button class="bread-card" data-go="setup-pizza">
+  <button class="bread-card" data-go="living-pizza">
     <div class="card-photo noimg">
       <svg class="hero" viewBox="0 0 140 110" fill="none" stroke="#9C3F12" stroke-width="2.6" stroke-linecap="round"><circle cx="70" cy="58" r="40"/><circle cx="70" cy="58" r="31" stroke-dasharray="1 7"/><circle cx="58" cy="48" r="3.6" fill="#C2581F" stroke="none"/><circle cx="84" cy="54" r="3.6" fill="#C2581F" stroke="none"/><circle cx="66" cy="72" r="3.6" fill="#C2581F" stroke="none"/></svg>
       <div class="bigno">05</div>
@@ -410,16 +466,11 @@ figure.photo-real img{aspect-ratio:4/3;min-height:0}
 </section>
 
 <!-- ═══════════ SETUP / PLAN / shells (filled by JS) ═══════════ -->
-<section data-view="setup-sour"></section>
-<section data-view="setup-tort"></section>
-<section data-view="setup-pita"></section>
-<section data-view="setup-focaccia"></section>
-<section data-view="setup-pizza"></section>
-<section data-view="plan-sour"></section>
-<section data-view="plan-tort"></section>
-<section data-view="plan-pita"></section>
-<section data-view="plan-focaccia"></section>
-<section data-view="plan-pizza"></section>
+<section data-view="living-sour"></section>
+<section data-view="living-tort"></section>
+<section data-view="living-pita"></section>
+<section data-view="living-focaccia"></section>
+<section data-view="living-pizza"></section>
 
 <!-- ═══════════ OVEN MODE ═══════════ -->
 <section data-view="oven">
@@ -468,6 +519,16 @@ figure.photo-real img{aspect-ratio:4/3;min-height:0}
       <button id="db-skip" style="flex:0 0 30%;font-family:var(--ui);font-weight:700;padding:16px;border-radius:14px;background:var(--oven-card);color:var(--oven-ink2);border:1.5px solid var(--oven-rule)">Skip</button>
       <button id="db-save" style="flex:1;font-family:var(--ui);font-weight:700;padding:16px;border-radius:14px;background:var(--oven-proof);color:#06150A">Save to my bake log</button>
     </div>
+  </div>
+</div>
+
+<!-- Living-spec editor — warm-paper bottom sheet (planning surface) -->
+<div class="sheet-wrap edit-wrap" id="edit">
+  <div class="sheet-dim" id="edit-dim"></div>
+  <div class="sheet edit-sheet">
+    <button class="grab" id="edit-close" aria-label="Close editor" style="display:block"></button>
+    <div class="edit-eyebrow" id="edit-label"></div>
+    <div id="edit-body"></div>
   </div>
 </div>
 
@@ -1017,134 +1078,6 @@ function tempCue(t){
   else{dot='var(--crust-hi)';txt=`<b>Hot.</b> Fast and a little wild — keep an eye on it so it can't run away.`;}
   return `<span class="dot" style="background:${dot}"></span>${txt}`;
 }
-/* selectable cards — each option carries a one-line "what you'll get". opts: [value,label,tagline] */
-function cardGroup(bread,key,label,opts){
-  return `<div class="qgroup"><div class="qlabel">${label}</div>
-  <div class="cards" data-cfg="${bread}.${key}">${opts.map(o=>`<button class="ocard ${cfg[bread][key]==o[0]?'on':''}" data-v="${o[0]}"><span class="ocard-t">${o[1]}</span><span class="ocard-d">${o[2]}</span><span class="ocard-tick"></span></button>`).join('')}</div>
-  <div data-note="${bread}.${key}"></div></div>`;
-}
-/* full-width segmented control — every option visible, for quick binary/count picks */
-function segGroup(bread,key,label,opts,soft){
-  return `<div class="qgroup"><div class="qlabel">${label}${soft?` <span class="soft">${soft}</span>`:''}</div>
-  <div class="seg" data-cfg="${bread}.${key}">${opts.map(o=>`<button class="${cfg[bread][key]==o[0]?'on':''}" data-v="${o[0]}">${o[1]}</button>`).join('')}</div>
-  <div data-note="${bread}.${key}"></div></div>`;
-}
-function tempGroup(bread){
-  return `<div class="qgroup"><div class="qlabel">Kitchen temperature <span class="soft">the benchtop, not the weather app</span></div>
-  <div class="dial"><input type="range" min="16" max="32" value="${cfg[bread].temp}" data-cfg="${bread}.temp" aria-label="Kitchen temperature in degrees Celsius">
-  <div class="read"><span data-tempread="${bread}">${cfg[bread].temp}</span><small>°C</small></div></div>
-  <div class="dial-cue" data-tempcue="${bread}"></div>
-  <div data-note="${bread}.temp"></div></div>`;
-}
-
-function renderSetup(bread){
-  const view=$(`[data-view="setup-${bread}"]`);
-  const groups={
-   sour:[
-    cardGroup('sour','flour','Flour',[['bakers','Bakers flour','An open, glossy crumb and a bold ear — the benchmark.'],['plain','Plain flour','Tighter, tender crumb. Superb toast, a modest ear.'],['wholemeal','⅓ wholemeal','Deeper, nuttier flavour; ferments faster.'],['spelt','⅓ spelt','Silky, sweet and extensible — shape it lightly.']]),
-    cardGroup('sour','gear','Bake in',[['dutch','Dutch oven','The gold standard — trapped steam, then a huge spring.'],['camp','Camp oven','Over coals, the original Aussie way — smoky and characterful.'],['tray','Tray + steam','No special pot — a tray plus a steam tray. Crisper crust.'],['tin','Loaf tin','Forgiving, ideal for sandwich bread — shaping slips vanish.']]),
-    segGroup('sour','fan','Your oven',[['no','Conventional'],['yes','Fan-forced']]),
-    tempGroup('sour'),
-    segGroup('sour','loaves','Loaves',[['1','1'],['2','2'],['3','3'],['4','4']]),
-    cardGroup('sour','sched','Schedule',[['overnight','Overnight cold proof','Deeper tang, easy scoring — mix today, bake before breakfast.'],['sameday','Same-day bake','Faster but less forgiving — milder flavour, tighter window.']]),
-   ],
-   tort:[
-    cardGroup('tort','flour','Flour',[['plain','Plain flour','The right call — tender and foldable. Cheapest wins.'],['bakers','Bakers flour','Chewier; needs a longer rest before it rolls thin.'],['wholemeal','½ wholemeal','Nuttier; fold while warm or it cracks.']]),
-    cardGroup('tort','fat','Fat',[['lard','Lard','Traditional and unbeatable — tender, rolls thinnest.'],['butter','Butter','A whisper less tender; a flavour everyone loves.'],['oil','Olive oil','The vegan option — a touch breadier, less flaky.']]),
-    cardGroup('tort','gear','Cook on',[['castiron','Cast-iron pan','The home comal — ferocious, even heat.'],['frypan','Heavy frypan','Works well; recovers heat slower, so expect paler spots.'],['bbq','BBQ flatplate','The Aussie comal — four at once, kitchen stays cool.']]),
-    segGroup('tort','count','How many',[['8','8'],['12','12'],['16','16'],['24','24']]),
-   ],
-   pita:[
-    cardGroup('pita','leaven','Leavening',[['yeast','Instant yeast','Same-day and totally reliable — straight in with the flour.'],['sour','Sourdough starter','Deeper flavour, longer timeline — pockets puff just as hard.']]),
-    cardGroup('pita','flour','Flour',[['bakers','Bakers flour','The benchmark pocket — big, chewy puff.'],['plain','Plain flour','Softer, a little less chewy; still pockets reliably.'],['wholemeal','⅓ wholemeal','Earthier; puffs a little less dramatically.']]),
-    cardGroup('pita','gear','Bake on',[['stone','Pizza stone / steel','Stores fierce heat — the best, most violent puff.'],['tray','Upturned tray','The no-stone workaround — still puffs well.'],['stove','Stovetop + lid','No oven needed — cook them one at a time.']]),
-    segGroup('pita','fan','Your oven',[['no','Conventional'],['yes','Fan-forced']]),
-    tempGroup('pita'),
-    segGroup('pita','count','How many pockets',[['6','6'],['8','8'],['10','10'],['12','12']]),
-   ],
-   focaccia:[
-    cardGroup('focaccia','flour','Flour',[['blend','Strong + plain blend','30% strong / 70% plain — tall, open, classic.'],['strong','All strong flour','More chew and an even bigger rise.']]),
-    cardGroup('focaccia','pan','Pan',[['tray','23 × 33 cm tray','One generous slab — the crowd-pleaser.'],['round','Two 20 cm rounds','Thicker, taller, pull-apart wedges.']]),
-    cardGroup('focaccia','sched','Schedule',[['sameday','Same day','Mix in the morning, bake before dinner.'],['overnight','Overnight cold proof','Deeper flavour — fridge tonight, bake tomorrow.']]),
-    segGroup('focaccia','fan','Your oven',[['no','Conventional'],['yes','Fan-forced']]),
-    tempGroup('focaccia'),
-   ],
-   pizza:[
-    cardGroup('pizza','flour','Flour',[['00','00 flour','Fine Italian flour — tender, blistered Neapolitan base.'],['bakers','Bakers flour','Chewier, sturdier — carries heavy toppings.'],['wholemeal','⅓ wholemeal','Nuttier and rustic.']]),
-    cardGroup('pizza','gear','Bake on',[['steel','Baking steel','Stores the most heat — the crispest, fastest base.'],['stone','Pizza stone','The classic — great char, a touch slower than steel.'],['tray','Upturned tray','No stone needed — slightly longer bake.']]),
-    cardGroup('pizza','sched','Schedule',[['overnight','Cold proof (1–3 days)','The flavour move — and easier to stretch.'],['sameday','Same day','Pizza tonight — quicker, milder.']]),
-    segGroup('pizza','fan','Your oven',[['no','Conventional'],['yes','Fan-forced']]),
-    tempGroup('pizza'),
-    segGroup('pizza','count','How many bases',[['2','2'],['4','4'],['6','6'],['8','8']]),
-   ],
-  }[bread];
-  const intro={
-   sour:`Watch the dough, not the clock — everything below rewrites itself around four choices.`,
-   tort:`Here you're <em>avoiding</em> gluten strength, not building it. The cheap flour wins.`,
-   pita:`Everything below either protects the steam pocket or sabotages it — and the bench tells you which.`,
-   focaccia:`The forgiving one — no shaping, no scoring. Pour, dimple, drown it in good oil.`,
-   pizza:`Built around an overnight cold proof — the move that makes sourdough pizza worth it.`,
-  }[bread];
-  view.innerHTML=`
-   <div class="bar"><button class="back" data-go="home">←</button><span class="crumb">${NAMES[bread]} · set up</span></div>
-   <div class="pad"><h1 class="disp">Your ${NAMES[bread].toLowerCase()}, <em>your way.</em></h1><p class="dek">${intro}</p></div>
-   ${groups.join('')}
-   <div class="cta-dock"><button class="cta" data-go="plan-${bread}"><span>See my plan<span class="sub" data-ctasub="${bread}"></span></span><span class="arrow">→</span></button></div>`;
-  wire(view); refreshNotes(bread);
-}
-
-function refreshNotes(bread){
-  const c=cfg[bread];
-  const set=(key,html)=>{const el=document.querySelector(`[data-note="${bread}.${key}"]`);if(el)el.innerHTML=html?whisper(html):''};
-  if(bread==='sour'){
-    const bulkH=sourBulkHours(),levH=sourLevainHours();
-    set('flour',SOUR_FLOUR[c.flour].note);
-    set('gear',SOUR_GEAR[c.gear].note);
-    set('temp',c.temp<=19?`<b>${c.temp}°C is a cold kitchen</b> (hello, southern winter). Bulk stretches to ~${hrs(bulkH)} — park the dough in the oven with just the light on and claw most of it back.`
-      :c.temp>=29?`<b>${c.temp}°C is a hot kitchen</b> (Brisbane in January). Bulk shrinks to ~${hrs(bulkH)} and the ripe/over line is thin — check every 30 minutes; mix with fridge-cold water.`
-      :`At ${c.temp}°C, bulk runs about <b>${hrs(bulkH)}</b> and the levain ripens in ~${hrs(levH)}. Every timing ahead is already adjusted.`+kitchenNote('sour'));
-    set('fan',c.fan==='yes'?`Every oven temperature in your steps is already converted for <b>fan-forced</b> — no mental arithmetic with floury hands.`:`Temps below are for a <b>conventional</b> oven. Got fan-forced? Flip this and every number converts itself.`);
-    set('sched',c.sched==='overnight'?`The fridge is your best ingredient: 12–16 hours cold builds the tang and makes scoring easy. Mix in the afternoon, bake before breakfast.`
-      :`Doable, less forgiving — a warm proof gives you a 30-minute window where the fridge gives you four hours. Milder flavour.`);
-    const sub=document.querySelector(`[data-ctasub="sour"]`);
-    if(sub)sub.textContent=`${Math.round(SOUR_FLOUR[c.flour].hyd*100)}% hydration · bulk ≈ ${hrs(bulkH)} · ${c.loaves} loaf${+c.loaves>1?'s':''}`;
-    const tr=document.querySelector(`[data-tempread="sour"]`);if(tr)tr.textContent=c.temp;
-    const tc=document.querySelector(`[data-tempcue="sour"]`);if(tc)tc.innerHTML=tempCue(c.temp);
-  }
-  if(bread==='tort'){
-    set('flour',TORT_FLOUR[c.flour].note);set('fat',TORT_FAT[c.fat].note);set('gear',TORT_GEAR[c.gear].note);
-    const sub=document.querySelector(`[data-ctasub="tort"]`);
-    if(sub)sub.textContent=`${c.count} tortillas · rest ${TORT_FLOUR[c.flour].rest} min · ~90 min total`;
-  }
-  if(bread==='pita'){
-    const bulkH=pitaBulkHours();
-    set('leaven',c.leaven==='yeast'?`<b>Instant yeast</b> — same-day pita, totally reliable. No blooming; straight in with the flour.`
-      :`<b>Sourdough starter</b> — your jar moonlighting. Deeper flavour, longer timeline, pockets puff just as hard. The bench swaps the yeast for starter and re-plans every timing.`);
-    set('flour',PITA_FLOUR[c.flour].note);
-    set('gear',PITA_GEAR[c.gear].note);
-    set('fan',c.fan==='yes'?`Every oven temperature in your steps is already converted for <b>fan-forced</b> — no mental arithmetic with floury hands.`:`Temps below are for a <b>conventional</b> oven. Got fan-forced? Flip this and every number converts itself.`);
-    set('temp',`At ${c.temp}°C with ${c.leaven==='yeast'?'yeast':'starter'}, the first rise runs about <b>${hrs(bulkH)}</b>. ${c.temp>=29?'Hot kitchen: check early — over-risen pita dough blows weak, patchy pockets.':''}`+kitchenNote('pita'));
-    const sub=document.querySelector(`[data-ctasub="pita"]`);
-    if(sub)sub.textContent=`${c.count} pockets · ${Math.round(PITA_FLOUR[c.flour].hyd*100)}% hydration · rise ≈ ${hrs(bulkH)}`;
-    const tr=document.querySelector(`[data-tempread="pita"]`);if(tr)tr.textContent=c.temp;
-    const tc=document.querySelector(`[data-tempcue="pita"]`);if(tc)tc.innerHTML=tempCue(c.temp);
-  }
-  if(bread==='focaccia'){
-    const bulkH=focacciaBulkH();
-    const sub=document.querySelector(`[data-ctasub="focaccia"]`);
-    if(sub)sub.textContent=`${Math.round(FOCACCIA_FLOUR[c.flour].hyd*100)}% hydration · bulk ≈ ${hrs(bulkH)} · ${c.sched==='overnight'?'overnight':'same-day'}`;
-    const tr=document.querySelector(`[data-tempread="focaccia"]`);if(tr)tr.textContent=c.temp;
-    const tc=document.querySelector(`[data-tempcue="focaccia"]`);if(tc)tc.innerHTML=tempCue(c.temp);
-  }
-  if(bread==='pizza'){
-    const bulkH=pizzaBulkH();
-    const sub=document.querySelector(`[data-ctasub="pizza"]`);
-    if(sub)sub.textContent=`${c.count} bases · ${Math.round(PIZZA_FLOUR[c.flour].hyd*100)}% hydration · ${c.sched==='overnight'?'cold-proofed':'same-day'}`;
-    const tr=document.querySelector(`[data-tempread="pizza"]`);if(tr)tr.textContent=c.temp;
-    const tc=document.querySelector(`[data-tempcue="pizza"]`);if(tc)tc.innerHTML=tempCue(c.temp);
-  }
-}
-
 const swatchFor=n=>{n=(n||'').toLowerCase();
   if(n.includes('salt'))return'sw-salt';
   if(n.includes('water'))return'sw-water';
@@ -1152,68 +1085,6 @@ const swatchFor=n=>{n=(n||'').toLowerCase();
   if(/lard|butter|oil|honey|sugar|\bfat\b/.test(n))return'sw-fat';
   if(n.includes('flour')||n.includes('wholemeal')||n.includes('spelt')||n.includes('semolina'))return'sw-flour';
   return'';};
-const ICON={
-  clock:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 1.8"/></svg>',
-  yield:'<svg viewBox="0 0 24 24"><path d="M4 14a8 5 0 0 1 16 0v3.5H4z"/><path d="M9 14c0-2.4.6-4.4 1.8-5.6"/></svg>',
-  drop:'<svg viewBox="0 0 24 24"><path d="M12 3.5c3.8 4.8 5.6 7.6 5.6 10.4a5.6 5.6 0 0 1-11.2 0c0-2.8 1.8-5.6 5.6-10.4z"/></svg>',
-  steps:'<svg viewBox="0 0 24 24"><path d="M5 18h4v-4M10 14h4v-4M15 10h4V6"/></svg>'};
-function renderPlan(bread){
-  const view=$(`[data-view="plan-${bread}"]`);
-  const B=BUILD[bread]();
-  const totalMass=B.mass.reduce((a,m)=>a+m[1],0);
-  const massbar=B.mass.map(m=>{
-    const pct=m[1]/totalMass*100;
-    return `<div class="${m[2]}" style="flex:${Math.max(pct,3)} 0 0">${pct>13?m[0]+' '+m[1]+'g':''}</div>`;
-  }).join('');
-  const totalMin=B.timeline.reduce((a,i)=>a+i.durMin,0);
-  const totalTxt=totalMin>=120?`≈${Math.round(totalMin/60)} h`:`${totalMin} min`;
-  const c=cfg[bread];
-  const YIELD={sour:[`${c.loaves}`,'loaf'+(+c.loaves>1?'s':'')],tort:[`${c.count}`,'tortillas'],pita:[`${c.count}`,'pockets'],focaccia:[c.pan==='tray'?'1':'2',c.pan==='tray'?'slab':'rounds'],pizza:[`${c.count}`,'bases']}[bread];
-  const yieldTxt=YIELD[0],yieldLbl=YIELD[1];
-  const hydFn={sour:()=>SOUR_FLOUR[c.flour].hyd,pita:()=>PITA_FLOUR[c.flour].hyd,tort:()=>TORT_FLOUR[c.flour].water,focaccia:()=>FOCACCIA_FLOUR[c.flour].hyd,pizza:()=>PIZZA_FLOUR[c.flour].hyd}[bread];
-  const hyd=hydFn?hydFn():0;
-  const statsRow=`<div class="plan-stats">
-    <div class="stat">${ICON.clock}<div class="v">${totalTxt}</div><div class="l">start to finish</div></div>
-    <div class="stat">${ICON.yield}<div class="v">${yieldTxt}</div><div class="l">${yieldLbl}</div></div>
-    <div class="stat">${ICON.drop}<div class="v">${Math.round(hyd*100)}%</div><div class="l">hydration</div></div>
-  </div>`;
-  view.innerHTML=`
-   <div class="bar"><button class="back" data-go="setup-${bread}">←</button><span class="crumb">${NAMES[bread]} · the plan</span></div>
-   <div class="pad"><h1 class="disp">The plan.</h1></div>
-   ${planHero(bread)}
-   <div class="plansum">${B.summary}</div>
-   ${statsRow}
-
-   <h3 class="plansect">Formula</h3>
-   <p class="plansub">Baker's percentages — everything is a fraction of the flour. Scale fearlessly.</p>
-   <div class="massbar">${massbar}</div>
-   <table class="formula">${B.formula.map(r=>`<tr><td><span class="sw ${swatchFor(r[0])}"></span>${r[0]}</td><td class="g">${r[1]}</td><td class="pc">${r[2]}</td></tr>`).join('')}</table>
-   <div class="formula-foot">${B.foot}</div>
-
-   <h3 class="plansect">Timeline</h3>
-   <p class="plansub">Pick when you want it ready and the bench works backwards${bread==='sour'?' — fridge sleep included':''}.</p>
-   <div class="schedrow" data-cfg="${bread}.tmode">
-     <button data-v="now" class="${cfg[bread].tmode==='now'?'on':''}">Starting now</button>
-     <button data-v="target" class="${cfg[bread].tmode==='target'?'on':''}">Ready by…</button>
-     <input type="datetime-local" data-cfg="${bread}.ttarget" style="display:${cfg[bread].tmode==='target'?'inline-block':'none'}" value="${cfg[bread].ttarget??''}">
-   </div>
-   <div class="timeline">${(()=>{
-     const total=B.timeline.reduce((a,i)=>a+i.durMin,0);
-     let t=cfg[bread].tmode==='target'&&cfg[bread].ttarget?new Date(new Date(cfg[bread].ttarget).getTime()-total*60000):new Date();
-     let out='';
-     for(const it of B.timeline){const durChip=it.durMin>=120?` <span class="tl-dur">${Math.round(it.durMin/60)} h</span>`:'';out+=`<div class="tl-item${it.sleep?' sleep':''}"><div class="tl-when">${fmtClock(t)}</div><div class="tl-what">${it.label}${durChip}</div></div>`;t=new Date(t.getTime()+it.durMin*60000)}
-     return out+`<div class="tl-item ready"><div class="tl-when">${fmtClock(t)}</div><div class="tl-what"><b>Ready.</b></div></div>`;
-   })()}</div>
-
-   <h3 class="plansect">When it goes sideways</h3>
-   <p class="plansub">Also one tap away mid-bake — look for <b>Something's wrong?</b> in Oven Mode.</p>
-   <div class="plan-tr" style="padding:0 22px">${B.trouble.map(t=>`<details class="tr"><summary>${t.q}</summary><div class="body">${t.a}</div></details>`).join('')}</div>
-   ${sourceCredit(bread)}
-
-   <div class="cta-dock"><button class="cta" data-oven="${bread}"><span>Start baking<span class="sub">Oven Mode — one step at a time, ${B.steps.length} steps</span></span><span class="arrow">→</span></button></div>`;
-  wire(view);
-}
-
 /* ═══════════════ oven mode ═══════════════ */
 const oven={bread:null,steps:[],i:0,timerId:null,wakeLock:null};
 
@@ -1233,7 +1104,7 @@ function exitOven(){
   document.querySelector('.app').classList.add('planning');
   document.body.style.background='var(--paper)';
   try{oven.wakeLock?.release()}catch{}
-  show('plan-'+oven.bread);
+  show('living-'+oven.bread);
 }
 function clearTimer(){if(oven.timerId){clearInterval(oven.timerId);oven.timerId=null}}
 function renderOvenStep(){
@@ -1307,7 +1178,259 @@ $('#rescue-fab').addEventListener('click',()=>{
 });
 $('#sheet-dim').addEventListener('click',()=>$('#sheet').classList.remove('show'));
 $('#sheet-close').addEventListener('click',()=>$('#sheet').classList.remove('show'));
-document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#sheet').classList.remove('show')});
+$('#edit-dim').addEventListener('click',()=>$('#edit').classList.remove('show'));
+$('#edit-close').addEventListener('click',()=>$('#edit').classList.remove('show'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#sheet').classList.remove('show');$('#edit').classList.remove('show')}});
+
+/* ═══════════════ living spec — setup + plan on one screen ═══════════════
+   The two old screens (renderSetup → renderPlan) are merged: every choice is an
+   editable spec card that opens a warm bottom sheet; the formula and timeline
+   below recompute the instant you change anything. Ready-time is its own picker
+   (Start now / Ready by… → day + meal) that works the schedule backwards. */
+
+/* Field metadata, single source for both the cards and their editors.
+   type: cards | seg | temp | stepper | choice. `opts` is [value,label,tagline?]. */
+const FIELDS={
+ sour:[
+  {key:'flour',label:'Flour',type:'cards',opts:[['bakers','Bakers flour','An open, glossy crumb and a bold ear — the benchmark.'],['plain','Plain flour','Tighter, tender crumb. Superb toast, a modest ear.'],['wholemeal','⅓ wholemeal','Deeper, nuttier flavour; ferments faster.'],['spelt','⅓ spelt','Silky, sweet and extensible — shape it lightly.']]},
+  {key:'gear',label:'Bake in',type:'cards',opts:[['dutch','Dutch oven','The gold standard — trapped steam, then a huge spring.'],['camp','Camp oven','Over coals, the original Aussie way — smoky and characterful.'],['tray','Tray + steam','No special pot — a tray plus a steam tray. Crisper crust.'],['tin','Loaf tin','Forgiving, ideal for sandwich bread — shaping slips vanish.']]},
+  {key:'fan',label:'Oven',type:'seg',opts:[['no','Conventional'],['yes','Fan-forced']]},
+  {key:'temp',label:'Kitchen temp',type:'temp'},
+  {key:'sched',label:'Schedule',type:'cards',wide:true,opts:[['overnight','Overnight cold proof','Deeper tang, easy scoring — mix today, bake before breakfast.'],['sameday','Same-day bake','Faster but less forgiving — milder flavour, tighter window.']]},
+  {key:'loaves',label:'Loaves',type:'stepper',min:1,max:4,word:['loaf','loaves']},
+ ],
+ tort:[
+  {key:'flour',label:'Flour',type:'cards',opts:[['plain','Plain flour','The right call — tender and foldable. Cheapest wins.'],['bakers','Bakers flour','Chewier; needs a longer rest before it rolls thin.'],['wholemeal','½ wholemeal','Nuttier; fold while warm or it cracks.']]},
+  {key:'fat',label:'Fat',type:'cards',opts:[['lard','Lard','Traditional and unbeatable — tender, rolls thinnest.'],['butter','Butter','A whisper less tender; a flavour everyone loves.'],['oil','Olive oil','The vegan option — a touch breadier, less flaky.']]},
+  {key:'gear',label:'Cook on',type:'cards',wide:true,opts:[['castiron','Cast-iron pan','The home comal — ferocious, even heat.'],['frypan','Heavy frypan','Works well; recovers heat slower, so expect paler spots.'],['bbq','BBQ flatplate','The Aussie comal — four at once, kitchen stays cool.']]},
+  {key:'count',label:'How many',type:'choice',word:'tortillas',opts:[['8','8'],['12','12'],['16','16'],['24','24']]},
+ ],
+ pita:[
+  {key:'leaven',label:'Leavening',type:'cards',opts:[['yeast','Instant yeast','Same-day and totally reliable — straight in with the flour.'],['sour','Sourdough starter','Deeper flavour, longer timeline — pockets puff just as hard.']]},
+  {key:'flour',label:'Flour',type:'cards',opts:[['bakers','Bakers flour','The benchmark pocket — big, chewy puff.'],['plain','Plain flour','Softer, a little less chewy; still pockets reliably.'],['wholemeal','⅓ wholemeal','Earthier; puffs a little less dramatically.']]},
+  {key:'gear',label:'Bake on',type:'cards',opts:[['stone','Pizza stone / steel','Stores fierce heat — the best, most violent puff.'],['tray','Upturned tray','The no-stone workaround — still puffs well.'],['stove','Stovetop + lid','No oven needed — cook them one at a time.']]},
+  {key:'fan',label:'Oven',type:'seg',opts:[['no','Conventional'],['yes','Fan-forced']]},
+  {key:'temp',label:'Kitchen temp',type:'temp'},
+  {key:'count',label:'How many',type:'choice',word:'pockets',opts:[['6','6'],['8','8'],['10','10'],['12','12']]},
+ ],
+ focaccia:[
+  {key:'flour',label:'Flour',type:'cards',opts:[['blend','Strong + plain blend','30% strong / 70% plain — tall, open, classic.'],['strong','All strong flour','More chew and an even bigger rise.']]},
+  {key:'pan',label:'Pan',type:'cards',opts:[['tray','23 × 33 cm tray','One generous slab — the crowd-pleaser.'],['round','Two 20 cm rounds','Thicker, taller, pull-apart wedges.']]},
+  {key:'sched',label:'Schedule',type:'cards',wide:true,opts:[['sameday','Same day','Mix in the morning, bake before dinner.'],['overnight','Overnight cold proof','Deeper flavour — fridge tonight, bake tomorrow.']]},
+  {key:'fan',label:'Oven',type:'seg',opts:[['no','Conventional'],['yes','Fan-forced']]},
+  {key:'temp',label:'Kitchen temp',type:'temp'},
+ ],
+ pizza:[
+  {key:'flour',label:'Flour',type:'cards',opts:[['00','00 flour','Fine Italian flour — tender, blistered Neapolitan base.'],['bakers','Bakers flour','Chewier, sturdier — carries heavy toppings.'],['wholemeal','⅓ wholemeal','Nuttier and rustic.']]},
+  {key:'gear',label:'Bake on',type:'cards',opts:[['steel','Baking steel','Stores the most heat — the crispest, fastest base.'],['stone','Pizza stone','The classic — great char, a touch slower than steel.'],['tray','Upturned tray','No stone needed — slightly longer bake.']]},
+  {key:'sched',label:'Schedule',type:'cards',wide:true,opts:[['overnight','Cold proof (1–3 days)','The flavour move — and easier to stretch.'],['sameday','Same day','Pizza tonight — quicker, milder.']]},
+  {key:'fan',label:'Oven',type:'seg',opts:[['no','Conventional'],['yes','Fan-forced']]},
+  {key:'temp',label:'Kitchen temp',type:'temp'},
+  {key:'count',label:'How many',type:'choice',word:'bases',opts:[['2','2'],['4','4'],['6','6'],['8','8']]},
+ ],
+};
+
+/* Bench note for a field+value — the same prose the old setup showed, on demand. */
+function noteFor(bread,key){
+  const c=cfg[bread];
+  if(key==='temp'){
+    if(bread==='sour'){const b=hrs(sourBulkHours()),l=hrs(sourLevainHours());
+      return (c.temp<=19?`<b>${c.temp}°C is a cold kitchen</b> (hello, southern winter). Bulk stretches to ~${b} — park the dough in the oven with just the light on and claw most of it back.`
+        :c.temp>=29?`<b>${c.temp}°C is a hot kitchen</b> (Brisbane in January). Bulk shrinks to ~${b} and the ripe/over line is thin — check every 30 minutes; mix with fridge-cold water.`
+        :`At ${c.temp}°C, bulk runs about <b>${b}</b> and the levain ripens in ~${l}. Every timing ahead is already adjusted.`)+kitchenNote('sour');}
+    if(bread==='pita'){const b=hrs(pitaBulkHours());return `At ${c.temp}°C with ${c.leaven==='yeast'?'yeast':'starter'}, the first rise runs about <b>${b}</b>. ${c.temp>=29?'Hot kitchen: check early — over-risen pita dough blows weak, patchy pockets.':''}`+kitchenNote('pita');}
+    const cue=tempCue(c.temp).replace(/<span[^>]*><\/span>/,'');
+    return `The benchtop reading, not the weather app. ${cue}`;
+  }
+  if(bread==='sour'){
+    if(key==='flour')return SOUR_FLOUR[c.flour].note;
+    if(key==='gear')return SOUR_GEAR[c.gear].note;
+    if(key==='fan')return c.fan==='yes'?`Every oven temperature in your steps is already converted for <b>fan-forced</b> — no mental arithmetic with floury hands.`:`Temps below are for a <b>conventional</b> oven. Got fan-forced? Flip this and every number converts itself.`;
+    if(key==='sched')return c.sched==='overnight'?`The fridge is your best ingredient: 12–16 hours cold builds the tang and makes scoring easy. Mix in the afternoon, bake before breakfast.`:`Doable, less forgiving — a warm proof gives you a 30-minute window where the fridge gives you four hours. Milder flavour.`;
+    if(key==='loaves')return +c.loaves>1?`<b>${c.loaves} loaves</b> — the bench scales every gram. More dough barely moves the bulk time; you just bake them one after another.`:`<b>One loaf</b> — the classic single bake. Bump it up any time and every weight rescales itself.`;
+  }
+  if(bread==='tort'){
+    if(key==='flour')return TORT_FLOUR[c.flour].note;
+    if(key==='fat')return TORT_FAT[c.fat].note;
+    if(key==='gear')return TORT_GEAR[c.gear].note;
+  }
+  if(bread==='pita'){
+    if(key==='leaven')return c.leaven==='yeast'?`<b>Instant yeast</b> — same-day pita, totally reliable. No blooming; straight in with the flour.`:`<b>Sourdough starter</b> — your jar moonlighting. Deeper flavour, longer timeline, pockets puff just as hard. The bench swaps the yeast for starter and re-plans every timing.`;
+    if(key==='flour')return PITA_FLOUR[c.flour].note;
+    if(key==='gear')return PITA_GEAR[c.gear].note;
+    if(key==='fan')return c.fan==='yes'?`Every oven temperature in your steps is already converted for <b>fan-forced</b>.`:`Temps below are for a <b>conventional</b> oven. Flip this and every number converts itself.`;
+  }
+  if(bread==='focaccia'||bread==='pizza'){
+    if(key==='fan')return c.fan==='yes'?`Every oven temperature in your steps is already converted for <b>fan-forced</b>.`:`Temps below are for a <b>conventional</b> oven. Flip this and every number converts itself.`;
+    if(key==='flour'||key==='pan'||key==='gear'||key==='sched'){const f=FIELDS[bread].find(x=>x.key===key);const o=f.opts.find(o=>o[0]===c[key]);return o&&o[2]?o[2]:'';}
+  }
+  const f=FIELDS[bread].find(x=>x.key===key);const o=f&&f.opts&&f.opts.find(o=>o[0]===c[key]);return o&&o[2]?o[2]:'';
+}
+
+/* Display value for a field's current setting. */
+function labelFor(bread,key){
+  const c=cfg[bread],f=FIELDS[bread].find(x=>x.key===key);
+  if(f.type==='temp')return c.temp+'°C';
+  const o=f.opts.find(o=>o[0]==c[key]);return o?o[1]:c[key];
+}
+
+const PEN='<svg class="pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>';
+
+function renderLiving(bread){
+  const view=$(`[data-view="living-${bread}"]`);
+  const c=cfg[bread];
+  const B=BUILD[bread]();
+  const fields=FIELDS[bread];
+  const cards=fields.filter(f=>f.type!=='stepper').map(f=>{
+    const wide=f.wide?' wide':'';
+    return `<button class="spec${wide}" data-edit="${f.key}" aria-label="${f.label}: ${labelFor(bread,f.key)}. Edit."><span class="k">${f.label}</span><span class="v">${labelFor(bread,f.key)}</span>${PEN}</button>`;
+  }).join('');
+  const stepper=fields.filter(f=>f.type==='stepper').map(f=>{
+    const n=+c[f.key],word=f.word[+n>1?1:0];
+    return `<div class="live-step"><span class="lbl">Making ${n} ${word}</span><div class="ctrls">
+      <button class="rnd" data-step="${f.key},-1" ${n<=f.min?'disabled':''} aria-label="Fewer">−</button>
+      <span class="num">${n}</span>
+      <button class="rnd" data-step="${f.key},1" ${n>=f.max?'disabled':''} aria-label="More">+</button></div></div>`;
+  }).join('');
+
+  const totalMass=B.mass.reduce((a,m)=>a+m[1],0);
+  const massbar=B.mass.map(m=>{const pct=m[1]/totalMass*100;return `<div class="${m[2]}" style="flex:${Math.max(pct,3)} 0 0">${pct>13?m[0]+' '+m[1]+'g':''}</div>`;}).join('');
+  const totalMin=B.timeline.reduce((a,i)=>a+i.durMin,0);
+  const totalTxt=totalMin>=120?`≈${Math.round(totalMin/60)} h`:`${totalMin} min`;
+  const hydFn={sour:()=>SOUR_FLOUR[c.flour].hyd,pita:()=>PITA_FLOUR[c.flour].hyd,tort:()=>TORT_FLOUR[c.flour].water,focaccia:()=>FOCACCIA_FLOUR[c.flour].hyd,pizza:()=>PIZZA_FLOUR[c.flour].hyd}[bread];
+  const hyd=hydFn?hydFn():0;
+  const sched=schedule(bread,totalMin);
+  const readyShort=sched.targetD.toLocaleString('en-AU',{hour:'numeric',minute:'2-digit'});
+
+  const statsRow=`<div class="specgrid">
+    <button class="spec" style="cursor:default"><span class="k">Start → finish</span><span class="v">${totalTxt}</span></button>
+    <button class="spec" style="cursor:default"><span class="k">Hydration</span><span class="v">${Math.round(hyd*100)}%</span></button>
+    <button class="spec readytile wide" data-ready="1" aria-label="Ready ${readyShort}. Set a ready time."><svg class="clk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 1.8"/></svg><span class="k">Ready · tap to set</span><span class="v">${readyShort}${c.tmode==='target'?'':' · earliest'}</span></button>
+  </div>`;
+
+  view.innerHTML=`
+   <div class="bar"><button class="back" data-go="home">←</button><span class="crumb">${NAMES[bread]} · living recipe</span></div>
+   <div class="pad"><div class="eyebrow" style="font-family:var(--ui);font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--crust)">Living recipe</div><h1 class="disp">Your ${NAMES[bread].toLowerCase()}.</h1></div>
+   <p class="live-lede">Tap any card to change it — the formula and timeline below update the instant you do.</p>
+   <div class="specgrid">${cards}</div>
+   ${stepper}
+   ${statsRow}
+
+   <h3 class="plansect">Formula</h3>
+   <p class="plansub">Baker's percentages — everything is a fraction of the flour. Scale fearlessly.</p>
+   <div class="massbar">${massbar}</div>
+   <table class="formula">${B.formula.map(r=>`<tr><td><span class="sw ${swatchFor(r[0])}"></span>${r[0]}</td><td class="g">${r[1]}</td><td class="pc">${r[2]}</td></tr>`).join('')}</table>
+   <div class="formula-foot">${B.foot}</div>
+
+   <h3 class="plansect">Timeline</h3>
+   <p class="plansub">${c.tmode==='target'?'Working backwards from your ready time':'Starting now'}${bread==='sour'?' — fridge sleep included':''}. <button data-ready="1" style="background:none;border:none;color:var(--crust);font-family:var(--ui);font-weight:700;font-size:13px;cursor:pointer;padding:0">Change ↗</button></p>
+   <div class="timeline">${(()=>{let t=new Date(sched.startD);let out='';
+     for(const it of B.timeline){const durChip=it.durMin>=120?` <span class="tl-dur">${Math.round(it.durMin/60)} h</span>`:'';out+=`<div class="tl-item${it.sleep?' sleep':''}"><div class="tl-when">${fmtClock(t)}</div><div class="tl-what">${it.label}${durChip}</div></div>`;t=new Date(t.getTime()+it.durMin*60000)}
+     return out+`<div class="tl-item ready"><div class="tl-when">${fmtClock(t)}</div><div class="tl-what"><b>Ready.</b></div></div>`;})()}</div>
+
+   <h3 class="plansect">When it goes sideways</h3>
+   <p class="plansub">Also one tap away mid-bake — look for <b>Something's wrong?</b> in Oven Mode.</p>
+   <div class="plan-tr" style="padding:0 22px">${B.trouble.map(t=>`<details class="tr"><summary>${t.q}</summary><div class="body">${t.a}</div></details>`).join('')}</div>
+   ${sourceCredit(bread)}
+
+   <div class="cta-dock"><button class="cta" data-oven="${bread}"><span>Start baking<span class="sub">Oven Mode — one step at a time, ${B.steps.length} steps</span></span><span class="arrow">→</span></button></div>`;
+  wire(view);
+  view.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openEdit(bread,b.dataset.edit)));
+  view.querySelectorAll('[data-ready]').forEach(b=>b.addEventListener('click',()=>openReady(bread)));
+  view.querySelectorAll('[data-step]').forEach(b=>b.addEventListener('click',()=>{const[key,d]=b.dataset.step.split(',');const f=FIELDS[bread].find(x=>x.key===key);cfg[bread][key]=Math.min(f.max,Math.max(f.min,+cfg[bread][key]+ +d));saveCfg();renderLiving(bread);}));
+}
+
+/* Resolve the schedule: total minutes → start & target Date, honouring tmode/ttarget. */
+function schedule(bread,totalMin){
+  const c=cfg[bread],now=new Date();
+  if(c.tmode==='target'&&c.ttarget){
+    let targetD=new Date(c.ttarget);
+    const earliest=new Date(now.getTime()+totalMin*60000);
+    let canMake=true;
+    if(targetD.getTime()<earliest.getTime()){canMake=false;targetD=earliest;}
+    return {startD:new Date(targetD.getTime()-totalMin*60000),targetD,canMake};
+  }
+  return {startD:now,targetD:new Date(now.getTime()+totalMin*60000),canMake:true};
+}
+
+/* ── editors (warm bottom sheet) ── */
+function showEdit(){$('#edit').classList.add('show')}
+function hideEdit(){$('#edit').classList.remove('show')}
+
+function openEdit(bread,key){
+  const f=FIELDS[bread].find(x=>x.key===key);
+  $('#edit-label').textContent=f.label;
+  const body=$('#edit-body');
+  if(f.type==='temp'){
+    const c=cfg[bread];
+    body.innerHTML=`<div class="edit-dial">
+      <div class="read"><span id="edit-tval">${c.temp}</span><small>°C</small></div>
+      <input type="range" min="16" max="32" value="${c.temp}" id="edit-trange" aria-label="Kitchen temperature">
+      <div class="dial-cue" id="edit-tcue">${tempCue(c.temp)}</div></div>
+      <div class="edit-note" id="edit-tnote">${whisperPlain(noteFor(bread,'temp'))}</div>`;
+    const range=$('#edit-trange');
+    range.addEventListener('input',()=>{cfg[bread].temp=+range.value;$('#edit-tval').textContent=range.value;$('#edit-tcue').innerHTML=tempCue(+range.value);$('#edit-tnote').innerHTML=whisperPlain(noteFor(bread,'temp'));});
+    range.addEventListener('change',()=>{saveCfg();renderLiving(bread);});
+  } else {
+    const note=noteFor(bread,key);
+    body.innerHTML=`<div>${f.opts.map(o=>{const on=cfg[bread][key]==o[0];return `<button class="edit-opt${on?' on':''}" data-v="${o[0]}"><span class="orow"><span class="nm">${o[1]}</span>${on?'<span class="tick">✓</span>':''}</span>${o[2]?`<span class="tag">${o[2]}</span>`:''}</button>`;}).join('')}</div>
+      ${note?`<div class="edit-note">${note}</div>`:''}`;
+    body.querySelectorAll('.edit-opt').forEach(b=>b.addEventListener('click',()=>{cfg[bread][key]=b.dataset.v;saveCfg();hideEdit();renderLiving(bread);}));
+  }
+  showEdit();
+}
+
+const MEALS=[['Breakfast','7:00am',7,0],['Lunch','12:30pm',12,30],['Dinner','6:30pm',18,30]];
+const DAYS=[['Tomorrow',1],['In 2 days',2],['In 3 days',3]];
+/* derive dayOffset/hour from a stored ttarget so the picker reflects saved state */
+function readyState(bread){
+  const c=cfg[bread];
+  if(c.tmode!=='target'||!c.ttarget)return{mode:'now'};
+  const d=new Date(c.ttarget),now=new Date();
+  const off=Math.round((new Date(d).setHours(0,0,0,0)-new Date(now).setHours(0,0,0,0))/86400000);
+  return{mode:'target',dayOffset:off,hour:d.getHours(),min:d.getMinutes()};
+}
+function setReadyTarget(bread,dayOffset,hour,min){
+  const d=new Date();d.setDate(d.getDate()+dayOffset);d.setHours(hour,min,0,0);
+  cfg[bread].tmode='target';cfg[bread].ttarget=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);saveCfg();
+}
+function openReady(bread){
+  $('#edit-label').textContent='When do you want it ready?';
+  drawReady(bread);showEdit();
+}
+function drawReady(bread){
+  const rd=readyState(bread);
+  const B=BUILD[bread]();const totalMin=B.timeline.reduce((a,i)=>a+i.durMin,0);
+  const totalTxt=totalMin>=120?`≈${Math.round(totalMin/60)} h`:`${totalMin} min`;
+  const sched=schedule(bread,totalMin);
+  const seg=(name,m)=>`<button class="${rd.mode===m?'on':''}" data-rmode="${m}">${name}</button>`;
+  const target=rd.mode==='target'?`
+    <div class="rd-h">Which day</div>
+    <div class="rdchips">${DAYS.map(d=>`<button class="${rd.dayOffset===d[1]?'on':''}" data-rday="${d[1]}">${d[0]}</button>`).join('')}</div>
+    <div class="rd-h">What time</div>
+    <div class="rdtimes">${MEALS.map(m=>`<button class="${rd.hour===m[2]&&rd.min===m[3]?'on':''}" data-rtime="${m[2]},${m[3]}"><span class="nm">${m[0]}</span><span class="sub">${m[1]}</span></button>`).join('')}</div>`:'';
+  const result=sched.canMake?`
+    <div class="rk">Your schedule</div>
+    <div class="rb">Start ${bread==='sour'||bread==='pizza'?'the levain':'mixing'} <b>${fmtClock(sched.startD)}</b>, and it's ready <b>${fmtClock(sched.targetD)}</b>.</div>
+    <div class="rt">${totalTxt} start to finish — nearly all of it hands-off waiting.</div>`:`
+    <div class="rk">Not quite enough time</div>
+    <div class="rb">This ${NAMES[bread].toLowerCase()} needs <b>${totalTxt}</b>. The earliest it can be ready is <b>${fmtClock(sched.targetD)}</b> — I've set that for you.</div>`;
+  $('#edit-body').innerHTML=`
+    <div class="rdseg">${seg('Start now','now')}${seg('Ready by…','target')}</div>
+    ${target}
+    <div class="rdresult">${result}</div>
+    <button class="edit-done" id="edit-done">Done</button>`;
+  const body=$('#edit-body');
+  body.querySelectorAll('[data-rmode]').forEach(b=>b.addEventListener('click',()=>{
+    if(b.dataset.rmode==='now'){cfg[bread].tmode='now';saveCfg();}
+    else{const cur=readyState(bread);setReadyTarget(bread,cur.dayOffset||1,cur.hour??7,cur.min??0);}
+    drawReady(bread);renderLiving(bread);}));
+  body.querySelectorAll('[data-rday]').forEach(b=>b.addEventListener('click',()=>{const cur=readyState(bread);setReadyTarget(bread,+b.dataset.rday,cur.hour??7,cur.min??0);drawReady(bread);renderLiving(bread);}));
+  body.querySelectorAll('[data-rtime]').forEach(b=>b.addEventListener('click',()=>{const[h,m]=b.dataset.rtime.split(',').map(Number);const cur=readyState(bread);setReadyTarget(bread,cur.dayOffset||1,h,m);drawReady(bread);renderLiving(bread);}));
+  $('#edit-done').addEventListener('click',hideEdit);
+}
+/* strip the swatch span the dial cue prepends when shown inside a note block */
+function whisperPlain(html){return html||''}
 
 /* ═══════════════ router + wiring ═══════════════ */
 function show(v){
@@ -1316,37 +1439,13 @@ function show(v){
   window.scrollTo({top:0});
 }
 function go(v){
-  if(v.startsWith('setup-'))renderSetup(v.slice(6));
-  if(v.startsWith('plan-'))renderPlan(v.slice(5));
+  if(v.startsWith('living-'))renderLiving(v.slice(7));
   show(v);
 }
 function wire(root){
+  // Navigation only — the living screen wires its own spec cards / editors / stepper.
   root.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
   root.querySelectorAll('[data-oven]').forEach(b=>b.addEventListener('click',()=>enterOven(b.dataset.oven)));
-  root.querySelectorAll('.opts[data-cfg],.schedrow[data-cfg],.cards[data-cfg],.seg[data-cfg]').forEach(group=>{
-    const [bread,key]=group.dataset.cfg.split('.');
-    group.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
-      group.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
-      b.classList.add('on');cfg[bread][key]=b.dataset.v;saveCfg();
-      if(key==='tmode'){
-        const dt=group.querySelector('input[type=datetime-local]')||document.querySelector(`input[data-cfg="${bread}.ttarget"]`);
-        if(dt){dt.style.display=b.dataset.v==='target'?'inline-block':'none';
-          if(b.dataset.v==='target'&&!dt.value){const d=new Date(Date.now()+26*3600000);d.setMinutes(0);
-            dt.value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);cfg[bread].ttarget=dt.value}}
-        renderPlan(bread);show('plan-'+bread);return;
-      }
-      if(document.querySelector(`[data-view="plan-${bread}"]`).classList.contains('on')){renderPlan(bread);show('plan-'+bread)}
-      else refreshNotes(bread);
-    }));
-  });
-  root.querySelectorAll('input[type=range][data-cfg]').forEach(r=>{
-    const [bread,key]=r.dataset.cfg.split('.');
-    r.addEventListener('input',()=>{cfg[bread][key]=+r.value;saveCfg();refreshNotes(bread)});
-  });
-  root.querySelectorAll('input[type=datetime-local][data-cfg]').forEach(d=>{
-    const [bread,key]=d.dataset.cfg.split('.');
-    d.addEventListener('change',()=>{cfg[bread][key]=d.value;saveCfg();renderPlan(bread);show('plan-'+bread)});
-  });
 }
 wire(document.querySelector('[data-view="home"]'));
 </script>
